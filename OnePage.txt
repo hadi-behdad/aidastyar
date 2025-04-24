@@ -129,11 +129,6 @@
                             <span>چاقی شدید</span>
                         </div>
                         <div class="bmi-scale">
-                            <div class="underweight"></div>
-                            <div class="normal"></div>
-                            <div class="overweight"></div>
-                            <div class="obese"></div>
-                            <div class="extremely-obese"></div>
                             <div id="bmi-indicator" class="bmi-indicator"></div>
                         </div>
                     </div>
@@ -1369,6 +1364,7 @@ h2 {
     padding: 15px 20px;
     text-align: center;
     box-shadow: 0 -2px 10px var(--shadow-color);
+    display: none;
 }
 
 button.next-step {
@@ -2009,6 +2005,18 @@ button.next-step:disabled {
         padding: 12px;
         font-size: 14px;
     }
+}
+
+.step[data-step="3"] ~ #next-button-container,
+.step[data-step="4"] ~ #next-button-container,
+.step[data-step="5"] ~ #next-button-container,
+.step[data-step="6"] ~ #next-button-container,
+.step[data-step="7"] ~ #next-button-container,
+.step[data-step="10"] ~ #next-button-container,
+.step[data-step="11"] ~ #next-button-container,
+.step[data-step="12"] ~ #next-button-container,
+.step[data-step="13"] ~ #next-button-container {
+    display: block;
 }
 -----------------------------------------------------------------------------------------------------
 <?php
