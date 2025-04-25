@@ -52,7 +52,7 @@
             <h2>هدفت از رژیم غذایی چیه؟</h2>
             <div id="goal-selection">
                 <div class="goal-option" data-goal="weight-loss">
-                    <img src="assets/images/png/lose-weight-min.png" alt="کاهش وزن" width="60" height="30">
+                    <img src="assets/images/png/gain-weight-min.png" alt="کاهش وزن" width="60" height="30">
                     <span>کاهش وزن (به وزن ایده‌آل برسم)</span>
                 </div>
                 <div class="goal-option" data-goal="weight-gain">
@@ -146,7 +146,7 @@
                 <div class="separator-dotted"></div>
                 <div class="info-box">
                     <div class="info-content">
-                        <img src="assets/images/png/weight-min.png" width="30" height="30" alt="وزن هدف">
+                        <img src="assets/images/png/gain-weight-min.png" width="30" height="30" alt="وزن هدف">
                         <div class="info-text">
                             <span class="first-line">وزن هدف شما را می‌پرسیم تا برنامه مناسب برای رسیدن به آن را طراحی کنیم.</span>
                             <span class="second-line">لطفاً وزن واقع‌بینانه‌ای را وارد کنید که با قد و ساختار بدنی شما تناسب داشته باشد</span>
@@ -504,7 +504,7 @@ document.addEventListener("DOMContentLoaded", () => {
                                     } else if (context.dataIndex === context.dataset.data.length - 1) {
                                         return `وزن هدف: ${context.raw.toFixed(1)} کیلوگرم`;
                                     }
-                                    return '';
+                                    return null;
                                 }
                             },
                             titleFont: {
@@ -1158,16 +1158,6 @@ body {
     overflow: hidden;
 }
 
-@media (max-width: 1032px) {
-    #header-container {
-        padding: 10px 15px;
-    }
-    
-    #progress-bar-container {
-        width: calc(100% - 30px);
-    }
-}
-
 #progress-bar {
     height: 100%;
     width: 0%;
@@ -1210,12 +1200,6 @@ h2 {
     margin-left: auto;
     padding-right: 15px;
     box-sizing: border-box;
-}
-
-@media (min-width: 768px) {
-    h2 {
-        padding-right: 0;
-    }
 }
 
 .input-container {
@@ -1497,7 +1481,6 @@ button.next-step:disabled {
     width: 100%;
     padding-bottom: 20px;
     max-width: 500px;
-    
     margin: 20px auto;
     box-sizing: border-box;
 }
@@ -1595,14 +1578,6 @@ button.next-step:disabled {
     margin: 20px auto;
 }
 
-@media (min-width: 768px) {
-    .terms-combined {
-        max-width: 500px;
-        margin-left: auto;
-        margin-right: auto;
-    }
-}
-
 .terms-combined {
     margin: 15px 0;
     border: 1px solid var(--border-color);
@@ -1692,20 +1667,6 @@ button.next-step:disabled {
 .checked-animation {
     animation: pulseGlow 0.8s ease;
     border-color: var(--orange-color);
-}
-
-@media (min-width: 768px) {
-    body {
-        background-color: var(--white-color);
-    }
-    
-    .input-container,
-    #goal-selection,
-    #activity-selection,
-    #meal-selection,
-    button.next-step {
-        width: 500px;
-    }
 }
 
 .info-text {
@@ -1946,14 +1907,17 @@ button.next-step:disabled {
 #goal-result {
     width: 100%;
     max-width: 600px;
-    margin: 30px auto;
+    margin: 0 auto;
     text-align: center;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
 }
 
 .chart-container {
     position: relative;
     width: 100%;
-    height: 400px;
+    flex: 1;
     min-height: 300px;
     margin: 0 auto;
     opacity: 0;
@@ -1967,7 +1931,7 @@ button.next-step:disabled {
 }
 
 .chart-message {
-    margin-top: 30px;
+    margin-top: 15px;
     padding: 15px;
     background-color: rgba(0, 133, 122, 0.1);
     border-radius: 8px;
@@ -1976,20 +1940,46 @@ button.next-step:disabled {
     color: var(--text-color);
     border-right: 3px solid var(--primary-color);
     text-align: justify;
+    margin-bottom: 20px;
 }
 
 @media (min-width: 768px) {
+    body {
+        background-color: var(--white-color);
+    }
+    
+    .input-container,
+    #goal-selection,
+    #activity-selection,
+    #meal-selection,
+    button.next-step {
+        width: 500px;
+    }
+    
+    #empty-step-after-6 {
+        height: calc(100vh - 160px); /* ارتفاع کمتر در موبایل */
+    }
+    
     .chart-container {
-        height: 400px;
+        min-height: 250px;
     }
     
     .chart-message {
-        font-size: 16px;
-        padding: 20px;
+        font-size: 14px;
+        padding: 12px;
+        margin-top: 10px;
     }
 }
 
 @media (max-width: 768px) {
+    #header-container {
+        padding: 10px 15px;
+    }
+    
+    #progress-bar-container {
+        width: calc(100% - 30px);
+    }
+    
     .chart-container {
         height: 60vh !important;
         max-height: 500px;
