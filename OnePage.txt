@@ -156,11 +156,7 @@
             </div>
         </div> 
         <div id="empty-step-after-6" class="step">
-            <div id="goal-result">
-                <div class="chart-container">
-                    <canvas id="goal-chart"></canvas>
-                </div>
-                <div class="chart-message"></div>
+            <div class="step7-image-container">
             </div>
         </div>
         <div id="activity-selection-step" class="step">
@@ -356,232 +352,177 @@ document.addEventListener("DOMContentLoaded", () => {
             "final-step"
         ];
         
-        document.querySelectorAll(".step").forEach(el => el.classList.remove("active"));
+        document.querySelectorAll(".step").forEach(el => {
+            el.classList.remove("active");
+            if (el.id === "empty-step-after-6") {
+                el.style.display = 'none';
+                if (!el.classList.contains("active")) {
+                    el.querySelector('.step7-image-container').innerHTML = '';
+                }
+            }
+        });
+        
+        
         const currentStepElement = document.getElementById(stepElements[step - 1]);
-        if (currentStepElement) currentStepElement.classList.add("active");
+        if (currentStepElement) {
+            currentStepElement.classList.add("active");
+            if (currentStepElement.id === "empty-step-after-6") {
+                currentStepElement.style.display = 'flex';
+            }
+        }
 
         if (step === 7) {
-            const goal = state.formData.goal;
-            const ctx = document.getElementById('goal-chart').getContext('2d');
-            const messageEl = document.querySelector('.chart-message');
-            const currentWeight = state.formData.weight;
-            const targetWeight = state.formData.targetWeight;
+            const imageContainer = document.querySelector('#empty-step-after-6 .step7-image-container');
+            let imageHtml = '';
             
-            if (window.goalChart) {
-                window.goalChart.destroy();
-            }
-
-            const pointsCount = 7;
-            const dataPoints = [];
-            const labels = Array(pointsCount).fill('');
-
-            if (goal === 'weight-loss') {
-                const totalLoss = currentWeight - targetWeight;
-                for (let i = 0; i < pointsCount; i++) {
-                    const progress = i / (pointsCount - 1);
-                    const easedProgress = 1 - Math.pow(1 - progress, 1.5);
-                    dataPoints.push(currentWeight - (totalLoss * easedProgress));
-                }
-            } else if (goal === 'weight-gain') {
-                const totalGain = targetWeight - currentWeight;
-                for (let i = 0; i < pointsCount; i++) {
-                    const progress = i / (pointsCount - 1);
-                    const easedProgress = Math.pow(progress, 1.5);
-                    dataPoints.push(currentWeight + (totalGain * easedProgress));
-                }
-            } else {
-                const totalChange = Math.abs(targetWeight - currentWeight);
-                for (let i = 0; i < pointsCount; i++) {
-                    const progress = i / (pointsCount - 1);
-                    const easedProgress = progress < 0.5 
-                        ? 2 * Math.pow(progress, 1.5)
-                        : 1 - Math.pow(-2 * progress + 2, 1.5) / 2;
-                    dataPoints.push(
-                        currentWeight > targetWeight 
-                            ? currentWeight - (totalChange * easedProgress)
-                            : currentWeight + (totalChange * easedProgress)
-                    );
-                }
-            }
-
-            const isMobile = window.innerWidth <= 768;
-            const chartHeight = isMobile ? Math.min(window.innerHeight * 0.5, 400) : 400;
-
-            const chartConfigs = {
-                'weight-loss': {
-                    type: 'line',
-                    data: {
-                        labels: labels,
-                        datasets: [{
-                            label: 'روند تغییر وزن',
-                            data: dataPoints,
-                            borderColor: '#ff6b6b',
-                            backgroundColor: 'rgba(255, 107, 107, 0.1)',
-                            borderWidth: 3,
-                            tension: 0.4,
-                            fill: true,
-                            pointBackgroundColor: ['#ff6b6b', ...Array(pointsCount-2).fill('#ff6b6b55'), '#ff6b6b'],
-                            pointBorderColor: ['#ff6b6b', ...Array(pointsCount-2).fill('#ff6b6b55'), '#ff6b6b'],
-                            pointRadius: [5, ...Array(pointsCount-2).fill(3), 5],
-                            pointHoverRadius: [7, ...Array(pointsCount-2).fill(5), 7],
-                            pointHoverBorderWidth: [2, ...Array(pointsCount-2).fill(1), 2]
-                        }]
-                    },
-                    options: getChartOptions('روند کاهش وزن شما', chartHeight),
-                    message: `وزن فعلی: ${currentWeight} کیلوگرم | وزن هدف: ${targetWeight} کیلوگرم`
-                },
-                'weight-gain': {
-                    type: 'line',
-                    data: {
-                        labels: labels,
-                        datasets: [{
-                            label: 'روند تغییر وزن',
-                            data: dataPoints,
-                            borderColor: '#66bb6a',
-                            backgroundColor: 'rgba(102, 187, 106, 0.1)',
-                            borderWidth: 3,
-                            tension: 0.4,
-                            fill: true,
-                            pointBackgroundColor: ['#66bb6a', ...Array(pointsCount-2).fill('#66bb6a55'), '#66bb6a'],
-                            pointBorderColor: ['#66bb6a', ...Array(pointsCount-2).fill('#66bb6a55'), '#66bb6a'],
-                            pointRadius: [5, ...Array(pointsCount-2).fill(3), 5],
-                            pointHoverRadius: [7, ...Array(pointsCount-2).fill(5), 7],
-                            pointHoverBorderWidth: [2, ...Array(pointsCount-2).fill(1), 2]
-                        }]
-                    },
-                    options: getChartOptions('روند افزایش وزن شما', chartHeight),
-                    message: `وزن فعلی: ${currentWeight} کیلوگرم | وزن هدف: ${targetWeight} کیلوگرم`
-                },
-                'fitness': {
-                    type: 'line',
-                    data: {
-                        labels: labels,
-                        datasets: [{
-                            label: 'روند تغییر وزن',
-                            data: dataPoints,
-                            borderColor: '#ffee58',
-                            backgroundColor: 'rgba(255, 238, 88, 0.1)',
-                            borderWidth: 3,
-                            tension: 0.4,
-                            fill: true,
-                            pointBackgroundColor: ['#ffee58', ...Array(pointsCount-2).fill('#ffee5855'), '#ffee58'],
-                            pointBorderColor: ['#ffee58', ...Array(pointsCount-2).fill('#ffee5855'), '#ffee58'],
-                            pointRadius: [5, ...Array(pointsCount-2).fill(3), 5],
-                            pointHoverRadius: [7, ...Array(pointsCount-2).fill(5), 7],
-                            pointHoverBorderWidth: [2, ...Array(pointsCount-2).fill(1), 2]
-                        }]
-                    },
-                    options: getChartOptions('روند تناسب اندام شما', chartHeight),
-                    message: `وزن فعلی: ${currentWeight} کیلوگرم | وزن هدف: ${targetWeight} کیلوگرم`
-                }
-            };
-
-            function getChartOptions(title, height) {
-                return {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        title: {
-                            display: true,
-                            text: title,
-                            font: {
-                                family: 'Vazir',
-                                size: isMobile ? 16 : 18
-                            },
-                            padding: {
-                                top: 10,
-                                bottom: 20
-                            }
-                        },
-                        legend: {
-                            display: false
-                        },
-                        tooltip: {
-                            callbacks: {
-                                label: function(context) {
-                                    if (context.dataIndex === 0) {
-                                        return `وزن فعلی: ${context.raw.toFixed(1)} کیلوگرم`;
-                                    } else if (context.dataIndex === context.dataset.data.length - 1) {
-                                        return `وزن هدف: ${context.raw.toFixed(1)} کیلوگرم`;
-                                    }
-                                    return null;
-                                }
-                            },
-                            titleFont: {
-                                family: 'Vazir',
-                                size: isMobile ? 12 : 14
-                            },
-                            bodyFont: {
-                                family: 'Vazir',
-                                size: isMobile ? 12 : 14
-                            },
-                            footerFont: {
-                                family: 'Vazir'
-                            },
-                            displayColors: false,
-                            padding: isMobile ? 8 : 12
-                        },
-                        animation: {
-                            duration: 1500,
-                            easing: 'easeOutQuart'
-                        }
-                    },
-                    scales: {
-                        y: {
-                            beginAtZero: false,
-                            min: Math.min(currentWeight, targetWeight) - 5,
-                            max: Math.max(currentWeight, targetWeight) + 5,
-                            ticks: {
-                                callback: function(value) {
-                                    return value + ' کیلوگرم';
-                                },
-                                font: {
-                                    size: isMobile ? 12 : 14
-                                },
-                                padding: isMobile ? 5 : 10
-                            },
-                            grid: {
-                                drawBorder: false
-                            }
-                        },
-                        x: {
-                            grid: {
-                                display: false
-                            },
-                            ticks: {
-                                font: {
-                                    size: isMobile ? 12 : 14
-                                }
-                            }
-                        }
-                    },
-                    elements: {
-                        line: {
-                            cubicInterpolationMode: 'monotone'
-                        },
-                        point: {
-                            hitRadius: 10
-                        }
-                    },
-                    layout: {
-                        padding: {
-                            left: isMobile ? 5 : 10,
-                            right: isMobile ? 5 : 10,
-                            top: isMobile ? 5 : 10,
-                            bottom: isMobile ? 5 : 10
-                        }
-                    }
-                };
+            if (state.formData.goal === 'weight-loss') {
+                imageHtml = `
+                    <svg width="360px" height="170px" viewBox="0 0 360 170" preserveAspectRatio="xMidYMid slice">
+                        <image width="360px" height="170px" preserveAspectRatio="xMidYMid slice" 
+                               xlink:href="https://unimeal.com/_next/static/assets/mijXyvmJg9hdywp0sptlp/animations/personal-forecast/lose/m/images/img_0.png"></image>
+                    </svg>
+                `;
+            } else if (state.formData.goal === 'weight-gain') {
+                imageHtml = `
+                    <svg width="592px" height="392px" viewBox="0 0 592 392" preserveAspectRatio="xMidYMid slice">
+                        <defs>
+                            <clipPath id="clip-path">
+                                <rect width="592" height="392" x="0" y="0"></rect>
+                            </clipPath>
+                            <filter id="thicken-lines" x="-20%" y="-20%" width="140%" height="140%">
+                                <feMorphology operator="dilate" radius="1.5" />
+                            </filter>
+                            
+                            <!-- ماسک اصلی برای خط -->
+                            <mask id="line-mask">
+                                <rect width="100%" height="100%" fill="black" />
+                                <rect width="0" height="100%" fill="white">
+                                    <animate attributeName="width" from="0" to="592" dur="3s" fill="freeze" />
+                                </rect>
+                            </mask>
+                            
+                            <!-- ماسک‌های جداگانه برای نقاط و فلش‌ها -->
+                            <mask id="points-mask">
+                                <rect width="100%" height="100%" fill="black" />
+                                <rect width="0" height="100%" fill="white">
+                                    <animate attributeName="width" from="0" to="592" dur="3s" begin="0s" fill="freeze" />
+                                </rect>
+                            </mask>
+                            
+                            <mask id="arrow-mask">
+                                <rect width="100%" height="100%" fill="black" />
+                                <rect width="0" height="100%" fill="white">
+                                    <animate attributeName="width" from="0" to="592" dur="3s" begin="0s" fill="freeze" />
+                                </rect>
+                            </mask>
+                        </defs>            
+                        
+                        <g clip-path="url(#clip-path)">
+                            <!-- تصویر اصلی با افکت نمایش تدریجی -->
+                            <g class="png" transform="matrix(1,0,0,1,4.5,64)" opacity="1" style="display: block;">
+                                <image width="592px" height="394px" preserveAspectRatio="xMidYMid slice" 
+                                       xlink:href="assets/images/png/img_1-min.png" filter="url(#thicken-lines)" mask="url(#line-mask)"></image>
+                            </g>
+                            
+                            <!-- نقاط و اشکال گرافیکی با افکت‌های تدریجی -->
+                            <g mask="url(#points-mask)">
+                                <g transform="matrix(1,0,0,1,182.5,126.5)" opacity="1" style="display: block;">
+                                    <g opacity="1" transform="matrix(1,0,0,1,0,0)">
+                                        <path fill="rgb(255,255,255)" fill-opacity="1" d="M0,0 C0,0 0,0 0,0 C0,0 0,0 0,0 C0,0 0,0 0,0 C0,0 0,0 0,0 C0,0 0,0 0,0 C0,0 0,0 0,0 C0,0 0,0 0,0z"></path>
+                                        <path stroke-linecap="butt" stroke-linejoin="miter" fill-opacity="0" stroke-miterlimit="4" 
+                                              stroke="rgb(248,205,62)" stroke-opacity="1" stroke-width="0" 
+                                              d="M0,0 C0,0 0,0 0,0 C0,0 0,0 0,0 C0,0 0,0 0,0 C0,0 0,0 0,0 C0,0 0,0 0,0 C0,0 0,0 0,0 C0,0 0,0 0,0z"></path>
+                                    </g>
+                                </g>
+                                
+                                <g transform="matrix(1,0,0,1,0.938,62)" opacity="1" style="display: block;">
+                                    <g opacity="1" transform="matrix(1,0,0,1,181.5,66.59)">
+                                        <path stroke-linecap="butt" stroke-linejoin="miter" fill-opacity="0" stroke-miterlimit="4" 
+                                              stroke="rgb(255,255,255)" stroke-opacity="1" stroke-width="6" d="M0 0"></path>
+                                    </g>
+                                </g>
+                                
+                                <!-- نقاط رنگی با اندازه دو برابر -->
+                                <g style="display: block;" transform="matrix(0.996,0,0,0.996,185,11.705)" opacity="1">
+                                    <g opacity="1" transform="matrix(2,0,0,2,258,55.25)">
+                                        <path fill="rgb(91,190,170)" fill-opacity="1" 
+                                              d="M0,-7.5 C4.142,-7.5 7.5,-4.142 7.5,0 C7.5,4.142 4.142,7.5 0,7.5 C-4.142,7.5 -7.5,4.142 -7.5,0 C-7.5,-4.142 -4.142,-7.5 0,-7.5z"></path>
+                                        <path stroke-linecap="butt" stroke-linejoin="miter" fill-opacity="0" stroke-miterlimit="4" 
+                                              stroke="rgb(255,255,255)" stroke-opacity="1" stroke-width="3" 
+                                              d="M0,-7.5 C4.142,-7.5 7.5,-4.142 7.5,0 C7.5,4.142 4.142,7.5 0,7.5 C-4.142,7.5 -7.5,4.142 -7.5,0 C-7.5,-4.142 -4.142,-7.5 0,-7.5z"></path>
+                                    </g>
+                                </g>
+                                
+                                <g style="display: block;" transform="matrix(0.999,0,0,0.999,150,50)" opacity="1">
+                                    <g opacity="1" transform="matrix(2,0,0,2,206,96.25)">
+                                        <path fill="rgb(209,223,173)" fill-opacity="1" 
+                                              d="M0,-7.5 C4.142,-7.5 7.5,-4.142 7.5,0 C7.5,4.142 4.142,7.5 0,7.5 C-4.142,7.5 -7.5,4.142 -7.5,0 C-7.5,-4.142 -4.142,-7.5 0,-7.5z"></path>
+                                        <path stroke-linecap="butt" stroke-linejoin="miter" fill-opacity="0" stroke-miterlimit="4" 
+                                              stroke="rgb(255,255,255)" stroke-opacity="1" stroke-width="3" 
+                                              d="M0,-7.5 C4.142,-7.5 7.5,-4.142 7.5,0 C7.5,4.142 4.142,7.5 0,7.5 C-4.142,7.5 -7.5,4.142 -7.5,0 C-7.5,-4.142 -4.142,-7.5 0,-7.5z"></path>
+                                    </g>
+                                </g>
+                                
+                                <g style="display: block;" transform="matrix(0.999,0,0,0.999,110,48)" opacity="1">
+                                    <g opacity="1" transform="matrix(2,0,0,2,138,107)">
+                                        <path fill="rgb(253,231,166)" fill-opacity="1" 
+                                              d="M0,-7.5 C4.142,-7.5 7.5,-4.142 7.5,0 C7.5,4.142 4.142,7.5 0,7.5 C-4.142,7.5 -7.5,4.142 -7.5,0 C-7.5,-4.142 -4.142,-7.5 0,-7.5z"></path>
+                                        <path stroke-linecap="butt" stroke-linejoin="miter" fill-opacity="0" stroke-miterlimit="4" 
+                                              stroke="rgb(255,255,255)" stroke-opacity="1" stroke-width="3" 
+                                              d="M0,-7.5 C4.142,-7.5 7.5,-4.142 7.5,0 C7.5,4.142 4.142,7.5 0,7.5 C-4.142,7.5 -7.5,4.142 -7.5,0 C-7.5,-4.142 -4.142,-7.5 0,-7.5z"></path>
+                                    </g>
+                                </g>
+                                
+                                <g style="display: block;" transform="matrix(0.999,0,0,0.999,60,80)" opacity="1">
+                                    <g opacity="1" transform="matrix(2,0,0,2,85,142)">
+                                        <path fill="rgb(255,174,156)" fill-opacity="1" 
+                                              d="M0,-7.5 C4.142,-7.5 7.5,-4.142 7.5,0 C7.5,4.142 4.142,7.5 0,7.5 C-4.142,7.5 -7.5,4.142 -7.5,0 C-7.5,-4.142 -4.142,-7.5 0,-7.5z"></path>
+                                        <path stroke-linecap="butt" stroke-linejoin="miter" fill-opacity="0" stroke-miterlimit="4" 
+                                              stroke="rgb(255,255,255)" stroke-opacity="1" stroke-width="3" 
+                                              d="M0,-7.5 C4.142,-7.5 7.5,-4.142 7.5,0 C7.5,4.142 4.142,7.5 0,7.5 C-4.142,7.5 -7.5,4.142 -7.5,0 C-7.5,-4.142 -4.142,-7.5 0,-7.5z"></path>
+                                    </g>
+                                </g>
+                                
+                                <g style="display: block;" transform="matrix(0.999,0,0,0.999,2.5,105)" opacity="1">
+                                    <g opacity="1" transform="matrix(2,0,0,2,38,174.25)">
+                                        <path fill="rgb(249,139,148)" fill-opacity="1" 
+                                              d="M0,-7.5 C4.142,-7.5 7.5,-4.142 7.5,0 C7.5,4.142 4.142,7.5 0,7.5 C-4.142,7.5 -7.5,4.142 -7.5,0 C-7.5,-4.142 -4.142,-7.5 0,-7.5z"></path>
+                                        <path stroke-linecap="butt" stroke-linejoin="miter" fill-opacity="0" stroke-miterlimit="4" 
+                                              stroke="rgb(255,255,255)" stroke-opacity="1" stroke-width="3" 
+                                              d="M0,-7.5 C4.142,-7.5 7.5,-4.142 7.5,0 C7.5,4.142 4.142,7.5 0,7.5 C-4.142,7.5 -7.5,4.142 -7.5,0 C-7.5,-4.142 -4.142,-7.5 0,-7.5z"></path>
+                                    </g>
+                                </g>
+                            </g>
+                            
+                            <g mask="url(#arrow-mask)">
+                                <g transform="matrix(0.843,0,0,0.843,284,20.139)" opacity="1" style="display: block;">
+                                    <g opacity="1" transform="matrix(2,0,0,2,352.833,55.25)">
+                                        <path fill="rgb(18,156,144)" fill-opacity="1" 
+                                              d="M5.667,-0.866 C6.334,-0.481 6.334,0.481 5.667,0.866 C5.667,0.866 -4.833,6.928 -4.833,6.928 C-5.5,7.313 -6.333,6.832 -6.333,6.062 C-6.333,6.062 -6.333,-6.062 -6.333,-6.062 C-6.333,-6.832 -5.5,-7.313 -4.833,-6.928 C-4.833,-6.928 5.667,-0.866 5.667,-0.866z"></path>
+                                    </g>
+                                </g>
+                            </g>
+                        </g>
+                        
+                        <!-- تصویر دوم -->
+                        <g class="png" transform="matrix(1,0,0,1,4.5,64)" style="display: block;">
+                            <image width="592px" height="392px" preserveAspectRatio="xMidYMid slice" 
+                                   xlink:href="assets/images/png/img_0-min.png" opacity="0">
+                                <animate attributeName="opacity" from="0" to="1" dur="3s" fill="freeze" />
+                            </image>
+                        </g>
+                    </svg>
+                `;
+            } else { // تناسب اندام
+                imageHtml = `
+                    <svg width="592px" height="392px" viewBox="0 0 592 392" preserveAspectRatio="xMidYMid slice">
+                        <image width="592px" height="392px" preserveAspectRatio="xMidYMid slice" 
+                               xlink:href="https://unimeal.com/_next/static/assets/TeY9zNdRoIqBNnGAl9OEr/animations/personal-forecast/gain/d/images/img_0.png"></image>
+                    </svg>
+                `;
             }
             
-            const chartContainer = document.querySelector('.chart-container');
-            chartContainer.style.height = `${chartHeight}px`;
-            chartContainer.style.minHeight = '300px';
-            
-            window.goalChart = new Chart(ctx, chartConfigs[goal]);
-            messageEl.textContent = chartConfigs[goal].message;
-            
-            chartContainer.classList.add('animate-chart');
+            imageContainer.innerHTML = imageHtml;
         }
         
         const nextButtonContainer = document.getElementById("next-button-container");
@@ -2007,6 +1948,46 @@ button.next-step:disabled {
 .step[data-step="12"] ~ #next-button-container,
 .step[data-step="13"] ~ #next-button-container {
     display: block;
+}
+
+
+#empty-step-after-6 {
+    display: none;
+    justify-content: center;
+    align-items: center;
+    min-height: 200px;
+    padding: 20px;
+}
+
+.step.active#empty-step-after-6 {
+    display: flex; 
+}
+
+.step7-image-container {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+}
+
+.step7-image-container svg {
+    max-width: 100%;
+    height: auto;
+}
+
+/* استایل مخصوص حالت افزایش وزن */
+.step7-image-container svg[width="592px"] image:nth-child(2) {
+    transform: translateX(-50%);
+}
+
+@media (max-width: 768px) {
+    .step7-image-container svg {
+        width: 100%;
+        height: auto;
+    }
+    
+    .step7-image-container svg[width="592px"] image:nth-child(2) {
+        transform: none;
+    }
 }
 -----------------------------------------------------------------------------------------------------
 <?php
