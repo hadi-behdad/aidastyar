@@ -155,8 +155,11 @@
                 </div>
             </div>
         </div> 
-        <div id="empty-step-after-6" class="step">
+        <div id="goal-weight-display" class="step">
             <div class="step7-image-container">
+                <div class="goal-title-container">
+                    <h2 class="goal-title" id="goal-title-text">هدف: در حال بارگذاری...</h2>
+                </div>
                 <div class="weight-display-container">
                     <div class="weight-display-box current-weight">
                         <div class="weight-value">${state.formData.weight || 0}</div>
@@ -371,7 +374,7 @@ document.addEventListener("DOMContentLoaded", () => {
             "height-input-step",
             "weight-input-step",
             "target-weight-step",
-            "empty-step-after-6",
+            "goal-weight-display",
             "activity-selection-step",
             "meal-selection-step",
             "additional-info-step",
@@ -382,7 +385,7 @@ document.addEventListener("DOMContentLoaded", () => {
         
         document.querySelectorAll(".step").forEach(el => {
             el.classList.remove("active");
-            if (el.id === "empty-step-after-6") {
+            if (el.id === "goal-weight-display") {
                 el.style.display = 'none';
                 if (!el.classList.contains("active")) {
                     el.querySelector('.step7-image-container').innerHTML = '';
@@ -394,13 +397,24 @@ document.addEventListener("DOMContentLoaded", () => {
         const currentStepElement = document.getElementById(stepElements[step - 1]);
         if (currentStepElement) {
             currentStepElement.classList.add("active");
-            if (currentStepElement.id === "empty-step-after-6") {
+            if (currentStepElement.id === "goal-weight-display") {
                 currentStepElement.style.display = 'flex';
             }
         }
 
         if (step === 7) {
-            const imageContainer = document.querySelector('#empty-step-after-6 .step7-image-container');
+        const goalTitleElement = document.getElementById('goal-title-text');
+        if (goalTitleElement) {
+            const goalText = {
+                "weight-loss": "هدف: کاهش وزن",
+                "weight-gain": "هدف: افزایش وزن", 
+                "fitness": "هدف: تناسب اندام"
+            }[state.formData.goal];
+            
+            goalTitleElement.textContent = goalText || "هدف: مشخص نشده";
+        }
+    
+            const imageContainer = document.querySelector('#goal-weight-display .step7-image-container');
             let imageHtml = '';
             
             if (state.formData.goal === 'weight-loss') {
@@ -668,6 +682,13 @@ document.addEventListener("DOMContentLoaded", () => {
             }
             
             imageContainer.innerHTML = `
+                <div class="goal-title-container">
+                    <h2 class="goal-title" id="goal-title-text">
+                        ${state.formData.goal === 'weight-loss' ? 'کاهش وزن' : 
+                          state.formData.goal === 'weight-gain' ? 'افزایش وزن' : 
+                          'تناسب اندام'}
+                    </h2>
+                </div>           
                 ${imageHtml}
                 <div class="weight-display-container">
                     <div class="weight-display-box target-weight">
@@ -710,11 +731,38 @@ document.addEventListener("DOMContentLoaded", () => {
             3: { field: "age", min: 5, max: 100, unit: "سال", label: "سن", errorId: "age-error" },
             4: { field: "height", min: 100, max: 250, unit: "سانتی‌متر", label: "قد", errorId: "height-error" },
             5: { field: "weight", min: 30, max: 300, unit: "کیلوگرم", label: "وزن", errorId: "weight-error" },
-            6: { field: "targetWeight", min: 30, max: 300, unit: "کیلوگرم", label: "وزن هدف", errorId: "targetWeight-error" }
+            6: { 
+                field: "targetWeight", 
+                min: 30, 
+                max: 300, 
+                unit: "کیلوگرم", 
+                label: "وزن هدف", 
+                errorId: "targetWeight-error",
+                customValidation: (value) => {
+                    const currentWeight = state.formData.weight;
+                    const goal = state.formData.goal;
+                    
+                    if (!currentWeight) return true;
+                    
+                    if (goal === "weight-loss" && value >= currentWeight) {
+                        return `برای کاهش وزن، وزن هدف باید کمتر از وزن فعلی (${currentWeight} کیلوگرم) باشد`;
+                    }
+                    
+                    if (goal === "weight-gain" && value <= currentWeight) {
+                        return `برای افزایش وزن، وزن هدف باید بیشتر از وزن فعلی (${currentWeight} کیلوگرم) باشد`;
+                    }
+                    
+                    if (goal === "fitness" && Math.abs(value - currentWeight) > 20) {
+                        return `برای تناسب اندام، وزن هدف باید حداکثر ۲۰ کیلوگرم با وزن فعلی تفاوت داشته باشد`;
+                    }
+                    
+                    return true;
+                }
+            }
         };
-    
+        
         if (errorMessages[step]) {
-            const { field, min, max, unit, label, errorId } = errorMessages[step];
+            const { field, min, max, unit, label, errorId, customValidation } = errorMessages[step];
             const value = state.formData[field];
             const errorElement = document.getElementById(errorId);
             
@@ -723,15 +771,29 @@ document.addEventListener("DOMContentLoaded", () => {
                 return;
             }
     
-            if (value >= min && value <= max) {
-                errorElement.innerHTML = `<span class="tick-icon"></span> مقدار وارد شده معتبر است.`;
-                errorElement.classList.add("valid");
-                nextButton.disabled = false;
-            } else {
+            // اعتبارسنجی اولیه برای محدوده عددی
+            if (value < min || value > max) {
                 errorElement.textContent = `${label} باید بین ${min} تا ${max} ${unit} وارد شود`;
                 errorElement.classList.remove("valid");
                 nextButton.disabled = true;
+                return;
             }
+            
+            // اعتبارسنجی سفارشی برای وزن هدف
+            if (step === 6 && customValidation) {
+                const validationResult = customValidation(value);
+                if (validationResult !== true) {
+                    errorElement.textContent = validationResult;
+                    errorElement.classList.remove("valid");
+                    nextButton.disabled = true;
+                    return;
+                }
+            }
+            
+            // اگر همه چیز درست بود
+            errorElement.innerHTML = `<span class="tick-icon"></span> مقدار وارد شده معتبر است.`;
+            errorElement.classList.add("valid");
+            nextButton.disabled = false;
         }
     };
 
@@ -2056,7 +2118,7 @@ button.next-step:disabled {
         width: 500px;
     }
     
-    #empty-step-after-6 {
+    #goal-weight-display {
         height: calc(100vh - 160px); /* ارتفاع کمتر در موبایل */
     }
     
@@ -2110,7 +2172,7 @@ button.next-step:disabled {
 }
 
 
-#empty-step-after-6 {
+#goal-weight-display {
     display: none;
     justify-content: center;
     align-items: center;
@@ -2119,7 +2181,7 @@ button.next-step:disabled {
     padding-top: 0px;
 }
 
-.step.active#empty-step-after-6 {
+.step.active#goal-weight-display {
     display: flex; 
 }
 
@@ -2273,6 +2335,62 @@ button.next-step:disabled {
     .weight-label {
         font-size: 10px;
     }
+}
+
+.goal-title-container {
+    width: 100%;
+    text-align: center;
+}
+
+.goal-title {
+    font-size: 18px;
+    color: #00857a;
+    margin: 0;
+    padding: 8px 15px;
+    display: inline-block;
+}
+
+.goal-title::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 100px;
+    height: 3px;
+    background: linear-gradient(90deg, #00857a, #00b4a0);
+    border-radius: 3px;
+}
+
+@media (max-width: 768px) {
+    .goal-title {
+        font-size: 18px;
+        padding-top: 20px;
+    }
+}
+
+@media (max-width: 768px) {
+    .goal-title-container {
+        display: block;
+    }
+}
+
+@media (min-width: 769px) {
+    .goal-title-container {
+        display: none;
+    }
+}
+
+#goal-title-text {
+    opacity: 0;
+    transform: translateY(20px);
+    transition: all 0.5s ease-out;
+    text-align: center;
+}
+
+.step.active #goal-title-text {
+    opacity: 1;
+    transform: translateY(0);
 }
 -----------------------------------------------------------------------------------------------------
 <?php
