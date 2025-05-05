@@ -155,10 +155,22 @@
                 </div>
             </div>
         </div> 
-        <div id="empty-step-after-6" class="step">
-            <div class="step7-image-container">
+<div id="empty-step-after-6" class="step">
+    <div class="step7-image-container">
+        <div class="weight-display-container">
+            <div class="weight-display-box current-weight">
+                <div class="weight-value">${state.formData.weight || 0}</div>
+                <div class="weight-unit">کیلوگرم</div>
+                <div class="weight-label">وزن فعلی شما</div>
+            </div>
+            <div class="weight-display-box target-weight">
+                <div class="weight-value">${state.formData.targetWeight || 0}</div>
+                <div class="weight-unit">کیلوگرم</div>
+                <div class="weight-label">وزن هدف شما</div>
             </div>
         </div>
+    </div>
+</div>
         <div id="activity-selection-step" class="step">
             <h2>میزان فعالیت روزانه شما چقدر است؟</h2>
             <div id="activity-selection">
@@ -522,7 +534,21 @@ document.addEventListener("DOMContentLoaded", () => {
                 `;
             }
             
-            imageContainer.innerHTML = imageHtml;
+    imageContainer.innerHTML = `
+        ${imageHtml}
+        <div class="weight-display-container">
+            <div class="weight-display-box target-weight">
+                <div class="weight-value">${state.formData.targetWeight || 0}</div>
+                <div class="weight-unit">کیلوگرم</div>
+                <div class="weight-label">وزن هدف</div>
+            </div>
+            <div class="weight-display-box current-weight">
+                <div class="weight-value">${state.formData.weight || 0}</div>
+                <div class="weight-unit">کیلوگرم</div>
+                <div class="weight-label">وزن فعلی</div>
+            </div>
+        </div>
+    `;
         }
         
         const nextButtonContainer = document.getElementById("next-button-container");
@@ -1957,6 +1983,7 @@ button.next-step:disabled {
     align-items: center;
     min-height: 200px;
     padding: 20px;
+    padding-top: 0px;
 }
 
 .step.active#empty-step-after-6 {
@@ -1966,7 +1993,10 @@ button.next-step:disabled {
 .step7-image-container {
     width: 100%;
     display: flex;
-    justify-content: center;
+    flex-direction: column;
+    align-items: center;
+    gap: 30px;
+    padding: 0px;
 }
 
 .step7-image-container svg {
@@ -1987,6 +2017,128 @@ button.next-step:disabled {
     
     .step7-image-container svg[width="592px"] image:nth-child(2) {
         transform: none;
+    }
+}
+
+
+.weight-display-container {
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+    max-width: 500px;
+    margin: 0px auto 0;
+    padding: 0 0px;
+    box-sizing: border-box;
+}
+
+.weight-display-box {
+    width: calc(50% - 5px);
+    height: 90px;
+    background: linear-gradient(135deg, #f5f7fa 0%, #e4e8eb 100%);
+    border-radius: 10px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    padding: 12px;
+    border: 1px solid rgba(0, 133, 122, 0.1);
+    position: relative;
+    overflow: hidden;
+}
+
+.weight-display-box.current-weight::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 4px;
+    background: linear-gradient(90deg, #ff929a, #ffe0e3);
+}
+
+.weight-display-box.target-weight::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 4px;
+    background: linear-gradient(90deg, #00857a, #00b4a0);
+}
+
+.weight-value {
+    font-size: 26px;
+    font-weight: bold;
+    line-height: 1;
+    margin-bottom: 4px;
+    font-family: 'BordeauxBlack', sans-serif;
+}
+
+.weight-display-box.current-weight .weight-value {
+    color: #ff9099;
+}
+
+.weight-display-box.target-weight .weight-value {
+    color: #00857a;
+}
+
+.weight-unit {
+    font-size: 12px;
+    color: #666;
+    margin-bottom: 6px;
+}
+
+.weight-label {
+    font-size: 11px;
+    color: #888;
+    text-align: center;
+    padding-top: 5px;
+    border-top: 1px dashed rgba(0, 0, 0, 0.1);
+    width: 100%;
+}
+
+@media (max-width: 500px) {
+    .weight-display-container {
+        /*width: calc(100% - 40px);*/
+        max-width: 100%;
+        padding: 0;
+        gap: 8px;
+    }
+    
+    .weight-display-box {
+        width: calc(50% - 4px);
+        height: 85px;
+        padding: 10px;
+    }
+}
+
+@media (max-width: 480px) {
+    .weight-display-container {
+        flex-direction: row;
+        gap: 8px;
+        padding: 0 0px;
+    }
+    
+    .weight-display-box {
+        width: 42%;
+        height: 85px;
+        padding: 10px;
+    }
+    
+    .weight-value {
+        font-size: 24px;
+    }
+    
+    .weight-unit {
+        font-size: 11px;
+    }
+    
+    .weight-label {
+        font-size: 10px;
     }
 }
 -----------------------------------------------------------------------------------------------------
