@@ -308,15 +308,25 @@
     </form>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="assets/js/script.js"></script>
+    <script src="assets/js/form-validation.js"></script>
+    <script src="assets/js/form-steps.js"></script>
+    <script src="assets/js/form-inputs.js"></script>
+    <script src="assets/js/form-events.js"></script>
 </body>
 </html>
 -----------------------------------------------------------------------------------------------------
-// /home/aidastya/public_html/wp-content/themes/woodmart-child/assets/js/script.js
+// /home/aidastya/public_html/wp-content/themes/woodmart-child/assets/js/form-events.js
+window.handleNextStep = function() {
+    if (window.state.currentStep < window.totalSteps) {
+        window.navigateToStep(window.state.currentStep + 1);
+    }
+};
+
 function preloadImages() {
     const images = [
-        'assets/images/png/img_0_de-min.png',
+        'assets/images/webp/img_0_de-min.webp',
         'assets/images/png/img_1_de-min.png',
-        'assets/images/png/img_0-min.png',
+        'assets/images/webp/img_0-min.webp',
         'assets/images/png/img_1-min.png'
     ];
     
@@ -326,6 +336,248 @@ function preloadImages() {
     });
 }
 
+function setupAdditionalInfoSelection(currentStep) {
+    const checkboxes = document.querySelectorAll('#additional-info-selection .real-checkbox');
+    const nextButton = document.querySelector('.next-step');
+    const noneCheckbox = document.getElementById('info-none');
+    
+    if (currentStep !== 10) return;
+
+    nextButton.disabled = true;
+
+    const validateForm = () => {
+        const anyChecked = Array.from(checkboxes).some(cb => cb.checked);
+        nextButton.disabled = !anyChecked;
+        
+        const additionalInfo = [];
+        if (document.getElementById('info-diabetes').checked) additionalInfo.push('diabetes');
+        if (document.getElementById('info-pressure').checked) additionalInfo.push('pressure');
+        if (document.getElementById('info-thyroid').checked) additionalInfo.push('thyroid');
+        if (document.getElementById('info-allergy').checked) additionalInfo.push('allergy');
+        if (document.getElementById('info-none').checked) additionalInfo.push('none');
+        
+        state.updateFormData('additionalInfo', additionalInfo);
+    };
+
+    checkboxes.forEach(checkbox => {
+        const handleCheckboxChange = function() {
+            if (this === noneCheckbox && this.checked) {
+                checkboxes.forEach(cb => {
+                    if (cb !== noneCheckbox) {
+                        cb.checked = false;
+                        cb.nextElementSibling.classList.remove('checked');
+                    }
+                });
+            } else if (this.checked) {
+                noneCheckbox.checked = false;
+                noneCheckbox.nextElementSibling.classList.remove('checked');
+            }
+            
+            const label = this.nextElementSibling;
+            label.classList.add('checked-animation');
+            
+            setTimeout(() => {
+                label.classList.remove('checked-animation');
+                if (this.checked) {
+                    label.classList.add('checked');
+                } else {
+                    label.classList.remove('checked');
+                }
+            }, 800);
+            
+            validateForm();
+        };
+        
+        checkbox.addEventListener('change', handleCheckboxChange);
+    });
+
+    validateForm();
+}
+
+function setupFoodRestrictionSelection(currentStep) {
+    const checkboxes = document.querySelectorAll('#food-restriction-selection .real-checkbox');
+    const nextButton = document.querySelector('.next-step');
+    const noneCheckbox = document.getElementById('restriction-none');
+    
+    if (currentStep !== 11) return;
+
+    nextButton.disabled = true;
+
+    const validateForm = () => {
+        const anyChecked = Array.from(checkboxes).some(cb => cb.checked);
+        nextButton.disabled = !anyChecked;
+        
+        const foodRestrictions = [];
+        if (document.getElementById('restriction-vegetarian').checked) foodRestrictions.push('vegetarian');
+        if (document.getElementById('restriction-no-seafood').checked) foodRestrictions.push('no-seafood');
+        if (document.getElementById('restriction-none').checked) foodRestrictions.push('none');
+        
+        state.updateFormData('foodRestrictions', foodRestrictions);
+    };
+
+    checkboxes.forEach(checkbox => {
+        const handleCheckboxChange = function() {
+            if (this === noneCheckbox && this.checked) {
+                checkboxes.forEach(cb => {
+                    if (cb !== noneCheckbox) {
+                        cb.checked = false;
+                        cb.nextElementSibling.classList.remove('checked');
+                    }
+                });
+            } else if (this.checked) {
+                noneCheckbox.checked = false;
+                noneCheckbox.nextElementSibling.classList.remove('checked');
+            }
+            
+            const label = this.nextElementSibling;
+            label.classList.add('checked-animation');
+            
+            setTimeout(() => {
+                label.classList.remove('checked-animation');
+                if (this.checked) {
+                    label.classList.add('checked');
+                } else {
+                    label.classList.remove('checked');
+                }
+            }, 800);
+            
+            validateForm();
+        };
+        
+        checkbox.addEventListener('change', handleCheckboxChange);
+    });
+
+    validateForm();
+}
+
+function setupConfirmationCheckbox(currentStep) {
+    const nextButton = document.querySelector('.next-step');
+    const confirmCheckbox = document.getElementById('confirm-info');
+    
+    if (currentStep !== 12) return;
+
+    nextButton.disabled = !confirmCheckbox.checked;
+
+    const validateForm = () => {
+        nextButton.disabled = !confirmCheckbox.checked;
+    };
+
+    confirmCheckbox.addEventListener('change', function() {
+        const label = this.nextElementSibling;
+        label.classList.add('checked-animation');
+        
+        setTimeout(() => {
+            label.classList.remove('checked-animation');
+            if (this.checked) {
+                label.classList.add('checked');
+            } else {
+                label.classList.remove('checked');
+            }
+        }, 800);
+        
+        validateForm();
+    });
+
+    validateForm();
+}
+
+function handleFormSubmit(event) {
+    event.preventDefault();
+    
+    const formData = {
+        ...state.formData,
+        diabetes: state.formData.additionalInfo?.includes('diabetes') || false,
+        pressure: state.formData.additionalInfo?.includes('pressure') || false,
+        thyroid: state.formData.additionalInfo?.includes('thyroid') || false,
+        allergy: state.formData.additionalInfo?.includes('allergy') || false,
+        vegetarian: state.formData.foodRestrictions?.includes('vegetarian') || false,
+        noSeafood: state.formData.foodRestrictions?.includes('no-seafood') || false
+    };
+    
+    console.log('Form submitted:', formData);
+}
+
+function showSummary() {
+    const summaryContainer = document.getElementById('summary-container');
+    const nextButton = document.querySelector('.next-step');
+    const confirmCheckbox = document.getElementById('confirm-info');
+    
+    nextButton.disabled = true;
+    
+    confirmCheckbox.addEventListener('change', function() {
+        nextButton.disabled = !this.checked;
+    });
+
+    const { gender, age, height, weight, targetWeight, goal, activity, meals, additionalInfo = [], foodRestrictions = [] } = state.formData;
+    const goalText = { "weight-loss": "کاهش وزن", "weight-gain": "افزایش وزن", "fitness": "تناسب اندام"}[goal];
+    const activityText = { "very-low": "خیلی کم (کمتر از 1 ساعت)", "low": "کم (1 تا 2 ساعت)", "medium": "متوسط (2 تا 4 ساعت)", "high": "زیاد (بیشتر از 4 ساعت)" }[activity];
+    const mealsText = { "2": "۲ وعده", "3": "۳ وعده", "4": "۴ وعده", "more": "بیشتر" }[meals];
+    
+    const additionalInfoText = additionalInfo.map(item => {
+        switch(item) {
+            case 'diabetes': return 'دیابت';
+            case 'pressure': return 'فشار خون';
+            case 'thyroid': return 'مشکلات تیروئید';
+            case 'allergy': return 'حساسیت غذایی';
+            case 'none': return 'هیچکدام';
+            default: return item;
+        }
+    });
+    
+    const foodRestrictionsText = foodRestrictions.map(item => {
+        switch(item) {
+            case 'vegetarian': return 'گیاهخواری';
+            case 'no-seafood': return 'عدم مصرف غذای دریایی';
+            case 'none': return 'بدون محدودیت';
+            default: return item;
+        }
+    });
+    
+    summaryContainer.innerHTML = `
+        <div class="summary-item">
+            <span class="summary-label">جنسیت:</span>
+            <span class="summary-value">${gender === "male" ? "مرد" : "زن"}</span>
+        </div>
+        <div class="summary-item">
+            <span class="summary-label">سن:</span>
+            <span class="summary-value">${age} سال</span>
+        </div>
+        <div class="summary-item">
+            <span class="summary-label">قد:</span>
+            <span class="summary-value">${height} سانتی‌متر</span>
+        </div>
+        <div class="summary-item">
+            <span class="summary-label">وزن فعلی:</span>
+            <span class="summary-value">${weight} کیلوگرم</span>
+        </div>
+        <div class="summary-item">
+            <span class="summary-label">وزن هدف:</span>
+            <span class="summary-value">${targetWeight || 'ثبت نشده'} کیلوگرم</span>
+        </div>
+        <div class="summary-item">
+            <span class="summary-label">هدف:</span>
+            <span class="summary-value">${goalText}</span>
+        </div>
+        <div class="summary-item">
+            <span class="summary-label">فعالیت روزانه:</span>
+            <span class="summary-value">${activityText}</span>
+        </div>
+        <div class="summary-item">
+            <span class="summary-label">تعداد وعده‌های غذایی:</span>
+            <span class="summary-value">${mealsText}</span>
+        </div>
+        <div class="summary-item">
+            <span class="summary-label">اطلاعات تکمیلی:</span>
+            <span class="summary-value">${additionalInfoText.join('، ') || 'ثبت نشده'}</span>
+        </div>
+        <div class="summary-item">
+            <span class="summary-label">محدودیت‌های غذایی:</span>
+            <span class="summary-value">${foodRestrictionsText.join('، ') || 'ثبت نشده'}</span>
+        </div>
+    `;
+}
+
+// Initialize event listeners
 window.addEventListener('load', preloadImages);
 
 document.addEventListener("DOMContentLoaded", () => {
@@ -349,624 +601,6 @@ document.addEventListener("DOMContentLoaded", () => {
     confirmCheckbox.addEventListener("change", updateGenderOptionsState);
     updateGenderOptionsState();
     
-    const totalSteps = document.querySelectorAll(".step").length;
-    const state = {
-        currentStep: 1,
-        formData: {},
-        updateStep(step) {
-            this.currentStep = step;
-            showStep(step);
-            updateStepCounter(step);
-            updateProgressBar(step);
-        },
-        updateFormData(key, value) {
-            this.formData[key] = value;
-            validateStep(this.currentStep);
-        }
-    };
-    
-    const showStep = (step) => {
-        const stepElements = [
-            "gender-selection-step",
-            "goal-selection-step",
-            "age-input-step", 
-            "height-input-step",
-            "weight-input-step",
-            "target-weight-step",
-            "goal-weight-display",
-            "activity-selection-step",
-            "meal-selection-step",
-            "additional-info-step",
-            "food-restriction-step",
-            "confirm-submit-step"
-        ];
-        
-        document.querySelectorAll(".step").forEach(el => {
-            el.classList.remove("active");
-            if (el.id === "goal-weight-display") {
-                el.style.display = 'none';
-                if (!el.classList.contains("active")) {
-                    el.querySelector('.step7-image-container').innerHTML = '';
-                }
-            }
-        });
-        
-        const currentStepElement = document.getElementById(stepElements[step - 1]);
-        if (currentStepElement) {
-            currentStepElement.classList.add("active");
-            if (currentStepElement.id === "goal-weight-display") {
-                currentStepElement.style.display = 'flex';
-            }
-        }
-
-        if (step === 7) {
-            const goalTitleElement = document.getElementById('goal-title-text');
-            if (goalTitleElement) {
-                const goalText = {
-                    "weight-loss": "هدف: کاهش وزن",
-                    "weight-gain": "هدف: افزایش وزن", 
-                    "fitness": "هدف: تناسب اندام"
-                }[state.formData.goal];
-                
-                goalTitleElement.textContent = goalText || "هدف: مشخص نشده";
-            }
-        
-            const imageContainer = document.querySelector('#goal-weight-display .step7-image-container');
-            let svgFile = '';
-            
-            if (state.formData.goal === 'weight-loss') {
-                svgFile = 'assets/images/svg/weight-loss.svg';
-            } else if (state.formData.goal === 'weight-gain' || state.formData.goal === 'fitness') {
-                svgFile = 'assets/images/svg/weight-gain.svg';
-            }
-            
-            imageContainer.innerHTML = `
-                <div class="goal-title-container">
-                    <h2 class="goal-title" id="goal-title-text">
-                        ${state.formData.goal === 'weight-loss' ? 'کاهش وزن' : 
-                          state.formData.goal === 'weight-gain' ? 'افزایش وزن' : 
-                          'تناسب اندام'}
-                    </h2>
-                </div>
-                <object type="image/svg+xml" data="${svgFile}" class="goal-svg"></object>
-                <div class="weight-display-container">
-                    <div class="weight-display-box target-weight">
-                        <div class="weight-value">${state.formData.targetWeight || 0}</div>
-                        <div class="weight-unit">کیلوگرم</div>
-                        <div class="weight-label">وزن هدف</div>
-                    </div>
-                    <div class="weight-display-box current-weight">
-                        <div class="weight-value">${state.formData.weight || 0}</div>
-                        <div class="weight-unit">کیلوگرم</div>
-                        <div class="weight-label">وزن فعلی</div>
-                    </div>
-                </div>
-            `;
-        }
-        
-        const nextButtonContainer = document.getElementById("next-button-container");
-        if (nextButtonContainer) nextButtonContainer.style.display = [1, 2, 8, 9].includes(step) ? "none" : "block";
-    
-        if ([3, 4, 5, 6].includes(step)) {
-            const inputId = `${["age", "height", "weight", "target-weight"][step - 3]}-input`;
-            const inputElement = document.getElementById(inputId);
-            if (inputElement) inputElement.focus();
-            
-            const nextButton = document.querySelector(".next-step");
-            if (nextButton) nextButton.disabled = true;
-            
-            validateStep(step);
-        }
-        
-        if (step === 10) {
-            setupAdditionalInfoSelection(step);
-        } else if (step === 11) {
-            setupFoodRestrictionSelection(step);
-        } else if (step === 12) {
-            showSummary();
-            setupConfirmationCheckbox(step);
-            document.getElementById("next-button-container").style.display = "none";
-            document.getElementById("submit-button-container").style.display = "block";
-        }
-    };
-    
-    const validateStep = (step) => {
-        const nextButton = document.querySelector(".next-step");
-        const errorMessages = {
-            3: { field: "age", min: 5, max: 100, unit: "سال", label: "سن", errorId: "age-error" },
-            4: { field: "height", min: 100, max: 250, unit: "سانتی‌متر", label: "قد", errorId: "height-error" },
-            5: { field: "weight", min: 30, max: 300, unit: "کیلوگرم", label: "وزن", errorId: "weight-error" },
-            6: { 
-                field: "targetWeight", 
-                min: 30, 
-                max: 300, 
-                unit: "کیلوگرم", 
-                label: "وزن هدف", 
-                errorId: "targetWeight-error",
-                customValidation: (value) => {
-                    const currentWeight = state.formData.weight;
-                    const goal = state.formData.goal;
-                    
-                    if (!currentWeight) return true;
-                    
-                    if (goal === "weight-loss" && value >= currentWeight) {
-                        return `برای کاهش وزن، وزن هدف باید کمتر از وزن فعلی (${currentWeight} کیلوگرم) باشد`;
-                    }
-                    
-                    if (goal === "weight-gain" && value <= currentWeight) {
-                        return `برای افزایش وزن، وزن هدف باید بیشتر از وزن فعلی (${currentWeight} کیلوگرم) باشد`;
-                    }
-                    
-                    if (goal === "fitness" && Math.abs(value - currentWeight) > 20) {
-                        return `برای تناسب اندام، وزن هدف باید حداکثر ۲۰ کیلوگرم با وزن فعلی تفاوت داشته باشد`;
-                    }
-                    
-                    return true;
-                }
-            }
-        };
-        
-        if (errorMessages[step]) {
-            const { field, min, max, unit, label, errorId, customValidation } = errorMessages[step];
-            const value = state.formData[field];
-            const errorElement = document.getElementById(errorId);
-            
-            if (!errorElement) {
-                console.error(`Element with id ${errorId} not found`);
-                return;
-            }
-    
-            // اگر مقداری وارد نشده باشد
-            if (value === undefined || value === null || value === "") {
-                errorElement.textContent = "";
-                errorElement.classList.remove("valid");
-                if (nextButton) nextButton.disabled = true;
-                return;
-            }
-            
-            // اعتبارسنجی اولیه برای محدوده عددی
-            if (value < min || value > max) {
-                errorElement.textContent = `${label} باید بین ${min} تا ${max} ${unit} وارد شود`;
-                errorElement.classList.remove("valid");
-                if (nextButton) nextButton.disabled = true;
-                return;
-            }
-            
-            // اعتبارسنجی سفارشی برای وزن هدف
-            if (step === 6 && customValidation) {
-                const validationResult = customValidation(value);
-                if (validationResult !== true) {
-                    errorElement.textContent = validationResult;
-                    errorElement.classList.remove("valid");
-                    if (nextButton) nextButton.disabled = true;
-                    return;
-                }
-            }
-            
-            // اگر همه چیز درست بود
-            errorElement.innerHTML = `<span class="tick-icon"></span> مقدار وارد شده معتبر است.`;
-            errorElement.classList.add("valid");
-            if (nextButton) nextButton.disabled = false;
-        }
-    };
-
-    const updateStepCounter = (step) => {
-        document.getElementById("current-step").textContent = step;
-        document.getElementById("total-steps").textContent = totalSteps;
-    };
-
-    const updateProgressBar = (step) => {
-        const progress = ((step - 1) / (totalSteps - 1)) * 100;
-        document.getElementById("progress-bar").style.width = `${progress}%`;
-    };
-
-    const navigateToStep = (step) => {
-        if (step >= 1 && step <= totalSteps) {
-            state.updateStep(step);
-            history.pushState({ step: state.currentStep }, "", `#step-${state.currentStep}`);
-        }
-    };
-
-    const handleNextStep = () => {
-        if (state.currentStep < totalSteps) navigateToStep(state.currentStep + 1);
-    };
-
-    const handleBackStep = () => {
-        if (state.currentStep > 1) navigateToStep(state.currentStep - 1);
-    };
-
-    const handleEnterKey = (event) => {
-        if (event.key === "Enter" && event.target.matches("input[type='text']")) {
-            event.preventDefault();
-            document.querySelector(".next-step").click();
-        }
-    };
-
-    const showSummary = () => {
-        const summaryContainer = document.getElementById('summary-container');
-        const nextButton = document.querySelector('.next-step');
-        const confirmCheckbox = document.getElementById('confirm-info');
-        
-        nextButton.disabled = true;
-        
-        confirmCheckbox.addEventListener('change', function() {
-            nextButton.disabled = !this.checked;
-        });
-    
-        const { gender, age, height, weight, targetWeight, goal, activity, meals, additionalInfo = [], foodRestrictions = [] } = state.formData;
-        const goalText = { "weight-loss": "کاهش وزن", "weight-gain": "افزایش وزن", "fitness": "تناسب اندام"}[goal];
-        const activityText = { "very-low": "خیلی کم (کمتر از 1 ساعت)", "low": "کم (1 تا 2 ساعت)", "medium": "متوسط (2 تا 4 ساعت)", "high": "زیاد (بیشتر از 4 ساعت)" }[activity];
-        const mealsText = { "2": "۲ وعده", "3": "۳ وعده", "4": "۴ وعده", "more": "بیشتر" }[meals];
-        
-        const additionalInfoText = additionalInfo.map(item => {
-            switch(item) {
-                case 'diabetes': return 'دیابت';
-                case 'pressure': return 'فشار خون';
-                case 'thyroid': return 'مشکلات تیروئید';
-                case 'allergy': return 'حساسیت غذایی';
-                case 'none': return 'هیچکدام';
-                default: return item;
-            }
-        });
-        
-        const foodRestrictionsText = foodRestrictions.map(item => {
-            switch(item) {
-                case 'vegetarian': return 'گیاهخواری';
-                case 'no-seafood': return 'عدم مصرف غذای دریایی';
-                case 'none': return 'بدون محدودیت';
-                default: return item;
-            }
-        });
-        
-        summaryContainer.innerHTML = `
-            <div class="summary-item">
-                <span class="summary-label">جنسیت:</span>
-                <span class="summary-value">${gender === "male" ? "مرد" : "زن"}</span>
-            </div>
-            <div class="summary-item">
-                <span class="summary-label">سن:</span>
-                <span class="summary-value">${age} سال</span>
-            </div>
-            <div class="summary-item">
-                <span class="summary-label">قد:</span>
-                <span class="summary-value">${height} سانتی‌متر</span>
-            </div>
-            <div class="summary-item">
-                <span class="summary-label">وزن فعلی:</span>
-                <span class="summary-value">${weight} کیلوگرم</span>
-            </div>
-            <div class="summary-item">
-                <span class="summary-label">وزن هدف:</span>
-                <span class="summary-value">${targetWeight || 'ثبت نشده'} کیلوگرم</span>
-            </div>
-            <div class="summary-item">
-                <span class="summary-label">هدف:</span>
-                <span class="summary-value">${goalText}</span>
-            </div>
-            <div class="summary-item">
-                <span class="summary-label">فعالیت روزانه:</span>
-                <span class="summary-value">${activityText}</span>
-            </div>
-            <div class="summary-item">
-                <span class="summary-label">تعداد وعده‌های غذایی:</span>
-                <span class="summary-value">${mealsText}</span>
-            </div>
-            <div class="summary-item">
-                <span class="summary-label">اطلاعات تکمیلی:</span>
-                <span class="summary-value">${additionalInfo.join('، ') || 'ثبت نشده'}</span>
-            </div>
-            <div class="summary-item">
-                <span class="summary-label">محدودیت‌های غذایی:</span>
-                <span class="summary-value">${foodRestrictions.join('، ') || 'ثبت نشده'}</span>
-            </div>
-            <div class="summary-item">
-                <span class="summary-label">اطلاعات تکمیلی:</span>
-                <span class="summary-value">${additionalInfoText.join('، ') || 'ثبت نشده'}</span>
-            </div>
-            <div class="summary-item">
-                <span class="summary-label">محدودیت‌های غذایی:</span>
-                <span class="summary-value">${foodRestrictionsText.join('، ') || 'ثبت نشده'}</span>
-            </div>            
-        `;
-    };
-
-    const setupInput = (inputId, displayId, field) => {
-        const input = document.getElementById(inputId);
-        const display = document.getElementById(displayId);
-        const nextButton = document.querySelector(".next-step");
-    
-        // غیرفعال کردن دکمه در ابتدا
-        if (nextButton) nextButton.disabled = true;
-    
-        const updateDisplay = (value) => {
-            display.textContent = value ? `${value} ${field === "age" ? "سال" : field === "height" ? "سانتی‌متر" : "کیلوگرم"}` : `0 ${field === "age" ? "سال" : field === "height" ? "سانتی‌متر" : "کیلوگرم"}`;
-            display.style.color = value ? "#000" : "#999";
-            state.updateFormData(field, value ? parseInt(value) : null);
-            
-            if (field === "weight" && state.formData.height && value) {
-                calculateBMI(state.formData.height, parseInt(value));
-            }
-        };
-
-        input.addEventListener("input", () => {
-            let value = input.value.replace(/\D/g, "");
-            if (field === "age" && value.length > 2) value = value.slice(0, 2);
-            else if ((field === "height" || field === "weight") && value.length > 3) value = value.slice(0, 3);
-            input.value = value;
-            updateDisplay(value);
-            if (input.type === "text") setTimeout(() => input.setSelectionRange(value.length, value.length), 0);
-            validateStep(state.currentStep);
-        });
-
-        input.addEventListener("click", () => {
-            const value = input.value.replace(/\D/g, "");
-            if (input.type === "text") input.setSelectionRange(value.length, value.length);
-        });
-
-        input.addEventListener("blur", () => {
-            const value = input.value.trim();
-            if (!value) updateDisplay("");
-            validateStep(state.currentStep);
-        });
-    };
-
-    const calculateBMI = (height, weight) => {
-        const heightInMeters = height / 100;
-        const bmiValue = document.getElementById('bmi-value');
-        const bmiCategory = document.getElementById('bmi-category');
-        const bmiIndicator = document.getElementById('bmi-indicator');
-        const bmiContainer = document.getElementById('bmi-result-container');
-        
-        if (!weight || weight === 0) {
-            bmiContainer.style.opacity = '0.5';
-            bmiIndicator.style.display = 'none';
-            bmiValue.textContent = '0';
-            bmiCategory.textContent = '';
-            return;
-        } else {
-            bmiContainer.style.opacity = '1';
-            bmiIndicator.style.display = 'block';
-        }
-        
-        const bmi = (weight / (heightInMeters * heightInMeters)).toFixed(1);
-        bmiValue.textContent = bmi;
-        
-        const categories = [
-            { max: 18.5, text: 'کمبود وزن', color: '#4fc3f7' },
-            { max: 25, text: 'وزن نرمال', color: '#66bb6a' },
-            { max: 30, text: 'اضافه وزن', color: '#ffee58' },
-            { max: 35, text: 'چاق', color: '#ffa726' },
-            { max: Infinity, text: 'چاقی شدید', color: '#ef5350' }
-        ];
-        
-        const category = categories.find(c => bmi < c.max);
-        bmiCategory.textContent = category.text;
-        bmiCategory.style.color = category.color;
-        
-        let position;
-        if (bmi < 18.5) {
-            position = (bmi / 18.5) * 20;
-        } else if (bmi < 25) {
-            position = 20 + ((bmi - 18.5) / 6.5) * 20;
-        } else if (bmi < 30) {
-            position = 40 + ((bmi - 25) / 5) * 20;
-        } else if (bmi < 35) {
-            position = 60 + ((bmi - 30) / 5) * 20;
-        } else {
-            position = 80 + ((Math.min(bmi, 50) - 35) / 15) * 20;
-        }
-        
-        bmiIndicator.classList.add('animate-indicator');
-        setTimeout(() => {
-            bmiIndicator.style.left = `${Math.min(position, 100)}%`;
-            bmiIndicator.style.transform = 'translateX(-50%)';
-        }, 10);
-        
-        setTimeout(() => {
-            bmiIndicator.classList.remove('animate-indicator');
-        }, 800);
-    };
-
-    const setupOptionSelection = (selector, key) => {
-        document.querySelectorAll(selector).forEach(el => {
-            el.addEventListener("click", () => {
-                const confirmCheckbox = document.getElementById("confirm-terms");
-                if (!confirmCheckbox.checked) {
-                    alert("لطفاً ابتدا شرایط استفاده را تأیید کنید");
-                    return;
-                }
-    
-                document.querySelectorAll(selector).forEach(opt => {
-                    opt.classList.remove("selected");
-                    opt.style.transform = "";
-                    opt.style.boxShadow = "";
-                });
-                
-                el.classList.add("selected");
-                el.classList.add("selected-with-effect");
-                
-                setTimeout(() => {
-                    el.classList.remove("selected-with-effect");
-                    state.updateFormData(key, el.dataset[key]);
-                    
-                    el.style.transform = "translateY(-3px)";
-                    el.style.boxShadow = "0 10px 20px rgba(0, 133, 122, 0.2)";
-                    
-                    setTimeout(() => {
-                        navigateToStep(state.currentStep + 1);
-                    }, 250);
-                }, 150);
-            });
-        });
-    };
-
-    const setupAdditionalInfoSelection = (currentStep) => {
-        const checkboxes = document.querySelectorAll('#additional-info-selection .real-checkbox');
-        const nextButton = document.querySelector('.next-step');
-        const noneCheckbox = document.getElementById('info-none');
-        
-        if (currentStep !== 10) return;
-    
-        nextButton.disabled = true;
-    
-        const validateForm = () => {
-            const anyChecked = Array.from(checkboxes).some(cb => cb.checked);
-            nextButton.disabled = !anyChecked;
-            
-            // ذخیره اطلاعات در state.formData
-            const additionalInfo = [];
-            if (document.getElementById('info-diabetes').checked) additionalInfo.push('diabetes');
-            if (document.getElementById('info-pressure').checked) additionalInfo.push('pressure');
-            if (document.getElementById('info-thyroid').checked) additionalInfo.push('thyroid');
-            if (document.getElementById('info-allergy').checked) additionalInfo.push('allergy');
-            if (document.getElementById('info-none').checked) additionalInfo.push('none');
-            
-            state.updateFormData('additionalInfo', additionalInfo);
-        };
-
-        checkboxes.forEach(checkbox => {
-            const handleCheckboxChange = function() {
-                if (this === noneCheckbox && this.checked) {
-                    checkboxes.forEach(cb => {
-                        if (cb !== noneCheckbox) {
-                            cb.checked = false;
-                            cb.nextElementSibling.classList.remove('checked');
-                        }
-                    });
-                } else if (this.checked) {
-                    noneCheckbox.checked = false;
-                    noneCheckbox.nextElementSibling.classList.remove('checked');
-                }
-                
-                const label = this.nextElementSibling;
-                label.classList.add('checked-animation');
-                
-                setTimeout(() => {
-                    label.classList.remove('checked-animation');
-                    if (this.checked) {
-                        label.classList.add('checked');
-                    } else {
-                        label.classList.remove('checked');
-                    }
-                }, 800);
-                
-                validateForm();
-            };
-            
-            checkbox.addEventListener('change', handleCheckboxChange);
-        });
-
-        validateForm();
-    };
-
-    const setupFoodRestrictionSelection = (currentStep) => {
-        const checkboxes = document.querySelectorAll('#food-restriction-selection .real-checkbox');
-        const nextButton = document.querySelector('.next-step');
-        const noneCheckbox = document.getElementById('restriction-none');
-        
-        if (currentStep !== 11) return;
-    
-        nextButton.disabled = true;
-    
-        const validateForm = () => {
-            const anyChecked = Array.from(checkboxes).some(cb => cb.checked);
-            nextButton.disabled = !anyChecked;
-            
-            // ذخیره اطلاعات در state.formData
-            const foodRestrictions = [];
-            if (document.getElementById('restriction-vegetarian').checked) foodRestrictions.push('vegetarian');
-            if (document.getElementById('restriction-no-seafood').checked) foodRestrictions.push('no-seafood');
-            if (document.getElementById('restriction-none').checked) foodRestrictions.push('none');
-            
-            state.updateFormData('foodRestrictions', foodRestrictions);
-        };
-
-        checkboxes.forEach(checkbox => {
-            const handleCheckboxChange = function() {
-                if (this === noneCheckbox && this.checked) {
-                    checkboxes.forEach(cb => {
-                        if (cb !== noneCheckbox) {
-                            cb.checked = false;
-                            cb.nextElementSibling.classList.remove('checked');
-                        }
-                    });
-                } else if (this.checked) {
-                    noneCheckbox.checked = false;
-                    noneCheckbox.nextElementSibling.classList.remove('checked');
-                }
-                
-                const label = this.nextElementSibling;
-                label.classList.add('checked-animation');
-                
-                setTimeout(() => {
-                    label.classList.remove('checked-animation');
-                    if (this.checked) {
-                        label.classList.add('checked');
-                    } else {
-                        label.classList.remove('checked');
-                    }
-                }, 800);
-                
-                validateForm();
-            };
-            
-            checkbox.addEventListener('change', handleCheckboxChange);
-        });
-
-        validateForm();
-    };
-
-    const setupConfirmationCheckbox = (currentStep) => {
-        const nextButton = document.querySelector('.next-step');
-        const confirmCheckbox = document.getElementById('confirm-info');
-        
-        if (currentStep !== 12) return;
-
-        nextButton.disabled = !confirmCheckbox.checked;
-
-        const validateForm = () => {
-            nextButton.disabled = !confirmCheckbox.checked;
-        };
-
-        confirmCheckbox.addEventListener('change', function() {
-            const label = this.nextElementSibling;
-            label.classList.add('checked-animation');
-            
-            setTimeout(() => {
-                label.classList.remove('checked-animation');
-                if (this.checked) {
-                    label.classList.add('checked');
-                } else {
-                    label.classList.remove('checked');
-                }
-            }, 800);
-            
-            validateForm();
-        });
-
-        validateForm();
-    };
-
-    const handleFormSubmit = (event) => {
-        event.preventDefault();
-        
-        // اضافه کردن اطلاعات مراحل 10 و 11 به داده‌های ارسالی
-        const formData = {
-            ...state.formData,
-            // اطلاعات تکمیلی
-            diabetes: state.formData.additionalInfo?.includes('diabetes') || false,
-            pressure: state.formData.additionalInfo?.includes('pressure') || false,
-            thyroid: state.formData.additionalInfo?.includes('thyroid') || false,
-            allergy: state.formData.additionalInfo?.includes('allergy') || false,
-            // محدودیت‌های غذایی
-            vegetarian: state.formData.foodRestrictions?.includes('vegetarian') || false,
-            noSeafood: state.formData.foodRestrictions?.includes('no-seafood') || false
-        };
-        
-        console.log('Form submitted:', formData);
-        
-    };
-
     navigateToStep(state.currentStep);
     document.querySelector(".next-step").addEventListener("click", handleNextStep);
     document.getElementById("back-button").addEventListener("click", handleBackStep);
@@ -988,6 +622,366 @@ document.addEventListener("DOMContentLoaded", () => {
 
     document.addEventListener("keydown", handleEnterKey);
 });
+-----------------------------------------------------------------------------------------------------
+// /home/aidastya/public_html/wp-content/themes/woodmart-child/assets/js/form-inputs.js
+window.setupInput = function(inputId, displayId, field) {
+    const input = document.getElementById(inputId);
+    const display = document.getElementById(displayId);
+    const nextButton = document.querySelector(".next-step");
+
+    if (nextButton) nextButton.disabled = true;
+
+    const updateDisplay = (value) => {
+        display.textContent = value ? `${value} ${field === "age" ? "سال" : field === "height" ? "سانتی‌متر" : "کیلوگرم"}` : `0 ${field === "age" ? "سال" : field === "height" ? "سانتی‌متر" : "کیلوگرم"}`;
+        display.style.color = value ? "#000" : "#999";
+        state.updateFormData(field, value ? parseInt(value) : null);
+        
+        if (field === "weight" && state.formData.height && value) {
+            calculateBMI(state.formData.height, parseInt(value));
+        }
+    };
+
+    input.addEventListener("input", () => {
+        let value = input.value.replace(/\D/g, "");
+        if (field === "age" && value.length > 2) value = value.slice(0, 2);
+        else if ((field === "height" || field === "weight") && value.length > 3) value = value.slice(0, 3);
+        input.value = value;
+        updateDisplay(value);
+        if (input.type === "text") setTimeout(() => input.setSelectionRange(value.length, value.length), 0);
+        validateStep(state.currentStep);
+    });
+
+    input.addEventListener("click", () => {
+        const value = input.value.replace(/\D/g, "");
+        if (input.type === "text") input.setSelectionRange(value.length, value.length);
+    });
+
+    input.addEventListener("blur", () => {
+        const value = input.value.trim();
+        if (!value) updateDisplay("");
+        validateStep(state.currentStep);
+    });
+}
+
+window.setupOptionSelection = function(selector, key) {
+    document.querySelectorAll(selector).forEach(el => {
+        el.addEventListener("click", () => {
+            const confirmCheckbox = document.getElementById("confirm-terms");
+            if (!confirmCheckbox.checked) {
+                alert("لطفاً ابتدا شرایط استفاده را تأیید کنید");
+                return;
+            }
+
+            document.querySelectorAll(selector).forEach(opt => {
+                opt.classList.remove("selected");
+                opt.style.transform = "";
+                opt.style.boxShadow = "";
+            });
+            
+            el.classList.add("selected");
+            el.classList.add("selected-with-effect");
+            
+            setTimeout(() => {
+                el.classList.remove("selected-with-effect");
+                state.updateFormData(key, el.dataset[key]);
+                
+                el.style.transform = "translateY(-3px)";
+                el.style.boxShadow = "0 10px 20px rgba(0, 133, 122, 0.2)";
+                
+                setTimeout(() => {
+                    navigateToStep(state.currentStep + 1);
+                }, 250);
+            }, 150);
+        });
+    });
+}
+-----------------------------------------------------------------------------------------------------
+// /home/aidastya/public_html/wp-content/themes/woodmart-child/assets/js/form-steps.js
+window.showStep = function(step) {
+    const stepElements = [
+        "gender-selection-step",
+        "goal-selection-step",
+        "age-input-step", 
+        "height-input-step",
+        "weight-input-step",
+        "target-weight-step",
+        "goal-weight-display",
+        "activity-selection-step",
+        "meal-selection-step",
+        "additional-info-step",
+        "food-restriction-step",
+        "confirm-submit-step"
+    ];
+    
+    document.querySelectorAll(".step").forEach(el => {
+        el.classList.remove("active");
+        if (el.id === "goal-weight-display") {
+            el.style.display = 'none';
+            if (!el.classList.contains("active")) {
+                el.querySelector('.step7-image-container').innerHTML = '';
+            }
+        }
+    });
+    
+    const currentStepElement = document.getElementById(stepElements[step - 1]);
+    if (currentStepElement) {
+        currentStepElement.classList.add("active");
+        if (currentStepElement.id === "goal-weight-display") {
+            currentStepElement.style.display = 'flex';
+        }
+    }
+
+    if (step === 7) {
+        const goalTitleElement = document.getElementById('goal-title-text');
+        if (goalTitleElement) {
+            const goalText = {
+                "weight-loss": "هدف: کاهش وزن",
+                "weight-gain": "هدف: افزایش وزن", 
+                "fitness": "هدف: تناسب اندام"
+            }[state.formData.goal];
+            
+            goalTitleElement.textContent = goalText || "هدف: مشخص نشده";
+        }
+    
+        const imageContainer = document.querySelector('#goal-weight-display .step7-image-container');
+        let svgFile = '';
+        
+        if (state.formData.goal === 'weight-loss') {
+            svgFile = 'assets/images/svg/weight-loss.svg';
+        } else if (state.formData.goal === 'weight-gain' || state.formData.goal === 'fitness') {
+            svgFile = 'assets/images/svg/weight-gain.svg';
+        }
+        
+        imageContainer.innerHTML = `
+            <div class="goal-title-container">
+                <h2 class="goal-title" id="goal-title-text">
+                    ${state.formData.goal === 'weight-loss' ? 'کاهش وزن' : 
+                      state.formData.goal === 'weight-gain' ? 'افزایش وزن' : 
+                      'تناسب اندام'}
+                </h2>
+            </div>
+            <object type="image/svg+xml" data="${svgFile}" class="goal-svg"></object>
+            <div class="weight-display-container">
+                <div class="weight-display-box target-weight">
+                    <div class="weight-value">${state.formData.targetWeight || 0}</div>
+                    <div class="weight-unit">کیلوگرم</div>
+                    <div class="weight-label">وزن هدف</div>
+                </div>
+                <div class="weight-display-box current-weight">
+                    <div class="weight-value">${state.formData.weight || 0}</div>
+                    <div class="weight-unit">کیلوگرم</div>
+                    <div class="weight-label">وزن فعلی</div>
+                </div>
+            </div>
+        `;
+    }
+    
+    const nextButtonContainer = document.getElementById("next-button-container");
+    if (nextButtonContainer) nextButtonContainer.style.display = [1, 2, 8, 9].includes(step) ? "none" : "block";
+
+    if ([3, 4, 5, 6].includes(step)) {
+        const inputId = `${["age", "height", "weight", "target-weight"][step - 3]}-input`;
+        const inputElement = document.getElementById(inputId);
+        if (inputElement) inputElement.focus();
+        
+        const nextButton = document.querySelector(".next-step");
+        if (nextButton) nextButton.disabled = true;
+        
+        validateStep(step);
+    }
+    
+    if (step === 10) {
+        setupAdditionalInfoSelection(step);
+    } else if (step === 11) {
+        setupFoodRestrictionSelection(step);
+    } else if (step === 12) {
+        showSummary();
+        setupConfirmationCheckbox(step);
+        document.getElementById("next-button-container").style.display = "none";
+        document.getElementById("submit-button-container").style.display = "block";
+    }
+}
+
+window.updateStepCounter = function(step) {
+    document.getElementById("current-step").textContent = step;
+    document.getElementById("total-steps").textContent = totalSteps;
+}
+
+window.updateProgressBar = function(step) {
+    const progress = ((step - 1) / (totalSteps - 1)) * 100;
+    document.getElementById("progress-bar").style.width = `${progress}%`;
+}
+
+window.navigateToStep = function(step) {
+    if (step >= 1 && step <= totalSteps) {
+        state.updateStep(step);
+        history.pushState({ step: state.currentStep }, "", `#step-${state.currentStep}`);
+    }
+}
+
+function handleNextStep() {
+    if (state.currentStep < totalSteps) navigateToStep(state.currentStep + 1);
+}
+
+function handleBackStep() {
+    if (state.currentStep > 1) navigateToStep(state.currentStep - 1);
+}
+
+function handleEnterKey(event) {
+    if (event.key === "Enter" && event.target.matches("input[type='text']")) {
+        event.preventDefault();
+        document.querySelector(".next-step").click();
+    }
+}
+-----------------------------------------------------------------------------------------------------
+// /home/aidastya/public_html/wp-content/themes/woodmart-child/assets/js/form-validation.js
+window.validateStep = function(step) {
+    const nextButton = document.querySelector(".next-step");
+    const errorMessages = {
+        3: { field: "age", min: 5, max: 100, unit: "سال", label: "سن", errorId: "age-error" },
+        4: { field: "height", min: 100, max: 250, unit: "سانتی‌متر", label: "قد", errorId: "height-error" },
+        5: { field: "weight", min: 30, max: 300, unit: "کیلوگرم", label: "وزن", errorId: "weight-error" },
+        6: { 
+            field: "targetWeight", 
+            min: 30, 
+            max: 300, 
+            unit: "کیلوگرم", 
+            label: "وزن هدف", 
+            errorId: "targetWeight-error",
+            customValidation: (value) => {
+                const currentWeight = state.formData.weight;
+                const goal = state.formData.goal;
+                
+                if (!currentWeight) return true;
+                
+                if (goal === "weight-loss" && value >= currentWeight) {
+                    return `برای کاهش وزن، وزن هدف باید کمتر از وزن فعلی (${currentWeight} کیلوگرم) باشد`;
+                }
+                
+                if (goal === "weight-gain" && value <= currentWeight) {
+                    return `برای افزایش وزن، وزن هدف باید بیشتر از وزن فعلی (${currentWeight} کیلوگرم) باشد`;
+                }
+                
+                if (goal === "fitness" && Math.abs(value - currentWeight) > 20) {
+                    return `برای تناسب اندام، وزن هدف باید حداکثر ۲۰ کیلوگرم با وزن فعلی تفاوت داشته باشد`;
+                }
+                
+                return true;
+            }
+        }
+    };
+    
+    if (errorMessages[step]) {
+        const { field, min, max, unit, label, errorId, customValidation } = errorMessages[step];
+        const value = state.formData[field];
+        const errorElement = document.getElementById(errorId);
+        
+        if (!errorElement) return;
+
+        if (value === undefined || value === null || value === "") {
+            errorElement.textContent = "";
+            errorElement.classList.remove("valid");
+            if (nextButton) nextButton.disabled = true;
+            return;
+        }
+        
+        if (value < min || value > max) {
+            errorElement.textContent = `${label} باید بین ${min} تا ${max} ${unit} وارد شود`;
+            errorElement.classList.remove("valid");
+            if (nextButton) nextButton.disabled = true;
+            return;
+        }
+        
+        if (step === 6 && customValidation) {
+            const validationResult = customValidation(value);
+            if (validationResult !== true) {
+                errorElement.textContent = validationResult;
+                errorElement.classList.remove("valid");
+                if (nextButton) nextButton.disabled = true;
+                return;
+            }
+        }
+        
+        errorElement.innerHTML = `<span class="tick-icon"></span> مقدار وارد شده معتبر است.`;
+        errorElement.classList.add("valid");
+        if (nextButton) nextButton.disabled = false;
+    }
+}
+
+window.calculateBMI = function(height, weight) {
+    const heightInMeters = height / 100;
+    const bmiValue = document.getElementById('bmi-value');
+    const bmiCategory = document.getElementById('bmi-category');
+    const bmiIndicator = document.getElementById('bmi-indicator');
+    const bmiContainer = document.getElementById('bmi-result-container');
+    
+    if (!weight || weight === 0) {
+        bmiContainer.style.opacity = '0.5';
+        bmiIndicator.style.display = 'none';
+        bmiValue.textContent = '0';
+        bmiCategory.textContent = '';
+        return;
+    } else {
+        bmiContainer.style.opacity = '1';
+        bmiIndicator.style.display = 'block';
+    }
+    
+    const bmi = (weight / (heightInMeters * heightInMeters)).toFixed(1);
+    bmiValue.textContent = bmi;
+    
+    const categories = [
+        { max: 18.5, text: 'کمبود وزن', color: '#4fc3f7' },
+        { max: 25, text: 'وزن نرمال', color: '#66bb6a' },
+        { max: 30, text: 'اضافه وزن', color: '#ffee58' },
+        { max: 35, text: 'چاق', color: '#ffa726' },
+        { max: Infinity, text: 'چاقی شدید', color: '#ef5350' }
+    ];
+    
+    const category = categories.find(c => bmi < c.max);
+    bmiCategory.textContent = category.text;
+    bmiCategory.style.color = category.color;
+    
+    let position;
+    if (bmi < 18.5) {
+        position = (bmi / 18.5) * 20;
+    } else if (bmi < 25) {
+        position = 20 + ((bmi - 18.5) / 6.5) * 20;
+    } else if (bmi < 30) {
+        position = 40 + ((bmi - 25) / 5) * 20;
+    } else if (bmi < 35) {
+        position = 60 + ((bmi - 30) / 5) * 20;
+    } else {
+        position = 80 + ((Math.min(bmi, 50) - 35) / 15) * 20;
+    }
+    
+    bmiIndicator.classList.add('animate-indicator');
+    setTimeout(() => {
+        bmiIndicator.style.left = `${Math.min(position, 100)}%`;
+        bmiIndicator.style.transform = 'translateX(-50%)';
+    }, 10);
+    
+    setTimeout(() => {
+        bmiIndicator.classList.remove('animate-indicator');
+    }, 800);
+}
+-----------------------------------------------------------------------------------------------------
+// تعریف متغیرهای global برای استفاده در تمام فایل‌ها
+window.state = {
+    currentStep: 1,
+    formData: {},
+    updateStep(step) {
+        this.currentStep = step;
+        window.showStep(step);
+        window.updateStepCounter(step);
+        window.updateProgressBar(step);
+    },
+    updateFormData(key, value) {
+        this.formData[key] = value;
+        window.validateStep(this.currentStep);
+    }
+};
+
+window.totalSteps = document.querySelectorAll(".step").length;
 -----------------------------------------------------------------------------------------------------
 /*/home/aidastya/public_html/wp-content/themes/woodmart-child/assets/css/style.css*/
 @font-face {
