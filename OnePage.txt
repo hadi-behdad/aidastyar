@@ -447,10 +447,14 @@ document.addEventListener("DOMContentLoaded", () => {
         const nextButtonContainer = document.getElementById("next-button-container");
         if (nextButtonContainer) nextButtonContainer.style.display = [1, 2, 8, 9].includes(step) ? "none" : "block";
     
-        if ([3, 4, 5, 6, 7].includes(step)) {
+        if ([3, 4, 5, 6].includes(step)) {
             const inputId = `${["age", "height", "weight", "target-weight"][step - 3]}-input`;
             const inputElement = document.getElementById(inputId);
             if (inputElement) inputElement.focus();
+            
+            const nextButton = document.querySelector(".next-step");
+            if (nextButton) nextButton.disabled = true;
+            
             validateStep(step);
         }
         
@@ -512,11 +516,19 @@ document.addEventListener("DOMContentLoaded", () => {
                 return;
             }
     
+            // اگر مقداری وارد نشده باشد
+            if (value === undefined || value === null || value === "") {
+                errorElement.textContent = "";
+                errorElement.classList.remove("valid");
+                if (nextButton) nextButton.disabled = true;
+                return;
+            }
+            
             // اعتبارسنجی اولیه برای محدوده عددی
             if (value < min || value > max) {
                 errorElement.textContent = `${label} باید بین ${min} تا ${max} ${unit} وارد شود`;
                 errorElement.classList.remove("valid");
-                nextButton.disabled = true;
+                if (nextButton) nextButton.disabled = true;
                 return;
             }
             
@@ -526,7 +538,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 if (validationResult !== true) {
                     errorElement.textContent = validationResult;
                     errorElement.classList.remove("valid");
-                    nextButton.disabled = true;
+                    if (nextButton) nextButton.disabled = true;
                     return;
                 }
             }
@@ -534,7 +546,7 @@ document.addEventListener("DOMContentLoaded", () => {
             // اگر همه چیز درست بود
             errorElement.innerHTML = `<span class="tick-icon"></span> مقدار وارد شده معتبر است.`;
             errorElement.classList.add("valid");
-            nextButton.disabled = false;
+            if (nextButton) nextButton.disabled = false;
         }
     };
 
@@ -661,7 +673,11 @@ document.addEventListener("DOMContentLoaded", () => {
     const setupInput = (inputId, displayId, field) => {
         const input = document.getElementById(inputId);
         const display = document.getElementById(displayId);
-
+        const nextButton = document.querySelector(".next-step");
+    
+        // غیرفعال کردن دکمه در ابتدا
+        if (nextButton) nextButton.disabled = true;
+    
         const updateDisplay = (value) => {
             display.textContent = value ? `${value} ${field === "age" ? "سال" : field === "height" ? "سانتی‌متر" : "کیلوگرم"}` : `0 ${field === "age" ? "سال" : field === "height" ? "سانتی‌متر" : "کیلوگرم"}`;
             display.style.color = value ? "#000" : "#999";
