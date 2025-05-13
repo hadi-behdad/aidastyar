@@ -322,7 +322,7 @@ window.handleNextStep = function() {
     }
 };
 
-function preloadImages() {
+window.preloadImages = function() {
     const images = [
         'assets/images/webp/img_0_de-min.webp',
         'assets/images/png/img_1_de-min.png',
@@ -336,7 +336,7 @@ function preloadImages() {
     });
 }
 
-function setupAdditionalInfoSelection(currentStep) {
+window.setupAdditionalInfoSelection = function(currentStep) {
     const checkboxes = document.querySelectorAll('#additional-info-selection .real-checkbox');
     const nextButton = document.querySelector('.next-step');
     const noneCheckbox = document.getElementById('info-none');
@@ -394,7 +394,7 @@ function setupAdditionalInfoSelection(currentStep) {
     validateForm();
 }
 
-function setupFoodRestrictionSelection(currentStep) {
+window.setupFoodRestrictionSelection = function(currentStep) {
     const checkboxes = document.querySelectorAll('#food-restriction-selection .real-checkbox');
     const nextButton = document.querySelector('.next-step');
     const noneCheckbox = document.getElementById('restriction-none');
@@ -450,7 +450,7 @@ function setupFoodRestrictionSelection(currentStep) {
     validateForm();
 }
 
-function setupConfirmationCheckbox(currentStep) {
+window.setupConfirmationCheckbox = function(currentStep) {
     const nextButton = document.querySelector('.next-step');
     const confirmCheckbox = document.getElementById('confirm-info');
     
@@ -481,7 +481,7 @@ function setupConfirmationCheckbox(currentStep) {
     validateForm();
 }
 
-function handleFormSubmit(event) {
+window.handleFormSubmit = function(event) {
     event.preventDefault();
     
     const formData = {
@@ -497,7 +497,7 @@ function handleFormSubmit(event) {
     console.log('Form submitted:', formData);
 }
 
-function showSummary() {
+window.showSummary = function() {
     const summaryContainer = document.getElementById('summary-container');
     const nextButton = document.querySelector('.next-step');
     const confirmCheckbox = document.getElementById('confirm-info');
