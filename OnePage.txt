@@ -341,7 +341,7 @@ window.setupAdditionalInfoSelection = function(currentStep) {
     const nextButton = document.querySelector('.next-step');
     const noneCheckbox = document.getElementById('info-none');
     
-    if (currentStep !== 10) return;
+    if (currentStep !== STEPS.ADDITIONAL_INFO) return;
 
     nextButton.disabled = true;
 
@@ -399,7 +399,7 @@ window.setupFoodRestrictionSelection = function(currentStep) {
     const nextButton = document.querySelector('.next-step');
     const noneCheckbox = document.getElementById('restriction-none');
     
-    if (currentStep !== 11) return;
+    if (currentStep !== STEPS.FOOD_RESTRICTIONS) return;
 
     nextButton.disabled = true;
 
@@ -454,7 +454,7 @@ window.setupConfirmationCheckbox = function(currentStep) {
     const nextButton = document.querySelector('.next-step');
     const confirmCheckbox = document.getElementById('confirm-info');
     
-    if (currentStep !== 12) return;
+    if (currentStep !== STEPS.CONFIRMATION) return;
 
     nextButton.disabled = !confirmCheckbox.checked;
 
@@ -731,7 +731,7 @@ window.showStep = function(step) {
         }
     }
 
-    if (step === 7) {
+    if (step === STEPS.GOAL_DISPLAY) {
         const goalTitleElement = document.getElementById('goal-title-text');
         if (goalTitleElement) {
             const goalText = {
@@ -777,9 +777,9 @@ window.showStep = function(step) {
     }
     
     const nextButtonContainer = document.getElementById("next-button-container");
-    if (nextButtonContainer) nextButtonContainer.style.display = [1, 2, 8, 9].includes(step) ? "none" : "block";
+    if (nextButtonContainer) nextButtonContainer.style.display = [STEPS.GENDER, STEPS.GOAL, STEPS.ACTIVITY, STEPS.MEALS].includes(step) ? "none" : "block";
 
-    if ([3, 4, 5, 6].includes(step)) {
+    if ([STEPS.AGE, STEPS.HEIGHT, STEPS.WEIGHT, STEPS.TARGET_WEIGHT].includes(step)) {
         const inputId = `${["age", "height", "weight", "target-weight"][step - 3]}-input`;
         const inputElement = document.getElementById(inputId);
         if (inputElement) inputElement.focus();
@@ -790,11 +790,11 @@ window.showStep = function(step) {
         validateStep(step);
     }
     
-    if (step === 10) {
+    if (step === STEPS.ADDITIONAL_INFO) {
         setupAdditionalInfoSelection(step);
-    } else if (step === 11) {
+    } else if (step === STEPS.FOOD_RESTRICTIONS) {
         setupFoodRestrictionSelection(step);
-    } else if (step === 12) {
+    } else if (step === STEPS.CONFIRMATION) {
         showSummary();
         setupConfirmationCheckbox(step);
         document.getElementById("next-button-container").style.display = "none";
@@ -819,15 +819,15 @@ window.navigateToStep = function(step) {
     }
 }
 
-function handleNextStep() {
+window.handleNextStep = function() {
     if (state.currentStep < totalSteps) navigateToStep(state.currentStep + 1);
 }
 
-function handleBackStep() {
+window.handleBackStep = function() {
     if (state.currentStep > 1) navigateToStep(state.currentStep - 1);
 }
 
-function handleEnterKey(event) {
+window.handleEnterKey = function(event) {
     if (event.key === "Enter" && event.target.matches("input[type='text']")) {
         event.preventDefault();
         document.querySelector(".next-step").click();
@@ -838,10 +838,10 @@ function handleEnterKey(event) {
 window.validateStep = function(step) {
     const nextButton = document.querySelector(".next-step");
     const errorMessages = {
-        3: { field: "age", min: 5, max: 100, unit: "سال", label: "سن", errorId: "age-error" },
-        4: { field: "height", min: 100, max: 250, unit: "سانتی‌متر", label: "قد", errorId: "height-error" },
-        5: { field: "weight", min: 30, max: 300, unit: "کیلوگرم", label: "وزن", errorId: "weight-error" },
-        6: { 
+        [STEPS.AGE]: { field: "age", min: 5, max: 100, unit: "سال", label: "سن", errorId: "age-error" },
+        [STEPS.HEIGHT]: { field: "height", min: 100, max: 250, unit: "سانتی‌متر", label: "قد", errorId: "height-error" },
+        [STEPS.WEIGHT]: { field: "weight", min: 30, max: 300, unit: "کیلوگرم", label: "وزن", errorId: "weight-error" },
+        [STEPS.TARGET_WEIGHT]: { 
             field: "targetWeight", 
             min: 30, 
             max: 300, 
@@ -965,7 +965,7 @@ window.calculateBMI = function(height, weight) {
     }, 800);
 }
 -----------------------------------------------------------------------------------------------------
-///home/aidastya/public_html/wp-content/themes/woodmart-child/assets/js/script.js
+// /home/aidastya/public_html/wp-content/themes/woodmart-child/assets/js/script.js
 window.state = {
     currentStep: 1,
     formData: {},
@@ -982,6 +982,22 @@ window.state = {
 };
 
 window.totalSteps = document.querySelectorAll(".step").length;
+
+// Define step constants
+window.STEPS = {
+    GENDER: 1,
+    GOAL: 2,
+    AGE: 3,
+    HEIGHT: 4,
+    WEIGHT: 5,
+    TARGET_WEIGHT: 6,
+    GOAL_DISPLAY: 7,
+    ACTIVITY: 8,
+    MEALS: 9,
+    ADDITIONAL_INFO: 10,
+    FOOD_RESTRICTIONS: 11,
+    CONFIRMATION: 12
+};
 -----------------------------------------------------------------------------------------------------
 /*/home/aidastya/public_html/wp-content/themes/woodmart-child/assets/css/style.css*/
 @font-face {
