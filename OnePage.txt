@@ -965,7 +965,7 @@ window.calculateBMI = function(height, weight) {
     }, 800);
 }
 -----------------------------------------------------------------------------------------------------
-// تعریف متغیرهای global برای استفاده در تمام فایل‌ها
+///home/aidastya/public_html/wp-content/themes/woodmart-child/assets/js/script.js
 window.state = {
     currentStep: 1,
     formData: {},
