@@ -176,26 +176,77 @@
         </div>
         <div id="surgery-step" class="step">
             <h2>آیا قبلاً جراحی یا عمل خاصی انجام داده‌اید؟</h2>
-            <div id="surgery-selection" class="checkbox-selection-container">
-                <div class="checkbox-container first-option">
-                    <input type="checkbox" id="surgery-none" class="real-checkbox">
-                    <label for="surgery-none" class="checkbox-label">
+            
+            <!-- بخش "هیچکدام" به صورت جداگانه -->
+            <div class="checkbox-container first-option stand-alone-none">
+                <input type="checkbox" id="surgery-none" class="real-checkbox">
+                <label for="surgery-none" class="checkbox-label">
+                    <span class="check-icon"></span>
+                    <span class="label-text">هیچکدام</span>
+                </label>
+            </div>
+            
+            <div class="separator"></div>
+            
+            <div id="surgery-selection" class="checkbox-selection-container scrollable-checkbox-container">
+                <div class="checkbox-container">
+                    <input type="checkbox" id="surgery-kidney" class="real-checkbox">
+                    <label for="surgery-kidney" class="checkbox-label">
                         <span class="check-icon"></span>
-                        <span class="label-text">خیر، هیچ جراحی انجام نداده‌ام</span>
+                        <span class="label-text">پیوند کلیه</span>
                     </label>
                 </div>
-                
-                <div class="separator"></div>
-                
                 <div class="checkbox-container">
-                    <input type="checkbox" id="surgery-yes" class="real-checkbox">
-                    <label for="surgery-yes" class="checkbox-label">
+                    <input type="checkbox" id="surgery-heart" class="real-checkbox">
+                    <label for="surgery-heart" class="checkbox-label">
                         <span class="check-icon"></span>
-                        <span class="label-text">بله، جراحی انجام داده‌ام</span>
+                        <span class="label-text">پیوند قلب</span>
+                    </label>
+                </div>
+                <div class="checkbox-container">
+                    <input type="checkbox" id="surgery-liver" class="real-checkbox">
+                    <label for="surgery-liver" class="checkbox-label">
+                        <span class="check-icon"></span>
+                        <span class="label-text">پیوند کبد</span>
+                    </label>
+                </div>
+                <div class="checkbox-container">
+                    <input type="checkbox" id="surgery-metabolic" class="real-checkbox">
+                    <label for="surgery-metabolic" class="checkbox-label">
+                        <span class="check-icon"></span>
+                        <span class="label-text">جراحی متابولیک (مثل بایپس معده، اسلیو معده)</span>
+                    </label>
+                </div>
+                <div class="checkbox-container">
+                    <input type="checkbox" id="surgery-intestine" class="real-checkbox">
+                    <label for="surgery-intestine" class="checkbox-label">
+                        <span class="check-icon"></span>
+                        <span class="label-text">جراحی روده (مثل رزکسیون روده، ایلئوستومی)</span>
+                    </label>
+                </div>
+                <div class="checkbox-container">
+                    <input type="checkbox" id="surgery-thyroid" class="real-checkbox">
+                    <label for="surgery-thyroid" class="checkbox-label">
+                        <span class="check-icon"></span>
+                        <span class="label-text">جراحی تیروئید/پاراتیروئید</span>
+                    </label>
+                </div>
+                <div class="checkbox-container">
+                    <input type="checkbox" id="surgery-gallbladder" class="real-checkbox">
+                    <label for="surgery-gallbladder" class="checkbox-label">
+                        <span class="check-icon"></span>
+                        <span class="label-text">جراحی کیسه صفرا</span>
+                    </label>
+                </div>
+                <div class="checkbox-container">
+                    <input type="checkbox" id="surgery-pancreas" class="real-checkbox">
+                    <label for="surgery-pancreas" class="checkbox-label">
+                        <span class="check-icon"></span>
+                        <span class="label-text">جراحی لوزالمعده (پانکراس)</span>
                     </label>
                 </div>
             </div>
-        </div>        
+        </div>      
         <div id="activity-selection-step" class="step">
             <h2>میزان فعالیت روزانه شما چقدر است؟</h2>
             <div id="activity-selection">
@@ -359,9 +410,10 @@ window.preloadImages = function() {
 }
 
 window.setupSurgerySelection = function(currentStep) {
-    const checkboxes = document.querySelectorAll('#surgery-selection .real-checkbox');
+    const checkboxes = document.querySelectorAll('#surgery-selection .real-checkbox, #surgery-none');
     const nextButton = document.querySelector('.next-step');
     const noneCheckbox = document.getElementById('surgery-none');
+    const surgeryOptions = document.querySelectorAll('#surgery-selection .real-checkbox');
     
     if (currentStep !== STEPS.SURGERY) return;
 
@@ -372,42 +424,46 @@ window.setupSurgerySelection = function(currentStep) {
         nextButton.disabled = !anyChecked;
         
         const surgeryInfo = [];
-        if (document.getElementById('surgery-yes').checked) surgeryInfo.push('yes');
-        if (document.getElementById('surgery-none').checked) surgeryInfo.push('none');
+        if (document.getElementById('surgery-kidney').checked) surgeryInfo.push('kidney');
+        if (document.getElementById('surgery-heart').checked) surgeryInfo.push('heart');
+        
+        if (noneCheckbox.checked) surgeryInfo.push('none');
         
         state.updateFormData('surgery', surgeryInfo);
     };
 
-    checkboxes.forEach(checkbox => {
-        const handleCheckboxChange = function() {
-            if (this === noneCheckbox && this.checked) {
-                checkboxes.forEach(cb => {
-                    if (cb !== noneCheckbox) {
-                        cb.checked = false;
-                        cb.nextElementSibling.classList.remove('checked');
-                    }
-                });
-            } else if (this.checked) {
-                noneCheckbox.checked = false;
-                noneCheckbox.nextElementSibling.classList.remove('checked');
-            }
+    noneCheckbox.addEventListener('change', function() {
+        if (this.checked) {
+            surgeryOptions.forEach(option => {
+                option.checked = false;
+                option.nextElementSibling.classList.remove('checked');
+            });
             
             const label = this.nextElementSibling;
             label.classList.add('checked-animation');
-            
             setTimeout(() => {
                 label.classList.remove('checked-animation');
-                if (this.checked) {
-                    label.classList.add('checked');
-                } else {
-                    label.classList.remove('checked');
-                }
+                label.classList.add('checked');
             }, 800);
-            
+        }
+        validateForm();
+    });
+
+    surgeryOptions.forEach(option => {
+        option.addEventListener('change', function() {
+            if (this.checked) {
+                noneCheckbox.checked = false;
+                noneCheckbox.nextElementSibling.classList.remove('checked');
+                
+                const label = this.nextElementSibling;
+                label.classList.add('checked-animation');
+                setTimeout(() => {
+                    label.classList.remove('checked-animation');
+                    label.classList.add('checked');
+                }, 800);
+            }
             validateForm();
-        };
-        
-        checkbox.addEventListener('change', handleCheckboxChange);
+        });
     });
 
     validateForm();
@@ -585,7 +641,7 @@ window.showSummary = function() {
         nextButton.disabled = !this.checked;
     });
 
-    const { gender, age, height, weight, targetWeight, goal, activity, meals, additionalInfo = [], foodRestrictions = [] } = state.formData;
+    const { gender, age, height, weight, targetWeight, goal, activity, meals, additionalInfo = [], foodRestrictions = [], surgery = [] } = state.formData;
     const goalText = { "weight-loss": "کاهش وزن", "weight-gain": "افزایش وزن", "fitness": "تناسب اندام"}[goal];
     const activityText = { "very-low": "خیلی کم (کمتر از 1 ساعت)", "low": "کم (1 تا 2 ساعت)", "medium": "متوسط (2 تا 4 ساعت)", "high": "زیاد (بیشتر از 4 ساعت)" }[activity];
     const mealsText = { "2": "۲ وعده", "3": "۳ وعده", "4": "۴ وعده", "more": "بیشتر" }[meals];
@@ -610,9 +666,17 @@ window.showSummary = function() {
         }
     });
     
-    const surgeryText = state.formData.surgery?.includes('yes') ? 'بله' : 
-                       state.formData.surgery?.includes('none') ? 'خیر' : 'ثبت نشده';
-                       
+    const surgeryText = [];
+    if (surgery.includes('kidney')) surgeryText.push('پیوند کلیه');
+    if (surgery.includes('heart')) surgeryText.push('پیوند قلب');
+    if (surgery.includes('liver')) surgeryText.push('پیوند کبد');
+    if (surgery.includes('metabolic')) surgeryText.push('جراحی متابولیک');
+    if (surgery.includes('intestine')) surgeryText.push('جراحی روده');
+    if (surgery.includes('thyroid')) surgeryText.push('جراحی تیروئید');
+    if (surgery.includes('gallbladder')) surgeryText.push('جراحی کیسه صفرا');
+    if (surgery.includes('pancreas')) surgeryText.push('جراحی پانکراس');
+    if (surgery.includes('none')) surgeryText.push('هیچکدام');
+    
     summaryContainer.innerHTML = `
         <div class="summary-item">
             <span class="summary-label">جنسیت:</span>
@@ -640,7 +704,7 @@ window.showSummary = function() {
         </div>
         <div class="summary-item">
             <span class="summary-label">سابقه جراحی:</span>
-            <span class="summary-value">${surgeryText}</span>
+            <span class="summary-value">${surgeryText.join('، ') || 'ثبت نشده'}</span>
         </div>        
         <div class="summary-item">
             <span class="summary-label">فعالیت روزانه:</span>
@@ -790,7 +854,7 @@ window.showStep = function(step) {
         "weight-input-step",
         "target-weight-step",
         "goal-weight-display",
-        "surgery-step", 
+        "surgery-step",
         "activity-selection-step",
         "meal-selection-step",
         "additional-info-step",
@@ -2344,12 +2408,64 @@ button.submit-form:hover {
 }
 
 #surgery-selection {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-    width: 100%;
-    max-width: 500px;
-    margin: 20px auto;
+    max-height: 300px;
+    overflow-y: auto;
+    padding: 10px 5px;
+    margin: 5px auto;
+    scrollbar-width: thin;
+    scrollbar-color: var(--primary-color) var(--background-color);
+}
+
+#surgery-selection::-webkit-scrollbar {
+    width: 6px;
+}
+
+#surgery-selection::-webkit-scrollbar-track {
+    background: var(--background-color);
+    border-radius: 3px;
+}
+
+#surgery-selection::-webkit-scrollbar-thumb {
+    background-color: var(--primary-color);
+    border-radius: 3px;
+}
+
+#surgery-selection .checkbox-container {
+    margin-bottom: 8px;
+}
+
+#surgery-selection .checkbox-container:last-child {
+    margin-bottom: 0;
+}
+
+.stand-alone-none {
+    padding: 5px;
+    margin-bottom: 5px;
+}
+
+.scrollable-surgery-list {
+    max-height: 250px;
+    overflow-y: auto;
+    padding: 10px 15px;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    background-color: var(--option-bg);
+    scrollbar-width: thin;
+    scrollbar-color: var(--primary-color) var(--background-color);
+}
+
+.scrollable-surgery-list::-webkit-scrollbar {
+    width: 6px;
+}
+
+.scrollable-surgery-list::-webkit-scrollbar-track {
+    background: var(--background-color);
+    border-radius: 3px;
+}
+
+.scrollable-surgery-list::-webkit-scrollbar-thumb {
+    background-color: var(--primary-color);
+    border-radius: 3px;
 }
 -----------------------------------------------------------------------------------------------------
 <?php
