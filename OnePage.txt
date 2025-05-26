@@ -174,7 +174,7 @@
                 </div>
             </div>
         </div>
-        <div id="surgery-step" class="step">
+        <div id="surgery-step" class="step checkbox-step-container">
             <h2>آیا قبلاً جراحی یا عمل خاصی انجام داده‌اید؟</h2>
             
             <!-- بخش "هیچکدام" به صورت جداگانه -->
@@ -188,7 +188,7 @@
             
             <div class="separator"></div>
             
-            <div id="surgery-selection" class="checkbox-selection-container scrollable-checkbox-container">
+            <div id="surgery-selection" class="checkbox-selection-container checkbox-list-container">
                 <div class="checkbox-container">
                     <input type="checkbox" id="surgery-kidney" class="real-checkbox">
                     <label for="surgery-kidney" class="checkbox-label">
@@ -246,7 +246,58 @@
                     </label>
                 </div>
             </div>
-        </div>      
+        </div>     
+        <div id="hormonal-disorders-step" class="step checkbox-step-container">
+            <h2>آیا اختلال هورمونی خاصی دارید؟</h2>
+            
+            <div class="checkbox-container first-option stand-alone-none-option">
+                <input type="checkbox" id="hormonal-none" class="real-checkbox">
+                <label for="hormonal-none" class="checkbox-label">
+                    <span class="check-icon"></span>
+                    <span class="label-text">هیچکدام</span>
+                </label>
+            </div>
+            
+            <div class="separator"></div>
+            
+            <div id="hormonal-selection" class="checkbox-selection-container checkbox-list-container">
+                <div class="checkbox-container">
+                    <input type="checkbox" id="hormonal-pcos" class="real-checkbox">
+                    <label for="hormonal-pcos" class="checkbox-label">
+                        <span class="check-icon"></span>
+                        <span class="label-text">سندرم تخمدان پلی کیستیک (PCOS)</span>
+                    </label>
+                </div>
+                <div class="checkbox-container">
+                    <input type="checkbox" id="hormonal-hypothyroidism" class="real-checkbox">
+                    <label for="hormonal-hypothyroidism" class="checkbox-label">
+                        <span class="check-icon"></span>
+                        <span class="label-text">کم کاری تیروئید</span>
+                    </label>
+                </div>
+                <div class="checkbox-container">
+                    <input type="checkbox" id="hormonal-hyperthyroidism" class="real-checkbox">
+                    <label for="hormonal-hyperthyroidism" class="checkbox-label">
+                        <span class="check-icon"></span>
+                        <span class="label-text">پرکاری تیروئید</span>
+                    </label>
+                </div>
+                <div class="checkbox-container">
+                    <input type="checkbox" id="hormonal-diabetes" class="real-checkbox">
+                    <label for="hormonal-diabetes" class="checkbox-label">
+                        <span class="check-icon"></span>
+                        <span class="label-text">دیابت نوع 1 یا 2</span>
+                    </label>
+                </div>
+                <div class="checkbox-container">
+                    <input type="checkbox" id="hormonal-adrenal" class="real-checkbox">
+                    <label for="hormonal-adrenal" class="checkbox-label">
+                        <span class="check-icon"></span>
+                        <span class="label-text">مشکلات غده فوق کلیوی</span>
+                    </label>
+                </div>
+            </div>
+        </div>        
         <div id="activity-selection-step" class="step">
             <h2>میزان فعالیت روزانه شما چقدر است؟</h2>
             <div id="activity-selection">
@@ -409,6 +460,68 @@ window.preloadImages = function() {
     });
 }
 
+window.setupHormonalSelection = function(currentStep) {
+    const checkboxes = document.querySelectorAll('#hormonal-selection .real-checkbox, #hormonal-none');
+    const nextButton = document.querySelector('.next-step');
+    const noneCheckbox = document.getElementById('hormonal-none');
+    const hormonalOptions = document.querySelectorAll('#hormonal-selection .real-checkbox');
+    
+    if (currentStep !== STEPS.HORMONAL) return;
+
+    nextButton.disabled = true;
+
+    const validateForm = () => {
+        const anyChecked = Array.from(checkboxes).some(cb => cb.checked);
+        nextButton.disabled = !anyChecked;
+        
+        const hormonalInfo = [];
+        if (document.getElementById('hormonal-pcos').checked) hormonalInfo.push('pcos');
+        if (document.getElementById('hormonal-hypothyroidism').checked) hormonalInfo.push('hypothyroidism');
+        if (document.getElementById('hormonal-hyperthyroidism').checked) hormonalInfo.push('hyperthyroidism');
+        if (document.getElementById('hormonal-diabetes').checked) hormonalInfo.push('diabetes');
+        if (document.getElementById('hormonal-adrenal').checked) hormonalInfo.push('adrenal');
+        if (noneCheckbox.checked) hormonalInfo.push('none');
+        
+        state.updateFormData('hormonal', hormonalInfo);
+    };
+
+    noneCheckbox.addEventListener('change', function() {
+        if (this.checked) {
+            hormonalOptions.forEach(option => {
+                option.checked = false;
+                option.nextElementSibling.classList.remove('checked');
+            });
+            
+            const label = this.nextElementSibling;
+            label.classList.add('checked-animation');
+            setTimeout(() => {
+                label.classList.remove('checked-animation');
+                label.classList.add('checked');
+            }, 800);
+        }
+        validateForm();
+    });
+
+    hormonalOptions.forEach(option => {
+        option.addEventListener('change', function() {
+            if (this.checked) {
+                noneCheckbox.checked = false;
+                noneCheckbox.nextElementSibling.classList.remove('checked');
+                
+                const label = this.nextElementSibling;
+                label.classList.add('checked-animation');
+                setTimeout(() => {
+                    label.classList.remove('checked-animation');
+                    label.classList.add('checked');
+                }, 800);
+            }
+            validateForm();
+        });
+    });
+
+    validateForm();
+}
+
 window.setupSurgerySelection = function(currentStep) {
     const checkboxes = document.querySelectorAll('#surgery-selection .real-checkbox, #surgery-none');
     const nextButton = document.querySelector('.next-step');
@@ -426,7 +539,12 @@ window.setupSurgerySelection = function(currentStep) {
         const surgeryInfo = [];
         if (document.getElementById('surgery-kidney').checked) surgeryInfo.push('kidney');
         if (document.getElementById('surgery-heart').checked) surgeryInfo.push('heart');
-        
+        if (document.getElementById('surgery-liver').checked) surgeryInfo.push('liver');
+        if (document.getElementById('surgery-metabolic').checked) surgeryInfo.push('metabolic');
+        if (document.getElementById('surgery-intestine').checked) surgeryInfo.push('intestine');
+        if (document.getElementById('surgery-thyroid').checked) surgeryInfo.push('thyroid');
+        if (document.getElementById('surgery-gallbladder').checked) surgeryInfo.push('gallbladder');
+        if (document.getElementById('surgery-pancreas').checked) surgeryInfo.push('pancreas');
         if (noneCheckbox.checked) surgeryInfo.push('none');
         
         state.updateFormData('surgery', surgeryInfo);
@@ -584,29 +702,32 @@ window.setupFoodRestrictionSelection = function(currentStep) {
 }
 
 window.setupConfirmationCheckbox = function(currentStep) {
-    const nextButton = document.querySelector('.next-step');
-    const confirmCheckbox = document.getElementById('confirm-info');
+    const submitButton = document.querySelector(".submit-form");
+    const confirmCheckbox = document.getElementById("confirm-info");
     
     if (currentStep !== STEPS.CONFIRMATION) return;
 
-    nextButton.disabled = !confirmCheckbox.checked;
+    submitButton.disabled = !confirmCheckbox.checked;
+    if (confirmCheckbox.checked) {
+        confirmCheckbox.nextElementSibling.classList.add("checked");
+    }
 
     const validateForm = () => {
-        nextButton.disabled = !confirmCheckbox.checked;
+        submitButton.disabled = !confirmCheckbox.checked;
     };
 
-    confirmCheckbox.addEventListener('change', function() {
+    confirmCheckbox.addEventListener("change", function() {
         const label = this.nextElementSibling;
-        label.classList.add('checked-animation');
         
-        setTimeout(() => {
-            label.classList.remove('checked-animation');
-            if (this.checked) {
-                label.classList.add('checked');
-            } else {
-                label.classList.remove('checked');
-            }
-        }, 800);
+        if (this.checked) {
+            label.classList.add("checked-animation");
+            setTimeout(() => {
+                label.classList.remove("checked-animation");
+                label.classList.add("checked");
+            }, 800);
+        } else {
+            label.classList.remove("checked");
+        }
         
         validateForm();
     });
@@ -646,6 +767,16 @@ window.showSummary = function() {
     const activityText = { "very-low": "خیلی کم (کمتر از 1 ساعت)", "low": "کم (1 تا 2 ساعت)", "medium": "متوسط (2 تا 4 ساعت)", "high": "زیاد (بیشتر از 4 ساعت)" }[activity];
     const mealsText = { "2": "۲ وعده", "3": "۳ وعده", "4": "۴ وعده", "more": "بیشتر" }[meals];
     
+    const { hormonal = [] } = state.formData;
+    
+    const hormonalText = [];
+    if (hormonal.includes('pcos')) hormonalText.push('سندرم تخمدان پلی کیستیک');
+    if (hormonal.includes('hypothyroidism')) hormonalText.push('کم کاری تیروئید');
+    if (hormonal.includes('hyperthyroidism')) hormonalText.push('پرکاری تیروئید');
+    if (hormonal.includes('diabetes')) hormonalText.push('دیابت');
+    if (hormonal.includes('adrenal')) hormonalText.push('مشکلات غده فوق کلیوی');
+    if (hormonal.includes('none')) hormonalText.push('هیچکدام');
+    
     const additionalInfoText = additionalInfo.map(item => {
         switch(item) {
             case 'diabetes': return 'دیابت';
@@ -674,7 +805,7 @@ window.showSummary = function() {
     if (surgery.includes('intestine')) surgeryText.push('جراحی روده');
     if (surgery.includes('thyroid')) surgeryText.push('جراحی تیروئید');
     if (surgery.includes('gallbladder')) surgeryText.push('جراحی کیسه صفرا');
-    if (surgery.includes('pancreas')) surgeryText.push('جراحی پانکراس');
+    if (surgery.includes('pancreas')) surgeryText.push('جراحی لوزالمعده');
     if (surgery.includes('none')) surgeryText.push('هیچکدام');
     
     summaryContainer.innerHTML = `
@@ -705,6 +836,10 @@ window.showSummary = function() {
         <div class="summary-item">
             <span class="summary-label">سابقه جراحی:</span>
             <span class="summary-value">${surgeryText.join('، ') || 'ثبت نشده'}</span>
+        </div>  
+        <div class="summary-item">
+            <span class="summary-label">اختلالات هورمونی:</span>
+            <span class="summary-value">${hormonalText.join('، ') || 'ثبت نشده'}</span>
         </div>        
         <div class="summary-item">
             <span class="summary-label">فعالیت روزانه:</span>
@@ -855,6 +990,7 @@ window.showStep = function(step) {
         "target-weight-step",
         "goal-weight-display",
         "surgery-step",
+        "hormonal-disorders-step", 
         "activity-selection-step",
         "meal-selection-step",
         "additional-info-step",
@@ -939,7 +1075,9 @@ window.showStep = function(step) {
         validateStep(step);
     }
     
-    if (step === STEPS.SURGERY) {
+    if (step === STEPS.HORMONAL) {
+        setupHormonalSelection(step);
+    } else if (step === STEPS.SURGERY) {
         setupSurgerySelection(step);
     } else if (step === STEPS.ADDITIONAL_INFO) {
         setupAdditionalInfoSelection(step);
@@ -950,6 +1088,12 @@ window.showStep = function(step) {
         setupConfirmationCheckbox(step);
         document.getElementById("next-button-container").style.display = "none";
         document.getElementById("submit-button-container").style.display = "block";
+        
+        const confirmCheckbox = document.getElementById("confirm-info");
+        const submitButton = document.querySelector(".submit-form");
+        if (submitButton) {
+            submitButton.disabled = !confirmCheckbox.checked;
+        }
     }
 }
 
@@ -1134,7 +1278,6 @@ window.state = {
 
 window.totalSteps = document.querySelectorAll(".step").length;
 
-// Define step constants
 window.STEPS = {
     GENDER: 1,
     GOAL: 2,
@@ -1143,12 +1286,13 @@ window.STEPS = {
     WEIGHT: 5,
     TARGET_WEIGHT: 6,
     GOAL_DISPLAY: 7,
-    SURGERY: 8, 
-    ACTIVITY: 9,
-    MEALS: 10,
-    ADDITIONAL_INFO: 11,
-    FOOD_RESTRICTIONS: 12,
-    CONFIRMATION: 13
+    SURGERY: 8,
+    HORMONAL: 9, 
+    ACTIVITY: 10,
+    MEALS: 11,
+    ADDITIONAL_INFO: 12,
+    FOOD_RESTRICTIONS: 13,
+    CONFIRMATION: 14
 };
 -----------------------------------------------------------------------------------------------------
 /*/home/aidastya/public_html/wp-content/themes/woodmart-child/assets/css/style.css*/
@@ -1553,6 +1697,7 @@ button.submit-form:hover {
 
 .checkbox-container {
     position: relative;
+    margin-bottom: 10px;
 }
 
 .real-checkbox {
@@ -1663,10 +1808,12 @@ button.submit-form:hover {
 .summary-label {
     font-weight: bold;
     color: var(--primary-color);
+    text-align: right;
 }
 
 .summary-value {
     color: var(--text-color);
+    text-align: left;
 }
 
 #confirmation-checkbox {
@@ -2407,8 +2554,14 @@ button.submit-form:hover {
     z-index: 2;
 }
 
-#surgery-selection {
-    max-height: 300px;
+.checkbox-step-container {
+    padding: 0 15px;
+    width: 100%;
+    max-width: 500px;
+}
+
+.checkbox-list-container {
+    max-height: 250px;
     overflow-y: auto;
     padding: 10px 5px;
     margin: 5px auto;
@@ -2416,57 +2569,46 @@ button.submit-form:hover {
     scrollbar-color: var(--primary-color) var(--background-color);
 }
 
-#surgery-selection::-webkit-scrollbar {
+.checkbox-list-container::-webkit-scrollbar {
     width: 6px;
 }
 
-#surgery-selection::-webkit-scrollbar-track {
+.checkbox-list-container::-webkit-scrollbar-track {
     background: var(--background-color);
     border-radius: 3px;
 }
 
-#surgery-selection::-webkit-scrollbar-thumb {
+.checkbox-list-container::-webkit-scrollbar-thumb {
     background-color: var(--primary-color);
     border-radius: 3px;
 }
 
-#surgery-selection .checkbox-container {
-    margin-bottom: 8px;
-}
-
-#surgery-selection .checkbox-container:last-child {
-    margin-bottom: 0;
-}
-
-.stand-alone-none {
+.stand-alone-none-option {
     padding: 5px;
     margin-bottom: 5px;
 }
 
-.scrollable-surgery-list {
-    max-height: 250px;
-    overflow-y: auto;
-    padding: 10px 15px;
-    border: 1px solid var(--border-color);
-    border-radius: 8px;
-    background-color: var(--option-bg);
-    scrollbar-width: thin;
-    scrollbar-color: var(--primary-color) var(--background-color);
+button.submit-form:disabled {
+    cursor: not-allowed;
+    opacity: 0.7;
+    background-color: var(--button-bg) !important;
 }
+/*#surgery-step,*/
+/*#hormonal-disorders-step,*/
+/*#additional-info-step,*/
+/*#food-restriction-step {*/
+/*    composes: checkbox-step-container;*/
+/*}*/
 
-.scrollable-surgery-list::-webkit-scrollbar {
-    width: 6px;
-}
+/*#surgery-selection,*/
+/*#hormonal-selection {*/
+/*    composes: checkbox-list-container;*/
+/*}*/
 
-.scrollable-surgery-list::-webkit-scrollbar-track {
-    background: var(--background-color);
-    border-radius: 3px;
-}
-
-.scrollable-surgery-list::-webkit-scrollbar-thumb {
-    background-color: var(--primary-color);
-    border-radius: 3px;
-}
+/*#surgery-none,*/
+/*#hormonal-none {*/
+/*    composes: stand-alone-none-option;*/
+/*}*/
 -----------------------------------------------------------------------------------------------------
 <?php
 // Check if user is logged in
