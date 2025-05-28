@@ -297,7 +297,51 @@
                     </label>
                 </div>
             </div>
-        </div>        
+        </div>   
+        <div id="stomach-discomfort-step" class="step checkbox-step-container">
+            <h2>آیا در هفته گذشته ناراحتی معده را تجربه کرده‌اید؟</h2>
+            
+            <div class="checkbox-container first-option stand-alone-none">
+                <input type="checkbox" id="stomach-none" class="real-checkbox">
+                <label for="stomach-none" class="checkbox-label">
+                    <span class="check-icon"></span>
+                    <span class="label-text">هیچکدام</span>
+                </label>
+            </div>
+            
+            <div class="separator"></div>
+            
+            <div id="stomach-selection" class="checkbox-selection-container checkbox-list-container">
+                <div class="checkbox-container">
+                    <input type="checkbox" id="stomach-bloating" class="real-checkbox">
+                    <label for="stomach-bloating" class="checkbox-label">
+                        <span class="check-icon"></span>
+                        <span class="label-text">نفخ یا گاز معده</span>
+                    </label>
+                </div>
+                <div class="checkbox-container">
+                    <input type="checkbox" id="stomach-pain" class="real-checkbox">
+                    <label for="stomach-pain" class="checkbox-label">
+                        <span class="check-icon"></span>
+                        <span class="label-text">درد یا گرفتگی معده</span>
+                    </label>
+                </div>
+                <div class="checkbox-container">
+                    <input type="checkbox" id="stomach-heartburn" class="real-checkbox">
+                    <label for="stomach-heartburn" class="checkbox-label">
+                        <span class="check-icon"></span>
+                        <span class="label-text">سوزش سر دل یا ترش کردن</span>
+                    </label>
+                </div>
+                <div class="checkbox-container">
+                    <input type="checkbox" id="stomach-nausea" class="real-checkbox">
+                    <label for="stomach-nausea" class="checkbox-label">
+                        <span class="check-icon"></span>
+                        <span class="label-text">حالت تهوع</span>
+                    </label>
+                </div>
+            </div>
+        </div>     
         <div id="activity-selection-step" class="step">
             <h2>میزان فعالیت روزانه شما چقدر است؟</h2>
             <div id="activity-selection">
@@ -460,6 +504,85 @@ window.preloadImages = function() {
     });
 }
 
+window.setupStomachDiscomfortSelection = function(currentStep) {
+    try {
+        if (currentStep !== STEPS.STOMACH) return;
+
+        const elements = {
+            noneCheckbox: document.getElementById('stomach-none'),
+            bloating: document.getElementById('stomach-bloating'),
+            pain: document.getElementById('stomach-pain'),
+            heartburn: document.getElementById('stomach-heartburn'),
+            nausea: document.getElementById('stomach-nausea'),
+            nextButton: document.querySelector('.next-step')
+        };
+
+        if (Object.values(elements).some(el => !el)) {
+            console.error('Some required elements for stomach step are missing');
+            return;
+        }
+
+        elements.nextButton.disabled = true;
+
+        const validateForm = () => {
+            const anyChecked = [elements.bloating, elements.pain, elements.heartburn, elements.nausea]
+                .some(option => option.checked) || elements.noneCheckbox.checked;
+            
+            elements.nextButton.disabled = !anyChecked;
+            
+            const stomachInfo = [];
+            if (elements.bloating.checked) stomachInfo.push('bloating');
+            if (elements.pain.checked) stomachInfo.push('pain');
+            if (elements.heartburn.checked) stomachInfo.push('heartburn');
+            if (elements.nausea.checked) stomachInfo.push('nausea');
+            if (elements.noneCheckbox.checked) stomachInfo.push('none');
+            
+            state.updateFormData('stomachDiscomfort', stomachInfo);
+        };
+
+        const handleCheckboxChange = (checkbox) => {
+            checkbox.addEventListener('change', function() {
+                const label = this.nextElementSibling;
+                if (label) {
+                    label.classList.add('checked-animation');
+                    setTimeout(() => {
+                        label.classList.remove('checked-animation');
+                        label.classList.toggle('checked', this.checked);
+                    }, 800);
+                }
+                validateForm();
+            });
+        };
+
+        elements.noneCheckbox.addEventListener('change', function() {
+            if (this.checked) {
+                [elements.bloating, elements.pain, elements.heartburn, elements.nausea].forEach(option => {
+                    option.checked = false;
+                    const label = option.nextElementSibling;
+                    if (label) label.classList.remove('checked');
+                });
+            }
+            validateForm();
+        });
+
+        [elements.bloating, elements.pain, elements.heartburn, elements.nausea].forEach(option => {
+            handleCheckboxChange(option);
+            option.addEventListener('change', function() {
+                if (this.checked) {
+                    elements.noneCheckbox.checked = false;
+                    const label = elements.noneCheckbox.nextElementSibling;
+                    if (label) label.classList.remove('checked');
+                }
+                validateForm();
+            });
+        });
+
+        validateForm();
+    } catch (error) {
+        console.error('Error in stomach discomfort step:', error);
+    }
+};
+
 window.setupHormonalSelection = function(currentStep) {
     const checkboxes = document.querySelectorAll('#hormonal-selection .real-checkbox, #hormonal-none');
     const nextButton = document.querySelector('.next-step');
@@ -570,9 +693,11 @@ window.setupSurgerySelection = function(currentStep) {
     surgeryOptions.forEach(option => {
         option.addEventListener('change', function() {
             if (this.checked) {
+                // اگر گزینه‌ای غیر از "هیچکدام" انتخاب شد
                 noneCheckbox.checked = false;
                 noneCheckbox.nextElementSibling.classList.remove('checked');
                 
+                // اعمال افکت روی گزینه انتخاب شده
                 const label = this.nextElementSibling;
                 label.classList.add('checked-animation');
                 setTimeout(() => {
@@ -740,16 +865,51 @@ window.handleFormSubmit = function(event) {
     
     const formData = {
         ...state.formData,
+        // اطلاعات پایه
+        gender: state.formData.gender,
+        age: state.formData.age,
+        height: state.formData.height,
+        weight: state.formData.weight,
+        targetWeight: state.formData.targetWeight,
+        goal: state.formData.goal,
+        activity: state.formData.activity,
+        meals: state.formData.meals,
+        
+        // اطلاعات پزشکی
+        surgery: state.formData.surgery || [],
+        hormonal: state.formData.hormonal || [],
+        stomachDiscomfort: state.formData.stomachDiscomfort || [],
+        
+        // اطلاعات تکمیلی (به صورت جداگانه)
         diabetes: state.formData.additionalInfo?.includes('diabetes') || false,
         pressure: state.formData.additionalInfo?.includes('pressure') || false,
         thyroid: state.formData.additionalInfo?.includes('thyroid') || false,
         allergy: state.formData.additionalInfo?.includes('allergy') || false,
         vegetarian: state.formData.foodRestrictions?.includes('vegetarian') || false,
-        noSeafood: state.formData.foodRestrictions?.includes('no-seafood') || false
+        noSeafood: state.formData.foodRestrictions?.includes('no-seafood') || false,
+        
     };
-    
+
     console.log('Form submitted:', formData);
-}
+};
+
+// window.handleFormSubmit = function(event) {
+//     event.preventDefault();
+    
+//     const formData = {
+//         ...state.formData,
+//         diabetes: state.formData.additionalInfo?.includes('diabetes') || false,
+//         pressure: state.formData.additionalInfo?.includes('pressure') || false,
+//         thyroid: state.formData.additionalInfo?.includes('thyroid') || false,
+//         allergy: state.formData.additionalInfo?.includes('allergy') || false,
+//         vegetarian: state.formData.foodRestrictions?.includes('vegetarian') || false,
+//         noSeafood: state.formData.foodRestrictions?.includes('no-seafood') || false,
+//         stomachDiscomfort: state.formData.stomachDiscomfort || []
+
+//     };
+    
+//     console.log('Form submitted:', formData);
+// }
 
 window.showSummary = function() {
     const summaryContainer = document.getElementById('summary-container');
@@ -762,12 +922,17 @@ window.showSummary = function() {
         nextButton.disabled = !this.checked;
     });
 
-    const { gender, age, height, weight, targetWeight, goal, activity, meals, additionalInfo = [], foodRestrictions = [], surgery = [] } = state.formData;
+    const { 
+        gender, age, height, weight, targetWeight, goal, 
+        activity, meals, additionalInfo = [], 
+        foodRestrictions = [], surgery = [], hormonal = [],
+        stomachDiscomfort = []
+    } = state.formData;
     const goalText = { "weight-loss": "کاهش وزن", "weight-gain": "افزایش وزن", "fitness": "تناسب اندام"}[goal];
     const activityText = { "very-low": "خیلی کم (کمتر از 1 ساعت)", "low": "کم (1 تا 2 ساعت)", "medium": "متوسط (2 تا 4 ساعت)", "high": "زیاد (بیشتر از 4 ساعت)" }[activity];
     const mealsText = { "2": "۲ وعده", "3": "۳ وعده", "4": "۴ وعده", "more": "بیشتر" }[meals];
     
-    const { hormonal = [] } = state.formData;
+    // const { hormonal = [] } = state.formData;
     
     const hormonalText = [];
     if (hormonal.includes('pcos')) hormonalText.push('سندرم تخمدان پلی کیستیک');
@@ -796,6 +961,29 @@ window.showSummary = function() {
             default: return item;
         }
     });
+    
+    const stomachDiscomfortText = stomachDiscomfort.map(item => {
+        switch(item) {
+            case 'bloating': return 'نفخ یا گاز معده';
+            case 'pain': return 'درد یا گرفتگی معده';
+            case 'heartburn': return 'سوزش سر دل';
+            case 'nausea': return 'حالت تهوع';
+            case 'none': return 'هیچکدام';
+            default: return item;
+        }
+    });
+    
+    // const stomachSymptomsText = {
+    //     'bloating': 'نفخ یا گاز معده',
+    //     'pain': 'درد یا گرفتگی معده',
+    //     'heartburn': 'سوزش سر دل',
+    //     'nausea': 'حالت تهوع',
+    //     'none': 'هیچکدام'
+    // };
+    
+    // const stomachDiscomfortText = stomachDiscomfort.symptoms?.map(
+    //     symptom => stomachSymptomsText[symptome] || symptom
+    // ).join('، ') || 'ثبت نشده';    
     
     const surgeryText = [];
     if (surgery.includes('kidney')) surgeryText.push('پیوند کلیه');
@@ -840,6 +1028,10 @@ window.showSummary = function() {
         <div class="summary-item">
             <span class="summary-label">اختلالات هورمونی:</span>
             <span class="summary-value">${hormonalText.join('، ') || 'ثبت نشده'}</span>
+        </div>    
+        <div class="summary-item">
+            <span class="summary-label">علائم معده:</span>
+            <span class="summary-value">${stomachDiscomfortText.join('، ') || 'ثبت نشده'}</span>
         </div>        
         <div class="summary-item">
             <span class="summary-label">فعالیت روزانه:</span>
@@ -990,7 +1182,8 @@ window.showStep = function(step) {
         "target-weight-step",
         "goal-weight-display",
         "surgery-step",
-        "hormonal-disorders-step", 
+        "hormonal-disorders-step",
+        "stomach-discomfort-step",
         "activity-selection-step",
         "meal-selection-step",
         "additional-info-step",
@@ -1075,7 +1268,9 @@ window.showStep = function(step) {
         validateStep(step);
     }
     
-    if (step === STEPS.HORMONAL) {
+    if (step === STEPS.STOMACH) {
+        setupStomachDiscomfortSelection(step);
+    } else if (step === STEPS.HORMONAL) {
         setupHormonalSelection(step);
     } else if (step === STEPS.SURGERY) {
         setupSurgerySelection(step);
@@ -1276,7 +1471,8 @@ window.state = {
     }
 };
 
-window.totalSteps = document.querySelectorAll(".step").length;
+// window.totalSteps = document.querySelectorAll(".step").length;
+
 
 window.STEPS = {
     GENDER: 1,
@@ -1288,12 +1484,15 @@ window.STEPS = {
     GOAL_DISPLAY: 7,
     SURGERY: 8,
     HORMONAL: 9, 
-    ACTIVITY: 10,
-    MEALS: 11,
-    ADDITIONAL_INFO: 12,
-    FOOD_RESTRICTIONS: 13,
-    CONFIRMATION: 14
+    STOMACH: 10,
+    ACTIVITY: 11,
+    MEALS: 12,
+    ADDITIONAL_INFO: 13,
+    FOOD_RESTRICTIONS: 14,
+    CONFIRMATION: 15
 };
+
+window.totalSteps = Object.keys(STEPS).length;
 -----------------------------------------------------------------------------------------------------
 /*/home/aidastya/public_html/wp-content/themes/woodmart-child/assets/css/style.css*/
 @font-face {
@@ -2593,22 +2792,14 @@ button.submit-form:disabled {
     opacity: 0.7;
     background-color: var(--button-bg) !important;
 }
-/*#surgery-step,*/
-/*#hormonal-disorders-step,*/
-/*#additional-info-step,*/
-/*#food-restriction-step {*/
-/*    composes: checkbox-step-container;*/
-/*}*/
 
-/*#surgery-selection,*/
-/*#hormonal-selection {*/
-/*    composes: checkbox-list-container;*/
-/*}*/
-
-/*#surgery-none,*/
-/*#hormonal-none {*/
-/*    composes: stand-alone-none-option;*/
-/*}*/
+#stomach-discomfort-step h3 {
+    font-size: 15px;
+    color: var(--primary-color);
+    margin: 15px 0 10px;
+    text-align: right;
+    padding-right: 10px;
+}
 -----------------------------------------------------------------------------------------------------
 <?php
 // Check if user is logged in
