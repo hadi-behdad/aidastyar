@@ -1300,13 +1300,34 @@ window.handleEnterKey = function(event) {
 window.validateStep = function(step) {
     const nextButton = document.querySelector(".next-step");
     const errorMessages = {
-        [STEPS.AGE]: { field: "age", min: 5, max: 100, unit: "سال", label: "سن", errorId: "age-error" },
-        [STEPS.HEIGHT]: { field: "height", min: 100, max: 250, unit: "سانتی‌متر", label: "قد", errorId: "height-error" },
-        [STEPS.WEIGHT]: { field: "weight", min: 30, max: 300, unit: "کیلوگرم", label: "وزن", errorId: "weight-error" },
+        [STEPS.AGE]: { 
+            field: "age", 
+            min: CONSTANTS.MIN_AGE, 
+            max: CONSTANTS.MAX_AGE, 
+            unit: "سال", 
+            label: "سن", 
+            errorId: "age-error" 
+        },
+        [STEPS.HEIGHT]: { 
+            field: "height", 
+            min: CONSTANTS.MIN_HEIGHT, 
+            max: CONSTANTS.MAX_HEIGHT, 
+            unit: "سانتی‌متر", 
+            label: "قد", 
+            errorId: "height-error" 
+        },
+        [STEPS.WEIGHT]: { 
+            field: "weight", 
+            min: CONSTANTS.MIN_WEIGHT, 
+            max: CONSTANTS.MAX_WEIGHT, 
+            unit: "کیلوگرم", 
+            label: "وزن", 
+            errorId: "weight-error" 
+        },
         [STEPS.TARGET_WEIGHT]: { 
             field: "targetWeight", 
-            min: 30, 
-            max: 300, 
+            min: CONSTANTS.MIN_WEIGHT, 
+            max: CONSTANTS.MAX_WEIGHT, 
             unit: "کیلوگرم", 
             label: "وزن هدف", 
             errorId: "targetWeight-error",
@@ -1443,8 +1464,14 @@ window.state = {
     }
 };
 
-// window.totalSteps = document.querySelectorAll(".step").length;
-
+window.CONSTANTS = {
+    MIN_AGE: 18,
+    MAX_AGE: 80,
+    MIN_HEIGHT: 90,
+    MAX_HEIGHT: 250,
+    MIN_WEIGHT: 35,
+    MAX_WEIGHT: 180
+};
 
 window.STEPS = {
     GENDER: 1,
