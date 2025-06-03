@@ -182,7 +182,7 @@
                 <input type="checkbox" id="surgery-none" class="real-checkbox">
                 <label for="surgery-none" class="checkbox-label">
                     <span class="check-icon"></span>
-                    <span class="label-text">هیچکدام</span>
+                    <span class="label-text">خیر</span>
                 </label>
             </div>
             
@@ -254,7 +254,7 @@
                 <input type="checkbox" id="hormonal-none" class="real-checkbox">
                 <label for="hormonal-none" class="checkbox-label">
                     <span class="check-icon"></span>
-                    <span class="label-text">هیچکدام</span>
+                    <span class="label-text">خیر</span>
                 </label>
             </div>
             
@@ -305,7 +305,7 @@
                 <input type="checkbox" id="stomach-none" class="real-checkbox">
                 <label for="stomach-none" class="checkbox-label">
                     <span class="check-icon"></span>
-                    <span class="label-text">هیچکدام</span>
+                    <span class="label-text">خیر</span>
                 </label>
             </div>
             
