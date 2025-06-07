@@ -245,6 +245,13 @@
                         <span class="label-text">جراحی لوزالمعده (پانکراس)</span>
                     </label>
                 </div>
+                <div class="checkbox-container female-only" style="display: none;">
+                    <input type="checkbox" id="surgery-gynecology" class="real-checkbox">
+                    <label for="surgery-gynecology" class="checkbox-label">
+                        <span class="check-icon"></span>
+                        <span class="label-text">جراحی‌های زنان</span>
+                    </label>
+                </div>                
             </div>
         </div>     
         <div id="hormonal-disorders-step" class="step checkbox-step-container">
@@ -298,7 +305,7 @@
                 </div>
             </div>
         </div>   
-        <div id="stomach-discomfort-step" class="step checkbox-step-container">
+<div id="stomach-discomfort-step" class="step checkbox-step-container">
             <h2>آیا در هفته گذشته ناراحتی معده را تجربه کرده‌اید؟</h2>
             
             <div class="checkbox-container first-option stand-alone-none">
@@ -340,8 +347,15 @@
                         <span class="label-text">حالت تهوع</span>
                     </label>
                 </div>
+                <div class="checkbox-container">
+                    <input type="checkbox" id="stomach-indigestion" class="real-checkbox">
+                    <label for="stomach-indigestion" class="checkbox-label">
+                        <span class="check-icon"></span>
+                        <span class="label-text">سوء هاضمه مزمن</span>
+                    </label>
+                </div>
             </div>
-        </div>     
+        </div>   
         <div id="activity-selection-step" class="step">
             <h2>میزان فعالیت روزانه شما چقدر است؟</h2>
             <div id="activity-selection">
@@ -381,6 +395,10 @@
                 <div class="meal-option" data-meals="more">
                     <img src="assets/images/png/gain-weight-min.png" alt="بیشتر" width="60" height="30">
                     <span>بیشتر</span>
+                </div>
+                <div class="meal-option" data-meals="irregular">
+                    <img src="assets/images/png/gain-weight-min.png" alt="وعده‌های نامنظم" width="60" height="30">
+                    <span>وعده‌های نامنظم</span>
                 </div>
             </div>
         </div>
@@ -515,6 +533,7 @@ window.setupStomachDiscomfortSelection = function(currentStep) {
             pain: document.getElementById('stomach-pain'),
             heartburn: document.getElementById('stomach-heartburn'),
             nausea: document.getElementById('stomach-nausea'),
+            indigestion: document.getElementById('stomach-indigestion'),
             nextButton: document.querySelector('.next-step')
         };
 
@@ -654,6 +673,17 @@ window.setupSurgerySelection = function(currentStep) {
     
     if (currentStep !== STEPS.SURGERY) return;
 
+    const femaleOnlyOptions = document.querySelectorAll('.female-only');
+    if (state.formData.gender === 'female') {
+        femaleOnlyOptions.forEach(option => option.style.display = 'block');
+    } else {
+        femaleOnlyOptions.forEach(option => {
+            option.style.display = 'none';
+            const checkbox = option.querySelector('.real-checkbox');
+            if (checkbox) checkbox.checked = false;
+        });
+    }
+    
     nextButton.disabled = true;
 
     const validateForm = () => {
@@ -669,6 +699,7 @@ window.setupSurgerySelection = function(currentStep) {
         if (document.getElementById('surgery-thyroid').checked) surgeryInfo.push('thyroid');
         if (document.getElementById('surgery-gallbladder').checked) surgeryInfo.push('gallbladder');
         if (document.getElementById('surgery-pancreas').checked) surgeryInfo.push('pancreas');
+        if (document.getElementById('surgery-gynecology').checked) surgeryInfo.push('gynecology');
         if (noneCheckbox.checked) surgeryInfo.push('none');
         
         state.updateFormData('surgery', surgeryInfo);
@@ -894,7 +925,6 @@ window.handleFormSubmit = function(event) {
     console.log('Form submitted:', formData);
 };
 
-
 window.showSummary = function() {
     const summaryContainer = document.getElementById('summary-container');
     const nextButton = document.querySelector('.next-step');
@@ -914,7 +944,13 @@ window.showSummary = function() {
     } = state.formData;
     const goalText = { "weight-loss": "کاهش وزن", "weight-gain": "افزایش وزن", "fitness": "تناسب اندام"}[goal];
     const activityText = { "very-low": "خیلی کم (کمتر از 1 ساعت)", "low": "کم (1 تا 2 ساعت)", "medium": "متوسط (2 تا 4 ساعت)", "high": "زیاد (بیشتر از 4 ساعت)" }[activity];
-    const mealsText = { "2": "۲ وعده", "3": "۳ وعده", "4": "۴ وعده", "more": "بیشتر" }[meals];
+        const mealsText = { 
+        "2": "۲ وعده", 
+        "3": "۳ وعده", 
+        "4": "۴ وعده", 
+        "more": "بیشتر",
+        "irregular": "وعده‌های نامنظم" 
+    }[meals];
     
     // const { hormonal = [] } = state.formData;
     
@@ -952,6 +988,7 @@ window.showSummary = function() {
             case 'pain': return 'درد یا گرفتگی معده';
             case 'heartburn': return 'سوزش سر دل';
             case 'nausea': return 'حالت تهوع';
+            case 'indigestion': return 'سوء هاضمه مزمن';
             case 'none': return 'هیچکدام';
             default: return item;
         }
@@ -966,6 +1003,7 @@ window.showSummary = function() {
     if (surgery.includes('thyroid')) surgeryText.push('جراحی تیروئید');
     if (surgery.includes('gallbladder')) surgeryText.push('جراحی کیسه صفرا');
     if (surgery.includes('pancreas')) surgeryText.push('جراحی لوزالمعده');
+    if (surgery.includes('gynecology')) surgeryText.push('جراحی‌های زنان');
     if (surgery.includes('none')) surgeryText.push('هیچکدام');
     
     summaryContainer.innerHTML = `
