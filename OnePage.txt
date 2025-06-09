@@ -305,7 +305,7 @@
                 </div>
             </div>
         </div>   
-<div id="stomach-discomfort-step" class="step checkbox-step-container">
+        <div id="stomach-discomfort-step" class="step checkbox-step-container">
             <h2>آیا در هفته گذشته ناراحتی معده را تجربه کرده‌اید؟</h2>
             
             <div class="checkbox-container first-option stand-alone-none">
@@ -356,6 +356,61 @@
                 </div>
             </div>
         </div>   
+        <div id="water-intake-step" class="step">
+            <h2>به طور میانگین چه مقدار آب در روز می‌نوشید؟</h2>
+            <div id="water-intake-container">
+                <div class="water-cups-container">
+                    <!-- ردیف 1 -->
+                    <div class="water-cup-row">
+                        <div class="water-cup" data-amount="1"></div>
+                        <div class="water-cup" data-amount="2"></div>
+                        <div class="water-cup" data-amount="3"></div>
+                        <div class="water-cup" data-amount="4"></div>
+                    </div>
+                    <!-- ردیف 2 -->
+                    <div class="water-cup-row">
+                        <div class="water-cup" data-amount="5"></div>
+                        <div class="water-cup" data-amount="6"></div>
+                        <div class="water-cup" data-amount="7"></div>
+                        <div class="water-cup" data-amount="8"></div>
+                    </div>
+                    <!-- ردیف 3 -->
+                    <div class="water-cup-row">
+                        <div class="water-cup" data-amount="9"></div>
+                        <div class="water-cup" data-amount="10"></div>
+                        <div class="water-cup" data-amount="11"></div>
+                        <div class="water-cup" data-amount="12"></div>
+                    </div>
+                    <!-- ردیف 4 -->
+                    <div class="water-cup-row">
+                        <div class="water-cup" data-amount="13"></div>
+                        <div class="water-cup" data-amount="14"></div>
+                        <div class="water-cup" data-amount="15"></div>
+                        <div class="water-cup" data-amount="16"></div>
+                    </div>
+                </div>
+        
+                <div class="water-amount-display">
+                    <div id="water-amount-text" class="water-amount-text">
+                        <span id="water-amount">0</span> لیوان در روز 
+                        <span class="water-liter">(≈<span id="water-liter">0</span> لیتر)</span>
+                    </div>
+                    <div id="water-dont-know-text" class="dont-know-text" style="display:none;">
+                        مقدار آب مصرفی مشخص نیست
+                    </div>
+                </div>
+                
+                <div class="dont-know-container">
+                    <div class="checkbox-container first-option stand-alone-none">
+                        <input type="checkbox" id="water-dont-know" class="real-checkbox">
+                        <label for="water-dont-know" class="checkbox-label">
+                            <span class="check-icon"></span>
+                            <span class="label-text">نمی‌دانم / مطمئن نیستم</span>
+                        </label>
+                    </div>
+                </div>
+            </div>
+        </div>    
         <div id="activity-selection-step" class="step">
             <h2>میزان فعالیت روزانه شما چقدر است؟</h2>
             <div id="activity-selection">
@@ -522,6 +577,95 @@ window.preloadImages = function() {
         img.src = src;
     });
 }
+
+window.setupWaterIntakeSelection = function(currentStep) {
+    if (currentStep !== STEPS.WATER_INTAKE) return;
+
+    const waterCups = document.querySelectorAll('.water-cup');
+    const waterAmountDisplay = document.getElementById('water-amount');
+    const waterLiterDisplay = document.getElementById('water-liter');
+    const waterAmountText = document.getElementById('water-amount-text');
+    const dontKnowCheckbox = document.getElementById('water-dont-know');
+    const dontKnowText = document.getElementById('water-dont-know-text');
+    const nextButton = document.querySelector('.next-step');
+    
+    nextButton.disabled = true;
+
+    const updateNextButtonState = () => {
+        const hasSelection = document.querySelector('.water-cup.selected') !== null;
+        const isDontKnowChecked = dontKnowCheckbox.checked;
+        nextButton.disabled = !(hasSelection || isDontKnowChecked);
+    };
+
+    const updateWaterDisplay = (amount, isDontKnow = false) => {
+        if (isDontKnow) {
+            waterAmountText.style.display = 'none';
+            dontKnowText.style.display = 'block';
+            state.updateFormData('waterIntake', null);
+        } else {
+            waterAmountDisplay.textContent = amount;
+            waterLiterDisplay.textContent = (amount * 0.25).toFixed(1);
+            waterAmountText.style.display = 'flex';
+            dontKnowText.style.display = 'none';
+            state.updateFormData('waterIntake', amount);
+        }
+        updateNextButtonState();
+    };
+
+    waterCups.forEach((cup, index) => {
+        cup.addEventListener('click', function() {
+            dontKnowCheckbox.checked = false;
+            document.querySelector('.stand-alone-none .checkbox-label').classList.remove('checked');
+            
+            const amount = parseInt(this.dataset.amount);
+            
+            // Reset all cups
+            waterCups.forEach(c => {
+                c.classList.remove('selected');
+                c.querySelector('.water-wave')?.remove();
+            });
+            
+            // Select cups up to clicked amount
+            for (let i = 0; i < amount; i++) {
+                waterCups[i].classList.add('selected');
+                
+                // ایجاد موج آب
+                const wave = document.createElement('div');
+                wave.className = 'water-wave';
+                wave.style.animationDelay = `${i * 0.1}s`;
+                waterCups[i].appendChild(wave);
+            }
+            
+            updateWaterDisplay(amount);
+        });
+    });
+
+    dontKnowCheckbox.addEventListener('change', function() {
+        const label = this.nextElementSibling;
+        if (this.checked) {
+            label.classList.add('checked-animation');
+            setTimeout(() => {
+                label.classList.remove('checked-animation');
+                label.classList.add('checked');
+            }, 800);
+            
+            // Reset all cups
+            waterCups.forEach(c => {
+                c.classList.remove('selected');
+                c.querySelector('.water-wave')?.remove();
+            });
+            
+            updateWaterDisplay(0, true);
+        } else {
+            label.classList.remove('checked');
+            updateWaterDisplay(0, false);
+            updateNextButtonState();
+        }
+    });
+
+    // بررسی اولیه وضعیت دکمه
+    updateNextButtonState();
+};
 
 window.setupStomachDiscomfortSelection = function(currentStep) {
     try {
@@ -906,7 +1050,7 @@ window.handleFormSubmit = function(event) {
         goal: state.formData.goal,
         activity: state.formData.activity,
         meals: state.formData.meals,
-        
+        waterIntake: state.formData.waterIntake,
         // اطلاعات پزشکی
         surgery: state.formData.surgery || [],
         hormonal: state.formData.hormonal || [],
@@ -940,7 +1084,8 @@ window.showSummary = function() {
         gender, age, height, weight, targetWeight, goal, 
         activity, meals, additionalInfo = [], 
         foodRestrictions = [], surgery = [], hormonal = [],
-        stomachDiscomfort = []
+        stomachDiscomfort = [],
+        waterIntake
     } = state.formData;
     const goalText = { "weight-loss": "کاهش وزن", "weight-gain": "افزایش وزن", "fitness": "تناسب اندام"}[goal];
     const activityText = { "very-low": "خیلی کم (کمتر از 1 ساعت)", "low": "کم (1 تا 2 ساعت)", "medium": "متوسط (2 تا 4 ساعت)", "high": "زیاد (بیشتر از 4 ساعت)" }[activity];
@@ -951,6 +1096,10 @@ window.showSummary = function() {
         "more": "بیشتر",
         "irregular": "وعده‌های نامنظم" 
     }[meals];
+    
+    const waterText = waterIntake === null ? 
+        'مشخص نیست' : 
+        `${waterIntake} لیوان (≈${(waterIntake * 0.25).toFixed(1)} لیتر)`;;
     
     // const { hormonal = [] } = state.formData;
     
@@ -1042,6 +1191,10 @@ window.showSummary = function() {
         <div class="summary-item">
             <span class="summary-label">علائم معده:</span>
             <span class="summary-value">${stomachDiscomfortText.join('، ') || 'ثبت نشده'}</span>
+        </div>    
+        <div class="summary-item">
+            <span class="summary-label">مصرف آب روزانه:</span>
+            <span class="summary-value">${waterText}</span>
         </div>        
         <div class="summary-item">
             <span class="summary-label">فعالیت روزانه:</span>
@@ -1194,6 +1347,7 @@ window.showStep = function(step) {
         "surgery-step",
         "hormonal-disorders-step",
         "stomach-discomfort-step",
+        "water-intake-step", // اضافه شده
         "activity-selection-step",
         "meal-selection-step",
         "additional-info-step",
@@ -1265,9 +1419,17 @@ window.showStep = function(step) {
     }
     
     const nextButtonContainer = document.getElementById("next-button-container");
-    if (nextButtonContainer) nextButtonContainer.style.display = [STEPS.GENDER, STEPS.GOAL, STEPS.ACTIVITY, STEPS.MEALS].includes(step) ? "none" : "block";
+    if (nextButtonContainer) {
+        nextButtonContainer.style.display = [
+            STEPS.GENDER, 
+            STEPS.GOAL,
+            STEPS.WATER_INTAKE, // اضافه شده
+            STEPS.ACTIVITY, 
+            STEPS.MEALS
+        ].includes(step) ? "none" : "block";
+    }
 
-    if ([STEPS.AGE, STEPS.HEIGHT, STEPS.WEIGHT, STEPS.TARGET_WEIGHT].includes(step)) {
+    if ([STEPS.AGE, STEPS.HEIGHT, STEPS.WEIGHT, STEPS.TARGET_WEIGHT, STEPS.WATER_INTAKE].includes(step)) {
         const inputId = `${["age", "height", "weight", "target-weight"][step - 3]}-input`;
         const inputElement = document.getElementById(inputId);
         if (inputElement) inputElement.focus();
@@ -1278,7 +1440,10 @@ window.showStep = function(step) {
         validateStep(step);
     }
     
-    if (step === STEPS.STOMACH) {
+    if (step === STEPS.WATER_INTAKE) {
+        setupWaterIntakeSelection(step);
+        document.getElementById("next-button-container").style.display = "block";
+    } else if (step === STEPS.STOMACH) {
         setupStomachDiscomfortSelection(step);
     } else if (step === STEPS.HORMONAL) {
         setupHormonalSelection(step);
@@ -1511,6 +1676,7 @@ window.CONSTANTS = {
     MAX_WEIGHT: 180
 };
 
+// /home/aidastya/public_html/wp-content/themes/woodmart-child/assets/js/script.js
 window.STEPS = {
     GENDER: 1,
     GOAL: 2,
@@ -1522,11 +1688,12 @@ window.STEPS = {
     SURGERY: 8,
     HORMONAL: 9, 
     STOMACH: 10,
-    ACTIVITY: 11,
-    MEALS: 12,
-    ADDITIONAL_INFO: 13,
-    FOOD_RESTRICTIONS: 14,
-    CONFIRMATION: 15
+    WATER_INTAKE: 11,
+    ACTIVITY: 12,
+    MEALS: 13,
+    ADDITIONAL_INFO: 14,
+    FOOD_RESTRICTIONS: 15,
+    CONFIRMATION: 16
 };
 
 window.totalSteps = Object.keys(STEPS).length;
@@ -2836,6 +3003,143 @@ button.submit-form:disabled {
     margin: 15px 0 10px;
     text-align: right;
     padding-right: 10px;
+}
+
+/* استایل‌های اصلی لیوان‌ها */
+.water-cups-container {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    margin: 20px 0;
+}
+
+.water-cup-row {
+    display: flex;
+    justify-content: center;
+    gap: 7px;
+}
+
+.water-cup {
+    width: 50px;
+    height: 60px;
+    background-color: #e0f7fa;
+    border: 2px solid #b2ebf2;
+    border-radius: 0 0 15px 15px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+
+/* استایل آب داخل لیوان */
+.water-cup::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 0;
+    background: linear-gradient(to top, #4fc3f7, #80deea);
+    transition: height 0.5s ease-out;
+    border-radius: 0 0 13px 13px;
+}
+
+.water-cup.selected::after {
+    height: 85%; /* کاهش حجم آب برای نمایش موج */
+}
+
+/* افکت موج آب */
+.water-wave {
+    position: absolute;
+    top: 15%; /* موقعیت موج نسبت به سطح آب */
+    left: 0;
+    right: 0;
+    height: 10px;
+    background: url('data:image/svg+xml;utf8,<svg viewBox="0 0 100 20" xmlns="http://www.w3.org/2000/svg"><path d="M0 10 C20 0, 40 20, 60 10 S100 0,100 10" fill="rgba(255,255,255,0.6)" /></svg>');
+    background-size: 50px 10px;
+    animation: waterWave 1.5s linear infinite;
+    opacity: 0.8;
+}
+
+@keyframes waterWave {
+    0% { transform: translateX(0); }
+    100% { transform: translateX(50px); }
+}
+
+/* افکت‌های تعاملی */
+.water-cup:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 15px rgba(0, 150, 136, 0.3);
+}
+
+.water-cup.selected {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 20px rgba(0, 133, 122, 0.4);
+}
+
+/* استایل نمایش مقدار آب */
+.water-amount-display {
+    margin: 10px 0;
+    text-align: center;
+    min-height: 40px;
+}
+
+.water-amount-text {
+    font-size: 18px;
+    font-weight: bold;
+    color: #00857a;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 5px;
+}
+
+.water-liter {
+    font-size: 16px;
+    color: #666;
+    font-weight: normal;
+}
+
+.dont-know-text {
+    font-size: 16px;
+    color: #ff6d00;
+    font-style: italic;
+    margin-top: 5px;
+}
+
+/* حذف استایل‌های خاص .dont-know-option و استفاده از کلاس‌های استاندارد */
+
+.dont-know-container {
+    margin: 15px 0 5px;
+    padding: 10px 0;
+    border-top: 1px dashed var(--border-color);
+}
+
+/* استفاده از کلاس‌های موجود در سیستم */
+.stand-alone-none .checkbox-label {
+    background-color: var(--option-bg);
+    border-color: var(--border-color);
+}
+
+.stand-alone-none .checkbox-label:hover {
+    background-color: var(--option-selected-bg);
+    border-color: var(--orange-color);
+}
+
+.stand-alone-none .real-checkbox:checked + .checkbox-label {
+    background-color: var(--option-selected-bg);
+    border-color: var(--orange-color);
+}
+
+/* اضافه کردن افکت‌های یکسان با چک باکس‌های دیگر */
+.stand-alone-none .checkbox-label {
+    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.stand-alone-none .real-checkbox:checked + .checkbox-label {
+    transform: translateY(-2px) scale(1.02);
+    box-shadow: 0 4px 12px var(--orange-light-shadow);
 }
 -----------------------------------------------------------------------------------------------------
 <?php
