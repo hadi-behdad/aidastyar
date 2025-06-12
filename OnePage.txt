@@ -366,30 +366,47 @@
                         <div class="water-cup" data-amount="2"></div>
                         <div class="water-cup" data-amount="3"></div>
                         <div class="water-cup" data-amount="4"></div>
+                        <div class="water-cup" data-amount="5"></div>
+                        <div class="water-cup" data-amount="6"></div>
                     </div>
                     <!-- ردیف 2 -->
                     <div class="water-cup-row">
-                        <div class="water-cup" data-amount="5"></div>
-                        <div class="water-cup" data-amount="6"></div>
                         <div class="water-cup" data-amount="7"></div>
                         <div class="water-cup" data-amount="8"></div>
-                    </div>
-                    <!-- ردیف 3 -->
-                    <div class="water-cup-row">
                         <div class="water-cup" data-amount="9"></div>
                         <div class="water-cup" data-amount="10"></div>
                         <div class="water-cup" data-amount="11"></div>
                         <div class="water-cup" data-amount="12"></div>
                     </div>
-                    <!-- ردیف 4 -->
+                    <!-- ردیف 3 -->
                     <div class="water-cup-row">
                         <div class="water-cup" data-amount="13"></div>
                         <div class="water-cup" data-amount="14"></div>
                         <div class="water-cup" data-amount="15"></div>
                         <div class="water-cup" data-amount="16"></div>
+                        <div class="water-cup" data-amount="17"></div>
+                        <div class="water-cup" data-amount="18"></div>
+                    </div>
+                    <!-- ردیف 4 -->
+                    <div class="water-cup-row">
+                        <div class="water-cup" data-amount="19"></div>
+                        <div class="water-cup" data-amount="20"></div>
+                        <div class="water-cup" data-amount="21"></div>
+                        <div class="water-cup" data-amount="22"></div>
+                        <div class="water-cup" data-amount="23"></div>
+                        <div class="water-cup" data-amount="24"></div>
+                    </div>
+                    <!-- ردیف 5 -->
+                    <div class="water-cup-row">
+                        <div class="water-cup" data-amount="25"></div>
+                        <div class="water-cup" data-amount="26"></div>
+                        <div class="water-cup" data-amount="27"></div>
+                        <div class="water-cup" data-amount="28"></div>
+                        <div class="water-cup" data-amount="29"></div>
+                        <div class="water-cup" data-amount="30"></div>
                     </div>
                 </div>
-        
+    
                 <div class="water-amount-display">
                     <div id="water-amount-text" class="water-amount-text">
                         <span id="water-amount">0</span> لیوان در روز 
@@ -410,7 +427,7 @@
                     </div>
                 </div>
             </div>
-        </div>    
+        </div>
         <div id="activity-selection-step" class="step">
             <h2>میزان فعالیت روزانه شما چقدر است؟</h2>
             <div id="activity-selection">
@@ -604,7 +621,7 @@ window.setupWaterIntakeSelection = function(currentStep) {
             state.updateFormData('waterIntake', null);
         } else {
             waterAmountDisplay.textContent = amount;
-            waterLiterDisplay.textContent = (amount * 0.25).toFixed(1);
+            waterLiterDisplay.textContent = (amount * 0.25).toFixed(1); // محاسبه لیتر (هر لیوان 250 سی‌سی)
             waterAmountText.style.display = 'flex';
             dontKnowText.style.display = 'none';
             state.updateFormData('waterIntake', amount);
@@ -1676,7 +1693,6 @@ window.CONSTANTS = {
     MAX_WEIGHT: 180
 };
 
-// /home/aidastya/public_html/wp-content/themes/woodmart-child/assets/js/script.js
 window.STEPS = {
     GENDER: 1,
     GOAL: 2,
@@ -3005,33 +3021,6 @@ button.submit-form:disabled {
     padding-right: 10px;
 }
 
-/* استایل‌های اصلی لیوان‌ها */
-.water-cups-container {
-    display: flex;
-    flex-direction: column;
-    gap: 15px;
-    margin: 20px 0;
-}
-
-.water-cup-row {
-    display: flex;
-    justify-content: center;
-    gap: 7px;
-}
-
-.water-cup {
-    width: 50px;
-    height: 60px;
-    background-color: #e0f7fa;
-    border: 2px solid #b2ebf2;
-    border-radius: 0 0 15px 15px;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    position: relative;
-    overflow: hidden;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-}
-
 /* استایل آب داخل لیوان */
 .water-cup::after {
     content: '';
@@ -3141,6 +3130,32 @@ button.submit-form:disabled {
     transform: translateY(-2px) scale(1.02);
     box-shadow: 0 4px 12px var(--orange-light-shadow);
 }
+
+.water-cups-container {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin: 20px 0;
+}
+
+.water-cup-row {
+    display: flex;
+    justify-content: center;
+    gap: 5px;
+}
+
+.water-cup {
+    width: 40px;
+    height: 50px;
+    background-color: #e0f7fa;
+    border: 2px solid #b2ebf2;
+    border-radius: 0 0 12px 12px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
 -----------------------------------------------------------------------------------------------------
 <?php
 // Check if user is logged in
@@ -3155,4 +3170,3 @@ include 'form.html';
 -----------------------------------------------------------------------------------------------------
 
 این کد رو ببین. 
-لطفا کدهای css ی که استفاده نشدن رو حذف کن
