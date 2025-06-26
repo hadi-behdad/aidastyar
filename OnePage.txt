@@ -546,6 +546,122 @@
                 </div>
             </div>
         </div>
+
+        <div id="terms-agreement-step" class="step">
+            <h2>توافق‌نامه استفاده از خدمات Aidastyar</h2>
+            <div id="terms-agreement-container">
+                <div class="terms-agreement-content">
+                    <p>با ثبت‌نام، پرداخت یا استفاده از هر بخش خدمات Aidastyar، کاربر با مفاد این توافق‌نامه به‌صورت کامل، آگاهانه و غیرقابل رجوع موافقت می‌نماید.</p>
+        
+                    <div class="terms-section">
+                        <h3>۱. اهلیت قانونی و مسئولیت استفاده</h3>
+                        <p>کاربر تأیید می‌کند بالای ۱۸ سال سن دارد و از نظر قانونی اختیار استفاده از خدمات را دارد.</p>
+                        <p>در صورت استفاده افراد زیر ۱۸ سال، ثبت‌نام و پرداخت باید توسط والدین یا قیم قانونی انجام شود و مسئولیت کامل متوجه ایشان خواهد بود.</p>
+                    </div>
+        
+                    <div class="terms-section">
+                        <h3>۲. ماهیت خدمات و حدود مسئولیت</h3>
+                        <p>رژیم‌ها به‌صورت خودکار و فقط بر اساس داده‌های واردشده توسط کاربر، از طریق الگوریتم‌های هوش مصنوعی تولید می‌شوند.</p>
+                        <p>این خدمات به هیچ‌وجه جایگزین مشاوره پزشکی یا تغذیه‌ای نیستند.</p>
+                        <p>کاربر می‌پذیرد که ممکن است رژیم تولیدشده با وضعیت بدنی، پزشکی یا نیازهای خاص وی ناسازگار باشد.</p>
+                        <p>کاربر موظف است در صورت داشتن بیماری خاص، مصرف دارو، بارداری یا وضعیت حساس پزشکی، پیش از استفاده با پزشک مشورت نماید.</p>
+                        <div class="disclaimer-box">
+                            ⚠️ <strong>سلب مسئولیت محدود:</strong>
+                            <p>Aidastyar در چارچوب قوانین جاری جمهوری اسلامی ایران، تنها مسئول ارائه خدمات به شکلی است که در شرح آن آمده است و مسئولیتی در قبال نتایج شخصی، پزشکی، روحی یا روانی ناشی از اجرای رژیم ندارد، مگر در مواردی که بر اساس حکم قطعی مرجع قضایی، تقصیر مستقیم Aidastyar اثبات شود.</p>
+                        </div>
+                    </div>
+        
+                    <div class="terms-section">
+                        <h3>۳. صحت اطلاعات</h3>
+                        <p>کلیه اطلاعات واردشده باید دقیق و واقعی باشد.</p>
+                        <p>مسئولیت پیامدهای ناشی از اطلاعات ناقص یا نادرست، کاملاً با کاربر است.</p>
+                        <p>تغییر وضعیت سلامت باید به‌صورت فوری در سامانه ثبت شود؛ در غیر این‌صورت، رژیم معتبر نخواهد بود.</p>
+                    </div>
+        
+                    <div class="terms-section">
+                        <h3>۴. تضمین نتایج و به‌روزرسانی</h3>
+                        <p>هیچ تضمینی درباره کاهش وزن، بهبود بیماری یا موفقیت قطعی رژیم وجود ندارد.</p>
+                        <p>الگوریتم‌ها ممکن است به‌روزرسانی شوند و خروجی‌های متفاوتی تولید کنند.</p>
+                        <p>در صورت تغییر شرایط بدنی یا بیماری، استفاده از رژیم قبلی توصیه نمی‌شود.</p>
+                    </div>
+        
+                    <div class="terms-section">
+                        <h3>۵. پرداخت، انصراف و بازگشت وجه</h3>
+                        <p>پرداخت هزینه به‌منزله درخواست قطعی تولید رژیم تلقی می‌شود.</p>
+                        <p>چنانچه رژیم هنوز تولید نشده باشد، کاربر مطابق ماده ۳۷ قانون تجارت الکترونیکی، تا ۷ روز پس از پرداخت امکان انصراف دارد.</p>
+                        <p>برای اعمال انصراف، کاربر باید از طریق پنل کاربری اقدام کند.</p>
+                        <p>در صورت شروع تولید رژیم (حتی در کمتر از ۷ روز)، حق انصراف از بین می‌رود.</p>
+                        <p>وجه در صورت انصراف، ظرف حداکثر ۷۲ ساعت کاری به حساب اولیه بازگردانده می‌شود.</p>
+                    </div>
+        
+                    <div class="terms-section">
+                        <h3>۶. مالکیت فکری</h3>
+                        <p>تمامی الگوریتم‌ها، محتواها، فایل‌های رژیم و ساختارهای سامانه متعلق به Aidastyar است.</p>
+                        <p>بازنشر، فروش، یا استفاده تجاری از محتوای دریافتی بدون مجوز کتبی ممنوع می‌باشد.</p>
+                    </div>
+        
+                    <div class="terms-section">
+                        <h3>۷. اطلاعات شخصی و محرمانگی</h3>
+                        <p>اطلاعات کاربران با روش‌های رمزنگاری ذخیره شده و تنها برای تیم فنی مجاز قابل‌دسترسی است.</p>
+                        <p>در موارد زیر اطلاعات کاربر ممکن است افشا شود:</p>
+                        <ul>
+                            <li>با حکم یا دستور مقام قضایی</li>
+                            <li>در موارد بررسی تخلف یا حملات امنیتی</li>
+                            <li>در صورت انتقال مالکیت سامانه</li>
+                        </ul>
+                    </div>
+        
+                    <div class="terms-section">
+                        <h3>۸. محدودیت استفاده و تخلفات</h3>
+                        <p>استفاده فقط برای اهداف قانونی مجاز است.</p>
+                        <p>ورود اطلاعات جعلی، استفاده برای آسیب جسمی/روانی یا انتشار محتوای دریافتی ممنوع است.</p>
+                        <p>در صورت تخلف، حساب کاربر مسدود شده و امکان پیگرد قانونی وجود دارد.</p>
+                    </div>
+        
+                    <div class="terms-section">
+                        <h3>۹. پشتیبانی و ارتباط رسمی</h3>
+                        <p>ارتباط رسمی فقط از طریق پنل کاربری یا ایمیل رسمی سامانه معتبر است.</p>
+                        <p>زمان پاسخ‌گویی: روزهای کاری، ساعت ۹ تا ۱۷</p>
+                        <p>ارتباط از طریق سایر کانال‌ها (شبکه‌های اجتماعی، تلفن شخصی و...) مورد قبول نیست.</p>
+                    </div>
+        
+                    <div class="terms-section">
+                        <h3>۱۰. شرایط خارج از کنترل (فورس‌ماژور)</h3>
+                        <p>Aidastyar در برابر اختلالاتی از قبیل قطعی اینترنت، حملات سایبری، بلایای طبیعی یا دستورات قانونی غیرمترقبه مسئولیتی ندارد.</p>
+                        <p>خدمات پس از رفع مشکل از سر گرفته خواهد شد.</p>
+                    </div>
+        
+                    <div class="terms-section">
+                        <h3>۱۱. تحریم‌ها و محدودیت‌های ملی</h3>
+                        <p>کاربر تأیید می‌کند در لیست تحریم‌های جمهوری اسلامی ایران قرار ندارد.</p>
+                        <p>استفاده از خدمات برای اهداف غیرقانونی داخلی یا خارجی ممنوع است.</p>
+                    </div>
+        
+                    <div class="terms-section">
+                        <h3>۱۲. قانون حاکم و مرجع رسیدگی</h3>
+                        <p>این توافق‌نامه مشمول قوانین جمهوری اسلامی ایران است.</p>
+                        <p>در صورت بروز اختلاف، ابتدا از طریق مذاکره حل‌وفصل خواهد شد.</p>
+                        <p>در صورت عدم توافق، مرجع رسمی رسیدگی دادگاه عمومی حقوقی تهران - مجتمع قضایی شهید صدر خواهد بود.</p>
+                    </div>
+        
+                    <div class="terms-section">
+                        <h3>۱۳. تغییرات در توافق‌نامه</h3>
+                        <p>Aidastyar مجاز است هر زمان متن توافق‌نامه را تغییر دهد.</p>
+                        <p>ادامه استفاده از خدمات به منزله پذیرش نسخه جدید است.</p>
+                        <p>نسخه به‌روز توافق‌نامه در همین صفحه قابل‌مشاهده خواهد بود.</p>
+                    </div>
+        
+                    <!-- چک‌باکس تأیید در انتهای متن -->
+                    <div id="terms-agreement-checkbox" class="checkbox-container">
+                        <input type="checkbox" id="agree-terms" class="real-checkbox">
+                        <label for="agree-terms" class="checkbox-label">
+                            <span class="check-icon"></span>
+                            <span class="label-text">تمام شرایط و قوانین را مطالعه کرده‌ام و می‌پذیرم</span>
+                        </label>
+                    </div>
+                </div>
+            </div>
+        </div>
         <div id="confirm-submit-step" class="step">
             <h2>خلاصه اطلاعات شما</h2>
             <div id="summary-container"></div>
@@ -559,7 +675,7 @@
             <div id="submit-button-container">
                 <button type="submit" class="submit-form">ثبت نهایی</button>
             </div>
-        </div>   
+        </div>
         <div id="next-button-container">
             <button type="button" class="next-step">گام بعد</button>
         </div>
@@ -592,6 +708,33 @@ window.preloadImages = function() {
     images.forEach(src => {
         const img = new Image();
         img.src = src;
+    });
+}
+
+window.setupTermsAgreement = function(currentStep) {
+    if (currentStep !== STEPS.TERMS_AGREEMENT) return;
+
+    const nextButton = document.querySelector(".next-step");
+    const agreeCheckbox = document.getElementById("agree-terms");
+    
+    // Reset state
+    agreeCheckbox.checked = false;
+    nextButton.disabled = true;
+
+    agreeCheckbox.addEventListener("change", function() {
+        const label = this.nextElementSibling;
+        
+        if (this.checked) {
+            label.classList.add("checked-animation");
+            setTimeout(() => {
+                label.classList.remove("checked-animation");
+                label.classList.add("checked");
+            }, 800);
+        } else {
+            label.classList.remove("checked");
+        }
+        
+        nextButton.disabled = !this.checked;
     });
 }
 
@@ -1364,12 +1507,13 @@ window.showStep = function(step) {
         "surgery-step",
         "hormonal-disorders-step",
         "stomach-discomfort-step",
-        "water-intake-step", // اضافه شده
+        "water-intake-step",
         "activity-selection-step",
         "meal-selection-step",
         "additional-info-step",
         "food-restriction-step",
-        "confirm-submit-step"
+        "terms-agreement-step", // مرحله 16 جدید
+        "confirm-submit-step" // مرحله 17 (همان 16 قبلی)
     ];
     
     document.querySelectorAll(".step").forEach(el => {
@@ -1470,9 +1614,12 @@ window.showStep = function(step) {
         setupAdditionalInfoSelection(step);
     } else if (step === STEPS.FOOD_RESTRICTIONS) {
         setupFoodRestrictionSelection(step);
+    } else if (step === STEPS.TERMS_AGREEMENT) {
+        setupTermsAgreement(step);
+        document.getElementById("next-button-container").style.display = "block";
     } else if (step === STEPS.CONFIRMATION) {
-        showSummary();
-        setupConfirmationCheckbox(step);
+        showSummary(); // تابع قبلی بدون تغییر
+        setupConfirmationCheckbox(step); // تابع قبلی بدون تغییر
         document.getElementById("next-button-container").style.display = "none";
         document.getElementById("submit-button-container").style.display = "block";
         
@@ -1709,7 +1856,8 @@ window.STEPS = {
     MEALS: 13,
     ADDITIONAL_INFO: 14,
     FOOD_RESTRICTIONS: 15,
-    CONFIRMATION: 16
+    TERMS_AGREEMENT: 16, // مرحله جدید
+    CONFIRMATION: 17 // مرحله خلاصه اطلاعات (همان 16 قبلی)
 };
 
 window.totalSteps = Object.keys(STEPS).length;
@@ -2239,7 +2387,7 @@ button.submit-form:hover {
     margin: 20px auto;
     width: 100%;
     max-width: 500px;
-    padding: 0 20px;
+    /*padding: 0 20px;*/
     box-sizing: border-box;
 }
 
@@ -3097,15 +3245,12 @@ button.submit-form:disabled {
     margin-top: 5px;
 }
 
-/* حذف استایل‌های خاص .dont-know-option و استفاده از کلاس‌های استاندارد */
-
 .dont-know-container {
     margin: 15px 0 5px;
     padding: 10px 0;
     border-top: 1px dashed var(--border-color);
 }
 
-/* استفاده از کلاس‌های موجود در سیستم */
 .stand-alone-none .checkbox-label {
     background-color: var(--option-bg);
     border-color: var(--border-color);
@@ -3121,7 +3266,6 @@ button.submit-form:disabled {
     border-color: var(--orange-color);
 }
 
-/* اضافه کردن افکت‌های یکسان با چک باکس‌های دیگر */
 .stand-alone-none .checkbox-label {
     transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 }
@@ -3155,6 +3299,61 @@ button.submit-form:disabled {
     position: relative;
     overflow: hidden;
     box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+
+#terms-agreement-step {
+    padding: 20px 15px;
+    text-align: right;
+    direction: rtl;
+}
+
+.terms-agreement-content {
+    font-size: 14px;
+    line-height: 1.8;
+}
+
+.terms-section {
+    margin-bottom: 20px;
+}
+
+.terms-section h3 {
+    color: #00857a;
+    font-size: 15px;
+    margin: 15px 0 10px;
+    border-bottom: 1px dashed #b2ebf2;
+    padding-bottom: 5px;
+}
+
+.terms-section p, .terms-section li {
+    text-align: justify;
+    text-align-last: right;
+}
+
+.terms-section ul {
+    padding-right: 20px;
+    margin: 10px 0;
+}
+
+#terms-agreement-checkbox .checkbox-label {
+    background-color: #f0faf9;
+    border: 1.5px solid #b2ebf2;
+    padding: 15px;
+}
+
+#terms-agreement-container {
+    max-height: 60vh;
+    overflow-y: auto;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    padding: 20px;
+    background: #f9f9f9;
+}
+
+@media (max-width: 768px) {
+    #terms-agreement-container {
+        max-height: 55vh;
+        padding: 15px;
+    }
 }
 -----------------------------------------------------------------------------------------------------
 <?php
