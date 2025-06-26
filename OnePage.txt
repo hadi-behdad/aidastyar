@@ -24,7 +24,7 @@
         </div>
 
         <div id="gender-selection-step" class="step active">
-            <h1 id="form-title">سیستم هوشمند رژیم غذایی هوش مصنوعی</h1>
+            <h1 id="form-title">دستیار تغذیه هوش مصنوعی</h1>
             <h2>جنسیت خود را انتخاب کنید</h2>
             <div id="gender-selection">
                 <div class="gender-option" data-gender="male"><img src="assets/images/webp/male.webp" alt="مرد"></div>
@@ -2410,12 +2410,12 @@ button.submit-form:hover {
 }
 
 #gender-selection-step h2 {
-    margin-top: 90px;
+    margin-top: 110px;
     text-align: center;
 }
 
 #gender-selection-step h1 {
-    font-size: 18px;
+    font-size: 24px;
 }
 
 .gender-option {
