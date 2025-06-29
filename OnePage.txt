@@ -186,46 +186,12 @@
             <div class="separator"></div>
             
             <div id="surgery-selection" class="checkbox-selection-container checkbox-list-container">
-                <div class="checkbox-container">
-                    <input type="checkbox" id="surgery-kidney" class="real-checkbox">
-                    <label for="surgery-kidney" class="checkbox-label">
-                        <span class="check-icon"></span>
-                        <span class="label-text">پیوند کلیه</span>
-                    </label>
-                </div>
-                <div class="checkbox-container">
-                    <input type="checkbox" id="surgery-heart" class="real-checkbox">
-                    <label for="surgery-heart" class="checkbox-label">
-                        <span class="check-icon"></span>
-                        <span class="label-text">پیوند قلب</span>
-                    </label>
-                </div>
-                <div class="checkbox-container">
-                    <input type="checkbox" id="surgery-liver" class="real-checkbox">
-                    <label for="surgery-liver" class="checkbox-label">
-                        <span class="check-icon"></span>
-                        <span class="label-text">پیوند کبد</span>
-                    </label>
-                </div>
+                <h3 class="surgery-category-title">جراحی‌های متابولیک و گوارشی</h3>
                 <div class="checkbox-container">
                     <input type="checkbox" id="surgery-metabolic" class="real-checkbox">
                     <label for="surgery-metabolic" class="checkbox-label">
                         <span class="check-icon"></span>
-                        <span class="label-text">جراحی متابولیک (مثل بایپس معده، اسلیو معده)</span>
-                    </label>
-                </div>
-                <div class="checkbox-container">
-                    <input type="checkbox" id="surgery-intestine" class="real-checkbox">
-                    <label for="surgery-intestine" class="checkbox-label">
-                        <span class="check-icon"></span>
-                        <span class="label-text">جراحی روده (مثل رزکسیون روده، ایلئوستومی)</span>
-                    </label>
-                </div>
-                <div class="checkbox-container">
-                    <input type="checkbox" id="surgery-thyroid" class="real-checkbox">
-                    <label for="surgery-thyroid" class="checkbox-label">
-                        <span class="check-icon"></span>
-                        <span class="label-text">جراحی تیروئید/پاراتیروئید</span>
+                        <span class="label-text">جراحی متابولیک (بایپس معده، اسلیو)</span>
                     </label>
                 </div>
                 <div class="checkbox-container">
@@ -236,19 +202,60 @@
                     </label>
                 </div>
                 <div class="checkbox-container">
+                    <input type="checkbox" id="surgery-intestine" class="real-checkbox">
+                    <label for="surgery-intestine" class="checkbox-label">
+                        <span class="check-icon"></span>
+                        <span class="label-text">جراحی روده (رزکسیون، ایلئوستومی)</span>
+                    </label>
+                </div>
+                
+                <h3 class="surgery-category-title">جراحی‌های غدد و اندام‌ها</h3>
+                <div class="checkbox-container">
+                    <input type="checkbox" id="surgery-thyroid" class="real-checkbox">
+                    <label for="surgery-thyroid" class="checkbox-label">
+                        <span class="check-icon"></span>
+                        <span class="label-text">جراحی تیروئید/پاراتیروئید</span>
+                    </label>
+                </div>
+                <div class="checkbox-container">
                     <input type="checkbox" id="surgery-pancreas" class="real-checkbox">
                     <label for="surgery-pancreas" class="checkbox-label">
                         <span class="check-icon"></span>
                         <span class="label-text">جراحی لوزالمعده (پانکراس)</span>
                     </label>
                 </div>
-                <div class="checkbox-container female-only" style="display: none;">
+                
+                <h3 class="surgery-category-title female-only">جراحی‌های زنان</h3>
+                <div class="checkbox-container female-only">
                     <input type="checkbox" id="surgery-gynecology" class="real-checkbox">
                     <label for="surgery-gynecology" class="checkbox-label">
                         <span class="check-icon"></span>
-                        <span class="label-text">جراحی‌های زنان</span>
+                        <span class="label-text">جراحی‌های زنان (هیسترکتومی، اووفورکتومی)</span>
                     </label>
-                </div>                
+                </div>
+                
+                <h3 class="surgery-category-title">جراحی‌های عمده</h3>
+                <div class="checkbox-container">
+                    <input type="checkbox" id="surgery-kidney" class="real-checkbox">
+                    <label for="surgery-kidney" class="checkbox-label">
+                        <span class="check-icon"></span>
+                        <span class="label-text">پیوند کلیه</span>
+                    </label>
+                </div>
+                <div class="checkbox-container">
+                    <input type="checkbox" id="surgery-liver" class="real-checkbox">
+                    <label for="surgery-liver" class="checkbox-label">
+                        <span class="check-icon"></span>
+                        <span class="label-text">پیوند کبد</span>
+                    </label>
+                </div>
+                <div class="checkbox-container">
+                    <input type="checkbox" id="surgery-heart" class="real-checkbox">
+                    <label for="surgery-heart" class="checkbox-label">
+                        <span class="check-icon"></span>
+                        <span class="label-text">جراحی قلب</span>
+                    </label>
+                </div>
             </div>
         </div>     
         <div id="hormonal-disorders-step" class="step checkbox-step-container">
@@ -981,6 +988,8 @@ window.setupSurgerySelection = function(currentStep) {
     
     if (currentStep !== STEPS.SURGERY) return;
 
+    document.body.setAttribute('data-gender', state.formData.gender);
+
     const femaleOnlyOptions = document.querySelectorAll('.female-only');
     if (state.formData.gender === 'female') {
         femaleOnlyOptions.forEach(option => option.style.display = 'block');
@@ -1568,7 +1577,7 @@ window.showStep = function(step) {
                 <h2 class="goal-title" id="goal-title-text">
                     ${state.formData.goal === 'weight-loss' ? 'کاهش وزن' : 
                       state.formData.goal === 'weight-gain' ? 'افزایش وزن' : 
-                      'تناسب اندام'}
+                      'حفظ سلامت'}
                 </h2>
             </div>
             <object type="image/svg+xml" data="${svgFile}" class="goal-svg"></object>
@@ -3362,6 +3371,24 @@ button.submit-form:disabled {
         max-height: 55vh;
         padding: 15px;
     }
+}
+
+.surgery-category-title {
+    font-size: 15px;
+    color: #00857a;
+    margin: 20px 0 10px;
+    padding-right: 10px;
+    text-align: right;
+    border-bottom: 1px dashed #b2ebf2;
+    padding-bottom: 5px;
+}
+
+.female-only {
+    display: none;
+}
+
+body[data-gender="female"] .female-only {
+    display: block;
 }
 -----------------------------------------------------------------------------------------------------
 <?php
