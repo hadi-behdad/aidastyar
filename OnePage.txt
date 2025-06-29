@@ -60,8 +60,8 @@
                     <span>افزایش وزن (قدرت و انرژی را تجربه کنم)</span>
                 </div>
                 <div class="goal-option" data-goal="fitness">
-                    <img src="assets/images/png/stay-fit-min.png" alt="تناسب اندام" width="60" height="30">
-                    <span>تناسب اندام (به اندام دلخواهم برسم)</span>
+                    <img src="assets/images/png/stay-fit-min.png" alt="حفظ سلامت" width="60" height="30">
+                    <span>حفظ سلامت (سلامت عمومی بدنم را حفظ کنم)</span>
                 </div>
             </div>
         </div>
@@ -1251,7 +1251,11 @@ window.showSummary = function() {
         stomachDiscomfort = [],
         waterIntake
     } = state.formData;
-    const goalText = { "weight-loss": "کاهش وزن", "weight-gain": "افزایش وزن", "fitness": "تناسب اندام"}[goal];
+    const goalText = { 
+        "weight-loss": "کاهش وزن", 
+        "weight-gain": "افزایش وزن", 
+        "fitness": "حفظ سلامت"
+    }[goal];
     const activityText = { "very-low": "خیلی کم (کمتر از 1 ساعت)", "low": "کم (1 تا 2 ساعت)", "medium": "متوسط (2 تا 4 ساعت)", "high": "زیاد (بیشتر از 4 ساعت)" }[activity];
         const mealsText = { 
         "2": "۲ وعده", 
@@ -1544,7 +1548,7 @@ window.showStep = function(step) {
             const goalText = {
                 "weight-loss": "هدف: کاهش وزن",
                 "weight-gain": "هدف: افزایش وزن", 
-                "fitness": "هدف: تناسب اندام"
+                "fitness": "هدف: حفظ سلامت"
             }[state.formData.goal];
             
             goalTitleElement.textContent = goalText || "هدف: مشخص نشده";
@@ -1717,7 +1721,7 @@ window.validateStep = function(step) {
                 }
                 
                 if (goal === "fitness" && Math.abs(value - currentWeight) > 20) {
-                    return `برای تناسب اندام، وزن هدف باید حداکثر ۲۰ کیلوگرم با وزن فعلی تفاوت داشته باشد`;
+                    return `برای حفظ سلامت، وزن هدف باید حداکثر ۲۰ کیلوگرم با وزن فعلی تفاوت داشته باشد`;
                 }
                 
                 return true;
