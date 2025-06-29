@@ -678,6 +678,11 @@
         <div id="next-button-container">
             <button type="button" class="next-step">گام بعد</button>
         </div>
+        
+        <input type="hidden" name="csrf_token" id="csrf_token" value="">
+        <script>
+          document.getElementById('csrf_token').value = localStorage.getItem('csrf_token') || '';
+        </script>        
     </form>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <!-- قبل از بستن تگ body -->
@@ -3360,6 +3365,13 @@ button.submit-form:disabled {
 if (!is_user_logged_in()) {
     wp_redirect(wp_login_url()); // Redirect to login page
     exit;
+}
+
+session_start();
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+  if (!hash_equals($_SESSION['csrf_token'], $_POST['csrf_token'])) {
+    die('درخواست نامعتبر');
+  }
 }
 
 // Load the form HTML
