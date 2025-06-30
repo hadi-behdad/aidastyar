@@ -698,6 +698,37 @@
     <script src="assets/js/form-steps.js"></script>
     <script src="assets/js/form-inputs.js"></script>
     <script src="assets/js/form-events.js"></script>
+
+    <script>
+    // نمایش دکمه‌های تست فقط در حالت توسعه
+    if (window.APP_MODE === 1) {
+        const devTools = document.createElement('div');
+        devTools.id = 'dev-tools';
+        devTools.style.cssText = `
+            position: fixed;
+            bottom: 10px;
+            left: 10px;
+            z-index: 9999;
+            background: white;
+            padding: 10px;
+            border-radius: 5px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.2);
+        `;
+        
+        devTools.innerHTML = `
+            <div style="margin-bottom: 5px; font-weight: bold; color: #d32f2f;">حالت توسعه فعال</div>
+            <div style="display: flex; flex-wrap: wrap; gap: 5px; max-width: 300px;">
+                ${[...Array(17)].map((_, i) => 
+                    `<button onclick="navigateToStep(${i+1})" 
+                     style="padding: 5px; background: #f44336; color: white; border: none; border-radius: 3px; cursor: pointer;">
+                     ${i+1}</button>`
+                ).join('')}
+            </div>
+        `;
+        
+        document.body.appendChild(devTools);
+    }
+    </script>    
 </body>
 </html>
 -----------------------------------------------------------------------------------------------------
@@ -1646,7 +1677,38 @@ window.showStep = function(step) {
             submitButton.disabled = !confirmCheckbox.checked;
         }
     }
+    
+    if (window.APP_MODE === 1) {
+        this.autoFillStepInputs(step);
+    }    
 }
+
+window.autoFillStepInputs = function(step) {
+    const fillInput = (inputId, displayId, value, unit) => {
+        const input = document.getElementById(inputId);
+        const display = document.getElementById(displayId);
+        if (input && display && !input.value) {
+            input.value = value;
+            display.textContent = `${value} ${unit}`;
+            state.updateFormData(inputId.replace('-input',''), value);
+        }
+    };
+
+    switch(step) {
+        case STEPS.AGE:
+            fillInput('age-input', 'age-display', 30, 'سال');
+            break;
+        case STEPS.HEIGHT:
+            fillInput('height-input', 'height-display', 175, 'سانتی‌متر');
+            break;
+        case STEPS.WEIGHT:
+            fillInput('weight-input', 'weight-display', 80, 'کیلوگرم');
+            break;
+        case STEPS.TARGET_WEIGHT:
+            fillInput('target-weight-input', 'target-weight-display', 70, 'کیلوگرم');
+            break;
+    }
+};
 
 window.updateStepCounter = function(step) {
     document.getElementById("current-step").textContent = step;
@@ -1833,6 +1895,14 @@ window.calculateBMI = function(height, weight) {
 }
 -----------------------------------------------------------------------------------------------------
 // /home/aidastya/public_html/wp-content/themes/woodmart-child/assets/js/script.js
+
+/**
+ * حالت اجرای برنامه:
+ * 1 = حالت توسعه (Development) - نمایش دکمه‌های تست و پر کردن خودکار داده‌ها
+ * 2 = حالت تولید (Production) - حالت نرمال بدون امکانات تست
+ */
+window.APP_MODE = 1; // این مقدار را برای تغییر حالت ویرایش کنید
+
 window.state = {
     currentStep: 1,
     formData: {},
@@ -3389,6 +3459,19 @@ button.submit-form:disabled {
 
 body[data-gender="female"] .female-only {
     display: block;
+}
+
+#dev-tools button {
+    transition: all 0.3s ease;
+}
+
+#dev-tools button:hover {
+    background: #b71c1c !important;
+    transform: scale(1.1);
+}
+
+#dev-tools button:active {
+    transform: scale(0.95);
 }
 -----------------------------------------------------------------------------------------------------
 <?php
