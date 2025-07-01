@@ -179,8 +179,7 @@
             </div> 
             
             <div class="separator"></div>
-            
-            <div id="surgery-selection" class="checkbox-selection-container checkbox-list-container">
+            <div id="surgery-selection" class="checkbox-selection-container checkbox-list-container scrollable-container">
                 <h3 class="surgery-category-title">جراحی‌های متابولیک و گوارشی</h3>
                 <div class="checkbox-container">
                     <input type="checkbox" id="surgery-metabolic" class="real-checkbox">
@@ -266,7 +265,7 @@
             
             <div class="separator"></div>
             
-            <div id="hormonal-selection" class="checkbox-selection-container checkbox-list-container">
+            <div id="hormonal-selection" class="checkbox-selection-container checkbox-list-container scrollable-container">
                 <div class="checkbox-container">
                     <input type="checkbox" id="hormonal-pcos" class="real-checkbox">
                     <label for="hormonal-pcos" class="checkbox-label">
@@ -317,7 +316,7 @@
             
             <div class="separator"></div>
             
-            <div id="stomach-selection" class="checkbox-selection-container checkbox-list-container">
+            <div id="stomach-selection" class="checkbox-selection-container checkbox-list-container scrollable-container">
                 <div class="checkbox-container">
                     <input type="checkbox" id="stomach-bloating" class="real-checkbox">
                     <label for="stomach-bloating" class="checkbox-label">
@@ -475,7 +474,7 @@
         </div>
         <div id="additional-info-step" class="step">
             <h2>اطلاعات تکمیلی</h2>
-            <div id="additional-info-selection">
+            <div id="additional-info-selection" class="checkbox-selection-container checkbox-list-container scrollable-container">
                 <div class="checkbox-container first-option">
                     <input type="checkbox" id="info-none" class="real-checkbox">
                     <label for="info-none" class="checkbox-label">
@@ -518,7 +517,7 @@
         </div>        
         <div id="food-restriction-step" class="step">
             <h2>آیا محدودیت غذایی خاصی دارید؟</h2>
-            <div id="food-restriction-selection" class="checkbox-selection-container">
+            <div id="food-restriction-selection" class="checkbox-selection-container checkbox-list-container scrollable-container">
                 <div class="checkbox-container first-option">
                     <input type="checkbox" id="restriction-none" class="real-checkbox">
                     <label for="restriction-none" class="checkbox-label">
@@ -745,6 +744,42 @@
 </html>
 -----------------------------------------------------------------------------------------------------
 // /home/aidastya/public_html/wp-content/themes/woodmart-child/assets/js/form-events.js
+function setupScrollIndicator(containerId) {
+  const container = document.getElementById(containerId);
+  if (!container) return;
+
+  // ایجاد نشانگر اسکرول
+  const scrollIndicator = document.createElement('div');
+  scrollIndicator.className = 'scroll-indicator';
+  scrollIndicator.innerHTML = '<div class="scroll-indicator-arrow"></div>';
+  container.appendChild(scrollIndicator);
+
+  // بررسی نیاز به نشانگر
+  function checkScroll() {
+    if (container.scrollHeight > container.clientHeight) {
+      container.classList.add('has-scroll');
+      if (container.scrollTop > 10) {
+        container.classList.add('scrolled');
+      } else {
+        container.classList.remove('scrolled');
+      }
+    } else {
+      container.classList.remove('has-scroll');
+      container.classList.remove('scrolled');
+    }
+  }
+
+  // رویداد اسکرول
+  container.addEventListener('scroll', checkScroll);
+  
+  // بررسی اولیه
+  checkScroll();
+  
+  // بررسی تغییر اندازه (برای موارد ریسپانسیو)
+  const resizeObserver = new ResizeObserver(checkScroll);
+  resizeObserver.observe(container);
+}
+
 window.handleNextStep = function() {
     if (window.state.currentStep < window.totalSteps) {
         window.navigateToStep(window.state.currentStep + 1);
@@ -956,6 +991,8 @@ window.setupStomachDiscomfortSelection = function(currentStep) {
         });
 
         validateForm();
+        
+        setupScrollIndicator('stomach-selection');
     } catch (error) {
         console.error('Error in stomach discomfort step:', error);
     }
@@ -968,7 +1005,7 @@ window.setupHormonalSelection = function(currentStep) {
     const hormonalOptions = document.querySelectorAll('#hormonal-selection .real-checkbox');
     
     if (currentStep !== STEPS.HORMONAL) return;
-
+    
     nextButton.disabled = true;
 
     const validateForm = () => {
@@ -1021,6 +1058,8 @@ window.setupHormonalSelection = function(currentStep) {
     });
 
     validateForm();
+    
+    setupScrollIndicator('hormonal-selection');
 }
 
 window.setupSurgerySelection = function(currentStep) {
@@ -1030,7 +1069,7 @@ window.setupSurgerySelection = function(currentStep) {
     const surgeryOptions = document.querySelectorAll('#surgery-selection .real-checkbox');
     
     if (currentStep !== STEPS.SURGERY) return;
-
+    
     document.body.setAttribute('data-gender', state.formData.gender);
 
     const femaleOnlyOptions = document.querySelectorAll('.female-only');
@@ -1102,6 +1141,8 @@ window.setupSurgerySelection = function(currentStep) {
     });
 
     validateForm();
+    
+    setupScrollIndicator('surgery-selection');
 }
 
 window.setupAdditionalInfoSelection = function(currentStep) {
@@ -1160,6 +1201,8 @@ window.setupAdditionalInfoSelection = function(currentStep) {
     });
 
     validateForm();
+    
+    setupScrollIndicator('additional-info-selection');
 }
 
 window.setupFoodRestrictionSelection = function(currentStep) {
@@ -1216,6 +1259,8 @@ window.setupFoodRestrictionSelection = function(currentStep) {
     });
 
     validateForm();
+    
+    setupScrollIndicator('food-restriction-selection');
 }
 
 window.setupConfirmationCheckbox = function(currentStep) {
@@ -3409,6 +3454,7 @@ button.submit-form:hover {
 }
 
 .checkbox-list-container {
+    position: relative;
     max-height: 250px;
     overflow-y: auto;
     padding: 10px 5px;
@@ -3756,6 +3802,79 @@ body[data-gender="female"] .female-only {
     background: rgba(183, 28, 28, 0.7);
     font-weight: bold;
     box-shadow: 0 0 0 2px rgba(255,255,255,0.5);
+}
+
+.checkbox-list-container {
+    mask-image: linear-gradient(to bottom, 
+        black 80%, 
+        transparent 100%);
+}
+
+/* در فایل style.css */
+.scrollable-container {
+  position: relative;
+  max-height: 250px;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: var(--primary-color) var(--background-color);
+}
+
+.scrollable-container::-webkit-scrollbar {
+  width: 6px;
+}
+
+.scrollable-container::-webkit-scrollbar-track {
+  background: var(--background-color);
+  border-radius: 3px;
+}
+
+.scrollable-container::-webkit-scrollbar-thumb {
+  background-color: var(--primary-color);
+  border-radius: 3px;
+}
+
+.scrollable-container.has-scroll::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 30px;
+  background: linear-gradient(to bottom, 
+    rgba(255,255,255,0) 0%, 
+    rgba(255,255,255,0.9) 100%);
+  pointer-events: none;
+}
+
+.scroll-indicator {
+  position: absolute;
+  bottom: 5px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 30px;
+  height: 30px;
+  z-index: 2;
+  pointer-events: none;
+  opacity: 1;
+  transition: opacity 0.3s ease;
+}
+
+.scroll-indicator-arrow {
+  width: 100%;
+  height: 100%;
+  background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 50" fill="none" stroke="%2300857a" stroke-width="15" stroke-linecap="square" stroke-linejoin="miter"><path d="M20 15 L50 35 L80 15"/></svg>');
+  background-repeat: no-repeat;
+  background-position: center;
+  animation: bounce 1.5s infinite;
+}
+
+.scrollable-container.scrolled .scroll-indicator {
+  opacity: 0;
+}
+
+@keyframes bounce {
+  0%, 100% { transform: translateY(0); opacity: 0.7; }
+  50% { transform: translateY(-5px); opacity: 1; }
 }
 -----------------------------------------------------------------------------------------------------
 <?php
