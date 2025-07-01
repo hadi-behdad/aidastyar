@@ -1,8 +1,3 @@
-نکات خیلی خیلی مهم: موارد زیر رو تو جوابت در نظر بگیر
-هیچ کامنتی تو این پروژه نزار
-خط اول هر فایل، باید آدرس و نام فایل رو داشته باشه
-فایل ها رو تو قالب تیکه های کد که امکان کپی و دانلود داره برام بفرست که راحت بتونم کپی کنم
------------------------------------------------------------------------------------------------------
 <!--/home/aidastya/public_html/wp-content/themes/woodmart-child/form.html-->
 <!DOCTYPE html>
 <html lang="fa">
@@ -699,36 +694,53 @@
     <script src="assets/js/form-inputs.js"></script>
     <script src="assets/js/form-events.js"></script>
 
+
     <script>
-    // نمایش دکمه‌های تست فقط در حالت توسعه
     if (window.APP_MODE === 1) {
         const devTools = document.createElement('div');
         devTools.id = 'dev-tools';
-        devTools.style.cssText = `
-            position: fixed;
-            bottom: 10px;
-            left: 10px;
-            z-index: 9999;
-            background: white;
-            padding: 10px;
-            border-radius: 5px;
-            box-shadow: 0 0 10px rgba(0,0,0,0.2);
-        `;
         
         devTools.innerHTML = `
-            <div style="margin-bottom: 5px; font-weight: bold; color: #d32f2f;">حالت توسعه فعال</div>
-            <div style="display: flex; flex-wrap: wrap; gap: 5px; max-width: 300px;">
+            <div class="dev-tools-header">
+                <span>مراحل</span>
+                <span class="toggle-visibility">×</span>
+            </div>
+            <div class="dev-tools-buttons">
                 ${[...Array(17)].map((_, i) => 
                     `<button onclick="navigateToStep(${i+1})" 
-                     style="padding: 5px; background: #f44336; color: white; border: none; border-radius: 3px; cursor: pointer;">
-                     ${i+1}</button>`
+                      data-step="${i+1}">${i+1}</button>`
                 ).join('')}
             </div>
         `;
         
         document.body.appendChild(devTools);
+        
+        // بروزرسانی مرحله فعلی
+        const updateCurrentStep = () => {
+            document.querySelectorAll('#dev-tools button').forEach(btn => {
+                btn.classList.toggle('current-step', 
+                    parseInt(btn.dataset.step) === state.currentStep
+                );
+            });
+        };
+        
+        // مشاهده تغییرات state
+        window.addEventListener('stateUpdated', updateCurrentStep);
+        updateCurrentStep();
+        
+        // کنترل نمایش/مخفی کردن
+        const toggleBtn = devTools.querySelector('.toggle-visibility');
+        let isVisible = true;
+        
+        toggleBtn.addEventListener('click', () => {
+            isVisible = !isVisible;
+            devTools.style.opacity = isVisible ? '1' : '0.3';
+            devTools.querySelector('.dev-tools-buttons').style.display = 
+                isVisible ? 'flex' : 'none';
+            toggleBtn.textContent = isVisible ? '×' : '+';
+        });
     }
-    </script>    
+    </script>   
 </body>
 </html>
 -----------------------------------------------------------------------------------------------------
@@ -1679,8 +1691,13 @@ window.showStep = function(step) {
     }
     
     if (window.APP_MODE === 1) {
-        this.autoFillStepInputs(step);
-    }    
+        if ([STEPS.GENDER, STEPS.GOAL, STEPS.AGE, STEPS.HEIGHT, 
+             STEPS.WEIGHT, STEPS.TARGET_WEIGHT, STEPS.WATER_INTAKE,
+             STEPS.SURGERY, STEPS.HORMONAL, STEPS.STOMACH, STEPS.ACTIVITY, 
+             STEPS.MEALS, STEPS.ADDITIONAL_INFO, STEPS.FOOD_RESTRICTIONS].includes(step)) {
+            state.fillTestData(step);
+        }
+    }
 }
 
 window.autoFillStepInputs = function(step) {
@@ -1911,10 +1928,187 @@ window.state = {
         window.showStep(step);
         window.updateStepCounter(step);
         window.updateProgressBar(step);
+        
+        window.dispatchEvent(new CustomEvent('stateUpdated'));
+        
+        // پر کردن خودکار داده‌ها برای تست فقط در حالت توسعه
+        if (window.APP_MODE === 1) {
+            this.fillTestData(step);
+        }        
     },
     updateFormData(key, value) {
         this.formData[key] = value;
         window.validateStep(this.currentStep);
+    },
+    // در بخش state در script.js
+    fillTestData(step) {
+        const testData = {
+            gender: 'male',
+            goal: 'weight-loss',
+            age: 30,
+            height: 175,
+            weight: 80,
+            targetWeight: 70,
+            activity: 'medium',
+            meals: '3',
+            waterIntake: 8,
+            surgery: ['none'],
+            hormonal: ['hypothyroidism'],
+            stomachDiscomfort: ['none'],
+            additionalInfo: ['diabetes'],
+            foodRestrictions: ['vegetarian']
+        };
+    
+        // فقط اگر داده‌ای وجود ندارد مقداردهی کنیم
+        Object.keys(testData).forEach(key => {
+            if (this.formData[key] === undefined) {
+                this.formData[key] = testData[key];
+            }
+        });
+    
+        // اینجا باید المان‌های فرم را بر اساس state به روز کنیم
+        this.updateFormElementsFromState();
+    },
+    
+    updateFormElementsFromState() {
+        // به روزرسانی جنسیت
+        if (this.formData.gender) {
+            const genderOption = document.querySelector(`.gender-option[data-gender="${this.formData.gender}"]`);
+            if (genderOption) genderOption.classList.add('selected');
+        }
+    
+        // به روزرسانی هدف
+        if (this.formData.goal) {
+            const goalOption = document.querySelector(`.goal-option[data-goal="${this.formData.goal}"]`);
+            if (goalOption) goalOption.classList.add('selected');
+        }
+    
+        // به روزرسانی فیلدهای عددی
+        const numberFields = {
+            'age-input': 'age',
+            'height-input': 'height',
+            'weight-input': 'weight',
+            'target-weight-input': 'targetWeight'
+        };
+        
+        Object.entries(numberFields).forEach(([id, key]) => {
+            if (this.formData[key]) {
+                const input = document.getElementById(id);
+                if (input) {
+                    input.value = this.formData[key];
+                    // تریگر رویداد input برای به روزرسانی نمایش
+                    input.dispatchEvent(new Event('input'));
+                }
+            }
+        });
+    
+        // به روزرسانی چک‌باکس‌ها
+        const checkboxGroups = {
+            'surgery': this.formData.surgery || [],
+            'hormonal': this.formData.hormonal || [],
+            'stomachDiscomfort': this.formData.stomachDiscomfort || [],
+            'additionalInfo': this.formData.additionalInfo || [],
+            'foodRestrictions': this.formData.foodRestrictions || []
+        };
+    
+        Object.entries(checkboxGroups).forEach(([prefix, items]) => {
+            items.forEach(item => {
+                const checkboxId = `${prefix}-${item}`.replace('Discomfort', '');
+                const checkbox = document.getElementById(checkboxId);
+                if (checkbox) {
+                    checkbox.checked = true;
+                    // تریگر تغییر برای اعمال استایل
+                    checkbox.dispatchEvent(new Event('change'));
+                }
+            });
+        });
+    
+        // به روزرسانی فعالیت
+        if (this.formData.activity) {
+            const activityOption = document.querySelector(`.activity-option[data-activity="${this.formData.activity}"]`);
+            if (activityOption) activityOption.classList.add('selected');
+        }
+    
+        // به روزرسانی وعده‌های غذایی
+        if (this.formData.meals) {
+            const mealOption = document.querySelector(`.meal-option[data-meals="${this.formData.meals}"]`);
+            if (mealOption) mealOption.classList.add('selected');
+        }
+        
+        if (this.formData.waterIntake !== undefined && this.formData.waterIntake !== null) {
+            const waterCups = document.querySelectorAll('.water-cup');
+            const waterAmount = this.formData.waterIntake;
+            
+            // انتخاب لیوان‌ها
+            waterCups.forEach((cup, index) => {
+                const cupAmount = parseInt(cup.dataset.amount);
+                if (cupAmount <= waterAmount) {
+                    cup.classList.add('selected');
+                    
+                    // ایجاد موج آب برای لیوان‌های انتخاب شده
+                    const wave = document.createElement('div');
+                    wave.className = 'water-wave';
+                    wave.style.animationDelay = `${index * 0.1}s`;
+                    cup.appendChild(wave);
+                }
+            });
+    
+            // به روزرسانی نمایش مقدار آب
+            const waterAmountDisplay = document.getElementById('water-amount');
+            const waterLiterDisplay = document.getElementById('water-liter');
+            if (waterAmountDisplay && waterLiterDisplay) {
+                waterAmountDisplay.textContent = waterAmount;
+                waterLiterDisplay.textContent = (waterAmount * 0.25).toFixed(1);
+            }
+            
+            // غیرفعال کردن گزینه "نمی‌دانم"
+            const dontKnowCheckbox = document.getElementById('water-dont-know');
+            if (dontKnowCheckbox) {
+                dontKnowCheckbox.checked = false;
+                dontKnowCheckbox.nextElementSibling.classList.remove('checked');
+            }
+        }   
+        
+        // به روزرسانی چک‌باکس شرایط و قوانین
+        const confirmTermsCheckbox = document.getElementById('confirm-terms');
+        if (confirmTermsCheckbox) {
+            confirmTermsCheckbox.checked = true;
+            // تریگر رویداد change برای اعمال استایل
+            confirmTermsCheckbox.dispatchEvent(new Event('change'));
+            
+            // فعال کردن گزینه‌های جنسیت
+            document.querySelectorAll('.gender-option').forEach(option => {
+                option.style.opacity = "1";
+                option.style.pointerEvents = "auto";
+                option.style.filter = "none";
+            });
+        }  
+        
+        // به روزرسانی اطلاعات تکمیلی (مرحله 14)
+        if (this.formData.additionalInfo) {
+            this.formData.additionalInfo.forEach(item => {
+                const checkboxId = `info-${item}`;
+                const checkbox = document.getElementById(checkboxId);
+                if (checkbox) {
+                    checkbox.checked = true;
+                    const label = checkbox.nextElementSibling;
+                    if (label) label.classList.add('checked');
+                }
+            });
+        }
+    
+        // به روزرسانی محدودیت‌های غذایی (مرحله 15)
+        if (this.formData.foodRestrictions) {
+            this.formData.foodRestrictions.forEach(item => {
+                const checkboxId = `restriction-${item}`;
+                const checkbox = document.getElementById(checkboxId);
+                if (checkbox) {
+                    checkbox.checked = true;
+                    const label = checkbox.nextElementSibling;
+                    if (label) label.classList.add('checked');
+                }
+            });
+        }        
     }
 };
 
@@ -3461,17 +3655,107 @@ body[data-gender="female"] .female-only {
     display: block;
 }
 
+#dev-tools {
+    position: fixed;
+    left: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 9998;
+    background: rgba(255, 255, 255, 0.7);
+    padding: 10px;
+    border-radius: 8px;
+    box-shadow: 0 2px 15px rgba(0, 0, 0, 0.1);
+    backdrop-filter: blur(5px);
+    border: 1px solid rgba(0, 0, 0, 0.1);
+    max-height: 70vh;
+    overflow: hidden;
+    width: auto;
+    transition: all 0.3s ease;
+    gap: 5px;
+}
+
 #dev-tools button {
+    padding: 8px 12px;
+    background: rgba(244, 67, 54, 0.3);
+    color: white;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 13px;
+    transition: all 0.2s ease;
+    min-width: 36px;
+    text-align: center;
+}
+
+.dev-tools-buttons {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    overflow-y: auto;
+    max-height: 60vh;
     transition: all 0.3s ease;
 }
 
+/* در حالت موبایل */
+@media (max-width: 768px) {
+    #dev-tools {
+        left: 5px;
+        padding: 8px;
+        max-height: 60vh;
+        backdrop-filter: none;
+        background: rgba(255, 255, 255, 0.3);
+    }
+    
+    #dev-tools button {
+        padding: 6px 8px;
+        font-size: 12px;
+    }
+    
+    .dev-tools-header {
+        font-size: 14px;
+    }
+    
+    .toggle-visibility {
+        font-size: 18px;
+    }    
+}
+
+.dev-tools-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-weight: bold;
+    color: #d32f2f;
+    margin-bottom: 8px;
+    padding: 5px;
+    cursor: pointer;
+    user-select: none;
+}
+
+.toggle-visibility {
+    font-size: 20px;
+    width: 20px;
+    height: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+}
+
 #dev-tools button:hover {
-    background: #b71c1c !important;
-    transform: scale(1.1);
+    background: rgba(244, 67, 54, 1);
+    transform: translateX(5px);
 }
 
 #dev-tools button:active {
     transform: scale(0.95);
+}
+
+/* استایل مرحله فعلی */
+#dev-tools button.current-step {
+    background: rgba(183, 28, 28, 0.7);
+    font-weight: bold;
+    box-shadow: 0 0 0 2px rgba(255,255,255,0.5);
 }
 -----------------------------------------------------------------------------------------------------
 <?php
@@ -3492,5 +3776,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 include 'form.html';
 ?>
 -----------------------------------------------------------------------------------------------------
-
 این کد رو ببین. 
+چیزهایی که تو نوشته پایین ازت میخوام رو تو قالب تیکه های کد که امکان کپی و دانلود داره برام بفرست که راحت بتونم کپی کنم
+-----------------------------------------------------------------------------------------------------
