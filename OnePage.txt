@@ -255,7 +255,7 @@
         <div id="hormonal-disorders-step" class="step checkbox-step-container">
             <h2>آیا اختلال هورمونی خاصی دارید؟</h2>
             
-            <div class="checkbox-container first-option stand-alone-none-option">
+            <div class="checkbox-container first-option stand-alone-none">
                 <input type="checkbox" id="hormonal-none" class="real-checkbox">
                 <label for="hormonal-none" class="checkbox-label">
                     <span class="check-icon"></span>
@@ -3472,7 +3472,8 @@ button.submit-form:hover {
 
 .checkbox-list-container {
     position: relative;
-    max-height: 250px;
+    max-height: 45vh;
+    min-height: 250px;
     overflow-y: auto;
     padding: 10px 5px;
     margin: 5px auto;
@@ -3492,11 +3493,6 @@ button.submit-form:hover {
 .checkbox-list-container::-webkit-scrollbar-thumb {
     background-color: var(--primary-color);
     border-radius: 3px;
-}
-
-.stand-alone-none-option {
-    padding: 5px;
-    margin-bottom: 5px;
 }
 
 button.submit-form:disabled {
