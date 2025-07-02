@@ -1,805 +1,843 @@
 <!--/home/aidastya/public_html/wp-content/themes/ai-assistant/services/diet/template-parts/form.php-->
 <?php
-
 $theme_assets = get_stylesheet_directory_uri();
 ?>
 
-    <form id="multi-step-form" class="ai-multistep-form" method="post" action="<?php echo admin_url('admin-ajax.php'); ?>">
+<form id="multi-step-form" class="ai-multistep-form" method="post" action="<?php echo admin_url('admin-ajax.php'); ?>">
     <input type="hidden" name="action" value="submit_diet_form">
     <?php wp_nonce_field('diet_form_nonce', 'diet_form_security'); ?>
-        <div id="header-container">
-            <div id="step-counter"><span id="current-step">1</span>/<span id="total-steps">12</span></div>
-            <button type="button" id="back-button">›</button>
-        </div>
-        <div id="progress-bar-container">
-            <div id="progress-bar"></div>
-        </div>
+    
+    <div id="header-container">
+        <div id="step-counter"><span id="current-step">1</span>/<span id="total-steps">12</span></div>
+        <button type="button" id="back-button">›</button>
+    </div>
+    
+    <div id="progress-bar-container">
+        <div id="progress-bar"></div>
+    </div>
 
-        <div id="gender-selection-step" class="step active">
-            <h1 id="form-title">سیستم هوشمند رژیم غذایی هوش مصنوعی</h1>
-            <h2>جنسیت خود را انتخاب کنید</h2>
-            <div id="gender-selection">
-                <div class="gender-option" data-gender="male"><img src="<?php echo $theme_assets; ?>/assets/images/webp/male.webp" alt="مرد"></div>
-                <div class="gender-option" data-gender="female"><img src="<?php echo $theme_assets; ?>/assets/images/webp/female.webp" alt="زن"></div>
+    <!-- Step 1: Gender Selection -->
+    <div id="gender-selection-step" class="step active">
+        <h1 id="form-title">سیستم هوشمند رژیم غذایی هوش مصنوعی</h1>
+        <h2>جنسیت خود را انتخاب کنید</h2>
+        <div id="gender-selection">
+            <div class="gender-option" data-gender="male"><img src="<?php echo $theme_assets; ?>/assets/images/webp/male.webp" alt="مرد"></div>
+            <div class="gender-option" data-gender="female"><img src="<?php echo $theme_assets; ?>/assets/images/webp/female.webp" alt="زن"></div>
+        </div>
+    
+        <div id="terms-checkbox" class="checkbox-container terms-combined">
+            <input type="checkbox" id="confirm-terms" class="real-checkbox">
+            <label for="confirm-terms" class="checkbox-label">
+                <span class="check-icon"></span>
+                <span class="label-text">شرایط و قوانین را می‌پذیرم</span>
+            </label>
+            <div class="terms-box">
+                <ul class="terms-list">
+                    <li>اطلاعات سلامت و شخصی من، با حداکثر امنیت و مطابق قوانین محرمانگی، نزد این سامانه محفوظ خواهد ماند.</li>
+                    <li>توصیه‌های این سیستم توسط پیشرفته‌ترین الگوریتم‌های هوش مصنوعی ارائه می‌شود، اما جایگزین تشخیص پزشک نیست.</li>
+                    <li>مسئولیت نهایی تصمیمات سلامت و استفاده از این توصیه‌ها بر عهده خودم است.</li>
+                    <li>متعهد می‌شوم برای مسائل پزشکی مهم، حتماً با پزشک معتمدم مشورت کنم.</li>
+                </ul>
             </div>
+        </div>
+    </div>
+
+    <!-- Step 2: Goal Selection -->
+    <div id="goal-selection-step" class="step">
+        <h2>هدفت از رژیم غذایی چیه؟</h2>
+        <div id="goal-selection">
+            <div class="goal-option" data-goal="weight-loss">
+                <img src="<?php echo $theme_assets; ?>/assets/images/png/gain-weight-min.png" alt="کاهش وزن" width="60" height="30">
+                <span>کاهش وزن (به وزن ایده‌آل برسم)</span>
+            </div>
+            <div class="goal-option" data-goal="weight-gain">
+                <img src="<?php echo $theme_assets; ?>/assets/images/png/gain-weight-min.png" alt="افزایش وزن" width="60" height="30">
+                <span>افزایش وزن (قدرت و انرژی را تجربه کنم)</span>
+            </div>
+            <div class="goal-option" data-goal="fitness">
+                <img src="<?php echo $theme_assets; ?>/assets/images/png/stay-fit-min.png" alt="حفظ سلامت" width="60" height="30">
+                <span>حفظ سلامت (سلامت عمومی بدنم را حفظ کنم)</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Step 3: Age Input -->
+    <div id="age-input-step" class="step">
+        <h2>سن شما چند سال است؟</h2>
+        <div class="input-container">
+            <input type="text" inputmode="numeric" id="age-input">
+            <span id="age-display">0 سال</span>
+        </div>
+        <div id="age-validation-container">
+            <p id="age-error" class="error-message"></p>
+            <div class="separator-dotted"></div>
+            <div class="info-box">
+                <div class="info-content">
+                    <img src="<?php echo $theme_assets; ?>/assets/images/png/age-min.png" width="30" height="30" alt="سن">
+                    <div class="info-text">
+                        <span class="first-line">سن شما را می‌پرسیم تا برنامه شخصی شما را ایجاد کنیم.</span>
+                        <span class="second-line">افراد مسن‌تر نسبت به افراد جوان‌تر با همان شاخص توده بدنی (BMI)، معمولاً چربی بدن بیشتری دارند</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Step 4: Height Input -->
+    <div id="height-input-step" class="step">
+        <h2>قد شما چقدر است؟</h2>
+        <div class="input-container">
+            <input type="text" inputmode="numeric" id="height-input">
+            <span id="height-display">0 سانتی‌متر</span>
+        </div>
+        <div id="height-validation-container">
+            <p id="height-error" class="error-message"></p>
+            <div class="separator-dotted"></div>
+            <div class="info-box">
+                <div class="info-content">
+                    <img src="<?php echo $theme_assets; ?>/assets/images/png/height-min.png" width="30" height="30" alt="قد">
+                    <div class="info-text">
+                        <span class="first-line">محاسبه شاخص توده بدنی شما</span>
+                        <span class="second-line">شاخص توده بدنی (BMI) به طور گسترده به عنوان یک معیار برای سنجش خطر ابتلا یا شیوع برخی مشکلات سلامتی مورد استفاده قرار می‌گیرد</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Step 5: Weight Input -->
+    <div id="weight-input-step" class="step">
+        <h2>وزن شما چقدر است؟</h2>
+        <div class="input-container">
+            <input type="text" inputmode="numeric" id="weight-input">
+            <span id="weight-display">0 کیلوگرم</span>
+        </div>
+        <div id="weight-validation-container">
+            <p id="weight-error" class="error-message"></p>
+            <div class="separator-dotted"></div>
+            <div id="bmi-result-container">
+                <div class="bmi-info">
+                    <h3>شاخص توده بدنی (BMI) شما: <span id="bmi-value">0</span></h3>
+                    <p id="bmi-category" class="bmi-category"></p>
+                </div>
+                <div class="bmi-scale-container">
+                    <div class="bmi-scale-labels">
+                        <span>کمبود وزن</span>
+                        <span>نرمال</span>
+                        <span>اضافه وزن</span>
+                        <span>چاق</span>
+                        <span>چاقی شدید</span>
+                    </div>
+                    <div class="bmi-scale">
+                        <div id="bmi-indicator" class="bmi-indicator"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Step 6: Target Weight -->
+    <div id="target-weight-step" class="step">
+        <h2>وزن هدف شما چقدر است؟</h2>
+        <div class="input-container">
+            <input type="text" inputmode="numeric" id="target-weight-input">
+            <span id="target-weight-display">0 کیلوگرم</span>
+        </div>
+        <div id="target-weight-validation-container">
+            <p id="targetWeight-error" class="error-message"></p>
+            <div class="separator-dotted"></div>
+            <div class="info-box">
+                <div class="info-content">
+                    <img src="<?php echo $theme_assets; ?>/assets/images/png/gain-weight-min.png" width="30" height="30" alt="وزن هدف">
+                    <div class="info-text">
+                        <span class="first-line">وزن هدف شما را می‌پرسیم تا برنامه مناسب برای رسیدن به آن را طراحی کنیم.</span>
+                        <span class="second-line">لطفاً وزن واقع‌بینانه‌ای را وارد کنید که با قد و ساختار بدنی شما تناسب داشته باشد</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Step 7: Goal Weight Display -->
+    <div id="goal-weight-display" class="step">
+        <div class="step7-image-container">
+            <div class="goal-title-container">
+                <h2 class="goal-title" id="goal-title-text">هدف: در حال بارگذاری...</h2>
+            </div>
+            <div class="weight-display-container">
+                <div class="weight-display-box current-weight">
+                    <div class="weight-value">${state.formData.weight || 0}</div>
+                    <div class="weight-unit">کیلوگرم</div>
+                    <div class="weight-label">وزن فعلی شما</div>
+                </div>
+                <div class="weight-display-box target-weight">
+                    <div class="weight-value">${state.formData.targetWeight || 0}</div>
+                    <div class="weight-unit">کیلوگرم</div>
+                    <div class="weight-label">وزن هدف شما</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Step 8: Surgery History -->
+    <div id="surgery-step" class="step checkbox-step-container">
+        <h2>سابقه جراحی یا عمل‌های پزشکی مهم</h2>        
+        <div class="checkbox-container first-option stand-alone-none">
+            <input type="checkbox" id="surgery-none" class="real-checkbox">
+            <label for="surgery-none" class="checkbox-label">
+                <span class="check-icon"></span>
+                <span class="label-text">هیچگونه سابقه جراحی ندارم</span>
+            </label>
+        </div> 
         
-            <div id="terms-checkbox" class="checkbox-container terms-combined">
-                <input type="checkbox" id="confirm-terms" class="real-checkbox">
-                <label for="confirm-terms" class="checkbox-label">
+        <div class="separator"></div>
+        <div id="surgery-selection" class="checkbox-selection-container checkbox-list-container">
+            <h3 class="surgery-category-title">جراحی‌های متابولیک و گوارشی</h3>
+            <div class="checkbox-container">
+                <input type="checkbox" id="surgery-metabolic" class="real-checkbox">
+                <label for="surgery-metabolic" class="checkbox-label">
                     <span class="check-icon"></span>
-                    <span class="label-text">شرایط و قوانین را می‌پذیرم</span>
+                    <span class="label-text">جراحی متابولیک (بایپس معده، اسلیو)</span>
                 </label>
-                <div class="terms-box">
-                    <ul class="terms-list">
-                        <li>اطلاعات سلامت و شخصی من، با حداکثر امنیت و مطابق قوانین محرمانگی، نزد این سامانه محفوظ خواهد ماند.</li>
-                        <li>توصیه‌های این سیستم توسط پیشرفته‌ترین الگوریتم‌های هوش مصنوعی ارائه می‌شود، اما جایگزین تشخیص پزشک نیست.</li>
-                        <li>مسئولیت نهایی تصمیمات سلامت و استفاده از این توصیه‌ها بر عهده خودم است.</li>
-                        <li>متعهد می‌شوم برای مسائل پزشکی مهم، حتماً با پزشک معتمدم مشورت کنم.</li>
+            </div>
+            <div class="checkbox-container">
+                <input type="checkbox" id="surgery-gallbladder" class="real-checkbox">
+                <label for="surgery-gallbladder" class="checkbox-label">
+                    <span class="check-icon"></span>
+                    <span class="label-text">جراحی کیسه صفرا</span>
+                </label>
+            </div>
+            <div class="checkbox-container">
+                <input type="checkbox" id="surgery-intestine" class="real-checkbox">
+                <label for="surgery-intestine" class="checkbox-label">
+                    <span class="check-icon"></span>
+                    <span class="label-text">جراحی روده (رزکسیون، ایلئوستومی)</span>
+                </label>
+            </div>
+            
+            <h3 class="surgery-category-title">جراحی‌های غدد و اندام‌ها</h3>
+            <div class="checkbox-container">
+                <input type="checkbox" id="surgery-thyroid" class="real-checkbox">
+                <label for="surgery-thyroid" class="checkbox-label">
+                    <span class="check-icon"></span>
+                    <span class="label-text">جراحی تیروئید/پاراتیروئید</span>
+                </label>
+            </div>
+            <div class="checkbox-container">
+                <input type="checkbox" id="surgery-pancreas" class="real-checkbox">
+                <label for="surgery-pancreas" class="checkbox-label">
+                    <span class="check-icon"></span>
+                    <span class="label-text">جراحی لوزالمعده (پانکراس)</span>
+                </label>
+            </div>
+            
+            <h3 class="surgery-category-title female-only">جراحی‌های زنان</h3>
+            <div class="checkbox-container female-only">
+                <input type="checkbox" id="surgery-gynecology" class="real-checkbox">
+                <label for="surgery-gynecology" class="checkbox-label">
+                    <span class="check-icon"></span>
+                    <span class="label-text">جراحی‌های زنان (هیسترکتومی، اووفورکتومی)</span>
+                </label>
+            </div>
+            
+            <h3 class="surgery-category-title">جراحی‌های عمده</h3>
+            <div class="checkbox-container">
+                <input type="checkbox" id="surgery-kidney" class="real-checkbox">
+                <label for="surgery-kidney" class="checkbox-label">
+                    <span class="check-icon"></span>
+                    <span class="label-text">پیوند کلیه</span>
+                </label>
+            </div>
+            <div class="checkbox-container">
+                <input type="checkbox" id="surgery-liver" class="real-checkbox">
+                <label for="surgery-liver" class="checkbox-label">
+                    <span class="check-icon"></span>
+                    <span class="label-text">پیوند کبد</span>
+                </label>
+            </div>
+            <div class="checkbox-container">
+                <input type="checkbox" id="surgery-heart" class="real-checkbox">
+                <label for="surgery-heart" class="checkbox-label">
+                    <span class="check-icon"></span>
+                    <span class="label-text">جراحی قلب</span>
+                </label>
+            </div>
+        </div>
+    </div>
+
+    <!-- Step 9: Hormonal Disorders -->
+    <div id="hormonal-disorders-step" class="step checkbox-step-container">
+        <h2>آیا اختلال هورمونی خاصی دارید؟</h2>
+        
+        <div class="checkbox-container first-option stand-alone-none">
+            <input type="checkbox" id="hormonal-none" class="real-checkbox">
+            <label for="hormonal-none" class="checkbox-label">
+                <span class="check-icon"></span>
+                <span class="label-text">خیر</span>
+            </label>
+        </div>
+        
+        <div class="separator"></div>
+        
+        <div id="hormonal-selection" class="checkbox-selection-container checkbox-list-container scrollable-container">
+            <div class="checkbox-container">
+                <input type="checkbox" id="hormonal-pcos" class="real-checkbox">
+                <label for="hormonal-pcos" class="checkbox-label">
+                    <span class="check-icon"></span>
+                    <span class="label-text">سندرم تخمدان پلی کیستیک (PCOS)</span>
+                </label>
+            </div>
+            <div class="checkbox-container">
+                <input type="checkbox" id="hormonal-hypothyroidism" class="real-checkbox">
+                <label for="hormonal-hypothyroidism" class="checkbox-label">
+                    <span class="check-icon"></span>
+                    <span class="label-text">کم کاری تیروئید</span>
+                </label>
+            </div>
+            <div class="checkbox-container">
+                <input type="checkbox" id="hormonal-hyperthyroidism" class="real-checkbox">
+                <label for="hormonal-hyperthyroidism" class="checkbox-label">
+                    <span class="check-icon"></span>
+                    <span class="label-text">پرکاری تیروئید</span>
+                </label>
+            </div>
+            <div class="checkbox-container">
+                <input type="checkbox" id="hormonal-diabetes" class="real-checkbox">
+                <label for="hormonal-diabetes" class="checkbox-label">
+                    <span class="check-icon"></span>
+                    <span class="label-text">دیابت نوع 1 یا 2</span>
+                </label>
+            </div>
+            <div class="checkbox-container">
+                <input type="checkbox" id="hormonal-adrenal" class="real-checkbox">
+                <label for="hormonal-adrenal" class="checkbox-label">
+                    <span class="check-icon"></span>
+                    <span class="label-text">مشکلات غده فوق کلیوی</span>
+                </label>
+            </div>
+        </div>
+    </div>
+
+    <!-- Step 10: Stomach Discomfort -->
+    <div id="stomach-discomfort-step" class="step checkbox-step-container">
+        <h2>آیا در هفته گذشته ناراحتی معده را تجربه کرده‌اید؟</h2>
+        
+        <div class="checkbox-container first-option stand-alone-none">
+            <input type="checkbox" id="stomach-none" class="real-checkbox">
+            <label for="stomach-none" class="checkbox-label">
+                <span class="check-icon"></span>
+                <span class="label-text">خیر</span>
+            </label>
+        </div>
+        
+        <div class="separator"></div>
+        
+        <div id="stomach-selection" class="checkbox-selection-container checkbox-list-container scrollable-container">
+            <div class="checkbox-container">
+                <input type="checkbox" id="stomach-bloating" class="real-checkbox">
+                <label for="stomach-bloating" class="checkbox-label">
+                    <span class="check-icon"></span>
+                    <span class="label-text">نفخ یا گاز معده</span>
+                </label>
+            </div>
+            <div class="checkbox-container">
+                <input type="checkbox" id="stomach-pain" class="real-checkbox">
+                <label for="stomach-pain" class="checkbox-label">
+                    <span class="check-icon"></span>
+                    <span class="label-text">درد یا گرفتگی معده</span>
+                </label>
+            </div>
+            <div class="checkbox-container">
+                <input type="checkbox" id="stomach-heartburn" class="real-checkbox">
+                <label for="stomach-heartburn" class="checkbox-label">
+                    <span class="check-icon"></span>
+                    <span class="label-text">سوزش سر دل یا ترش کردن</span>
+                </label>
+            </div>
+            <div class="checkbox-container">
+                <input type="checkbox" id="stomach-nausea" class="real-checkbox">
+                <label for="stomach-nausea" class="checkbox-label">
+                    <span class="check-icon"></span>
+                    <span class="label-text">حالت تهوع</span>
+                </label>
+            </div>
+            <div class="checkbox-container">
+                <input type="checkbox" id="stomach-indigestion" class="real-checkbox">
+                <label for="stomach-indigestion" class="checkbox-label">
+                    <span class="check-icon"></span>
+                    <span class="label-text">سوء هاضمه مزمن</span>
+                </label>
+            </div>
+        </div>
+    </div>
+
+    <!-- Step 11: Water Intake -->
+    <div id="water-intake-step" class="step">
+        <h2>به طور میانگین چه مقدار آب در روز می‌نوشید؟</h2>
+        <div id="water-intake-container">
+            <div class="water-cups-container">
+                <!-- ردیف 1 -->
+                <div class="water-cup-row">
+                    <div class="water-cup" data-amount="1"></div>
+                    <div class="water-cup" data-amount="2"></div>
+                    <div class="water-cup" data-amount="3"></div>
+                    <div class="water-cup" data-amount="4"></div>
+                    <div class="water-cup" data-amount="5"></div>
+                    <div class="water-cup" data-amount="6"></div>
+                </div>
+                <!-- ردیف 2 -->
+                <div class="water-cup-row">
+                    <div class="water-cup" data-amount="7"></div>
+                    <div class="water-cup" data-amount="8"></div>
+                    <div class="water-cup" data-amount="9"></div>
+                    <div class="water-cup" data-amount="10"></div>
+                    <div class="water-cup" data-amount="11"></div>
+                    <div class="water-cup" data-amount="12"></div>
+                </div>
+                <!-- ردیف 3 -->
+                <div class="water-cup-row">
+                    <div class="water-cup" data-amount="13"></div>
+                    <div class="water-cup" data-amount="14"></div>
+                    <div class="water-cup" data-amount="15"></div>
+                    <div class="water-cup" data-amount="16"></div>
+                    <div class="water-cup" data-amount="17"></div>
+                    <div class="water-cup" data-amount="18"></div>
+                </div>
+                <!-- ردیف 4 -->
+                <div class="water-cup-row">
+                    <div class="water-cup" data-amount="19"></div>
+                    <div class="water-cup" data-amount="20"></div>
+                    <div class="water-cup" data-amount="21"></div>
+                    <div class="water-cup" data-amount="22"></div>
+                    <div class="water-cup" data-amount="23"></div>
+                    <div class="water-cup" data-amount="24"></div>
+                </div>
+                <!-- ردیف 5 -->
+                <div class="water-cup-row">
+                    <div class="water-cup" data-amount="25"></div>
+                    <div class="water-cup" data-amount="26"></div>
+                    <div class="water-cup" data-amount="27"></div>
+                    <div class="water-cup" data-amount="28"></div>
+                    <div class="water-cup" data-amount="29"></div>
+                    <div class="water-cup" data-amount="30"></div>
+                </div>
+            </div>
+
+            <div class="water-amount-display">
+                <div id="water-amount-text" class="water-amount-text">
+                    <span id="water-amount">0</span> لیوان در روز 
+                    <span class="water-liter">(≈<span id="water-liter">0</span> لیتر)</span>
+                </div>
+                <div id="water-dont-know-text" class="dont-know-text" style="display:none;">
+                    مقدار آب مصرفی مشخص نیست
+                </div>
+            </div>
+            
+            <div class="dont-know-container">
+                <div class="checkbox-container first-option stand-alone-none">
+                    <input type="checkbox" id="water-dont-know" class="real-checkbox">
+                    <label for="water-dont-know" class="checkbox-label">
+                        <span class="check-icon"></span>
+                        <span class="label-text">نمی‌دانم / مطمئن نیستم</span>
+                    </label>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Step 12: Activity Level -->
+    <div id="activity-selection-step" class="step">
+        <h2>میزان فعالیت روزانه شما چقدر است؟</h2>
+        <div id="activity-selection">
+            <div class="activity-option" data-activity="very-low">
+                <img src="<?php echo $theme_assets; ?>/assets/images/png/without-activity-min.png" alt="فعالیت خیلی کم" width="60" height="30">
+                <span>خیلی کم (کمتر از 1 ساعت)</span>
+            </div>
+            <div class="activity-option" data-activity="low">
+                <img src="<?php echo $theme_assets; ?>/assets/images/png/alittle-activity-min.png" alt="فعالیت کم" width="60" height="30">
+                <span>کم (1 تا 2 ساعت)</span>
+            </div>
+            <div class="activity-option" data-activity="medium">
+                <img src="<?php echo $theme_assets; ?>/assets/images/png/middle-activity-min.png" alt="فعالیت متوسط" width="60" height="30">
+                <span>متوسط (2 تا 4 ساعت)</span>
+            </div>
+            <div class="activity-option" data-activity="high">
+                <img src="<?php echo $theme_assets; ?>/assets/images/png/alot-activity-min.png" alt="فعالیت زیاد" width="60" height="30">
+                <span>زیاد (بیشتر از 4 ساعت)</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Step 13: Meal Frequency -->
+    <div id="meal-selection-step" class="step">
+        <h2>چند وعده غذایی در روز مصرف می‌کنید؟</h2>
+        <div id="meal-selection">
+            <div class="meal-option" data-meals="2">
+                <img src="<?php echo $theme_assets; ?>/assets/images/png/gain-weight-min.png" alt="2 وعده" width="60" height="30">
+                <span>۲ وعده</span>
+            </div>
+            <div class="meal-option" data-meals="3">
+                <img src="<?php echo $theme_assets; ?>/assets/images/png/gain-weight-min.png" alt="3 وعده" width="60" height="30">
+                <span>۳ وعده</span>
+            </div>
+            <div class="meal-option" data-meals="4">
+                <img src="<?php echo $theme_assets; ?>/assets/images/png/gain-weight-min.png" alt="4 وعده" width="60" height="30">
+                <span>۴ وعده</span>
+            </div>
+            <div class="meal-option" data-meals="more">
+                <img src="<?php echo $theme_assets; ?>/assets/images/png/gain-weight-min.png" alt="بیشتر" width="60" height="30">
+                <span>بیشتر</span>
+            </div>
+            <div class="meal-option" data-meals="irregular">
+                <img src="<?php echo $theme_assets; ?>/assets/images/png/gain-weight-min.png" alt="وعده‌های نامنظم" width="60" height="30">
+                <span>وعده‌های نامنظم</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Step 14: Additional Info -->
+    <div id="additional-info-step" class="step">
+        <h2>اطلاعات تکمیلی</h2>
+        <div id="additional-info-selection" class="checkbox-selection-container checkbox-list-container scrollable-container">
+            <div class="checkbox-container first-option">
+                <input type="checkbox" id="info-none" class="real-checkbox">
+                <label for="info-none" class="checkbox-label">
+                    <span class="check-icon"></span>
+                    <span class="label-text">هیچکدام از موارد زیر را ندارم</span>
+                </label>
+            </div>
+            
+            <div class="separator"></div>
+            
+            <div class="checkbox-container">
+                <input type="checkbox" id="info-diabetes" class="real-checkbox">
+                <label for="info-diabetes" class="checkbox-label">
+                    <span class="check-icon"></span>
+                    <span class="label-text">دیابت</span>
+                </label>
+            </div>
+            <div class="checkbox-container">
+                <input type="checkbox" id="info-pressure" class="real-checkbox">
+                <label for="info-pressure" class="checkbox-label">
+                    <span class="check-icon"></span>
+                    <span class="label-text">فشار خون</span>
+                </label>
+            </div>
+            <div class="checkbox-container">
+                <input type="checkbox" id="info-thyroid" class="real-checkbox">
+                <label for="info-thyroid" class="checkbox-label">
+                    <span class="check-icon"></span>
+                    <span class="label-text">مشکلات تیروئید</span>
+                </label>
+            </div>
+            <div class="checkbox-container">
+                <input type="checkbox" id="info-allergy" class="real-checkbox">
+                <label for="info-allergy" class="checkbox-label">
+                    <span class="check-icon"></span>
+                    <span class="label-text">حساسیت غذایی</span>
+                </label>
+            </div>
+        </div>
+    </div>
+
+    <!-- Step 15: Food Restrictions -->
+    <div id="food-restriction-step" class="step">
+        <h2>آیا محدودیت غذایی خاصی دارید؟</h2>
+        <div id="food-restriction-selection" class="checkbox-selection-container checkbox-list-container scrollable-container">
+            <div class="checkbox-container first-option">
+                <input type="checkbox" id="restriction-none" class="real-checkbox">
+                <label for="restriction-none" class="checkbox-label">
+                    <span class="check-icon"></span>
+                    <span class="label-text">نه، محدودیت ندارم</span>
+                </label>
+            </div>
+            
+            <div class="separator"></div>
+            
+            <div class="checkbox-container">
+                <input type="checkbox" id="restriction-vegetarian" class="real-checkbox">
+                <label for="restriction-vegetarian" class="checkbox-label">
+                    <span class="check-icon"></span>
+                    <span class="label-text">گیاهخوار هستم</span>
+                </label>
+            </div>
+            <div class="checkbox-container">
+                <input type="checkbox" id="restriction-no-seafood" class="real-checkbox">
+                <label for="restriction-no-seafood" class="checkbox-label">
+                    <span class="check-icon"></span>
+                    <span class="label-text">غذای دریایی نمی‌خورم</span>
+                </label>
+            </div>
+        </div>
+    </div>
+
+    <!-- Step 16: Terms Agreement -->
+    <div id="terms-agreement-step" class="step">
+        <h2>توافق‌نامه استفاده از خدمات Aidastyar</h2>
+        <div id="terms-agreement-container">
+            <div class="terms-agreement-content">
+                <div class="terms-section">
+                    <p>با ثبت‌نام، پرداخت یا استفاده از هر بخش خدمات Aidastyar، کاربر با مفاد این توافق‌نامه به‌صورت کامل، آگاهانه و غیرقابل رجوع موافقت می‌نماید.</p>
+                </div>
+    
+                <div class="terms-section">
+                    <h3>۱. اهلیت قانونی و مسئولیت استفاده</h3>
+                    <p>کاربر تأیید می‌کند بالای ۱۸ سال سن دارد و از نظر قانونی اختیار استفاده از خدمات را دارد.</p>
+                    <p>در صورت استفاده افراد زیر ۱۸ سال، ثبت‌نام و پرداخت باید توسط والدین یا قیم قانونی انجام شود و مسئولیت کامل متوجه ایشان خواهد بود.</p>
+                </div>
+    
+                <div class="terms-section">
+                    <h3>۲. ماهیت خدمات و حدود مسئولیت</h3>
+                    <p>رژیم‌ها به‌صورت خودکار و فقط بر اساس داده‌های واردشده توسط کاربر، از طریق الگوریتم‌های هوش مصنوعی تولید می‌شوند.</p>
+                    <p>این خدمات به هیچ‌وجه جایگزین مشاوره پزشکی یا تغذیه‌ای نیستند.</p>
+                    <p>کاربر می‌پذیرد که ممکن است رژیم تولیدشده با وضعیت بدنی، پزشکی یا نیازهای خاص وی ناسازگار باشد.</p>
+                    <p>کاربر موظف است در صورت داشتن بیماری خاص، مصرف دارو، بارداری یا وضعیت حساس پزشکی، پیش از استفاده با پزشک مشورت نماید.</p>
+                    <div class="disclaimer-box">
+                        ⚠️ <strong>سلب مسئولیت محدود:</strong>
+                        <p>Aidastyar در چارچوب قوانین جاری جمهوری اسلامی ایران، تنها مسئول ارائه خدمات به شکلی است که در شرح آن آمده است و مسئولیتی در قبال نتایج شخصی، پزشکی، روحی یا روانی ناشی از اجرای رژیم ندارد، مگر در مواردی که بر اساس حکم قطعی مرجع قضایی، تقصیر مستقیم Aidastyar اثبات شود.</p>
+                    </div>
+                </div>
+    
+                <div class="terms-section">
+                    <h3>۳. صحت اطلاعات</h3>
+                    <p>کلیه اطلاعات واردشده باید دقیق و واقعی باشد.</p>
+                    <p>مسئولیت پیامدهای ناشی از اطلاعات ناقص یا نادرست، کاملاً با کاربر است.</p>
+                    <p>تغییر وضعیت سلامت باید به‌صورت فوری در سامانه ثبت شود؛ در غیر این‌صورت، رژیم معتبر نخواهد بود.</p>
+                </div>
+    
+                <div class="terms-section">
+                    <h3>۴. تضمین نتایج و به‌روزرسانی</h3>
+                    <p>هیچ تضمینی درباره کاهش وزن، بهبود بیماری یا موفقیت قطعی رژیم وجود ندارد.</p>
+                    <p>الگوریتم‌ها ممکن است به‌روزرسانی شوند و خروجی‌های متفاوتی تولید کنند.</p>
+                    <p>در صورت تغییر شرایط بدنی یا بیماری، استفاده از رژیم قبلی توصیه نمی‌شود.</p>
+                </div>
+    
+                <div class="terms-section">
+                    <h3>۵. پرداخت، انصراف و بازگشت وجه</h3>
+                    <p>پرداخت هزینه به‌منزله درخواست قطعی تولید رژیم تلقی می‌شود.</p>
+                    <p>چنانچه رژیم هنوز تولید نشده باشد، کاربر مطابق ماده ۳۷ قانون تجارت الکترونیکی، تا ۷ روز پس از پرداخت امکان انصراف دارد.</p>
+                    <p>برای اعمال انصراف، کاربر باید از طریق پنل کاربری اقدام کند.</p>
+                    <p>در صورت شروع تولید رژیم (حتی در کمتر از ۷ روز)، حق انصراف از بین می‌رود.</p>
+                    <p>وجه در صورت انصراف، ظرف حداکثر ۷۲ ساعت کاری به حساب اولیه بازگردانده می‌شود.</p>
+                </div>
+    
+                <div class="terms-section">
+                    <h3>۶. مالکیت فکری</h3>
+                    <p>تمامی الگوریتم‌ها، محتواها، فایل‌های رژیم و ساختارهای سامانه متعلق به Aidastyar است.</p>
+                    <p>بازنشر، فروش، یا استفاده تجاری از محتوای دریافتی بدون مجوز کتبی ممنوع می‌باشد.</p>
+                </div>
+    
+                <div class="terms-section">
+                    <h3>۷. اطلاعات شخصی و محرمانگی</h3>
+                    <p>اطلاعات کاربران با روش‌های رمزنگاری ذخیره شده و تنها برای تیم فنی مجاز قابل‌دسترسی است.</p>
+                    <p>در موارد زیر اطلاعات کاربر ممکن است افشا شود:</p>
+                    <ul>
+                        <li>با حکم یا دستور مقام قضایی</li>
+                        <li>در موارد بررسی تخلف یا حملات امنیتی</li>
+                        <li>در صورت انتقال مالکیت سامانه</li>
                     </ul>
                 </div>
-            </div>
-        </div>
-
-        <div id="goal-selection-step" class="step">
-            <h2>هدفت از رژیم غذایی چیه؟</h2>
-            <div id="goal-selection">
-                <div class="goal-option" data-goal="weight-loss">
-                    <img src="<?php echo $theme_assets; ?>/assets/images/png/gain-weight-min.png" alt="کاهش وزن" width="60" height="30">
-                    <span>کاهش وزن (به وزن ایده‌آل برسم)</span>
-                </div>
-                <div class="goal-option" data-goal="weight-gain">
-                    <img src="<?php echo $theme_assets; ?>/assets/images/png/gain-weight-min.png" alt="افزایش وزن" width="60" height="30">
-                    <span>افزایش وزن (قدرت و انرژی را تجربه کنم)</span>
-                </div>
-                <div class="goal-option" data-goal="fitness">
-                    <img src="<?php echo $theme_assets; ?>/assets/images/png/stay-fit-min.png" alt="حفظ سلامت" width="60" height="30">
-                    <span>حفظ سلامت (سلامت عمومی بدنم را حفظ کنم)</span>
-                </div>
-            </div>
-        </div>
-
-        <div id="age-input-step" class="step">
-            <h2>سن شما چند سال است؟</h2>
-            <div class="input-container">
-                <input type="text" inputmode="numeric" id="age-input">
-                <span id="age-display">0 سال</span>
-            </div>
-            <div id="age-validation-container">
-                <p id="age-error" class="error-message"></p>
-                <div class="separator-dotted"></div>
-                <div class="info-box">
-                    <div class="info-content">
-                        <img src="<?php echo $theme_assets; ?>/assets/images/png/age-min.png" width="30" height="30" alt="سن">
-                        <div class="info-text">
-                            <span class="first-line">سن شما را می‌پرسیم تا برنامه شخصی شما را ایجاد کنیم.</span>
-                            <span class="second-line">افراد مسن‌تر نسبت به افراد جوان‌تر با همان شاخص توده بدنی (BMI)، معمولاً چربی بدن بیشتری دارند</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div id="height-input-step" class="step">
-            <h2>قد شما چقدر است؟</h2>
-            <div class="input-container">
-                <input type="text" inputmode="numeric" id="height-input">
-                <span id="height-display">0 سانتی‌متر</span>
-            </div>
-            <div id="height-validation-container">
-                <p id="height-error" class="error-message"></p>
-                <div class="separator-dotted"></div>
-                <div class="info-box">
-                    <div class="info-content">
-                        <img src="<?php echo $theme_assets; ?>/assets/images/png/height-min.png" width="30" height="30" alt="قد">
-                        <div class="info-text">
-                            <span class="first-line">محاسبه شاخص توده بدنی شما</span>
-                            <span class="second-line">شاخص توده بدنی (BMI) به طور گسترده به عنوان یک معیار برای سنجش خطر ابتلا یا شیوع برخی مشکلات سلامتی مورد استفاده قرار می‌گیرد</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div id="weight-input-step" class="step">
-            <h2>وزن شما چقدر است؟</h2>
-            <div class="input-container">
-                <input type="text" inputmode="numeric" id="weight-input">
-                <span id="weight-display">0 کیلوگرم</span>
-            </div>
-            <div id="weight-validation-container">
-                <p id="weight-error" class="error-message"></p>
-                <div class="separator-dotted"></div>
-                <div id="bmi-result-container">
-                    <div class="bmi-info">
-                        <h3>شاخص توده بدنی (BMI) شما: <span id="bmi-value">0</span></h3>
-                        <p id="bmi-category" class="bmi-category"></p>
-                    </div>
-                    <div class="bmi-scale-container">
-                        <div class="bmi-scale-labels">
-                            <span>کمبود وزن</span>
-                            <span>نرمال</span>
-                            <span>اضافه وزن</span>
-                            <span>چاق</span>
-                            <span>چاقی شدید</span>
-                        </div>
-                        <div class="bmi-scale">
-                            <div id="bmi-indicator" class="bmi-indicator"></div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div id="target-weight-step" class="step">
-            <h2>وزن هدف شما چقدر است؟</h2>
-            <div class="input-container">
-                <input type="text" inputmode="numeric" id="target-weight-input">
-                <span id="target-weight-display">0 کیلوگرم</span>
-            </div>
-            <div id="target-weight-validation-container">
-                <p id="targetWeight-error" class="error-message"></p>
-                <div class="separator-dotted"></div>
-                <div class="info-box">
-                    <div class="info-content">
-                        <img src="<?php echo $theme_assets; ?>/assets/images/png/gain-weight-min.png" width="30" height="30" alt="وزن هدف">
-                        <div class="info-text">
-                            <span class="first-line">وزن هدف شما را می‌پرسیم تا برنامه مناسب برای رسیدن به آن را طراحی کنیم.</span>
-                            <span class="second-line">لطفاً وزن واقع‌بینانه‌ای را وارد کنید که با قد و ساختار بدنی شما تناسب داشته باشد</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div> 
-        <div id="goal-weight-display" class="step">
-            <div class="step7-image-container">
-                <div class="goal-title-container">
-                    <h2 class="goal-title" id="goal-title-text">هدف: در حال بارگذاری...</h2>
-                </div>
-                <div class="weight-display-container">
-                    <div class="weight-display-box current-weight">
-                        <div class="weight-value">${state.formData.weight || 0}</div>
-                        <div class="weight-unit">کیلوگرم</div>
-                        <div class="weight-label">وزن فعلی شما</div>
-                    </div>
-                    <div class="weight-display-box target-weight">
-                        <div class="weight-value">${state.formData.targetWeight || 0}</div>
-                        <div class="weight-unit">کیلوگرم</div>
-                        <div class="weight-label">وزن هدف شما</div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div id="surgery-step" class="step checkbox-step-container"> <h2>سابقه جراحی یا عمل‌های پزشکی مهم</h2>        
-            <div class="checkbox-container first-option stand-alone-none">
-                <input type="checkbox" id="surgery-none" class="real-checkbox">
-                <label for="surgery-none" class="checkbox-label">
-                    <span class="check-icon"></span>
-                    <span class="label-text">هیچگونه سابقه جراحی ندارم</span>
-                </label>
-            </div> 
-            
-            <div class="separator"></div>
-            <div id="surgery-selection" class="checkbox-selection-container checkbox-list-container">
-                <h3 class="surgery-category-title">جراحی‌های متابولیک و گوارشی</h3>
-                <div class="checkbox-container">
-                    <input type="checkbox" id="surgery-metabolic" class="real-checkbox">
-                    <label for="surgery-metabolic" class="checkbox-label">
-                        <span class="check-icon"></span>
-                        <span class="label-text">جراحی متابولیک (بایپس معده، اسلیو)</span>
-                    </label>
-                </div>
-                <div class="checkbox-container">
-                    <input type="checkbox" id="surgery-gallbladder" class="real-checkbox">
-                    <label for="surgery-gallbladder" class="checkbox-label">
-                        <span class="check-icon"></span>
-                        <span class="label-text">جراحی کیسه صفرا</span>
-                    </label>
-                </div>
-                <div class="checkbox-container">
-                    <input type="checkbox" id="surgery-intestine" class="real-checkbox">
-                    <label for="surgery-intestine" class="checkbox-label">
-                        <span class="check-icon"></span>
-                        <span class="label-text">جراحی روده (رزکسیون، ایلئوستومی)</span>
-                    </label>
-                </div>
-                
-                <h3 class="surgery-category-title">جراحی‌های غدد و اندام‌ها</h3>
-                <div class="checkbox-container">
-                    <input type="checkbox" id="surgery-thyroid" class="real-checkbox">
-                    <label for="surgery-thyroid" class="checkbox-label">
-                        <span class="check-icon"></span>
-                        <span class="label-text">جراحی تیروئید/پاراتیروئید</span>
-                    </label>
-                </div>
-                <div class="checkbox-container">
-                    <input type="checkbox" id="surgery-pancreas" class="real-checkbox">
-                    <label for="surgery-pancreas" class="checkbox-label">
-                        <span class="check-icon"></span>
-                        <span class="label-text">جراحی لوزالمعده (پانکراس)</span>
-                    </label>
-                </div>
-                
-                <h3 class="surgery-category-title female-only">جراحی‌های زنان</h3>
-                <div class="checkbox-container female-only">
-                    <input type="checkbox" id="surgery-gynecology" class="real-checkbox">
-                    <label for="surgery-gynecology" class="checkbox-label">
-                        <span class="check-icon"></span>
-                        <span class="label-text">جراحی‌های زنان (هیسترکتومی، اووفورکتومی)</span>
-                    </label>
-                </div>
-                
-                <h3 class="surgery-category-title">جراحی‌های عمده</h3>
-                <div class="checkbox-container">
-                    <input type="checkbox" id="surgery-kidney" class="real-checkbox">
-                    <label for="surgery-kidney" class="checkbox-label">
-                        <span class="check-icon"></span>
-                        <span class="label-text">پیوند کلیه</span>
-                    </label>
-                </div>
-                <div class="checkbox-container">
-                    <input type="checkbox" id="surgery-liver" class="real-checkbox">
-                    <label for="surgery-liver" class="checkbox-label">
-                        <span class="check-icon"></span>
-                        <span class="label-text">پیوند کبد</span>
-                    </label>
-                </div>
-                <div class="checkbox-container">
-                    <input type="checkbox" id="surgery-heart" class="real-checkbox">
-                    <label for="surgery-heart" class="checkbox-label">
-                        <span class="check-icon"></span>
-                        <span class="label-text">جراحی قلب</span>
-                    </label>
-                </div>
-            </div>
-        </div>     
-        <div id="hormonal-disorders-step" class="step checkbox-step-container">
-            <h2>آیا اختلال هورمونی خاصی دارید؟</h2>
-            
-            <div class="checkbox-container first-option stand-alone-none-option">
-                <input type="checkbox" id="hormonal-none" class="real-checkbox">
-                <label for="hormonal-none" class="checkbox-label">
-                    <span class="check-icon"></span>
-                    <span class="label-text">خیر</span>
-                </label>
-            </div>
-            
-            <div class="separator"></div>
-            
-            <div id="hormonal-selection" class="checkbox-selection-container checkbox-list-container scrollable-container">
-                <div class="checkbox-container">
-                    <input type="checkbox" id="hormonal-pcos" class="real-checkbox">
-                    <label for="hormonal-pcos" class="checkbox-label">
-                        <span class="check-icon"></span>
-                        <span class="label-text">سندرم تخمدان پلی کیستیک (PCOS)</span>
-                    </label>
-                </div>
-                <div class="checkbox-container">
-                    <input type="checkbox" id="hormonal-hypothyroidism" class="real-checkbox">
-                    <label for="hormonal-hypothyroidism" class="checkbox-label">
-                        <span class="check-icon"></span>
-                        <span class="label-text">کم کاری تیروئید</span>
-                    </label>
-                </div>
-                <div class="checkbox-container">
-                    <input type="checkbox" id="hormonal-hyperthyroidism" class="real-checkbox">
-                    <label for="hormonal-hyperthyroidism" class="checkbox-label">
-                        <span class="check-icon"></span>
-                        <span class="label-text">پرکاری تیروئید</span>
-                    </label>
-                </div>
-                <div class="checkbox-container">
-                    <input type="checkbox" id="hormonal-diabetes" class="real-checkbox">
-                    <label for="hormonal-diabetes" class="checkbox-label">
-                        <span class="check-icon"></span>
-                        <span class="label-text">دیابت نوع 1 یا 2</span>
-                    </label>
-                </div>
-                <div class="checkbox-container">
-                    <input type="checkbox" id="hormonal-adrenal" class="real-checkbox">
-                    <label for="hormonal-adrenal" class="checkbox-label">
-                        <span class="check-icon"></span>
-                        <span class="label-text">مشکلات غده فوق کلیوی</span>
-                    </label>
-                </div>
-            </div>
-        </div>   
-        <div id="stomach-discomfort-step" class="step checkbox-step-container">
-            <h2>آیا در هفته گذشته ناراحتی معده را تجربه کرده‌اید؟</h2>
-            
-            <div class="checkbox-container first-option stand-alone-none">
-                <input type="checkbox" id="stomach-none" class="real-checkbox">
-                <label for="stomach-none" class="checkbox-label">
-                    <span class="check-icon"></span>
-                    <span class="label-text">خیر</span>
-                </label>
-            </div>
-            
-            <div class="separator"></div>
-            
-            <div id="stomach-selection" class="checkbox-selection-container checkbox-list-container scrollable-container">
-                <div class="checkbox-container">
-                    <input type="checkbox" id="stomach-bloating" class="real-checkbox">
-                    <label for="stomach-bloating" class="checkbox-label">
-                        <span class="check-icon"></span>
-                        <span class="label-text">نفخ یا گاز معده</span>
-                    </label>
-                </div>
-                <div class="checkbox-container">
-                    <input type="checkbox" id="stomach-pain" class="real-checkbox">
-                    <label for="stomach-pain" class="checkbox-label">
-                        <span class="check-icon"></span>
-                        <span class="label-text">درد یا گرفتگی معده</span>
-                    </label>
-                </div>
-                <div class="checkbox-container">
-                    <input type="checkbox" id="stomach-heartburn" class="real-checkbox">
-                    <label for="stomach-heartburn" class="checkbox-label">
-                        <span class="check-icon"></span>
-                        <span class="label-text">سوزش سر دل یا ترش کردن</span>
-                    </label>
-                </div>
-                <div class="checkbox-container">
-                    <input type="checkbox" id="stomach-nausea" class="real-checkbox">
-                    <label for="stomach-nausea" class="checkbox-label">
-                        <span class="check-icon"></span>
-                        <span class="label-text">حالت تهوع</span>
-                    </label>
-                </div>
-                <div class="checkbox-container">
-                    <input type="checkbox" id="stomach-indigestion" class="real-checkbox">
-                    <label for="stomach-indigestion" class="checkbox-label">
-                        <span class="check-icon"></span>
-                        <span class="label-text">سوء هاضمه مزمن</span>
-                    </label>
-                </div>
-            </div>
-        </div>   
-        <div id="water-intake-step" class="step">
-            <h2>به طور میانگین چه مقدار آب در روز می‌نوشید؟</h2>
-            <div id="water-intake-container">
-                <div class="water-cups-container">
-                    <!-- ردیف 1 -->
-                    <div class="water-cup-row">
-                        <div class="water-cup" data-amount="1"></div>
-                        <div class="water-cup" data-amount="2"></div>
-                        <div class="water-cup" data-amount="3"></div>
-                        <div class="water-cup" data-amount="4"></div>
-                        <div class="water-cup" data-amount="5"></div>
-                        <div class="water-cup" data-amount="6"></div>
-                    </div>
-                    <!-- ردیف 2 -->
-                    <div class="water-cup-row">
-                        <div class="water-cup" data-amount="7"></div>
-                        <div class="water-cup" data-amount="8"></div>
-                        <div class="water-cup" data-amount="9"></div>
-                        <div class="water-cup" data-amount="10"></div>
-                        <div class="water-cup" data-amount="11"></div>
-                        <div class="water-cup" data-amount="12"></div>
-                    </div>
-                    <!-- ردیف 3 -->
-                    <div class="water-cup-row">
-                        <div class="water-cup" data-amount="13"></div>
-                        <div class="water-cup" data-amount="14"></div>
-                        <div class="water-cup" data-amount="15"></div>
-                        <div class="water-cup" data-amount="16"></div>
-                        <div class="water-cup" data-amount="17"></div>
-                        <div class="water-cup" data-amount="18"></div>
-                    </div>
-                    <!-- ردیف 4 -->
-                    <div class="water-cup-row">
-                        <div class="water-cup" data-amount="19"></div>
-                        <div class="water-cup" data-amount="20"></div>
-                        <div class="water-cup" data-amount="21"></div>
-                        <div class="water-cup" data-amount="22"></div>
-                        <div class="water-cup" data-amount="23"></div>
-                        <div class="water-cup" data-amount="24"></div>
-                    </div>
-                    <!-- ردیف 5 -->
-                    <div class="water-cup-row">
-                        <div class="water-cup" data-amount="25"></div>
-                        <div class="water-cup" data-amount="26"></div>
-                        <div class="water-cup" data-amount="27"></div>
-                        <div class="water-cup" data-amount="28"></div>
-                        <div class="water-cup" data-amount="29"></div>
-                        <div class="water-cup" data-amount="30"></div>
-                    </div>
+    
+                <div class="terms-section">
+                    <h3>۸. محدودیت استفاده و تخلفات</h3>
+                    <p>استفاده فقط برای اهداف قانونی مجاز است.</p>
+                    <p>ورود اطلاعات جعلی، استفاده برای آسیب جسمی/روانی یا انتشار محتوای دریافتی ممنوع است.</p>
+                    <p>در صورت تخلف، حساب کاربر مسدود شده و امکان پیگرد قانونی وجود دارد.</p>
                 </div>
     
-                <div class="water-amount-display">
-                    <div id="water-amount-text" class="water-amount-text">
-                        <span id="water-amount">0</span> لیوان در روز 
-                        <span class="water-liter">(≈<span id="water-liter">0</span> لیتر)</span>
-                    </div>
-                    <div id="water-dont-know-text" class="dont-know-text" style="display:none;">
-                        مقدار آب مصرفی مشخص نیست
-                    </div>
+                <div class="terms-section">
+                    <h3>۹. پشتیبانی و ارتباط رسمی</h3>
+                    <p>ارتباط رسمی فقط از طریق پنل کاربری یا ایمیل رسمی سامانه معتبر است.</p>
+                    <p>زمان پاسخ‌گویی: روزهای کاری، ساعت ۹ تا ۱۷</p>
+                    <p>ارتباط از طریق سایر کانال‌ها (شبکه‌های اجتماعی، تلفن شخصی و...) مورد قبول نیست.</p>
                 </div>
-                
-                <div class="dont-know-container">
-                    <div class="checkbox-container first-option stand-alone-none">
-                        <input type="checkbox" id="water-dont-know" class="real-checkbox">
-                        <label for="water-dont-know" class="checkbox-label">
-                            <span class="check-icon"></span>
-                            <span class="label-text">نمی‌دانم / مطمئن نیستم</span>
-                        </label>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div id="activity-selection-step" class="step">
-            <h2>میزان فعالیت روزانه شما چقدر است؟</h2>
-            <div id="activity-selection">
-                <div class="activity-option" data-activity="very-low">
-                    <img src="<?php echo $theme_assets; ?>/assets/images/png/without-activity-min.png" alt="فعالیت خیلی کم" width="60" height="30">
-                    <span>خیلی کم (کمتر از 1 ساعت)</span>
-                </div>
-                <div class="activity-option" data-activity="low">
-                    <img src="<?php echo $theme_assets; ?>/assets/images/png/alittle-activity-min.png" alt="فعالیت کم" width="60" height="30">
-                    <span>کم (1 تا 2 ساعت)</span>
-                </div>
-                <div class="activity-option" data-activity="medium">
-                    <img src="<?php echo $theme_assets; ?>/assets/images/png/middle-activity-min.png" alt="فعالیت متوسط" width="60" height="30">
-                    <span>متوسط (2 تا 4 ساعت)</span>
-                </div>
-                <div class="activity-option" data-activity="high">
-                    <img src="<?php echo $theme_assets; ?>/assets/images/png/alot-activity-min.png" alt="فعالیت زیاد" width="60" height="30">
-                    <span>زیاد (بیشتر از 4 ساعت)</span>
-                </div>
-            </div>
-        </div>
-        <div id="meal-selection-step" class="step">
-            <h2>چند وعده غذایی در روز مصرف می‌کنید؟</h2>
-            <div id="meal-selection">
-                <div class="meal-option" data-meals="2">
-                    <img src="<?php echo $theme_assets; ?>/assets/images/png/gain-weight-min.png" alt="2 وعده" width="60" height="30">
-                    <span>۲ وعده</span>
-                </div>
-                <div class="meal-option" data-meals="3">
-                    <img src="<?php echo $theme_assets; ?>/assets/images/png/gain-weight-min.png" alt="3 وعده" width="60" height="30">
-                    <span>۳ وعده</span>
-                </div>
-                <div class="meal-option" data-meals="4">
-                    <img src="<?php echo $theme_assets; ?>/assets/images/png/gain-weight-min.png" alt="4 وعده" width="60" height="30">
-                    <span>۴ وعده</span>
-                </div>
-                <div class="meal-option" data-meals="more">
-                    <img src="<?php echo $theme_assets; ?>/assets/images/png/gain-weight-min.png" alt="بیشتر" width="60" height="30">
-                    <span>بیشتر</span>
-                </div>
-                <div class="meal-option" data-meals="irregular">
-                    <img src="<?php echo $theme_assets; ?>/assets/images/png/gain-weight-min.png" alt="وعده‌های نامنظم" width="60" height="30">
-                    <span>وعده‌های نامنظم</span>
-                </div>
-            </div>
-        </div>
-        <div id="additional-info-step" class="step">
-            <h2>اطلاعات تکمیلی</h2>
-            <div id="additional-info-selection" class="checkbox-selection-container checkbox-list-container scrollable-container">
-                <div class="checkbox-container first-option">
-                    <input type="checkbox" id="info-none" class="real-checkbox">
-                    <label for="info-none" class="checkbox-label">
-                        <span class="check-icon"></span>
-                        <span class="label-text">هیچکدام از موارد زیر را ندارم</span>
-                    </label>
-                </div>
-                
-                <div class="separator"></div>
-                
-                <div class="checkbox-container">
-                    <input type="checkbox" id="info-diabetes" class="real-checkbox">
-                    <label for="info-diabetes" class="checkbox-label">
-                        <span class="check-icon"></span>
-                        <span class="label-text">دیابت</span>
-                    </label>
-                </div>
-                <div class="checkbox-container">
-                    <input type="checkbox" id="info-pressure" class="real-checkbox">
-                    <label for="info-pressure" class="checkbox-label">
-                        <span class="check-icon"></span>
-                        <span class="label-text">فشار خون</span>
-                    </label>
-                </div>
-                <div class="checkbox-container">
-                    <input type="checkbox" id="info-thyroid" class="real-checkbox">
-                    <label for="info-thyroid" class="checkbox-label">
-                        <span class="check-icon"></span>
-                        <span class="label-text">مشکلات تیروئید</span>
-                    </label>
-                </div>
-                <div class="checkbox-container">
-                    <input type="checkbox" id="info-allergy" class="real-checkbox">
-                    <label for="info-allergy" class="checkbox-label">
-                        <span class="check-icon"></span>
-                        <span class="label-text">حساسیت غذایی</span>
-                    </label>
-                </div>
-            </div>
-        </div>        
-        <div id="food-restriction-step" class="step">
-            <h2>آیا محدودیت غذایی خاصی دارید؟</h2>
-            <div id="food-restriction-selection" class="checkbox-selection-container checkbox-list-container scrollable-container">
-                <div class="checkbox-container first-option">
-                    <input type="checkbox" id="restriction-none" class="real-checkbox">
-                    <label for="restriction-none" class="checkbox-label">
-                        <span class="check-icon"></span>
-                        <span class="label-text">نه، محدودیت ندارم</span>
-                    </label>
-                </div>
-                
-                <div class="separator"></div>
-                
-                <div class="checkbox-container">
-                    <input type="checkbox" id="restriction-vegetarian" class="real-checkbox">
-                    <label for="restriction-vegetarian" class="checkbox-label">
-                        <span class="check-icon"></span>
-                        <span class="label-text">گیاهخوار هستم</span>
-                    </label>
-                </div>
-                <div class="checkbox-container">
-                    <input type="checkbox" id="restriction-no-seafood" class="real-checkbox">
-                    <label for="restriction-no-seafood" class="checkbox-label">
-                        <span class="check-icon"></span>
-                        <span class="label-text">غذای دریایی نمی‌خورم</span>
-                    </label>
-                </div>
-            </div>
-        </div>
-
-        <div id="terms-agreement-step" class="step">
-            <h2>توافق‌نامه استفاده از خدمات Aidastyar</h2>
-            <div id="terms-agreement-container">
-                <div class="terms-agreement-content">
-                    <div class="terms-section">
-                        <p>با ثبت‌نام، پرداخت یا استفاده از هر بخش خدمات Aidastyar، کاربر با مفاد این توافق‌نامه به‌صورت کامل، آگاهانه و غیرقابل رجوع موافقت می‌نماید.</p>
-                    </div>
-        
-                    <div class="terms-section">
-                        <h3>۱. اهلیت قانونی و مسئولیت استفاده</h3>
-                        <p>کاربر تأیید می‌کند بالای ۱۸ سال سن دارد و از نظر قانونی اختیار استفاده از خدمات را دارد.</p>
-                        <p>در صورت استفاده افراد زیر ۱۸ سال، ثبت‌نام و پرداخت باید توسط والدین یا قیم قانونی انجام شود و مسئولیت کامل متوجه ایشان خواهد بود.</p>
-                    </div>
-        
-                    <div class="terms-section">
-                        <h3>۲. ماهیت خدمات و حدود مسئولیت</h3>
-                        <p>رژیم‌ها به‌صورت خودکار و فقط بر اساس داده‌های واردشده توسط کاربر، از طریق الگوریتم‌های هوش مصنوعی تولید می‌شوند.</p>
-                        <p>این خدمات به هیچ‌وجه جایگزین مشاوره پزشکی یا تغذیه‌ای نیستند.</p>
-                        <p>کاربر می‌پذیرد که ممکن است رژیم تولیدشده با وضعیت بدنی، پزشکی یا نیازهای خاص وی ناسازگار باشد.</p>
-                        <p>کاربر موظف است در صورت داشتن بیماری خاص، مصرف دارو، بارداری یا وضعیت حساس پزشکی، پیش از استفاده با پزشک مشورت نماید.</p>
-                        <div class="disclaimer-box">
-                            ⚠️ <strong>سلب مسئولیت محدود:</strong>
-                            <p>Aidastyar در چارچوب قوانین جاری جمهوری اسلامی ایران، تنها مسئول ارائه خدمات به شکلی است که در شرح آن آمده است و مسئولیتی در قبال نتایج شخصی، پزشکی، روحی یا روانی ناشی از اجرای رژیم ندارد، مگر در مواردی که بر اساس حکم قطعی مرجع قضایی، تقصیر مستقیم Aidastyar اثبات شود.</p>
-                        </div>
-                    </div>
-        
-                    <div class="terms-section">
-                        <h3>۳. صحت اطلاعات</h3>
-                        <p>کلیه اطلاعات واردشده باید دقیق و واقعی باشد.</p>
-                        <p>مسئولیت پیامدهای ناشی از اطلاعات ناقص یا نادرست، کاملاً با کاربر است.</p>
-                        <p>تغییر وضعیت سلامت باید به‌صورت فوری در سامانه ثبت شود؛ در غیر این‌صورت، رژیم معتبر نخواهد بود.</p>
-                    </div>
-        
-                    <div class="terms-section">
-                        <h3>۴. تضمین نتایج و به‌روزرسانی</h3>
-                        <p>هیچ تضمینی درباره کاهش وزن، بهبود بیماری یا موفقیت قطعی رژیم وجود ندارد.</p>
-                        <p>الگوریتم‌ها ممکن است به‌روزرسانی شوند و خروجی‌های متفاوتی تولید کنند.</p>
-                        <p>در صورت تغییر شرایط بدنی یا بیماری، استفاده از رژیم قبلی توصیه نمی‌شود.</p>
-                    </div>
-        
-                    <div class="terms-section">
-                        <h3>۵. پرداخت، انصراف و بازگشت وجه</h3>
-                        <p>پرداخت هزینه به‌منزله درخواست قطعی تولید رژیم تلقی می‌شود.</p>
-                        <p>چنانچه رژیم هنوز تولید نشده باشد، کاربر مطابق ماده ۳۷ قانون تجارت الکترونیکی، تا ۷ روز پس از پرداخت امکان انصراف دارد.</p>
-                        <p>برای اعمال انصراف، کاربر باید از طریق پنل کاربری اقدام کند.</p>
-                        <p>در صورت شروع تولید رژیم (حتی در کمتر از ۷ روز)، حق انصراف از بین می‌رود.</p>
-                        <p>وجه در صورت انصراف، ظرف حداکثر ۷۲ ساعت کاری به حساب اولیه بازگردانده می‌شود.</p>
-                    </div>
-        
-                    <div class="terms-section">
-                        <h3>۶. مالکیت فکری</h3>
-                        <p>تمامی الگوریتم‌ها، محتواها، فایل‌های رژیم و ساختارهای سامانه متعلق به Aidastyar است.</p>
-                        <p>بازنشر، فروش، یا استفاده تجاری از محتوای دریافتی بدون مجوز کتبی ممنوع می‌باشد.</p>
-                    </div>
-        
-                    <div class="terms-section">
-                        <h3>۷. اطلاعات شخصی و محرمانگی</h3>
-                        <p>اطلاعات کاربران با روش‌های رمزنگاری ذخیره شده و تنها برای تیم فنی مجاز قابل‌دسترسی است.</p>
-                        <p>در موارد زیر اطلاعات کاربر ممکن است افشا شود:</p>
-                        <ul>
-                            <li>با حکم یا دستور مقام قضایی</li>
-                            <li>در موارد بررسی تخلف یا حملات امنیتی</li>
-                            <li>در صورت انتقال مالکیت سامانه</li>
-                        </ul>
-                    </div>
-        
-                    <div class="terms-section">
-                        <h3>۸. محدودیت استفاده و تخلفات</h3>
-                        <p>استفاده فقط برای اهداف قانونی مجاز است.</p>
-                        <p>ورود اطلاعات جعلی، استفاده برای آسیب جسمی/روانی یا انتشار محتوای دریافتی ممنوع است.</p>
-                        <p>در صورت تخلف، حساب کاربر مسدود شده و امکان پیگرد قانونی وجود دارد.</p>
-                    </div>
-        
-                    <div class="terms-section">
-                        <h3>۹. پشتیبانی و ارتباط رسمی</h3>
-                        <p>ارتباط رسمی فقط از طریق پنل کاربری یا ایمیل رسمی سامانه معتبر است.</p>
-                        <p>زمان پاسخ‌گویی: روزهای کاری، ساعت ۹ تا ۱۷</p>
-                        <p>ارتباط از طریق سایر کانال‌ها (شبکه‌های اجتماعی، تلفن شخصی و...) مورد قبول نیست.</p>
-                    </div>
-        
-                    <div class="terms-section">
-                        <h3>۱۰. شرایط خارج از کنترل (فورس‌ماژور)</h3>
-                        <p>Aidastyar در برابر اختلالاتی از قبیل قطعی اینترنت، حملات سایبری، بلایای طبیعی یا دستورات قانونی غیرمترقبه مسئولیتی ندارد.</p>
-                        <p>خدمات پس از رفع مشکل از سر گرفته خواهد شد.</p>
-                    </div>
-        
-                    <div class="terms-section">
-                        <h3>۱۱. تحریم‌ها و محدودیت‌های ملی</h3>
-                        <p>کاربر تأیید می‌کند در لیست تحریم‌های جمهوری اسلامی ایران قرار ندارد.</p>
-                        <p>استفاده از خدمات برای اهداف غیرقانونی داخلی یا خارجی ممنوع است.</p>
-                    </div>
-        
-                    <div class="terms-section">
-                        <h3>۱۲. قانون حاکم و مرجع رسیدگی</h3>
-                        <p>این توافق‌نامه مشمول قوانین جمهوری اسلامی ایران است.</p>
-                        <p>در صورت بروز اختلاف، ابتدا از طریق مذاکره حل‌وفصل خواهد شد.</p>
-                        <p>در صورت عدم توافق، مرجع رسمی رسیدگی دادگاه عمومی حقوقی تهران - مجتمع قضایی شهید صدر خواهد بود.</p>
-                    </div>
-        
-                    <div class="terms-section">
-                        <h3>۱۳. تغییرات در توافق‌نامه</h3>
-                        <p>Aidastyar مجاز است هر زمان متن توافق‌نامه را تغییر دهد.</p>
-                        <p>ادامه استفاده از خدمات به منزله پذیرش نسخه جدید است.</p>
-                        <p>نسخه به‌روز توافق‌نامه در همین صفحه قابل‌مشاهده خواهد بود.</p>
-                    </div>
-        
-                    <!-- چک‌باکس تأیید در انتهای متن -->
-                    <div id="terms-agreement-checkbox" class="checkbox-container">
-                        <input type="checkbox" id="agree-terms" class="real-checkbox">
-                        <label for="agree-terms" class="checkbox-label">
-                            <span class="check-icon"></span>
-                            <span class="label-text">تمام شرایط و قوانین را مطالعه کرده‌ام و می‌پذیرم</span>
-                        </label>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div id="confirm-submit-step" class="step">
-            <h2>خلاصه اطلاعات شما</h2>
-            <div id="summary-container"></div>
-            <div id="confirmation-checkbox" class="checkbox-container">
-                <input type="checkbox" id="confirm-info" class="real-checkbox">
-                <label for="confirm-info" class="checkbox-label">
-                    <span class="check-icon"></span>
-                    <span class="label-text">اطلاعات وارد شده را تأیید می‌کنم</span>
-                </label>
-            </div>
-            <div id="submit-button-container">
-                
-            
-                
-                
-                <?php if (is_user_logged_in()): ?>
-                    <button type="submit" id="SubmitBtn" class="submit-form">ثبت نهایی</button>
-                <?php else: ?>
-                    <button type="button" id="SubmitBtn" class="submit-form" onclick="saveFormAndLogin()">ورود و ثبت نهایی</button>
-                <?php endif; ?>                
-                
-                
-            </div>
-            
-
-            <div id="ai-diet-result"  style="display:none;">
-                
-                <div class="ai-response-content">
-                    
-                </div>
-                <button id="downloadPdf" style="display:none">دانلود PDF</button>
-            </div>
-            
-            
-        </div>   
-        <div id="next-button-container">
-            <button type="button" class="next-step">گام بعد</button>
-        </div>
-    </form>
     
+                <div class="terms-section">
+                    <h3>۱۰. شرایط خارج از کنترل (فورس‌ماژور)</h3>
+                    <p>Aidastyar در برابر اختلالاتی از قبیل قطعی اینترنت، حملات سایبری، بلایای طبیعی یا دستورات قانونی غیرمترقبه مسئولیتی ندارد.</p>
+                    <p>خدمات پس از رفع مشکل از سر گرفته خواهد شد.</p>
+                </div>
     
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-       
+                <div class="terms-section">
+                    <h3>۱۱. تحریم‌ها و محدودیت‌های ملی</h3>
+                    <p>کاربر تأیید می‌کند در لیست تحریم‌های جمهوری اسلامی ایران قرار ندارد.</p>
+                    <p>استفاده از خدمات برای اهداف غیرقانونی داخلی یا خارجی ممنوع است.</p>
+                </div>
+    
+                <div class="terms-section">
+                    <h3>۱۲. قانون حاکم و مرجع رسیدگی</h3>
+                    <p>این توافق‌نامه مشمول قوانین جمهوری اسلامی ایران است.</p>
+                    <p>در صورت بروز اختلاف، ابتدا از طریق مذاکره حل‌وفصل خواهد شد.</p>
+                    <p>در صورت عدم توافق، مرجع رسمی رسیدگی دادگاه عمومی حقوقی تهران - مجتمع قضایی شهید صدر خواهد بود.</p>
+                </div>
+    
+                <div class="terms-section">
+                    <h3>۱۳. تغییرات در توافق‌نامه</h3>
+                    <p>Aidastyar مجاز است هر زمان متن توافق‌نامه را تغییر دهد.</p>
+                    <p>ادامه استفاده از خدمات به منزله پذیرش نسخه جدید است.</p>
+                    <p>نسخه به‌روز توافق‌نامه در همین صفحه قابل‌مشاهده خواهد بود.</p>
+                </div>
+    
+                <!-- چک‌باکس تأیید در انتهای متن -->
+                <div id="terms-agreement-checkbox" class="checkbox-container">
+                    <input type="checkbox" id="agree-terms" class="real-checkbox">
+                    <label for="agree-terms" class="checkbox-label">
+                        <span class="check-icon"></span>
+                        <span class="label-text">تمام شرایط و قوانین را مطالعه کرده‌ام و می‌پذیرم</span>
+                    </label>
+                </div>
+            </div>
+        </div>
+    </div>
 
- 
-    <script>
-    window.APP_MODE = 1;
-    if (window.APP_MODE === 1) {
-        console.log("testttttt222");
-        const devTools = document.createElement('div');
-        devTools.id = 'dev-tools';
-        
-        devTools.innerHTML = `
-            <div class="dev-tools-header">
-                <span>مراحل</span>
-                <span class="toggle-visibility">×</span>
-            </div>
-            <div class="dev-tools-buttons">
-                ${[...Array(17)].map((_, i) => 
-                    `<button onclick="navigateToStep(${i+1})" 
-                      data-step="${i+1}">${i+1}</button>`
-                ).join('')}
-            </div>
-        `;
-        
-        document.body.appendChild(devTools);
-        
-        // بروزرسانی مرحله فعلی
-        const updateCurrentStep = () => {
-            document.querySelectorAll('#dev-tools button').forEach(btn => {
-                btn.classList.toggle('current-step', 
-                    parseInt(btn.dataset.step) === state.currentStep
-                );
-            });
-        };
-        
-        // مشاهده تغییرات state
-        window.addEventListener('stateUpdated', updateCurrentStep);
-        updateCurrentStep();
-        
-        // کنترل نمایش/مخفی کردن
-        const toggleBtn = devTools.querySelector('.toggle-visibility');
-        let isVisible = true;
-        
-        toggleBtn.addEventListener('click', () => {
-            isVisible = !isVisible;
-            devTools.style.opacity = isVisible ? '1' : '0.3';
-            devTools.querySelector('.dev-tools-buttons').style.display = 
-                isVisible ? 'flex' : 'none';
-            toggleBtn.textContent = isVisible ? '×' : '+';
+    <!-- Step 17: Confirmation -->
+    <div id="confirm-submit-step" class="step">
+        <h2>خلاصه اطلاعات شما</h2>
+        <div id="summary-container"></div>
+        <div id="confirmation-checkbox" class="checkbox-container">
+            <input type="checkbox" id="confirm-info" class="real-checkbox">
+            <label for="confirm-info" class="checkbox-label">
+                <span class="check-icon"></span>
+                <span class="label-text">اطلاعات وارد شده را تأیید می‌کنم</span>
+            </label>
+        </div>
+        <div id="submit-button-container">
+            <?php if (is_user_logged_in()): ?>
+                <button type="submit" id="SubmitBtn" class="submit-form">ثبت نهایی</button>
+            <?php else: ?>
+                <button type="button" id="SubmitBtn" class="submit-form" onclick="saveFormAndLogin()">ورود و ثبت نهایی</button>
+            <?php endif; ?>                
+        </div>
+
+        <div id="ai-diet-result" style="display:none;">
+            <div class="ai-response-content"></div>
+            <button id="downloadPdf" style="display:none">دانلود PDF</button>
+        </div>
+    </div>
+    
+    <div id="next-button-container">
+        <button type="button" class="next-step">گام بعد</button>
+    </div>
+</form>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+window.APP_MODE = 1;
+if (window.APP_MODE === 1) {
+    console.log("testttttt222");
+    const devTools = document.createElement('div');
+    devTools.id = 'dev-tools';
+    
+    devTools.innerHTML = `
+        <div class="dev-tools-header">
+            <span>مراحل</span>
+            <span class="toggle-visibility">×</span>
+        </div>
+        <div class="dev-tools-buttons">
+            ${[...Array(17)].map((_, i) => 
+                `<button onclick="navigateToStep(${i+1})" 
+                  data-step="${i+1}">${i+1}</button>`
+            ).join('')}
+        </div>
+    `;
+    
+    document.body.appendChild(devTools);
+    
+    // بروزرسانی مرحله فعلی
+    const updateCurrentStep = () => {
+        document.querySelectorAll('#dev-tools button').forEach(btn => {
+            btn.classList.toggle('current-step', 
+                parseInt(btn.dataset.step) === state.currentStep
+            );
         });
-    }
+    };
     
+    // مشاهده تغییرات state
+    window.addEventListener('stateUpdated', updateCurrentStep);
+    updateCurrentStep();
     
-    function saveFormAndLogin() {
-   
+    // کنترل نمایش/مخفی کردن
+    const toggleBtn = devTools.querySelector('.toggle-visibility');
+    let isVisible = true;
+    
+    toggleBtn.addEventListener('click', () => {
+        isVisible = !isVisible;
+        devTools.style.opacity = isVisible ? '1' : '0.3';
+        devTools.querySelector('.dev-tools-buttons').style.display = 
+            isVisible ? 'flex' : 'none';
+        toggleBtn.textContent = isVisible ? '×' : '+';
+    });
+}
+
+function saveFormAndLogin() {
     // ذخیره تمام داده‌های فرم
     localStorage.setItem('diet_form_data', JSON.stringify(window.state.formData));
     // ذخیره مرحله فعلی
     localStorage.setItem('diet_form_current_step', window.state.currentStep);
     // هدایت به صفحه لاگین
-    window.location.href = '<?php echo  wp_login_url(esc_url($_SERVER['REQUEST_URI'])); ?>';
+    window.location.href = '<?php echo wp_login_url(esc_url($_SERVER['REQUEST_URI'])); ?>';
 }
-    </script>
+</script>
 -----------------------------------------------------------------------------------------------------
 // /home/aidastya/public_html/wp-content/themes/ai-assistant/assets/js/services/diet/form-events.js
 function setupScrollIndicator(containerId) {
-  const container = document.getElementById(containerId);
-  if (!container) return;
+    const container = document.getElementById(containerId);
+    if (!container) return;
 
-  // ایجاد نشانگر اسکرول
-  const scrollIndicator = document.createElement('div');
-  scrollIndicator.className = 'scroll-indicator';
-  scrollIndicator.innerHTML = '<div class="scroll-indicator-arrow"></div>';
-  container.appendChild(scrollIndicator);
+    // ایجاد نشانگر اسکرول
+    const scrollIndicator = document.createElement('div');
+    scrollIndicator.className = 'scroll-indicator';
+    scrollIndicator.innerHTML = '<div class="scroll-indicator-arrow"></div>';
+    container.appendChild(scrollIndicator);
 
-  // بررسی نیاز به نشانگر
-  function checkScroll() {
-    if (container.scrollHeight > container.clientHeight) {
-      container.classList.add('has-scroll');
-      if (container.scrollTop > 10) {
-        container.classList.add('scrolled');
-      } else {
-        container.classList.remove('scrolled');
-      }
-    } else {
-      container.classList.remove('has-scroll');
-      container.classList.remove('scrolled');
+    // بررسی اولیه وضعیت اسکرول
+    function checkScrollState() {
+        const hasScroll = container.scrollHeight > container.clientHeight;
+        const isAtBottom = container.scrollTop + container.clientHeight >= container.scrollHeight - 10;
+        
+        scrollIndicator.style.display = hasScroll ? 'flex' : 'none';
+        
+        if (hasScroll && !isAtBottom) {
+            scrollIndicator.classList.remove('hidden');
+            container.classList.remove('scrolled');
+        } else {
+            scrollIndicator.classList.add('hidden');
+            container.classList.add('scrolled');
+        }
     }
-  }
 
-  // رویداد اسکرول
-  container.addEventListener('scroll', checkScroll);
-  
-  // بررسی اولیه
-  checkScroll();
-  
-  // بررسی تغییر اندازه (برای موارد ریسپانسیو)
-  const resizeObserver = new ResizeObserver(checkScroll);
-  resizeObserver.observe(container);
+    // عملکرد کلیک برای اسکرول
+    scrollIndicator.addEventListener('click', () => {
+        container.scrollTo({
+            top: container.scrollHeight,
+            behavior: 'smooth'
+        });
+    });
+
+    // رویداد اسکرول با debounce
+    let scrollTimeout;
+    container.addEventListener('scroll', () => {
+        clearTimeout(scrollTimeout);
+        scrollTimeout = setTimeout(checkScrollState, 50);
+    });
+
+    // بررسی تغییر اندازه
+    const resizeObserver = new ResizeObserver(checkScrollState);
+    resizeObserver.observe(container);
+
+    // بررسی اولیه
+    checkScrollState();
 }
+
+// استفاده از تابع برای تمام کانتینرهای اسکرول
+document.addEventListener('DOMContentLoaded', () => {
+    setupScrollIndicator('surgery-selection');
+    setupScrollIndicator('stomach-selection');
+    setupScrollIndicator('hormonal-selection');
+    setupScrollIndicator('additional-info-selection');
+    setupScrollIndicator('food-restriction-selection');
+});
 
 window.handleNextStep = function() {
     if (window.state.currentStep < window.totalSteps) {
@@ -1012,8 +1050,6 @@ window.setupStomachDiscomfortSelection = function(currentStep) {
         });
 
         validateForm();
-        
-        setupScrollIndicator('stomach-selection');
     } catch (error) {
         console.error('Error in stomach discomfort step:', error);
     }
@@ -1079,8 +1115,6 @@ window.setupHormonalSelection = function(currentStep) {
     });
 
     validateForm();
-    
-    setupScrollIndicator('hormonal-selection');
 }
 
 window.setupSurgerySelection = function(currentStep) {
@@ -1145,11 +1179,9 @@ window.setupSurgerySelection = function(currentStep) {
     surgeryOptions.forEach(option => {
         option.addEventListener('change', function() {
             if (this.checked) {
-                // اگر گزینه‌ای غیر از "هیچکدام" انتخاب شد
                 noneCheckbox.checked = false;
                 noneCheckbox.nextElementSibling.classList.remove('checked');
                 
-                // اعمال افکت روی گزینه انتخاب شده
                 const label = this.nextElementSibling;
                 label.classList.add('checked-animation');
                 setTimeout(() => {
@@ -1162,8 +1194,6 @@ window.setupSurgerySelection = function(currentStep) {
     });
 
     validateForm();
-    
-    setupScrollIndicator('surgery-selection');
 }
 
 window.setupAdditionalInfoSelection = function(currentStep) {
@@ -1222,8 +1252,6 @@ window.setupAdditionalInfoSelection = function(currentStep) {
     });
 
     validateForm();
-    
-    setupScrollIndicator('additional-info-selection');
 }
 
 window.setupFoodRestrictionSelection = function(currentStep) {
@@ -1242,7 +1270,7 @@ window.setupFoodRestrictionSelection = function(currentStep) {
         const foodRestrictions = [];
         if (document.getElementById('restriction-vegetarian').checked) foodRestrictions.push('vegetarian');
         if (document.getElementById('restriction-no-seafood').checked) foodRestrictions.push('no-seafood');
-        if (document.getElementById('restriction-none').checked) foodRestrictions.push('none');
+        if (noneCheckbox.checked) foodRestrictions.push('none');
         
         state.updateFormData('foodRestrictions', foodRestrictions);
     };
@@ -1280,8 +1308,6 @@ window.setupFoodRestrictionSelection = function(currentStep) {
     });
 
     validateForm();
-    
-    setupScrollIndicator('food-restriction-selection');
 }
 
 window.setupConfirmationCheckbox = function(currentStep) {
@@ -1317,6 +1343,7 @@ window.setupConfirmationCheckbox = function(currentStep) {
 
     validateForm();
 }
+
 window.handleFormSubmit = function(event) {
     event.preventDefault();
     
@@ -1345,18 +1372,14 @@ window.handleFormSubmit = function(event) {
         allergy: state.formData.additionalInfo?.includes('allergy') || false,
         vegetarian: state.formData.foodRestrictions?.includes('vegetarian') || false,
         noSeafood: state.formData.foodRestrictions?.includes('no-seafood') || false,
-        
     };
 
     console.log('Form submitted:', formData);
     
-    
-
     document.getElementById('SubmitBtn').innerHTML = 'در حال ارسال درخواست ...';
     document.getElementById('SubmitBtn').disabled = true;
     // ایجاد و ارسال یک رویداد سفارشی
     const formSubmittedEvent = new CustomEvent('formSubmitted', {
-
         detail: { formData }
     });
     window.dispatchEvent(formSubmittedEvent);      
@@ -1397,8 +1420,6 @@ window.showSummary = function() {
     const waterText = waterIntake === null ? 
         'مشخص نیست' : 
         `${waterIntake} لیوان (≈${(waterIntake * 0.25).toFixed(1)} لیتر)`;;
-    
-    // const { hormonal = [] } = state.formData;
     
     const hormonalText = [];
     if (hormonal.includes('pcos')) hormonalText.push('سندرم تخمدان پلی کیستیک');
@@ -1567,7 +1588,9 @@ window.setupInput = function(inputId, displayId, field) {
     if (nextButton) nextButton.disabled = true;
 
     const updateDisplay = (value) => {
-        display.textContent = value ? `${value} ${field === "age" ? "سال" : field === "height" ? "سانتی‌متر" : "کیلوگرم"}` : `0 ${field === "age" ? "سال" : field === "height" ? "سانتی‌متر" : "کیلوگرم"}`;
+        display.textContent = value ? 
+            `${value} ${field === "age" ? "سال" : field === "height" ? "سانتی‌متر" : "کیلوگرم"}` : 
+            `0 ${field === "age" ? "سال" : field === "height" ? "سانتی‌متر" : "کیلوگرم"}`;
         display.style.color = value ? "#000" : "#999";
         state.updateFormData(field, value ? parseInt(value) : null);
         
@@ -1580,9 +1603,14 @@ window.setupInput = function(inputId, displayId, field) {
         let value = input.value.replace(/\D/g, "");
         if (field === "age" && value.length > 2) value = value.slice(0, 2);
         else if ((field === "height" || field === "weight") && value.length > 3) value = value.slice(0, 3);
+        
         input.value = value;
         updateDisplay(value);
-        if (input.type === "text") setTimeout(() => input.setSelectionRange(value.length, value.length), 0);
+        
+        if (input.type === "text") {
+            setTimeout(() => input.setSelectionRange(value.length, value.length), 0);
+        }
+        
         validateStep(state.currentStep);
     });
 
@@ -1741,22 +1769,29 @@ window.showStep = function(step) {
     if (step === STEPS.WATER_INTAKE) {
         setupWaterIntakeSelection(step);
         document.getElementById("next-button-container").style.display = "block";
-    } else if (step === STEPS.STOMACH) {
+    } 
+    else if (step === STEPS.STOMACH) {
         setupStomachDiscomfortSelection(step);
-    } else if (step === STEPS.HORMONAL) {
+    } 
+    else if (step === STEPS.HORMONAL) {
         setupHormonalSelection(step);
-    } else if (step === STEPS.SURGERY) {
+    } 
+    else if (step === STEPS.SURGERY) {
         setupSurgerySelection(step);
-    } else if (step === STEPS.ADDITIONAL_INFO) {
+    } 
+    else if (step === STEPS.ADDITIONAL_INFO) {
         setupAdditionalInfoSelection(step);
-    } else if (step === STEPS.FOOD_RESTRICTIONS) {
+    } 
+    else if (step === STEPS.FOOD_RESTRICTIONS) {
         setupFoodRestrictionSelection(step);
-    } else if (step === STEPS.TERMS_AGREEMENT) {
+    } 
+    else if (step === STEPS.TERMS_AGREEMENT) {
         setupTermsAgreement(step);
         document.getElementById("next-button-container").style.display = "block";
-    } else if (step === STEPS.CONFIRMATION) {
-        showSummary(); // تابع قبلی بدون تغییر
-        setupConfirmationCheckbox(step); // تابع قبلی بدون تغییر
+    } 
+    else if (step === STEPS.CONFIRMATION) {
+        showSummary();
+        setupConfirmationCheckbox(step);
         document.getElementById("next-button-container").style.display = "none";
         document.getElementById("submit-button-container").style.display = "block";
         
@@ -1768,11 +1803,12 @@ window.showStep = function(step) {
     }
     
     if (window.APP_MODE === 1) {
-        // اضافه کردن مراحل 14 و 15 به لیست مراحل تست
-        if ([STEPS.GENDER, STEPS.GOAL, STEPS.AGE, STEPS.HEIGHT, 
-             STEPS.WEIGHT, STEPS.TARGET_WEIGHT, STEPS.WATER_INTAKE,
-             STEPS.SURGERY, STEPS.HORMONAL, STEPS.STOMACH, STEPS.ACTIVITY, 
-             STEPS.MEALS, STEPS.ADDITIONAL_INFO, STEPS.FOOD_RESTRICTIONS].includes(step)) {
+        if ([
+            STEPS.GENDER, STEPS.GOAL, STEPS.AGE, STEPS.HEIGHT, 
+            STEPS.WEIGHT, STEPS.TARGET_WEIGHT, STEPS.WATER_INTAKE,
+            STEPS.SURGERY, STEPS.HORMONAL, STEPS.STOMACH, STEPS.ACTIVITY, 
+            STEPS.MEALS, STEPS.ADDITIONAL_INFO, STEPS.FOOD_RESTRICTIONS
+        ].includes(step)) {
             state.fillTestData(step);
         }
     }
@@ -1916,7 +1952,7 @@ window.validateStep = function(step) {
             return;
         }
         
-        if (step === 6 && customValidation) {
+        if (step === STEPS.TARGET_WEIGHT && customValidation) {
             const validationResult = customValidation(value);
             if (validationResult !== true) {
                 errorElement.textContent = validationResult;
@@ -2001,6 +2037,7 @@ window.APP_MODE = 1; // این مقدار را برای تغییر حالت وی
 window.state = {
     currentStep: 1,
     formData: {},
+    
     updateStep(step) {
         this.currentStep = step;
         window.showStep(step);
@@ -2014,10 +2051,12 @@ window.state = {
             this.fillTestData(step);
         }        
     },
+    
     updateFormData(key, value) {
         this.formData[key] = value;
         window.validateStep(this.currentStep);
     },
+    
     // در بخش state در script.js
     fillTestData(step) {
         const testData = {
