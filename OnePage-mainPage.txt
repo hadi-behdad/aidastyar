@@ -940,12 +940,6 @@ window.setupWaterIntakeSelection = function(currentStep) {
             // Select cups up to clicked amount
             for (let i = 0; i < amount; i++) {
                 waterCups[i].classList.add('selected');
-                
-                // ایجاد موج آب
-                const wave = document.createElement('div');
-                wave.className = 'water-wave';
-                wave.style.animationDelay = `${i * 0.1}s`;
-                waterCups[i].appendChild(wave);
             }
             
             updateWaterDisplay(amount);
@@ -2164,13 +2158,7 @@ window.state = {
             waterCups.forEach((cup, index) => {
                 const cupAmount = parseInt(cup.dataset.amount);
                 if (cupAmount <= waterAmount) {
-                    cup.classList.add('selected');
-                    
-                    // ایجاد موج آب برای لیوان‌های انتخاب شده
-                    const wave = document.createElement('div');
-                    wave.className = 'water-wave';
-                    wave.style.animationDelay = `${index * 0.1}s`;
-                    cup.appendChild(wave);
+                    cup.classList.add('selected');                    
                 }
             });
     
@@ -3583,24 +3571,6 @@ button.submit-form:disabled {
 
 .water-cup.selected::after {
     height: 85%; /* کاهش حجم آب برای نمایش موج */
-}
-
-/* افکت موج آب */
-.water-wave {
-    position: absolute;
-    top: 15%; /* موقعیت موج نسبت به سطح آب */
-    left: 0;
-    right: 0;
-    height: 10px;
-    background: url('data:image/svg+xml;utf8,<svg viewBox="0 0 100 20" xmlns="http://www.w3.org/2000/svg"><path d="M0 10 C20 0, 40 20, 60 10 S100 0,100 10" fill="rgba(255,255,255,0.6)" /></svg>');
-    background-size: 50px 10px;
-    animation: waterWave 1.5s linear infinite;
-    opacity: 0.8;
-}
-
-@keyframes waterWave {
-    0% { transform: translateX(0); }
-    100% { transform: translateX(50px); }
 }
 
 /* افکت‌های تعاملی */
