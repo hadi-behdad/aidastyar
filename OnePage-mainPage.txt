@@ -810,7 +810,7 @@ $theme_assets = get_stylesheet_directory_uri();
 <script src="<?php echo $theme_assets; ?>/assets/js/services/diet/form-inputs.js"></script>
     
 <script>
-window.APP_MODE = 1;
+window.APP_MODE = 2;
 if (window.APP_MODE === 1) {
     const devTools = document.createElement('div');
     devTools.id = 'dev-tools';
@@ -1184,149 +1184,248 @@ window.setupStomachDiscomfortSelection = function(currentStep) {
 };
 
 window.setupHormonalSelection = function(currentStep) {
-    const checkboxes = document.querySelectorAll('#hormonal-selection .real-checkbox, #hormonal-none');
-    const nextButton = document.querySelector('.next-step');
-    const noneCheckbox = document.getElementById('hormonal-none');
-    const hormonalOptions = document.querySelectorAll('#hormonal-selection .real-checkbox');
-    
-    if (currentStep !== STEPS.HORMONAL) return;
-    
-    nextButton.disabled = true;
+    try {
+        if (currentStep !== STEPS.HORMONAL) return;
 
-    const validateForm = () => {
-        const anyChecked = Array.from(checkboxes).some(cb => cb.checked);
-        nextButton.disabled = !anyChecked;
-        
-        const hormonalInfo = [];
-        if (document.getElementById('hormonal-pcos').checked) hormonalInfo.push('pcos');
-        if (document.getElementById('hormonal-hypothyroidism').checked) hormonalInfo.push('hypothyroidism');
-        if (document.getElementById('hormonal-hyperthyroidism').checked) hormonalInfo.push('hyperthyroidism');
-        if (document.getElementById('hormonal-diabetes').checked) hormonalInfo.push('diabetes');
-        // اضافه کردن گزینه‌های جدید:
-        if (document.getElementById('hormonal-insulin-resistance').checked) hormonalInfo.push('insulin-resistance');
-        if (document.getElementById('hormonal-menopause').checked) hormonalInfo.push('menopause');
-        if (document.getElementById('hormonal-cortisol').checked) hormonalInfo.push('cortisol');
-        if (document.getElementById('hormonal-growth').checked) hormonalInfo.push('growth');
-        if (noneCheckbox.checked) hormonalInfo.push('none');
-        
-        state.updateFormData('hormonal', hormonalInfo);
-    };
+        const elements = {
+            noneCheckbox: document.getElementById('hormonal-none'),
+            hypothyroidism: document.getElementById('hormonal-hypothyroidism'),
+            hyperthyroidism: document.getElementById('hormonal-hyperthyroidism'),
+            diabetes: document.getElementById('hormonal-diabetes'),
+            insulinResistance: document.getElementById('hormonal-insulin-resistance'),
+            pcos: document.getElementById('hormonal-pcos'),
+            menopause: document.getElementById('hormonal-menopause'),
+            cortisol: document.getElementById('hormonal-cortisol'),
+            growth: document.getElementById('hormonal-growth'),
+            nextButton: document.querySelector('.next-step')
+        };
 
-    noneCheckbox.addEventListener('change', function() {
-        if (this.checked) {
-            hormonalOptions.forEach(option => {
-                option.checked = false;
-                option.nextElementSibling.classList.remove('checked');
-            });
-            
-            const label = this.nextElementSibling;
-            label.classList.add('checked-animation');
-            setTimeout(() => {
-                label.classList.remove('checked-animation');
-                label.classList.add('checked');
-            }, 800);
+        if (Object.values(elements).some(el => !el)) {
+            console.error('Some required elements for hormonal step are missing');
+            return;
         }
-        validateForm();
-    });
 
-    hormonalOptions.forEach(option => {
-        option.addEventListener('change', function() {
-            if (this.checked) {
-                noneCheckbox.checked = false;
-                noneCheckbox.nextElementSibling.classList.remove('checked');
-                
+        elements.nextButton.disabled = true;
+
+        const validateForm = () => {
+            const anyChecked = [
+                elements.hypothyroidism,
+                elements.hyperthyroidism,
+                elements.diabetes,
+                elements.insulinResistance,
+                elements.pcos,
+                elements.menopause,
+                elements.cortisol,
+                elements.growth
+            ].some(option => option.checked) || elements.noneCheckbox.checked;
+            
+            elements.nextButton.disabled = !anyChecked;
+            
+            const hormonalInfo = [];
+            if (elements.hypothyroidism.checked) hormonalInfo.push('hypothyroidism');
+            if (elements.hyperthyroidism.checked) hormonalInfo.push('hyperthyroidism');
+            if (elements.diabetes.checked) hormonalInfo.push('diabetes');
+            if (elements.insulinResistance.checked) hormonalInfo.push('insulin-resistance');
+            if (elements.pcos.checked) hormonalInfo.push('pcos');
+            if (elements.menopause.checked) hormonalInfo.push('menopause');
+            if (elements.cortisol.checked) hormonalInfo.push('cortisol');
+            if (elements.growth.checked) hormonalInfo.push('growth');
+            if (elements.noneCheckbox.checked) hormonalInfo.push('none');
+            
+            state.updateFormData('hormonal', hormonalInfo);
+        };
+
+        const handleCheckboxChange = (checkbox) => {
+            checkbox.addEventListener('change', function() {
                 const label = this.nextElementSibling;
-                label.classList.add('checked-animation');
-                setTimeout(() => {
-                    label.classList.remove('checked-animation');
-                    label.classList.add('checked');
-                }, 800);
+                if (label) {
+                    label.classList.add('checked-animation');
+                    setTimeout(() => {
+                        label.classList.remove('checked-animation');
+                        label.classList.toggle('checked', this.checked);
+                    }, 800);
+                }
+                validateForm();
+            });
+        };
+
+        elements.noneCheckbox.addEventListener('change', function() {
+            if (this.checked) {
+                [
+                    elements.hypothyroidism,
+                    elements.hyperthyroidism,
+                    elements.diabetes,
+                    elements.insulinResistance,
+                    elements.pcos,
+                    elements.menopause,
+                    elements.cortisol,
+                    elements.growth
+                ].forEach(option => {
+                    option.checked = false;
+                    const label = option.nextElementSibling;
+                    if (label) label.classList.remove('checked');
+                });
             }
             validateForm();
         });
-    });
 
-    validateForm();
-}
+        [
+            elements.hypothyroidism,
+            elements.hyperthyroidism,
+            elements.diabetes,
+            elements.insulinResistance,
+            elements.pcos,
+            elements.menopause,
+            elements.cortisol,
+            elements.growth
+        ].forEach(option => {
+            handleCheckboxChange(option);
+            option.addEventListener('change', function() {
+                if (this.checked) {
+                    elements.noneCheckbox.checked = false;
+                    const label = elements.noneCheckbox.nextElementSibling;
+                    if (label) label.classList.remove('checked');
+                }
+                validateForm();
+            });
+        });
+
+        validateForm();
+    } catch (error) {
+        console.error('Error in hormonal selection step:', error);
+    }
+};
 
 window.setupSurgerySelection = function(currentStep) {
-    const checkboxes = document.querySelectorAll('#surgery-selection .real-checkbox, #surgery-none');
-    const nextButton = document.querySelector('.next-step');
-    const noneCheckbox = document.getElementById('surgery-none');
-    const surgeryOptions = document.querySelectorAll('#surgery-selection .real-checkbox');
-    
-    if (currentStep !== STEPS.SURGERY) return;
-    
-    document.body.setAttribute('data-gender', state.formData.gender);
+    try {
+        if (currentStep !== STEPS.SURGERY) return;
 
-    const femaleOnlyOptions = document.querySelectorAll('.female-only');
-    if (state.formData.gender === 'female') {
-        femaleOnlyOptions.forEach(option => option.style.display = 'block');
-    } else {
-        femaleOnlyOptions.forEach(option => {
-            option.style.display = 'none';
-            const checkbox = option.querySelector('.real-checkbox');
-            if (checkbox) checkbox.checked = false;
-        });
-    }
-    
-    nextButton.disabled = true;
+        const elements = {
+            noneCheckbox: document.getElementById('surgery-none'),
+            metabolic: document.getElementById('surgery-metabolic'),
+            gallbladder: document.getElementById('surgery-gallbladder'),
+            intestine: document.getElementById('surgery-intestine'),
+            thyroid: document.getElementById('surgery-thyroid'),
+            pancreas: document.getElementById('surgery-pancreas'),
+            gynecology: document.getElementById('surgery-gynecology'),
+            kidney: document.getElementById('surgery-kidney'),
+            liver: document.getElementById('surgery-liver'),
+            heart: document.getElementById('surgery-heart'),
+            nextButton: document.querySelector('.next-step')
+        };
 
-    const validateForm = () => {
-        const anyChecked = Array.from(checkboxes).some(cb => cb.checked);
-        nextButton.disabled = !anyChecked;
-        
-        const surgeryInfo = [];
-        if (document.getElementById('surgery-kidney').checked) surgeryInfo.push('kidney');
-        if (document.getElementById('surgery-heart').checked) surgeryInfo.push('heart');
-        if (document.getElementById('surgery-liver').checked) surgeryInfo.push('liver');
-        if (document.getElementById('surgery-metabolic').checked) surgeryInfo.push('metabolic');
-        if (document.getElementById('surgery-intestine').checked) surgeryInfo.push('intestine');
-        if (document.getElementById('surgery-thyroid').checked) surgeryInfo.push('thyroid');
-        if (document.getElementById('surgery-gallbladder').checked) surgeryInfo.push('gallbladder');
-        if (document.getElementById('surgery-pancreas').checked) surgeryInfo.push('pancreas');
-        if (document.getElementById('surgery-gynecology').checked) surgeryInfo.push('gynecology');
-        if (noneCheckbox.checked) surgeryInfo.push('none');
-        
-        state.updateFormData('surgery', surgeryInfo);
-    };
-
-    noneCheckbox.addEventListener('change', function() {
-        if (this.checked) {
-            surgeryOptions.forEach(option => {
-                option.checked = false;
-                option.nextElementSibling.classList.remove('checked');
-            });
-            
-            const label = this.nextElementSibling;
-            label.classList.add('checked-animation');
-            setTimeout(() => {
-                label.classList.remove('checked-animation');
-                label.classList.add('checked');
-            }, 800);
+        if (Object.values(elements).some(el => !el)) {
+            console.error('Some required elements for surgery step are missing');
+            return;
         }
-        validateForm();
-    });
 
-    surgeryOptions.forEach(option => {
-        option.addEventListener('change', function() {
-            if (this.checked) {
-                noneCheckbox.checked = false;
-                noneCheckbox.nextElementSibling.classList.remove('checked');
-                
+        document.body.setAttribute('data-gender', state.formData.gender);
+
+        const femaleOnlyOptions = document.querySelectorAll('.female-only');
+        if (state.formData.gender === 'female') {
+            femaleOnlyOptions.forEach(option => option.style.display = 'block');
+        } else {
+            femaleOnlyOptions.forEach(option => {
+                option.style.display = 'none';
+                const checkbox = option.querySelector('.real-checkbox');
+                if (checkbox) checkbox.checked = false;
+            });
+        }
+
+        elements.nextButton.disabled = true;
+
+        const validateForm = () => {
+            const anyChecked = [
+                elements.metabolic,
+                elements.gallbladder,
+                elements.intestine,
+                elements.thyroid,
+                elements.pancreas,
+                elements.gynecology,
+                elements.kidney,
+                elements.liver,
+                elements.heart
+            ].some(option => option.checked) || elements.noneCheckbox.checked;
+            
+            elements.nextButton.disabled = !anyChecked;
+            
+            const surgeryInfo = [];
+            if (elements.metabolic.checked) surgeryInfo.push('metabolic');
+            if (elements.gallbladder.checked) surgeryInfo.push('gallbladder');
+            if (elements.intestine.checked) surgeryInfo.push('intestine');
+            if (elements.thyroid.checked) surgeryInfo.push('thyroid');
+            if (elements.pancreas.checked) surgeryInfo.push('pancreas');
+            if (elements.gynecology.checked) surgeryInfo.push('gynecology');
+            if (elements.kidney.checked) surgeryInfo.push('kidney');
+            if (elements.liver.checked) surgeryInfo.push('liver');
+            if (elements.heart.checked) surgeryInfo.push('heart');
+            if (elements.noneCheckbox.checked) surgeryInfo.push('none');
+            
+            state.updateFormData('surgery', surgeryInfo);
+        };
+
+        const handleCheckboxChange = (checkbox) => {
+            checkbox.addEventListener('change', function() {
                 const label = this.nextElementSibling;
-                label.classList.add('checked-animation');
-                setTimeout(() => {
-                    label.classList.remove('checked-animation');
-                    label.classList.add('checked');
-                }, 800);
+                if (label) {
+                    label.classList.add('checked-animation');
+                    setTimeout(() => {
+                        label.classList.remove('checked-animation');
+                        label.classList.toggle('checked', this.checked);
+                    }, 800);
+                }
+                validateForm();
+            });
+        };
+
+        elements.noneCheckbox.addEventListener('change', function() {
+            if (this.checked) {
+                [
+                    elements.metabolic,
+                    elements.gallbladder,
+                    elements.intestine,
+                    elements.thyroid,
+                    elements.pancreas,
+                    elements.gynecology,
+                    elements.kidney,
+                    elements.liver,
+                    elements.heart
+                ].forEach(option => {
+                    option.checked = false;
+                    const label = option.nextElementSibling;
+                    if (label) label.classList.remove('checked');
+                });
             }
             validateForm();
         });
-    });
 
-    validateForm();
-}
+        [
+            elements.metabolic,
+            elements.gallbladder,
+            elements.intestine,
+            elements.thyroid,
+            elements.pancreas,
+            elements.gynecology,
+            elements.kidney,
+            elements.liver,
+            elements.heart
+        ].forEach(option => {
+            handleCheckboxChange(option);
+            option.addEventListener('change', function() {
+                if (this.checked) {
+                    elements.noneCheckbox.checked = false;
+                    const label = elements.noneCheckbox.nextElementSibling;
+                    if (label) label.classList.remove('checked');
+                }
+                validateForm();
+            });
+        });
+
+        validateForm();
+    } catch (error) {
+        console.error('Error in surgery selection step:', error);
+    }
+};
 
 window.setupAdditionalInfoSelection = function(currentStep) {
     const checkboxes = document.querySelectorAll('#additional-info-selection .real-checkbox');
@@ -2168,7 +2267,7 @@ window.calculateBMI = function(height, weight) {
  * 1 = حالت توسعه (Development) - نمایش دکمه‌های تست و پر کردن خودکار داده‌ها
  * 2 = حالت تولید (Production) - حالت نرمال بدون امکانات تست
  */
-window.APP_MODE = 1; // این مقدار را برای تغییر حالت ویرایش کنید
+window.APP_MODE = 2; // این مقدار را برای تغییر حالت ویرایش کنید
 
 window.state = {
     currentStep: 1,
@@ -3666,11 +3765,13 @@ button.submit-form:hover {
     overflow-y: auto;
     padding: 10px 5px;
     margin: 5px auto;
-    scrollbar-width: thin;
+    scrollbar-width: none;
     scrollbar-color: var(--primary-color) var(--background-color);
+    -ms-overflow-style: none;
+    mask-image: none;
 }
 .checkbox-list-container::-webkit-scrollbar {
-    width: 6px;
+    display: none;
 }
 .checkbox-list-container::-webkit-scrollbar-track {
     background: var(--background-color);
