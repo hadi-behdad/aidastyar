@@ -352,7 +352,7 @@ $theme_assets = get_stylesheet_directory_uri();
 
     <!-- Step 10: Stomach Discomfort -->
     <div id="stomach-discomfort-step" class="step checkbox-step-container">
-        <h2>آیا در هفته گذشته ناراحتی معده را تجربه کرده‌اید؟</h2>
+        <h2>اخیرا مشکلات گوارشی داشته اید؟</h2>        
         
         <div class="checkbox-container first-option stand-alone-none">
             <input type="checkbox" id="stomach-none" class="real-checkbox">
@@ -360,11 +360,13 @@ $theme_assets = get_stylesheet_directory_uri();
                 <span class="check-icon"></span>
                 <span class="label-text">خیر</span>
             </label>
-        </div>
+        </div> 
         
         <div class="separator"></div>
         
         <div id="stomach-selection" class="checkbox-selection-container checkbox-list-container scrollable-container">
+            <!-- مشکلات گوارشی -->
+            <h3 class="diffrent-category-titles" style="margin-top: 0px;">مشکلات گوارشی</h3>
             <div class="checkbox-container">
                 <input type="checkbox" id="stomach-bloating" class="real-checkbox">
                 <label for="stomach-bloating" class="checkbox-label">
@@ -394,12 +396,60 @@ $theme_assets = get_stylesheet_directory_uri();
                 </label>
             </div>
             <div class="checkbox-container">
+                <input type="checkbox" id="stomach-fullness" class="real-checkbox">
+                <label for="stomach-fullness" class="checkbox-label">
+                    <span class="check-icon"></span>
+                    <span class="label-text">سیری زودرس</span>
+                </label>
+            </div>            
+            
+            <!-- مشکلات هضم -->
+            <h3 class="diffrent-category-titles">مشکلات هضم و جذب</h3>
+            <div class="checkbox-container">
                 <input type="checkbox" id="stomach-indigestion" class="real-checkbox">
                 <label for="stomach-indigestion" class="checkbox-label">
                     <span class="check-icon"></span>
                     <span class="label-text">سوء هاضمه مزمن</span>
                 </label>
             </div>
+            <div class="checkbox-container">
+                <input type="checkbox" id="stomach-constipation" class="real-checkbox">
+                <label for="stomach-constipation" class="checkbox-label">
+                    <span class="check-icon"></span>
+                    <span class="label-text">یبوست</span>
+                </label>
+            </div>
+            <div class="checkbox-container">
+                <input type="checkbox" id="stomach-diarrhea" class="real-checkbox">
+                <label for="stomach-diarrhea" class="checkbox-label">
+                    <span class="check-icon"></span>
+                    <span class="label-text">اسهال</span>
+                </label>
+            </div>
+            <div class="checkbox-container">
+                <input type="checkbox" id="stomach-slow-digestion" class="real-checkbox">
+                <label for="stomach-slow-digestion" class="checkbox-label">
+                    <span class="check-icon"></span>
+                    <span class="label-text">هضم کند غذا</span>
+                </label>
+            </div>
+
+            <!-- حساسیت‌های غذایی -->
+            <h3 class="diffrent-category-titles">واکنش‌های غذایی</h3>
+            <div class="checkbox-container">
+                <input type="checkbox" id="stomach-food-intolerance" class="real-checkbox">
+                <label for="stomach-food-intolerance" class="checkbox-label">
+                    <span class="check-icon"></span>
+                    <span class="label-text">عدم تحمل غذایی (لبنیات، گلوتن و...)</span>
+                </label>
+            </div>
+            <div class="checkbox-container">
+                <input type="checkbox" id="stomach-acid-reflux" class="real-checkbox">
+                <label for="stomach-acid-reflux" class="checkbox-label">
+                    <span class="check-icon"></span>
+                    <span class="label-text">رفلاکس اسید معده</span>
+                </label>
+            </div>            
         </div>
     </div>
 
@@ -1016,6 +1066,12 @@ window.setupStomachDiscomfortSelection = function(currentStep) {
             heartburn: document.getElementById('stomach-heartburn'),
             nausea: document.getElementById('stomach-nausea'),
             indigestion: document.getElementById('stomach-indigestion'),
+            constipation: document.getElementById('stomach-constipation'),
+            diarrhea: document.getElementById('stomach-diarrhea'),
+            foodIntolerance: document.getElementById('stomach-food-intolerance'),
+            acidReflux: document.getElementById('stomach-acid-reflux'),
+            slowDigestion: document.getElementById('stomach-slow-digestion'),
+            fullness: document.getElementById('stomach-fullness'),            
             nextButton: document.querySelector('.next-step')
         };
 
@@ -1027,8 +1083,19 @@ window.setupStomachDiscomfortSelection = function(currentStep) {
         elements.nextButton.disabled = true;
 
         const validateForm = () => {
-            const anyChecked = [elements.bloating, elements.pain, elements.heartburn, elements.nausea]
-                .some(option => option.checked) || elements.noneCheckbox.checked;
+            const anyChecked = [
+                elements.bloating, 
+                elements.pain, 
+                elements.heartburn, 
+                elements.nausea,
+                elements.indigestion,
+                elements.constipation,
+                elements.diarrhea,
+                elements.foodIntolerance,
+                elements.acidReflux,
+                elements.slowDigestion,
+                elements.fullness
+            ].some(option => option.checked) || elements.noneCheckbox.checked;
             
             elements.nextButton.disabled = !anyChecked;
             
@@ -1037,7 +1104,14 @@ window.setupStomachDiscomfortSelection = function(currentStep) {
             if (elements.pain.checked) stomachInfo.push('pain');
             if (elements.heartburn.checked) stomachInfo.push('heartburn');
             if (elements.nausea.checked) stomachInfo.push('nausea');
+            if (elements.indigestion.checked) stomachInfo.push('indigestion');
+            if (elements.constipation.checked) stomachInfo.push('constipation');
+            if (elements.diarrhea.checked) stomachInfo.push('diarrhea');
+            if (elements.foodIntolerance.checked) stomachInfo.push('food-intolerance');
             if (elements.noneCheckbox.checked) stomachInfo.push('none');
+            if (elements.acidReflux.checked) stomachInfo.push('acid-reflux');
+            if (elements.slowDigestion.checked) stomachInfo.push('slow-digestion');
+            if (elements.fullness.checked) stomachInfo.push('fullness');            
             
             state.updateFormData('stomachDiscomfort', stomachInfo);
         };
@@ -1058,7 +1132,19 @@ window.setupStomachDiscomfortSelection = function(currentStep) {
 
         elements.noneCheckbox.addEventListener('change', function() {
             if (this.checked) {
-                [elements.bloating, elements.pain, elements.heartburn, elements.nausea].forEach(option => {
+                [
+                    elements.bloating, 
+                    elements.pain, 
+                    elements.heartburn, 
+                    elements.nausea,
+                    elements.indigestion,
+                    elements.constipation,
+                    elements.diarrhea,
+                    elements.foodIntolerance,
+                    elements.acidReflux,
+                    elements.slowDigestion,
+                    elements.fullness
+                ].forEach(option => {
                     option.checked = false;
                     const label = option.nextElementSibling;
                     if (label) label.classList.remove('checked');
@@ -1067,7 +1153,19 @@ window.setupStomachDiscomfortSelection = function(currentStep) {
             validateForm();
         });
 
-        [elements.bloating, elements.pain, elements.heartburn, elements.nausea].forEach(option => {
+        [
+            elements.bloating, 
+            elements.pain, 
+            elements.heartburn, 
+            elements.nausea,
+            elements.indigestion,
+            elements.constipation,
+            elements.diarrhea,
+            elements.foodIntolerance,
+            elements.acidReflux,
+            elements.slowDigestion,
+            elements.fullness
+        ].forEach(option => {
             handleCheckboxChange(option);
             option.addEventListener('change', function() {
                 if (this.checked) {
