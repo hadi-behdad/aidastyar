@@ -593,7 +593,7 @@ $theme_assets = get_stylesheet_directory_uri();
                     <p>کاربر می‌پذیرد که ممکن است رژیم تولیدشده با وضعیت بدنی، پزشکی یا نیازهای خاص وی ناسازگار باشد.</p>
                     <p>کاربر موظف است در صورت داشتن بیماری خاص، مصرف دارو، بارداری یا وضعیت حساس پزشکی، پیش از استفاده با پزشک مشورت نماید.</p>
                     <div class="disclaimer-box">
-                        ⚠️ <strong>سلب مسئولیت محدود:</strong>
+                        <strong>سلب مسئولیت محدود:</strong>
                         <p>Aidastyar در چارچوب قوانین جاری جمهوری اسلامی ایران، تنها مسئول ارائه خدمات به شکلی است که در شرح آن آمده است و مسئولیتی در قبال نتایج شخصی، پزشکی، روحی یا روانی ناشی از اجرای رژیم ندارد، مگر در مواردی که بر اساس حکم قطعی مرجع قضایی، تقصیر مستقیم Aidastyar اثبات شود.</p>
                     </div>
                 </div>
@@ -720,12 +720,16 @@ $theme_assets = get_stylesheet_directory_uri();
     </div>
 </form>
 
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
+<script src="<?php echo $theme_assets; ?>/assets/js/services/diet/chart.js"></script>
+<script src="<?php echo $theme_assets; ?>/assets/js/services/diet/script.js"></script>
+<script src="<?php echo $theme_assets; ?>/assets/js/services/diet/form-events.js"></script>
+<script src="<?php echo $theme_assets; ?>/assets/js/services/diet/form-validation.js"></script>
+<script src="<?php echo $theme_assets; ?>/assets/js/services/diet/form-steps.js"></script>
+<script src="<?php echo $theme_assets; ?>/assets/js/services/diet/form-inputs.js"></script>
+    
 <script>
 window.APP_MODE = 1;
 if (window.APP_MODE === 1) {
-    console.log("testttttt222");
     const devTools = document.createElement('div');
     devTools.id = 'dev-tools';
     
@@ -3530,7 +3534,9 @@ button.submit-form:hover {
     max-width: 500px;
 }
 .checkbox-list-container {
-    max-height: 250px;
+    position: relative;    
+    max-height: 45vh;
+    min-height: 250px;
     overflow-y: auto;
     padding: 10px 5px;
     margin: 5px auto;
@@ -3547,10 +3553,6 @@ button.submit-form:hover {
 .checkbox-list-container::-webkit-scrollbar-thumb {
     background-color: var(--primary-color);
     border-radius: 3px;
-}
-.stand-alone-none-option {
-    padding: 5px;
-    margin-bottom: 5px;
 }
 button.submit-form:disabled {
     cursor: not-allowed;
@@ -3880,72 +3882,327 @@ body[data-gender="female"] .female-only {
         transparent 100%);
 }
 
-/* در فایل style.css */
-.scrollable-container {
-  position: relative;
-  max-height: 250px;
-  overflow-y: auto;
-  scrollbar-width: thin;
-  scrollbar-color: var(--primary-color) var(--background-color);
-}
-
-.scrollable-container::-webkit-scrollbar {
-  width: 6px;
-}
-
-.scrollable-container::-webkit-scrollbar-track {
-  background: var(--background-color);
-  border-radius: 3px;
-}
-
-.scrollable-container::-webkit-scrollbar-thumb {
-  background-color: var(--primary-color);
-  border-radius: 3px;
-}
-
-.scrollable-container.has-scroll::after {
-  content: '';
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  height: 30px;
-  background: linear-gradient(to bottom, 
-    rgba(255,255,255,0) 0%, 
-    rgba(255,255,255,0.9) 100%);
-  pointer-events: none;
-}
-
 .scroll-indicator {
-  position: absolute;
-  bottom: 5px;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 30px;
-  height: 30px;
-  z-index: 2;
-  pointer-events: none;
-  opacity: 1;
-  transition: opacity 0.3s ease;
+    position: absolute;
+    bottom: 15px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 40px;
+    height: 40px;
+    background: rgba(0, 133, 122, 0.2);
+    border-radius: 50%;
+    cursor: pointer;
+    z-index: 10;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    transition: all 0.3s ease;
+    opacity: 1;
+    pointer-events: auto;
+}
+
+.scroll-indicator.hidden {
+    opacity: 0;
+    pointer-events: none;
+    animation: none;
 }
 
 .scroll-indicator-arrow {
-  width: 100%;
-  height: 100%;
-  background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 50" fill="none" stroke="%2300857a" stroke-width="15" stroke-linecap="square" stroke-linejoin="miter"><path d="M20 15 L50 35 L80 15"/></svg>');
-  background-repeat: no-repeat;
-  background-position: center;
-  animation: bounce 1.5s infinite;
-}
-
-.scrollable-container.scrolled .scroll-indicator {
-  opacity: 0;
+    width: 24px;
+    height: 24px;
+      background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 50" fill="none" stroke="%2300857a" stroke-width="15" stroke-linecap="square" stroke-linejoin="miter"><path d="M20 15 L50 35 L80 15"/></svg>');
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: contain;
 }
 
 @keyframes bounce {
-  0%, 100% { transform: translateY(0); opacity: 0.7; }
-  50% { transform: translateY(-5px); opacity: 1; }
+    0%, 100% { transform: translate(-50%, 0); }
+    50% { transform: translate(-50%, -5px); }
 }
+
+.scroll-indicator:not(.hidden) {
+    animation: bounce 1.5s infinite;
+}
+
+.scroll-indicator:hover {
+    background: rgba(0, 133, 122, 0.3);
+    transform: translateX(-50%) scale(1.1);
+}
+-----------------------------------------------------------------------------------------------------
+<?php
+/**
+ * Functions for AI Assistant Theme
+ */
+
+if (!defined('ABSPATH')) {
+    exit; // Exit if accessed directly
+}
+
+// 1. تنظیمات پایه قالب
+function ai_assistant_setup() {
+    load_theme_textdomain('ai-assistant', get_template_directory() . '/languages');
+    
+    add_theme_support('title-tag');
+    add_theme_support('post-thumbnails');
+    add_theme_support('woocommerce');
+    add_theme_support('html5', ['search-form', 'comment-form', 'comment-list', 'gallery', 'caption']);
+    
+    // ثبت منوها
+    register_nav_menus([
+        'primary' => __('منوی اصلی', 'ai-assistant'),
+        'footer' => __('منوی فوتر', 'ai-assistant')
+    ]);
+}
+add_action('after_setup_theme', 'ai_assistant_setup');
+
+// 2. بارگذاری فایل‌های جانبی
+require_once get_template_directory() . '/inc/class-service-manager.php';
+require_once get_template_directory() . '/inc/class-payment-handler.php';
+
+
+function ai_assistant_load_css() {
+    
+    // بارگذاری main.css
+    wp_enqueue_style(
+        'ai-main',
+        get_template_directory_uri() . '/assets/css/main.css',
+        array(),
+        filemtime(get_template_directory() . '/assets/css/main.css')
+    );
+    
+  // بارگذاری dashicons از پوشه core وردپرس
+    wp_enqueue_style('dashicons'); // این خط به صورت پیش‌فرض dashicons را از هسته بارگذاری می‌کند
+    
+    
+    // بارگذاری chat.css فقط در صفحه چت
+    if (is_page('service')) {
+        $service_id = get_query_var('service');
+        if ($service_id) {
+            $css_path = '/assets/css/services/' . $service_id . '.css';
+            if (file_exists(get_template_directory() . $css_path)) {
+                wp_enqueue_style(
+                    'ai-assistant-' . $service_id . '-css',
+                    get_template_directory_uri() . $css_path,
+                    array(),
+                    wp_get_theme()->get('Version')
+                );
+            }
+        }
+    }
+}
+add_action('wp_enqueue_scripts', 'ai_assistant_load_css');
+
+// 3. بارگذاری سرویس‌ها
+foreach (glob(get_template_directory() . '/services/*/functions.php') as $service_file) {
+    require_once $service_file;
+}
+
+// 4. ایجاد صفحات ضروری
+function ai_assistant_create_pages() {
+    $pages = [
+        'ai-services' => [
+            'title' => __('سرویس‌های هوش مصنوعی', 'ai-assistant'),
+            'template' => 'templates/services-page.php'
+        ],
+        'service' => [
+            'title' => __('سرویس', 'ai-assistant'),
+            'template' => 'templates/single-service.php'
+        ]
+    ];
+    
+    foreach ($pages as $slug => $page) {
+        if (!get_page_by_path($slug)) {
+            wp_insert_post([
+                'post_title' => $page['title'],
+                'post_name' => $slug,
+                'post_status' => 'publish',
+                'post_type' => 'page',
+                'page_template' => $page['template']
+            ]);
+        }
+    }
+    flush_rewrite_rules();
+}
+add_action('after_switch_theme', 'ai_assistant_create_pages');
+
+// 5. تنظیمات rewrite برای URL سرویس‌ها
+function ai_assistant_add_rewrite_rules() {
+    add_rewrite_rule('^service/([^/]+)/?', 'index.php?pagename=service&service=$matches[1]', 'top');
+}
+add_action('init', 'ai_assistant_add_rewrite_rules');
+
+function ai_assistant_add_query_vars($vars) {
+    $vars[] = 'service';
+    return $vars;
+}
+add_filter('query_vars', 'ai_assistant_add_query_vars');
+
+// 6. بارگذاری اسکریپت‌ها و استایل‌ها
+function ai_assistant_scripts() {
+    // استایل اصلی
+    wp_enqueue_style('ai-assistant-style', get_stylesheet_uri(), [], wp_get_theme()->get('Version'));
+    
+    // اسکریپت اصلی
+    wp_enqueue_script(
+        'ai-assistant-main', 
+        get_template_directory_uri() . '/assets/js/main.js', 
+        ['jquery'], 
+        wp_get_theme()->get('Version'), 
+        true
+    );
+    
+    // داده‌های محلی شده
+    wp_localize_script('ai-assistant-main', 'aiAssistantVars', [
+        'ajaxurl' => admin_url('admin-ajax.php'),
+        'themeUrl' => get_template_directory_uri(),
+        'nonce' => wp_create_nonce('ai_assistant_nonce'),
+        'i18n' => [
+            'error' => __('خطا', 'ai-assistant'),
+            'loading' => __('در حال پردازش...', 'ai-assistant')
+        ]
+    ]);
+    
+}
+add_action('wp_enqueue_scripts', 'ai_assistant_scripts');
+
+// 7. اضافه کردن تب به حساب کاربری ووکامرس
+function ai_assistant_add_woocommerce_tab($items) {
+    $items['ai-assistant'] = __('دستیار هوش مصنوعی', 'ai-assistant');
+    return $items;
+}
+add_filter('woocommerce_account_menu_items', 'ai_assistant_add_woocommerce_tab');
+
+function ai_assistant_add_endpoint() {
+    add_rewrite_endpoint('ai-assistant', EP_ROOT | EP_PAGES);
+}
+add_action('init', 'ai_assistant_add_endpoint');
+
+function ai_assistant_tab_content() {
+    include get_template_directory() . '/templates/dashboard.php';
+}
+add_action('woocommerce_account_ai-assistant_endpoint', 'ai_assistant_tab_content');
+
+//----------کیف پول
+add_action('woocommerce_thankyou', 'ai_wallet_payment_complete');
+
+function ai_wallet_payment_complete($order_id) {
+    if (!$order_id) return;
+
+    $order = wc_get_order($order_id);
+    if (!$order) return;
+
+    $user_id = $order->get_user_id();
+    if (!$user_id) return;
+
+    $pending_data = get_user_meta($user_id, 'wallet_charge_pending', true);
+
+    if (!$pending_data || $pending_data['status'] !== 'pending') return;
+
+    foreach ($order->get_items() as $item) {
+        $product_name = $item->get_name();
+        if (strpos($product_name, $pending_data['id']) !== false) {
+            // تأیید موفقیت‌آمیز و افزودن اعتبار
+            $amount = (float) $pending_data['amount'];
+            AI_Assistant_Payment_Handler::get_instance()->add_credit($user_id, $amount);
+
+            // پاک‌سازی متا
+            delete_user_meta($user_id, 'wallet_charge_pending');
+
+            // ثبت پیام موفقیت
+            wc_add_notice('شارژ کیف پول با موفقیت انجام شد.', 'success');
+            break;
+        }
+    }
+}
+
+//------------------------------------
+
+add_action('wp_ajax_get_user_wallet_credit', 'get_user_wallet_credit_callback');
+add_action('wp_ajax_nopriv_get_user_wallet_credit', 'get_user_wallet_credit_callback');
+
+function get_user_wallet_credit_callback() {
+    if (!is_user_logged_in()) {
+        wp_send_json_error(['message' => 'کاربر وارد نشده است.']);
+    }
+
+    $user_id = get_current_user_id();
+    if (!class_exists('AI_Assistant_Payment_Handler')) {
+        wp_send_json_error(['message' => 'کلاس کیف پول موجود نیست.']);
+    }
+
+    $credit = AI_Assistant_Payment_Handler::get_instance()->get_user_credit($user_id);
+    wp_send_json_success(['credit' => $credit]);
+}
+
+require_once __DIR__ . '/inc/admin/services-admin.php';
+
+//--------------------------------------------------------------
+
+
+require_once get_template_directory() . '/inc/class-history-manager.php';
+
+add_action('init', function() {
+    add_rewrite_rule(
+        '^service-output/([0-9]+)/?$',
+        'index.php?post_type=ai_service_history&p=$matches[1]',
+        'top'
+    );
+    
+    add_rewrite_rule(
+        '^service-output/([0-9]+)/?$',
+        'index.php?post_type=ai_wallet_history&p=$matches[1]',
+        'top'
+    );
+    
+});
+
+add_action('pre_get_posts', function($query) {
+    if (!is_admin() && $query->is_main_query() && isset($query->query['post_type']) && $query->query['post_type'] === 'ai_service_history') {
+        $query->set('post_type', 'ai_service_history');
+        $query->set('post_status', 'publish');
+    }
+});
+
+add_action('pre_get_posts', function($query) {
+    if (!is_admin() && $query->is_main_query() && isset($query->query['service-output'])) {
+        $query->set('post_type', 'ai_service_history');
+    }
+});
+
+// بعد از اضافه کردن این کدها، به تنظیمات > پیوندهای یکتا رفته و ذخیره کنید
+//---------------------------------------------------------
+// حذف آیتم تاریخچه با AJAX
+add_action('wp_ajax_delete_history_item', function() {
+    check_ajax_referer('history_ajax_nonce', '_wpnonce');
+
+    $post_id = absint($_POST['post_id']);
+    $user_id = get_current_user_id();
+    $history_manager = AI_Assistant_History_Manager::get_instance();
+
+    if ($history_manager->delete_history_item($post_id, $user_id)) {
+        wp_send_json_success('آیتم با موفقیت حذف شد.');
+    } else {
+        wp_send_json_error('خطا در حذف آیتم.');
+    }
+});
+
+//---------------------------------------------------------
+
+require_once get_template_directory() . '/inc/class-wallet-history-manager.php';
+
+
+
+add_action('pre_get_posts', function($query) {
+    if (!is_admin() && $query->is_main_query() && isset($query->query['post_type']) && $query->query['post_type'] === 'ai_wallet_history') {
+        $query->set('post_type', 'ai_wallet_history');
+        $query->set('post_status', 'publish');
+    }
+});
+
+add_action('init', function() {
+    add_rewrite_endpoint('service-output', EP_PERMALINK);
+});
 -----------------------------------------------------------------------------------------------------
 این کد رو ببین. 
 چیزهایی که تو نوشته پایین ازت میخوام رو تو قالب تیکه های کد که امکان کپی و دانلود داره برام بفرست که راحت بتونم کپی کنم
