@@ -192,7 +192,7 @@ $theme_assets = get_stylesheet_directory_uri();
         
         <div class="separator"></div>
         <div id="surgery-selection" class="checkbox-selection-container checkbox-list-container">
-            <h3 class="surgery-category-title">جراحی‌های متابولیک و گوارشی</h3>
+            <h3 class="diffrent-category-titles" style="margin-top: 0px;">جراحی‌های متابولیک و گوارشی</h3>
             <div class="checkbox-container">
                 <input type="checkbox" id="surgery-metabolic" class="real-checkbox">
                 <label for="surgery-metabolic" class="checkbox-label">
@@ -215,7 +215,7 @@ $theme_assets = get_stylesheet_directory_uri();
                 </label>
             </div>
             
-            <h3 class="surgery-category-title">جراحی‌های غدد و اندام‌ها</h3>
+            <h3 class="diffrent-category-titles">جراحی‌های غدد و اندام‌ها</h3>
             <div class="checkbox-container">
                 <input type="checkbox" id="surgery-thyroid" class="real-checkbox">
                 <label for="surgery-thyroid" class="checkbox-label">
@@ -231,7 +231,7 @@ $theme_assets = get_stylesheet_directory_uri();
                 </label>
             </div>
             
-            <h3 class="surgery-category-title female-only">جراحی‌های زنان</h3>
+            <h3 class="diffrent-category-titles female-only">جراحی‌های زنان</h3>
             <div class="checkbox-container female-only">
                 <input type="checkbox" id="surgery-gynecology" class="real-checkbox">
                 <label for="surgery-gynecology" class="checkbox-label">
@@ -240,7 +240,7 @@ $theme_assets = get_stylesheet_directory_uri();
                 </label>
             </div>
             
-            <h3 class="surgery-category-title">جراحی‌های عمده</h3>
+            <h3 class="diffrent-category-titles">جراحی‌های عمده</h3>
             <div class="checkbox-container">
                 <input type="checkbox" id="surgery-kidney" class="real-checkbox">
                 <label for="surgery-kidney" class="checkbox-label">
@@ -280,27 +280,25 @@ $theme_assets = get_stylesheet_directory_uri();
         <div class="separator"></div>
         
         <div id="hormonal-selection" class="checkbox-selection-container checkbox-list-container scrollable-container">
-            <div class="checkbox-container">
-                <input type="checkbox" id="hormonal-pcos" class="real-checkbox">
-                <label for="hormonal-pcos" class="checkbox-label">
-                    <span class="check-icon"></span>
-                    <span class="label-text">سندرم تخمدان پلی کیستیک (PCOS)</span>
-                </label>
-            </div>
+            <!-- اختلالات تیروئید -->
+            <h3 class="diffrent-category-titles" style="margin-top: 0px;">اختلالات تیروئید</h3>
             <div class="checkbox-container">
                 <input type="checkbox" id="hormonal-hypothyroidism" class="real-checkbox">
                 <label for="hormonal-hypothyroidism" class="checkbox-label">
                     <span class="check-icon"></span>
-                    <span class="label-text">کم کاری تیروئید</span>
+                    <span class="label-text">کم کاری تیروئید (هیپوتیروئیدی)</span>
                 </label>
             </div>
             <div class="checkbox-container">
                 <input type="checkbox" id="hormonal-hyperthyroidism" class="real-checkbox">
                 <label for="hormonal-hyperthyroidism" class="checkbox-label">
                     <span class="check-icon"></span>
-                    <span class="label-text">پرکاری تیروئید</span>
+                    <span class="label-text">پرکاری تیروئید (هیپرتیروئیدی)</span>
                 </label>
             </div>
+            
+            <!-- اختلالات متابولیک -->
+            <h3 class="diffrent-category-titles">اختلالات متابولیک</h3>
             <div class="checkbox-container">
                 <input type="checkbox" id="hormonal-diabetes" class="real-checkbox">
                 <label for="hormonal-diabetes" class="checkbox-label">
@@ -309,10 +307,44 @@ $theme_assets = get_stylesheet_directory_uri();
                 </label>
             </div>
             <div class="checkbox-container">
-                <input type="checkbox" id="hormonal-adrenal" class="real-checkbox">
-                <label for="hormonal-adrenal" class="checkbox-label">
+                <input type="checkbox" id="hormonal-insulin-resistance" class="real-checkbox">
+                <label for="hormonal-insulin-resistance" class="checkbox-label">
                     <span class="check-icon"></span>
-                    <span class="label-text">مشکلات غده فوق کلیوی</span>
+                    <span class="label-text">مقاومت به انسولین</span>
+                </label>
+            </div>
+            
+            <!-- اختلالات زنانه -->
+            <h3 class="diffrent-category-titles female-only">اختلالات زنانه</h3>
+            <div class="checkbox-container female-only">
+                <input type="checkbox" id="hormonal-pcos" class="real-checkbox">
+                <label for="hormonal-pcos" class="checkbox-label">
+                    <span class="check-icon"></span>
+                    <span class="label-text">سندرم تخمدان پلی کیستیک (PCOS)</span>
+                </label>
+            </div>
+            <div class="checkbox-container female-only">
+                <input type="checkbox" id="hormonal-menopause" class="real-checkbox">
+                <label for="hormonal-menopause" class="checkbox-label">
+                    <span class="check-icon"></span>
+                    <span class="label-text">یائسگی یا پیش یائسگی</span>
+                </label>
+            </div>
+            
+            <!-- سایر اختلالات -->
+            <h3 class="diffrent-category-titles">سایر اختلالات</h3>
+            <div class="checkbox-container">
+                <input type="checkbox" id="hormonal-cortisol" class="real-checkbox">
+                <label for="hormonal-cortisol" class="checkbox-label">
+                    <span class="check-icon"></span>
+                    <span class="label-text">مشکلات کورتیزول (استرس مزمن)</span>
+                </label>
+            </div>
+            <div class="checkbox-container">
+                <input type="checkbox" id="hormonal-growth" class="real-checkbox">
+                <label for="hormonal-growth" class="checkbox-label">
+                    <span class="check-icon"></span>
+                    <span class="label-text">اختلال هورمون رشد</span>
                 </label>
             </div>
         </div>
@@ -1072,7 +1104,11 @@ window.setupHormonalSelection = function(currentStep) {
         if (document.getElementById('hormonal-hypothyroidism').checked) hormonalInfo.push('hypothyroidism');
         if (document.getElementById('hormonal-hyperthyroidism').checked) hormonalInfo.push('hyperthyroidism');
         if (document.getElementById('hormonal-diabetes').checked) hormonalInfo.push('diabetes');
-        if (document.getElementById('hormonal-adrenal').checked) hormonalInfo.push('adrenal');
+        // اضافه کردن گزینه‌های جدید:
+        if (document.getElementById('hormonal-insulin-resistance').checked) hormonalInfo.push('insulin-resistance');
+        if (document.getElementById('hormonal-menopause').checked) hormonalInfo.push('menopause');
+        if (document.getElementById('hormonal-cortisol').checked) hormonalInfo.push('cortisol');
+        if (document.getElementById('hormonal-growth').checked) hormonalInfo.push('growth');
         if (noneCheckbox.checked) hormonalInfo.push('none');
         
         state.updateFormData('hormonal', hormonalInfo);
@@ -1424,7 +1460,11 @@ window.showSummary = function() {
     if (hormonal.includes('hypothyroidism')) hormonalText.push('کم کاری تیروئید');
     if (hormonal.includes('hyperthyroidism')) hormonalText.push('پرکاری تیروئید');
     if (hormonal.includes('diabetes')) hormonalText.push('دیابت');
-    if (hormonal.includes('adrenal')) hormonalText.push('مشکلات غده فوق کلیوی');
+    // اضافه کردن ترجمه فارسی گزینه‌های جدید:
+    if (hormonal.includes('insulin-resistance')) hormonalText.push('مقاومت به انسولین');
+    if (hormonal.includes('menopause')) hormonalText.push('یائسگی/پیش یائسگی');
+    if (hormonal.includes('cortisol')) hormonalText.push('مشکلات کورتیزول');
+    if (hormonal.includes('growth')) hormonalText.push('اختلال هورمون رشد');
     if (hormonal.includes('none')) hormonalText.push('هیچکدام');
     
     const additionalInfoText = additionalInfo.map(item => {
@@ -2068,7 +2108,7 @@ window.state = {
             meals: '3',
             waterIntake: 8,
             surgery: ['none'],
-            hormonal: ['hypothyroidism'],
+            hormonal: ['hypothyroidism', 'pcos'],
             stomachDiscomfort: ['none'],
             additionalInfo: ['diabetes'],
             foodRestrictions: ['vegetarian']
@@ -3725,7 +3765,7 @@ button.submit-form:disabled {
     }
 }
 
-.surgery-category-title {
+.diffrent-category-titles {
     font-size: 15px;
     color: #00857a;
     margin: 20px 0 10px;
