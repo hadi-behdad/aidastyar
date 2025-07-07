@@ -44,19 +44,38 @@ $theme_assets = get_stylesheet_directory_uri();
 
     <!-- Step 2: Goal Selection -->
     <div id="goal-selection-step" class="step">
-        <h2>هدفت از رژیم غذایی چیه؟</h2>
+        <h2>هدف شما از این برنامه غذایی چیست؟</h2>
+        <p class="step-description">لطفاً هدف اصلی خود را از دنبال کردن این رژیم انتخاب کنید</p>
+        
         <div id="goal-selection">
             <div class="goal-option" data-goal="weight-loss">
-                <img src="<?php echo $theme_assets; ?>/assets/images/png/gain-weight-min.png" alt="کاهش وزن" width="60" height="30">
-                <span>کاهش وزن (به وزن ایده‌آل برسم)</span>
+                <div class="goal-icon" data-meals="2">
+                    <img src="<?php echo $theme_assets; ?>/assets/images/png/lose-weight-min.png" alt="کاهش وزن">
+                </div>
+                <div class="goal-details">
+                    <h3>کاهش وزن</h3>
+                    <p>برنامه‌ای برای رسیدن به وزن ایده‌آل و سالم</p>
+                </div>
             </div>
+            
             <div class="goal-option" data-goal="weight-gain">
-                <img src="<?php echo $theme_assets; ?>/assets/images/png/gain-weight-min.png" alt="افزایش وزن" width="60" height="30">
-                <span>افزایش وزن (قدرت و انرژی را تجربه کنم)</span>
+                <div class="goal-icon" data-meals="2">
+                    <img src="<?php echo $theme_assets; ?>/assets/images/png/gain-weight-min.png" alt="افزایش وزن">
+                </div>
+                <div class="goal-details">
+                    <h3>افزایش وزن سالم</h3>
+                    <p>برنامه‌ای برای افزایش وزن اصولی و عضله‌سازی</p>
+                </div>
             </div>
+            
             <div class="goal-option" data-goal="fitness">
-                <img src="<?php echo $theme_assets; ?>/assets/images/png/stay-fit-min.png" alt="حفظ سلامت" width="60" height="30">
-                <span>حفظ سلامت (سلامت عمومی بدنم را حفظ کنم)</span>
+                <div class="goal-icon" data-meals="2">
+                    <img src="<?php echo $theme_assets; ?>/assets/images/png/stay-fit-min.png" alt="حفظ سلامت">
+                </div>
+                <div class="goal-details">
+                    <h3>حفظ سلامت و تناسب</h3>
+                    <p>برنامه‌ای برای حفظ وزن فعلی و بهبود سلامت عمومی</p>
+                </div>
             </div>
         </div>
     </div>
@@ -526,53 +545,109 @@ $theme_assets = get_stylesheet_directory_uri();
             </div>
         </div>
     </div>
-
+    
     <!-- Step 12: Activity Level -->
     <div id="activity-selection-step" class="step">
         <h2>میزان فعالیت روزانه شما چقدر است؟</h2>
+        <p class="step-description">برای دریافت برنامه غذایی دقیق، لطفاً سطح فعالیت بدنی خود را انتخاب کنید</p>
+        
         <div id="activity-selection">
             <div class="activity-option" data-activity="very-low">
-                <img src="<?php echo $theme_assets; ?>/assets/images/png/without-activity-min.png" alt="فعالیت خیلی کم" width="60" height="30">
-                <span>خیلی کم (کمتر از 1 ساعت)</span>
+                <div class="activity-icon">
+                    <img src="<?php echo $theme_assets; ?>/assets/images/png/without-activity-min.png" alt="فعالیت خیلی کم">
+                </div>
+                <div class="activity-details">
+                    <h3>سبک</h3>
+                    <p>کمتر از 1 ساعت فعالیت در روز</p>
+                    <span class="activity-examples">(پشت میز نشینی، تحرک بسیار کم)</span>
+                </div>
             </div>
+            
             <div class="activity-option" data-activity="low">
-                <img src="<?php echo $theme_assets; ?>/assets/images/png/alittle-activity-min.png" alt="فعالیت کم" width="60" height="30">
-                <span>کم (1 تا 2 ساعت)</span>
+                <div class="activity-icon">
+                    <img src="<?php echo $theme_assets; ?>/assets/images/png/alittle-activity-min.png" alt="فعالیت کم">
+                </div>
+                <div class="activity-details">
+                    <h3>نیمه فعال</h3>
+                    <p>1 تا 2 ساعت فعالیت در روز</p>
+                    <span class="activity-examples">(پیاده روی روزانه، کارهای سبک خانه)</span>
+                </div>
             </div>
+            
             <div class="activity-option" data-activity="medium">
-                <img src="<?php echo $theme_assets; ?>/assets/images/png/middle-activity-min.png" alt="فعالیت متوسط" width="60" height="30">
-                <span>متوسط (2 تا 4 ساعت)</span>
+                <div class="activity-icon">
+                    <img src="<?php echo $theme_assets; ?>/assets/images/png/middle-activity-min.png" alt="فعالیت متوسط">
+                </div>
+                <div class="activity-details">
+                    <h3>فعال</h3>
+                    <p>2 تا 4 ساعت فعالیت در روز</p>
+                    <span class="activity-examples">(ورزش منظم، کارهای فیزیکی متوسط)</span>
+                </div>
             </div>
+            
             <div class="activity-option" data-activity="high">
-                <img src="<?php echo $theme_assets; ?>/assets/images/png/alot-activity-min.png" alt="فعالیت زیاد" width="60" height="30">
-                <span>زیاد (بیشتر از 4 ساعت)</span>
+                <div class="activity-icon">
+                    <img src="<?php echo $theme_assets; ?>/assets/images/png/alot-activity-min.png" alt="فعالیت زیاد">
+                </div>
+                <div class="activity-details">
+                    <h3>خیلی فعال</h3>
+                    <p>بیشتر از 4 ساعت فعالیت در روز</p>
+                    <span class="activity-examples">(تمرینات سنگین، کارهای فیزیکی سخت)</span>
+                </div>
             </div>
         </div>
     </div>
 
     <!-- Step 13: Meal Frequency -->
     <div id="meal-selection-step" class="step">
-        <h2>چند وعده غذایی در روز مصرف می‌کنید؟</h2>
+        <h2>تعداد وعده‌های غذایی روزانه</h2>
+        <p class="step-description">لطفاً تعداد وعده‌های غذایی که معمولاً در روز مصرف می‌کنید را انتخاب کنید</p>
+        
         <div id="meal-selection">
             <div class="meal-option" data-meals="2">
-                <img src="<?php echo $theme_assets; ?>/assets/images/png/gain-weight-min.png" alt="2 وعده" width="60" height="30">
-                <span>۲ وعده</span>
+                <div class="meal-icon">
+                    <img src="<?php echo $theme_assets; ?>/assets/images/png/gain-weight-min.png" alt="۲ وعده">
+                </div>
+                <div class="meal-details">
+                    <h3>۲ وعده</h3>
+                    <p>صبحانه + شام</p>
+                </div>
             </div>
             <div class="meal-option" data-meals="3">
-                <img src="<?php echo $theme_assets; ?>/assets/images/png/gain-weight-min.png" alt="3 وعده" width="60" height="30">
-                <span>۳ وعده</span>
+                <div class="meal-icon">
+                    <img src="<?php echo $theme_assets; ?>/assets/images/png/gain-weight-min.png" alt="۳ وعده">
+                </div>
+                <div class="meal-details">
+                    <h3>۳ وعده</h3>
+                    <p>صبحانه + ناهار + شام</p>
+                </div>
             </div>
             <div class="meal-option" data-meals="4">
-                <img src="<?php echo $theme_assets; ?>/assets/images/png/gain-weight-min.png" alt="4 وعده" width="60" height="30">
-                <span>۴ وعده</span>
+                <div class="meal-icon">
+                    <img src="<?php echo $theme_assets; ?>/assets/images/png/gain-weight-min.png" alt="۴ وعده">
+                </div>
+                <div class="meal-details">
+                    <h3>۴ وعده</h3>
+                    <p>صبحانه + ناهار + عصرانه + شام</p>
+                </div>
             </div>
-            <div class="meal-option" data-meals="more">
-                <img src="<?php echo $theme_assets; ?>/assets/images/png/gain-weight-min.png" alt="بیشتر" width="60" height="30">
-                <span>بیشتر</span>
+            <div class="meal-option" data-meals="5">
+                <div class="meal-icon">
+                    <img src="<?php echo $theme_assets; ?>/assets/images/png/gain-weight-min.png" alt="۵ وعده">
+                </div>
+                <div class="meal-details">
+                    <h3>۵ وعده یا بیشتر</h3>
+                    <p>وعده‌های اصلی + میان‌وعده‌ها</p>
+                </div>
             </div>
             <div class="meal-option" data-meals="irregular">
-                <img src="<?php echo $theme_assets; ?>/assets/images/png/gain-weight-min.png" alt="وعده‌های نامنظم" width="60" height="30">
-                <span>وعده‌های نامنظم</span>
+                <div class="meal-icon">
+                    <img src="<?php echo $theme_assets; ?>/assets/images/png/gain-weight-min.png" alt="نامنظم">
+                </div>
+                <div class="meal-details">
+                    <h3>وعده‌های نامنظم</h3>
+                    <p>زمان‌بندی ثابتی ندارم</p>
+                </div>
             </div>
         </div>
     </div>
@@ -4137,6 +4212,80 @@ body[data-gender="female"] .female-only {
 .scroll-indicator:hover {
     background: rgba(0, 133, 122, 0.3);
     transform: translateX(-50%) scale(1.1);
+}
+
+.step-description {
+    color: #666;
+    text-align: center;
+    margin-bottom: 25px;
+    font-size: 14px;
+}
+
+/*.activity-option {*/
+/*    display: flex;*/
+/*    align-items: center;*/
+/*    padding: 15px;*/
+/*    margin-bottom: 15px;*/
+/*    border: 1.5px solid #e0f2f1;*/
+/*    border-radius: 12px;*/
+/*    background-color: #f5fbfa;*/
+/*    cursor: pointer;*/
+/*    transition: all 0.3s ease;*/
+/*}*/
+
+.activity-option:hover,
+.goal-option:hover,
+.meal-option:hover{
+    transform: translateY(-2px);
+}
+
+.activity-icon,
+.goal-icon,
+.meal-icon{
+    width: 60px;
+    height: 60px;
+    margin-left: 15px;
+    flex-shrink: 0;
+}
+
+.activity-icon img,
+.goal-icon img,
+.meal-icon img{
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+}
+
+.activity-details,
+.goal-details,
+.meal-details{
+    flex: 1;
+    text-align: right;
+}
+
+.activity-details h3,
+.goal-details h3,
+.meal-details h3{
+    margin: 0 0 5px 0;
+    color: #00857a;
+    font-size: 16px;
+}
+
+.activity-details p,
+.goal-details p,
+.meal-details p{
+    margin: 0;
+    color: #333;
+    font-size: 14px;
+    font-weight: 500;
+}
+
+.activity-examples {
+    display: block;
+    margin-top: 5px;
+    color: #666;
+    font-size: 12px;
+    font-style: italic;
 }
 -----------------------------------------------------------------------------------------------------
 <?php
