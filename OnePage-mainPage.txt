@@ -1930,7 +1930,10 @@ window.setupInput = function(inputId, displayId, field) {
         display.textContent = value ? 
             `${value} ${field === "age" ? "سال" : field === "height" ? "سانتی‌متر" : "کیلوگرم"}` : 
             `0 ${field === "age" ? "سال" : field === "height" ? "سانتی‌متر" : "کیلوگرم"}`;
-        display.style.color = value ? "#000" : "#999";
+        
+        // تغییر این خط برای استفاده از متغیرهای CSS
+        display.style.color = value ? "var(--text-color)" : "var(--light-text-color)";
+        
         state.updateFormData(field, value ? parseInt(value) : null);
         
         if (field === "weight" && state.formData.height && value) {
@@ -2672,6 +2675,7 @@ window.totalSteps = Object.keys(STEPS).length;
     --secondary-color: #00665c;
     --background-color: #f5f5f5;
     --text-color: #333;
+    --light-text-color: #7e7c7c;
     --border-color: #e0e0e0;
     --error-background: #e6f3ff;
     --error-border: #b3d7ff;
@@ -3359,7 +3363,7 @@ button.submit-form:hover {
 }
 
 .second-line {
-    color: #555;
+    color: var(--light-text-color);
     text-align: right;
     padding-right: 0;
     margin-right: 0;
@@ -3502,7 +3506,7 @@ button.submit-form:hover {
     justify-content: space-between;
     margin-bottom: 5px;
     font-size: 12px;
-    color: #666;
+    color: var(--light-text-color);
     direction: ltr;
 }
 
@@ -3804,6 +3808,42 @@ button.submit-form:hover {
     width: 100%;
 }
 
+/* در بخش تم تاریک (dark-mode) فایل CSS */
+body.dark-mode .weight-display-box {
+    background: linear-gradient(135deg, #2d2d2d 0%, #1e1e1e 100%);
+    border: 1px solid rgba(77, 182, 172, 0.3);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+body.dark-mode .weight-display-box.current-weight::before {
+    background: linear-gradient(90deg, #ff929a, #ffe0e3);
+}
+
+body.dark-mode .weight-display-box.target-weight::before {
+    background: linear-gradient(90deg, #4db6ac, #00897b);
+}
+
+body.dark-mode .weight-value {
+    color: #fff;
+}
+
+body.dark-mode .weight-display-box.current-weight .weight-value {
+    color: #ff9099;
+}
+
+body.dark-mode .weight-display-box.target-weight .weight-value {
+    color: #4db6ac;
+}
+
+body.dark-mode .weight-unit {
+    color: #b0b0b0;
+}
+
+body.dark-mode .weight-label {
+    color: #a0a0a0;
+    border-top: 1px dashed rgba(255, 255, 255, 0.1);
+}
+
 @media (max-width: 500px) {
     .weight-display-container {
         /*width: calc(100% - 40px);*/
@@ -4003,7 +4043,7 @@ button.submit-form:disabled {
 
 .water-liter {
     font-size: 16px;
-    color: #666;
+    color: var(--light-text-color);
     font-weight: normal;
 }
 
@@ -4123,6 +4163,28 @@ button.submit-form:disabled {
         max-height: 55vh;
         padding: 15px;
     }
+}
+
+/* در بخش تم تاریک (dark-mode) */
+body.dark-mode #terms-agreement-container {
+    background: #1e1e1e;
+    border: 1px solid #333;
+    color: #e0e0e0;
+}
+
+body.dark-mode .terms-section h3 {
+    color: #4db6ac;
+    border-bottom: 1px dashed #4db6ac;
+}
+
+body.dark-mode .terms-section p, 
+body.dark-mode .terms-section li {
+    color: #d0d0d0;
+}
+
+body.dark-mode #terms-agreement-checkbox .checkbox-label {
+    background-color: #252525;
+    border-color: #4db6ac;
 }
 
 .diffrent-category-titles {
@@ -4300,8 +4362,21 @@ body[data-gender="female"] .female-only {
     transform: translateX(-50%) scale(1.1);
 }
 
+/* در بخش تم تاریک (dark-mode) */
+body.dark-mode .scroll-indicator {
+    background: rgba(255, 255, 255, 0.2);
+}
+
+body.dark-mode .scroll-indicator-arrow {
+    background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 50" fill="none" stroke="%23ffffff" stroke-width="15" stroke-linecap="square" stroke-linejoin="miter"><path d="M20 15 L50 35 L80 15"/></svg>');
+}
+
+body.dark-mode .scroll-indicator:hover {
+    background: rgba(255, 255, 255, 0.3);
+}
+
 .step-description {
-    color: #666;
+    color: var(--light-text-color);
     text-align: center;
     margin-bottom: 25px;
     font-size: 14px;
@@ -4349,7 +4424,7 @@ body[data-gender="female"] .female-only {
 .goal-details p,
 .meal-details p{
     margin: 0;
-    color: #333;
+    color: var(--light-text-color);
     font-size: 14px;
     font-weight: 500;
 }
@@ -4357,7 +4432,7 @@ body[data-gender="female"] .female-only {
 .activity-examples {
     display: block;
     margin-top: 5px;
-    color: #666;
+    color: var(--light-text-color);
     font-size: 12px;
     font-style: italic;
 }
@@ -4367,7 +4442,8 @@ body.dark-mode {
     --primary-color: #4db6ac;
     --secondary-color: #00897b;
     --background-color: #121212;
-    --text-color: #e0e0e0;
+    --text-color: #e0e0e0; /* رنگ متن در حالت تاریک */
+    --light-text-color: #a0a0a0; /* رنگ متن کم‌رنگ در حالت تاریک */
     --border-color: #333;
     --error-background: #1e3a5f;
     --error-border: #5e92f3;
