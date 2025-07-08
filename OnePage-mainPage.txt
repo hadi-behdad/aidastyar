@@ -898,11 +898,6 @@ $theme_assets = get_stylesheet_directory_uri();
         const themeToggle = document.createElement('button');
         themeToggle.className = 'theme-toggle';
         themeToggle.title = 'تغییر تم تاریک/روشن';
-        themeToggle.innerHTML = `
-            <svg viewBox="0 0 24 24">
-                <path d="M12,3c-4.97,0-9,4.03-9,9s4.03,9,9,9s9-4.03,9-9c0-0.46-0.04-0.92-0.1-1.36c-0.98,1.37-2.58,2.26-4.4,2.26 c-2.98,0-5.4-2.42-5.4-5.4c0-1.81,0.89-3.42,2.26-4.4C12.92,3.04,12.46,3,12,3L12,3z"/>
-            </svg>
-        `;
         
         themeToggle.addEventListener('click', state.toggleTheme);
         document.body.appendChild(themeToggle);
@@ -2589,20 +2584,20 @@ window.THEME = {
         toggleBtn.className = 'theme-toggle';
         toggleBtn.title = 'تغییر تم';
         toggleBtn.innerHTML = `
-            <svg class="sun-icon" viewBox="0 0 24 24">
+            <svg class="moon-icon" viewBox="0 0 24 24">
                 <path d="M12,3c-4.97,0-9,4.03-9,9s4.03,9,9,9s9-4.03,9-9c0-0.46-0.04-0.92-0.1-1.36c-0.98,1.37-2.58,2.26-4.4,2.26 c-2.98,0-5.4-2.42-5.4-5.4c0-1.81,0.89-3.42,2.26-4.4C12.92,3.04,12.46,3,12,3L12,3z"/>
             </svg>        
-            <svg class="moon-icon" viewBox="0 0 24 24">
-                <circle cx="12" cy="12" r="5" fill="currentColor"/>
-                <line x1="12" y1="1" x2="12" y2="3" stroke="currentColor" stroke-width="2"/>
-                <line x1="12" y1="21" x2="12" y2="23" stroke="currentColor" stroke-width="2"/>
-                <line x1="4.22" y1="4.22" x2="5.64" y2="5.64" stroke="currentColor" stroke-width="2"/>
-                <line x1="18.36" y1="18.36" x2="19.78" y2="19.78" stroke="currentColor" stroke-width="2"/>
-                <line x1="1" y1="12" x2="3" y2="12" stroke="currentColor" stroke-width="2"/>
-                <line x1="21" y1="12" x2="23" y2="12" stroke="currentColor" stroke-width="2"/>
-                <line x1="4.22" y1="19.78" x2="5.64" y2="18.36" stroke="currentColor" stroke-width="2"/>
-                <line x1="18.36" y1="5.64" x2="19.78" y2="4.22" stroke="currentColor" stroke-width="2"/>            
-            </svg>
+            <svg class="sun-icon" viewBox="0 0 24 24">
+                <circle cx="12" cy="12" r="7" fill="#FFD700"/>
+                <line x1="12" y1="0.5" x2="12" y2="3.5" stroke="#FFD700" stroke-width="2"/>
+                <line x1="12" y1="20.5" x2="12" y2="23.5" stroke="#FFD700" stroke-width="2"/>
+                <line x1="0.5" y1="12" x2="3.5" y2="12" stroke="#FFD700" stroke-width="2"/>
+                <line x1="20.5" y1="12" x2="23.5" y2="12" stroke="#FFD700" stroke-width="2"/>
+                <line x1="3.8" y1="3.8" x2="6.2" y2="6.2" stroke="#FFD700" stroke-width="2"/>
+                <line x1="17.8" y1="17.8" x2="20.2" y2="20.2" stroke="#FFD700" stroke-width="2"/>
+                <line x1="3.8" y1="20.2" x2="6.2" y2="17.8" stroke="#FFD700" stroke-width="2"/>
+                <line x1="17.8" y1="6.2" x2="20.2" y2="3.8" stroke="#FFD700" stroke-width="2"/>
+            </svg>    
         `;
         
         toggleBtn.addEventListener('click', () => this.toggleTheme());
@@ -4312,18 +4307,6 @@ body[data-gender="female"] .female-only {
     font-size: 14px;
 }
 
-/*.activity-option {*/
-/*    display: flex;*/
-/*    align-items: center;*/
-/*    padding: 15px;*/
-/*    margin-bottom: 15px;*/
-/*    border: 1.5px solid #e0f2f1;*/
-/*    border-radius: 12px;*/
-/*    background-color: #f5fbfa;*/
-/*    cursor: pointer;*/
-/*    transition: all 0.3s ease;*/
-/*}*/
-
 .activity-option:hover,
 .goal-option:hover,
 .meal-option:hover{
@@ -4433,28 +4416,22 @@ body.dark-mode .water-cup {
     transform: scale(1.1);
 }
 
-/*.theme-toggle svg {*/
-/*    width: 24px;*/
-/*    height: 24px;*/
-/*    fill: currentColor;*/
-/*}*/
-
 @media (max-width: 768px) {
     .theme-toggle {
-        bottom: 70px;
+        bottom: 60px;
         right: 15px;
-        width: 45px;
-        height: 45px;
+        width: 35px;
+        height: 35px;
     }
 }
 
 
 .theme-toggle {
     position: fixed;
-    bottom: 80px;
+    bottom: 60px;
     right: 20px;
-    width: 50px;
-    height: 50px;
+    width: 40px;
+    height: 40px;
     border-radius: 50%;
     background-color: var(--primary-color);
     color: white;
@@ -4472,7 +4449,7 @@ body.dark-mode .water-cup {
 .theme-toggle svg {
     width: 24px;
     height: 24px;
-    fill: currentColor;
+    fill: #FFD700;
     transition: all 0.3s ease;
 }
 
