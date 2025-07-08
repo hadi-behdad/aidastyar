@@ -3101,6 +3101,48 @@ button.submit-form:hover {
     transition: all 0.3s ease;
 }
 
+/* در بخش تم تاریک (dark-mode) */
+body.dark-mode .check-icon {
+    border-color: #a0a0a0;
+    background-color: rgba(77, 182, 172, 0.1);
+}
+
+body.dark-mode .real-checkbox:checked + .checkbox-label .check-icon {
+    background-color: #4db6ac;
+    border-color: #4db6ac;
+    box-shadow: 0 0 0 2px rgba(77, 182, 172, 0.3);
+}
+
+body.dark-mode .real-checkbox:checked + .checkbox-label .check-icon::after {
+    border-color: #121212; /* رنگ تیک داخل چک باکس */
+}
+
+/* افکت hover در حالت تاریک */
+body.dark-mode .checkbox-label:hover .check-icon {
+    border-color: #80deea;
+    background-color: rgba(77, 182, 172, 0.2);
+}
+
+/* انیمیشن در حالت تاریک */
+body.dark-mode .checked-animation .check-icon {
+    animation: darkCheckBounce 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+@keyframes darkCheckBounce {
+    0% { 
+        transform: scale(0.8); 
+        box-shadow: 0 0 0 0 rgba(77, 182, 172, 0.4);
+    }
+    50% { 
+        transform: scale(1.2); 
+        box-shadow: 0 0 0 10px rgba(77, 182, 172, 0.1);
+    }
+    100% { 
+        transform: scale(1); 
+        box-shadow: 0 0 0 0 rgba(77, 182, 172, 0);
+    }
+}
+
 .real-checkbox:checked + .checkbox-label .check-icon {
     background-color: var(--primary-color);
     border-color: var(--primary-color);
