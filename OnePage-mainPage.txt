@@ -603,7 +603,7 @@ $theme_assets = get_stylesheet_directory_uri();
         <h2>تعداد وعده‌های غذایی روزانه</h2>
         <p class="step-description">لطفاً تعداد وعده‌های غذایی که معمولاً در روز مصرف می‌کنید را انتخاب کنید</p>
         
-        <div id="meal-selection">
+        <div id="meal-selection" class="scrollable-container">
             <div class="meal-option" data-meals="2">
                 <div class="meal-icon">
                     <img src="<?php echo $theme_assets; ?>/assets/images/png/gain-weight-min.png" alt="۲ وعده">
@@ -1027,6 +1027,9 @@ document.addEventListener('DOMContentLoaded', () => {
     setupScrollIndicator('hormonal-selection');
     setupScrollIndicator('additional-info-selection');
     setupScrollIndicator('food-restriction-selection');
+    setupScrollIndicator('goal-selection');
+    setupScrollIndicator('activity-selection');
+    setupScrollIndicator('meal-selection');
 });
 
 window.handleNextStep = function() {
@@ -4352,7 +4355,7 @@ body[data-gender="female"] .female-only {
 
 .checkbox-list-container {
     mask-image: linear-gradient(to bottom, 
-        black 80%, 
+        black 90%, 
         transparent 100%);
 }
 
@@ -4589,6 +4592,117 @@ body:not(.dark-mode) .theme-toggle svg.moon-icon {
 
 body:not(.dark-mode) .theme-toggle svg.sun-icon {
     display: none;
+}
+
+
+/* استایل پایه برای تمام کانتینرهای اسکرول */
+#goal-selection,
+#meal-selection,
+#activity-selection {
+    max-height: 55vh;
+    min-height: 250px;
+    overflow-y: auto;
+    padding: 10px 5px;
+    margin: 5px auto;
+    scrollbar-width: thin;
+    scrollbar-color: var(--primary-color) var(--background-color);
+    mask-image: linear-gradient(to bottom, 
+        black 90%, 
+        transparent 100%);
+    position: relative;
+}
+
+/* استایل اسکرولبار برای مرورگرهای وبکیت */
+#goal-selection::-webkit-scrollbar,
+#meal-selection::-webkit-scrollbar,
+#activity-selection::-webkit-scrollbar {
+    width: 6px;
+}
+
+#goal-selection::-webkit-scrollbar-track,
+#meal-selection::-webkit-scrollbar-track,
+#activity-selection::-webkit-scrollbar-track {
+    background: var(--background-color);
+    border-radius: 3px;
+}
+
+#goal-selection::-webkit-scrollbar-thumb,
+#meal-selection::-webkit-scrollbar-thumb,
+#activity-selection::-webkit-scrollbar-thumb {
+    background-color: var(--primary-color);
+    border-radius: 3px;
+}
+
+/* نشانگر اسکرول مشترک */
+.scroll-indicator {
+    position: absolute;
+    bottom: 15px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 40px;
+    height: 40px;
+    background: rgba(0, 133, 122, 0.2);
+    border-radius: 50%;
+    cursor: pointer;
+    z-index: 10;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    transition: all 0.3s ease;
+}
+
+.scroll-indicator-arrow {
+    width: 24px;
+    height: 24px;
+    background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 50" fill="none" stroke="%2300857a" stroke-width="15" stroke-linecap="square" stroke-linejoin="miter"><path d="M20 15 L50 35 L80 15"/></svg>');
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: contain;
+}
+
+/* استایل برای حالت تاریک */
+body.dark-mode #goal-selection,
+body.dark-mode #meal-selection,
+body.dark-mode #activity-selection {
+    scrollbar-color: #4db6ac #1e1e1e;
+}
+
+body.dark-mode #goal-selection::-webkit-scrollbar-track,
+body.dark-mode #meal-selection::-webkit-scrollbar-track,
+body.dark-mode #activity-selection::-webkit-scrollbar-track {
+    background: #1e1e1e;
+}
+
+body.dark-mode #goal-selection::-webkit-scrollbar-thumb,
+body.dark-mode #meal-selection::-webkit-scrollbar-thumb,
+body.dark-mode #activity-selection::-webkit-scrollbar-thumb {
+    background-color: #4db6ac;
+}
+
+body.dark-mode .scroll-indicator {
+    background: rgba(77, 182, 172, 0.2);
+}
+
+body.dark-mode .scroll-indicator-arrow {
+    background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 50" fill="none" stroke="%234db6ac" stroke-width="15" stroke-linecap="square" stroke-linejoin="miter"><path d="M20 15 L50 35 L80 15"/></svg>');
+}
+
+/* انیمیشن و hover */
+.scroll-indicator:hover {
+    background: rgba(0, 133, 122, 0.3);
+}
+
+body.dark-mode .scroll-indicator:hover {
+    background: rgba(77, 182, 172, 0.3);
+}
+
+@keyframes bounce {
+    0%, 100% { transform: translate(-50%, 0); }
+    50% { transform: translate(-50%, -5px); }
+}
+
+.scroll-indicator:not(.hidden) {
+    animation: bounce 1.5s infinite;
 }
 -----------------------------------------------------------------------------------------------------
 <?php
