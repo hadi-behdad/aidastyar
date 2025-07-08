@@ -875,6 +875,39 @@ $theme_assets = get_stylesheet_directory_uri();
     <div id="next-button-container">
         <button type="button" class="next-step">گام بعد</button>
     </div>
+        
+    <script>
+    // اضافه کردن مدیریت تم به آبجکت state
+    window.state = {
+        ...window.state,
+        toggleTheme: function() {
+            document.body.classList.toggle('dark-mode');
+            const isDark = document.body.classList.contains('dark-mode');
+            localStorage.setItem('diet-theme', isDark ? 'dark' : 'light');
+        }
+    };
+    
+    // بارگذاری تم ذخیره شده
+    document.addEventListener('DOMContentLoaded', function() {
+        const savedTheme = localStorage.getItem('diet-theme') || 'light';
+        if (savedTheme === 'dark') {
+            document.body.classList.add('dark-mode');
+        }
+        
+        // ایجاد دکمه تغییر تم
+        const themeToggle = document.createElement('button');
+        themeToggle.className = 'theme-toggle';
+        themeToggle.title = 'تغییر تم تاریک/روشن';
+        themeToggle.innerHTML = `
+            <svg viewBox="0 0 24 24">
+                <path d="M12,3c-4.97,0-9,4.03-9,9s4.03,9,9,9s9-4.03,9-9c0-0.46-0.04-0.92-0.1-1.36c-0.98,1.37-2.58,2.26-4.4,2.26 c-2.98,0-5.4-2.42-5.4-5.4c0-1.81,0.89-3.42,2.26-4.4C12.92,3.04,12.46,3,12,3L12,3z"/>
+            </svg>
+        `;
+        
+        themeToggle.addEventListener('click', state.toggleTheme);
+        document.body.appendChild(themeToggle);
+    });
+    </script>  
 </form>
 
 <script src="<?php echo $theme_assets; ?>/assets/js/services/diet/chart.js"></script>
@@ -884,6 +917,7 @@ $theme_assets = get_stylesheet_directory_uri();
 <script src="<?php echo $theme_assets; ?>/assets/js/services/diet/form-steps.js"></script>
 <script src="<?php echo $theme_assets; ?>/assets/js/services/diet/form-inputs.js"></script>
     
+ 
 <script>
 window.APP_MODE = 2;
 if (window.APP_MODE === 1) {
@@ -2532,6 +2566,63 @@ window.state = {
         }        
     }
 };
+
+window.THEME = {
+    init: function() {
+        this.loadTheme();
+        this.setupToggleButton();
+    },
+    
+    loadTheme: function() {
+        const savedTheme = localStorage.getItem('diet-theme') || 'light';
+        document.body.classList.toggle('dark-mode', savedTheme === 'dark');
+    },
+    
+    toggleTheme: function() {
+        const isDark = document.body.classList.toggle('dark-mode');
+        localStorage.setItem('diet-theme', isDark ? 'dark' : 'light');
+        this.updateToggleIcon();
+    },
+    
+    setupToggleButton: function() {
+        const toggleBtn = document.createElement('button');
+        toggleBtn.className = 'theme-toggle';
+        toggleBtn.title = 'تغییر تم';
+        toggleBtn.innerHTML = `
+            <svg class="sun-icon" viewBox="0 0 24 24">
+                <path d="M12,3c-4.97,0-9,4.03-9,9s4.03,9,9,9s9-4.03,9-9c0-0.46-0.04-0.92-0.1-1.36c-0.98,1.37-2.58,2.26-4.4,2.26 c-2.98,0-5.4-2.42-5.4-5.4c0-1.81,0.89-3.42,2.26-4.4C12.92,3.04,12.46,3,12,3L12,3z"/>
+            </svg>        
+            <svg class="moon-icon" viewBox="0 0 24 24">
+                <circle cx="12" cy="12" r="5" fill="currentColor"/>
+                <line x1="12" y1="1" x2="12" y2="3" stroke="currentColor" stroke-width="2"/>
+                <line x1="12" y1="21" x2="12" y2="23" stroke="currentColor" stroke-width="2"/>
+                <line x1="4.22" y1="4.22" x2="5.64" y2="5.64" stroke="currentColor" stroke-width="2"/>
+                <line x1="18.36" y1="18.36" x2="19.78" y2="19.78" stroke="currentColor" stroke-width="2"/>
+                <line x1="1" y1="12" x2="3" y2="12" stroke="currentColor" stroke-width="2"/>
+                <line x1="21" y1="12" x2="23" y2="12" stroke="currentColor" stroke-width="2"/>
+                <line x1="4.22" y1="19.78" x2="5.64" y2="18.36" stroke="currentColor" stroke-width="2"/>
+                <line x1="18.36" y1="5.64" x2="19.78" y2="4.22" stroke="currentColor" stroke-width="2"/>            
+            </svg>
+        `;
+        
+        toggleBtn.addEventListener('click', () => this.toggleTheme());
+        document.body.appendChild(toggleBtn);
+        this.updateToggleIcon();
+    },
+    
+    updateToggleIcon: function() {
+        const isDark = document.body.classList.contains('dark-mode');
+        const toggleBtn = document.querySelector('.theme-toggle');
+        if (toggleBtn) {
+            toggleBtn.title = isDark ? 'تغییر به تم روشن' : 'تغییر به تم تاریک';
+        }
+    }
+};
+
+// فراخوانی در هنگام لود صفحه
+document.addEventListener('DOMContentLoaded', () => {
+    THEME.init();
+});
 
 window.CONSTANTS = {
     MIN_AGE: 18,
@@ -4286,6 +4377,123 @@ body[data-gender="female"] .female-only {
     color: #666;
     font-size: 12px;
     font-style: italic;
+}
+
+/* تم تاریک */
+body.dark-mode {
+    --primary-color: #4db6ac;
+    --secondary-color: #00897b;
+    --background-color: #121212;
+    --text-color: #e0e0e0;
+    --border-color: #333;
+    --error-background: #1e3a5f;
+    --error-border: #5e92f3;
+    --valid-background: #1b3b1b;
+    --valid-border: #4caf50;
+    --valid-text: #81c784;
+    --input-focus-bg: #333;
+    --input-focus-border: #4db6ac;
+    --option-bg: #1e1e1e;
+    --option-selected-bg: #2d2d2d;
+    --option-selected-border: #4db6ac;
+    --button-bg: #00695c;
+    --button-hover-bg: #004d40;
+    --button-text: #fff;
+    --progress-bar-bg: #333;
+    --progress-bar-fill: #4db6ac;
+    --orange-color: #ffb74d;
+    --orange-shadow: rgba(255, 183, 77, 0.3);
+    --orange-light-shadow: rgba(255, 183, 77, 0.15);
+    --white-color: #121212;
+    --shadow-color: rgba(0, 0, 0, 0.3);
+    --light-shadow: rgba(0, 0, 0, 0.4);
+    --pulse-glow: rgba(77, 182, 172, 0.4);
+}
+
+body.dark-mode .checkbox-label {
+    background-color: #1e1e1e;
+    border-color: #333;
+}
+
+body.dark-mode .info-box {
+    background-color: #1e1e1e;
+    border-color: #333;
+}
+
+body.dark-mode .summary-item {
+    background-color: #1e1e1e;
+}
+
+body.dark-mode .water-cup {
+    background-color: #1e3a5f;
+    border-color: #5e92f3;
+}
+
+.theme-toggle:hover {
+    transform: scale(1.1);
+}
+
+/*.theme-toggle svg {*/
+/*    width: 24px;*/
+/*    height: 24px;*/
+/*    fill: currentColor;*/
+/*}*/
+
+@media (max-width: 768px) {
+    .theme-toggle {
+        bottom: 70px;
+        right: 15px;
+        width: 45px;
+        height: 45px;
+    }
+}
+
+
+.theme-toggle {
+    position: fixed;
+    bottom: 80px;
+    right: 20px;
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    background-color: var(--primary-color);
+    color: white;
+    border: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 100;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+    transition: all 0.3s ease;
+}
+
+
+.theme-toggle svg {
+    width: 24px;
+    height: 24px;
+    fill: currentColor;
+    transition: all 0.3s ease;
+}
+
+/* تم تاریک - آیکون خورشید زرد */
+body.dark-mode .theme-toggle svg.sun-icon {
+    display: block;
+    fill: #FFD700; /* رنگ زرد برای خورشید در حالت تاریک */
+}
+
+body.dark-mode .theme-toggle svg.moon-icon {
+    display: none;
+}
+
+/* تم روشن - آیکون ماه سفید */
+body:not(.dark-mode) .theme-toggle svg.moon-icon {
+    display: block;
+    fill: #ffffff; /* رنگ سفید برای ماه در حالت روشن */
+}
+
+body:not(.dark-mode) .theme-toggle svg.sun-icon {
+    display: none;
 }
 -----------------------------------------------------------------------------------------------------
 <?php
