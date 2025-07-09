@@ -890,7 +890,7 @@ $theme_assets = get_stylesheet_directory_uri();
         </div>
     </div>
 
-    <!-- Step 16: Terms Agreement -->
+    <!-- Step 18: Terms Agreement -->
     <div id="terms-agreement-step" class="step">
         <h2>توافق‌نامه استفاده از خدمات Aidastyar</h2>
         <div id="terms-agreement-container">
@@ -1009,7 +1009,7 @@ $theme_assets = get_stylesheet_directory_uri();
         </div>
     </div>
 
-    <!-- Step 17: Confirmation -->
+    <!-- Step 19: Confirmation -->
     <div id="confirm-submit-step" class="step">
         <h2>خلاصه اطلاعات شما</h2>
         <div id="summary-container"></div>
@@ -1027,7 +1027,7 @@ $theme_assets = get_stylesheet_directory_uri();
                 <button type="button" id="SubmitBtn" class="submit-form" onclick="saveFormAndLogin()">ورود و ثبت نهایی</button>
             <?php endif; ?>                
         </div>
-
+    
         <div id="ai-diet-result" style="display:none;">
             <div class="ai-response-content"></div>
             <button id="downloadPdf" style="display:none">دانلود PDF</button>
@@ -2265,22 +2265,18 @@ window.handleFormSubmit = function(event) {
 
 window.showSummary = function() {
     const summaryContainer = document.getElementById('summary-container');
-    const nextButton = document.querySelector('.next-step');
-    const confirmCheckbox = document.getElementById('confirm-info');
+    const nextButton = document.querySelector(".next-step");
+    const confirmCheckbox = document.getElementById("confirm-info");
     
     nextButton.disabled = true;
     
-    confirmCheckbox.addEventListener('change', function() {
-        nextButton.disabled = !this.checked;
-    });
-
     const { 
         gender, age, height, weight, targetWeight, goal, 
-        activity, meals, additionalInfo = [], 
-        foodRestrictions = [], surgery = [], hormonal = [],
-        stomachDiscomfort = [], waterIntake
+        activity, meals, waterIntake, surgery = [], hormonal = [],
+        stomachDiscomfort = [], additionalInfo = [], dietStyle = [],
+        foodLimitations = [], foodPreferences = []
     } = state.formData;
-    
+
     const goalText = { 
         "weight-loss": "کاهش وزن", 
         "weight-gain": "افزایش وزن", 
@@ -2357,17 +2353,31 @@ window.showSummary = function() {
     if (additionalInfo.includes('food-allergy')) additionalInfoText.push('حساسیت غذایی');
     if (additionalInfo.includes('none')) additionalInfoText.push('هیچکدام');
 
+    // سبک‌های غذایی
+    const dietStyleText = [];
+    if (dietStyle.includes('vegetarian')) dietStyleText.push('گیاهخواری');
+    if (dietStyle.includes('vegan')) dietStyleText.push('وگان');
+    if (dietStyle.includes('halal')) dietStyleText.push('حلال');
+    if (dietStyle.includes('none')) dietStyleText.push('هیچکدام');
+
     // محدودیت‌های غذایی
-    const foodRestrictionsText = [];
-    if (foodRestrictions.includes('vegetarian')) foodRestrictionsText.push('گیاهخواری');
-    if (foodRestrictions.includes('vegan')) foodRestrictionsText.push('وگان');
-    if (foodRestrictions.includes('halal')) foodRestrictionsText.push('حلال');
-    if (foodRestrictions.includes('no-seafood')) foodRestrictionsText.push('عدم مصرف غذای دریایی');
-    if (foodRestrictions.includes('no-redmeat')) foodRestrictionsText.push('عدم مصرف گوشت قرمز');
-    if (foodRestrictions.includes('no-pork')) foodRestrictionsText.push('عدم مصرف گوشت خوک');
-    if (foodRestrictions.includes('lowcarb')) foodRestrictionsText.push('رژیم کم کربوهیدرات');
-    if (foodRestrictions.includes('lowfat')) foodRestrictionsText.push('رژیم کم چربی');
-    if (foodRestrictions.includes('none')) foodRestrictionsText.push('بدون محدودیت');
+    const foodLimitationsText = [];
+    if (foodLimitations.includes('no-seafood')) foodLimitationsText.push('عدم مصرف غذای دریایی');
+    if (foodLimitations.includes('no-redmeat')) foodLimitationsText.push('عدم مصرف گوشت قرمز');
+    if (foodLimitations.includes('no-pork')) foodLimitationsText.push('عدم مصرف گوشت خوک');
+    if (foodLimitations.includes('no-gluten')) foodLimitationsText.push('عدم مصرف گلوتن');
+    if (foodLimitations.includes('no-dairy')) foodLimitationsText.push('عدم مصرف لبنیات');
+    if (foodLimitations.includes('no-eggs')) foodLimitationsText.push('عدم مصرف تخم‌مرغ');
+    if (foodLimitations.includes('no-nuts')) foodLimitationsText.push('عدم مصرف آجیل و مغزها');
+    if (foodLimitations.includes('none')) foodLimitationsText.push('هیچکدام');
+
+    // ترجیحات غذایی
+    const foodPreferencesText = [];
+    if (foodPreferences.includes('low-carb')) foodPreferencesText.push('رژیم کم کربوهیدرات');
+    if (foodPreferences.includes('low-fat')) foodPreferencesText.push('رژیم کم چربی');
+    if (foodPreferences.includes('high-protein')) foodPreferencesText.push('رژیم پرپروتئین');
+    if (foodPreferences.includes('organic')) foodPreferencesText.push('مواد غذایی ارگانیک');
+    if (foodPreferences.includes('none')) foodPreferencesText.push('هیچکدام');
 
     summaryContainer.innerHTML = `
         <div class="summary-item">
@@ -2405,7 +2415,7 @@ window.showSummary = function() {
         <div class="summary-item">
             <span class="summary-label">علائم معده:</span>
             <span class="summary-value">${stomachDiscomfortText.join('، ') || 'ثبت نشده'}</span>
-        </div>    
+        </div>
         <div class="summary-item">
             <span class="summary-label">مصرف آب روزانه:</span>
             <span class="summary-value">${waterText}</span>
@@ -2423,8 +2433,16 @@ window.showSummary = function() {
             <span class="summary-value">${additionalInfoText.join('، ') || 'ثبت نشده'}</span>
         </div>
         <div class="summary-item">
+            <span class="summary-label">سبک غذایی:</span>
+            <span class="summary-value">${dietStyleText.join('، ') || 'ثبت نشده'}</span>
+        </div>
+        <div class="summary-item">
             <span class="summary-label">محدودیت‌های غذایی:</span>
-            <span class="summary-value">${foodRestrictionsText.join('، ') || 'ثبت نشده'}</span>
+            <span class="summary-value">${foodLimitationsText.join('، ') || 'ثبت نشده'}</span>
+        </div>
+        <div class="summary-item">
+            <span class="summary-label">ترجیحات غذایی:</span>
+            <span class="summary-value">${foodPreferencesText.join('، ') || 'ثبت نشده'}</span>
         </div>
     `;
 }
@@ -3761,6 +3779,7 @@ body.dark-mode .checked-animation .check-icon {
     font-size: 14px;
 }
 
+/* استایل‌های خلاصه اطلاعات */
 #summary-container {
     max-height: calc(60vh - 100px);
     overflow-y: auto;
@@ -3770,6 +3789,22 @@ body.dark-mode .checked-animation .check-icon {
     max-width: 500px;
     margin: 20px auto;
     box-sizing: border-box;
+    scrollbar-width: thin;
+    scrollbar-color: var(--primary-color) var(--background-color);
+}
+
+#summary-container::-webkit-scrollbar {
+    width: 6px;
+}
+
+#summary-container::-webkit-scrollbar-track {
+    background: var(--background-color);
+    border-radius: 3px;
+}
+
+#summary-container::-webkit-scrollbar-thumb {
+    background-color: var(--primary-color);
+    border-radius: 3px;
 }
 
 .summary-item {
@@ -3781,6 +3816,12 @@ body.dark-mode .checked-animation .check-icon {
     border-radius: 8px;
     font-size: 16px;
     max-width: 500px;
+    transition: all 0.3s ease;
+}
+
+.summary-item:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
 
 .summary-label {
@@ -3790,6 +3831,9 @@ body.dark-mode .checked-animation .check-icon {
 
 .summary-value {
     color: var(--text-color);
+    text-align: left;
+    flex: 1;
+    padding-right: 10px;
 }
 
 #confirmation-checkbox {
@@ -5098,6 +5142,15 @@ body.dark-mode .info-box {
 
 body.dark-mode .summary-item {
     background-color: #1e1e1e;
+    border: 1px solid #333;
+}
+
+body.dark-mode .summary-item:hover {
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+}
+
+body.dark-mode #summary-container::-webkit-scrollbar-thumb {
+    background-color: #4db6ac;
 }
 
 body.dark-mode .water-cup {
