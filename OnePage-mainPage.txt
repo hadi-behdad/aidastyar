@@ -3,6 +3,7 @@
 $theme_assets = get_stylesheet_directory_uri();
 ?>
 
+
 <form id="multi-step-form" class="ai-multistep-form" method="post" action="<?php echo admin_url('admin-ajax.php'); ?>">
     <input type="hidden" name="action" value="submit_diet_form">
     <?php wp_nonce_field('diet_form_nonce', 'diet_form_security'); ?>
