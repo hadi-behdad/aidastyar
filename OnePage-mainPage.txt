@@ -1024,7 +1024,7 @@ $theme_assets = get_stylesheet_directory_uri();
             <?php if (is_user_logged_in()): ?>
                 <button type="submit" id="SubmitBtn" class="submit-form">ثبت نهایی</button>
             <?php else: ?>
-                <button type="button" id="SubmitBtn" class="submit-form" onclick="saveFormAndLogin()">ورود و ثبت نهایی</button>
+                <button type="button" id="SubmitBtn" class="submit-form" onclick="saveFormAndRedirect()">ورود و ثبت نهایی</button>
             <?php endif; ?>                
         </div>
     
@@ -1122,14 +1122,40 @@ if (window.APP_MODE === 1) {
     });
 }
 
-function saveFormAndLogin() {
-    // ذخیره تمام داده‌های فرم
+function saveFormAndRedirect() {
+    // ذخیره داده‌های فرم در localStorage
     localStorage.setItem('diet_form_data', JSON.stringify(window.state.formData));
-    // ذخیره مرحله فعلی
     localStorage.setItem('diet_form_current_step', window.state.currentStep);
-    // هدایت به صفحه لاگین
-    window.location.href = '<?php echo wp_login_url(esc_url($_SERVER['REQUEST_URI'])); ?>';
+    
+    // هدایت به صفحه لاگین با پارامتر redirect_to
+    const currentUrl = window.location.href;
+    const loginUrl = '<?php echo wp_login_url(); ?>?redirect_to=' + encodeURIComponent(currentUrl);
+    window.location.href = loginUrl;
 }
+
+// بازیابی داده‌ها بعد از بازگشت از لاگین
+window.addEventListener('load', function() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const loggedIn = urlParams.get('logged_in');
+    
+    if (loggedIn === '1' && localStorage.getItem('diet_form_data')) {
+        // بازیابی داده‌ها
+        const savedData = JSON.parse(localStorage.getItem('diet_form_data'));
+        const savedStep = parseInt(localStorage.getItem('diet_form_current_step'));
+        
+        // آپدیت state
+        Object.assign(window.state.formData, savedData);
+        
+        // رفتن به مرحله ذخیره شده
+        if (savedStep) {
+            window.navigateToStep(savedStep);
+        }
+        
+        // پاک کردن داده‌های ذخیره شده
+        localStorage.removeItem('diet_form_data');
+        localStorage.removeItem('diet_form_current_step');
+    }
+});
 </script>
 -----------------------------------------------------------------------------------------------------
 // /home/aidastya/public_html/wp-content/themes/ai-assistant/assets/js/services/diet/form-events.js
@@ -2985,8 +3011,16 @@ window.state = {
         window.validateStep(this.currentStep);
     },
     
-    // در بخش state در script.js
     fillTestData(step) {
+        // ابتدا بررسی کنید آیا داده‌ای در localStorage ذخیره شده است
+        if (localStorage.getItem('diet_form_data')) {
+            const savedData = JSON.parse(localStorage.getItem('diet_form_data'));
+            this.formData = savedData;
+            this.updateFormElementsFromState();
+            return;
+        }
+    
+        // اگر داده‌ای ذخیره نشده بود، از داده‌های تستی استفاده کنید
         const testData = {
             gender: 'male',
             goal: 'weight-loss',
@@ -3004,14 +3038,12 @@ window.state = {
             foodRestrictions: ['vegetarian']
         };
     
-        // فقط اگر داده‌ای وجود ندارد مقداردهی کنیم
         Object.keys(testData).forEach(key => {
             if (this.formData[key] === undefined) {
                 this.formData[key] = testData[key];
             }
         });
     
-        // اینجا باید المان‌های فرم را بر اساس state به روز کنیم
         this.updateFormElementsFromState();
     },
     
@@ -5330,6 +5362,7 @@ body.dark-mode .scroll-indicator:hover {
     animation: bounce 1.5s infinite;
 }
 -----------------------------------------------------------------------------------------------------
+<!--/home/aidastya/public_html/wp-content/themes/ai-assistant/functions.php-->
 <?php
 /**
  * Functions for AI Assistant Theme
@@ -5602,6 +5635,23 @@ add_action('pre_get_posts', function($query) {
 
 add_action('init', function() {
     add_rewrite_endpoint('service-output', EP_PERMALINK);
+});
+
+
+// اضافه کردن پارامتر logged_in بعد از لاگین موفق
+add_filter('login_redirect', function($redirect_to, $request, $user) {
+    if (strpos($redirect_to, '?') !== false) {
+        $redirect_to .= '&logged_in=1';
+    } else {
+        $redirect_to .= '?logged_in=1';
+    }
+    return $redirect_to;
+}, 10, 3);
+
+// اجازه دادن به پارامتر logged_in در وردپرس
+add_filter('query_vars', function($vars) {
+    $vars[] = 'logged_in';
+    return $vars;
 });
 -----------------------------------------------------------------------------------------------------
 این کد رو ببین. 
