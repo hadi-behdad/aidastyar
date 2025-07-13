@@ -3217,34 +3217,100 @@ jQuery(document).ready(function($) {
     });
     
     
-document.getElementById('downloadPdf').addEventListener('click', function () {
-    const element = document.querySelector('.ai-response-content');
-
-    // ذخیره استایل اصلی برای برگردوندن بعد از تولید PDF
-    const originalOverflow = element.style.overflow;
-    const originalHeight = element.style.height;
-    const originalMaxHeight = element.style.maxHeight;
-
-    // حذف محدودیت‌ها برای نمایش کل محتوا
-    element.style.overflow = 'visible';
-    element.style.height = 'auto';
-    element.style.maxHeight = 'none';
-
-    const opt = {
-        margin:       0.5,
-        filename:     'برنامه-تغذیه.pdf',
-        image:        { type: 'jpeg', quality: 0.98 },
-        html2canvas:  { scale: 2, useCORS: true },
-        jsPDF:        { unit: 'in', format: 'a4', orientation: 'portrait' }
-    };
-
-    html2pdf().set(opt).from(element).save().then(() => {
-        // برگردوندن به حالت اولیه
-        element.style.overflow = originalOverflow;
-        element.style.height = originalHeight;
-        element.style.maxHeight = originalMaxHeight;
+    document.getElementById('downloadPdf').addEventListener('click', function () {
+        const element = document.querySelector('.ai-response-content');
+    
+        // ذخیره استایل اصلی برای برگردوندن بعد از تولید PDF
+        const originalOverflow = element.style.overflow;
+        const originalHeight = element.style.height;
+        const originalMaxHeight = element.style.maxHeight;
+    
+        // حذف محدودیت‌ها برای نمایش کل محتوا
+        element.style.overflow = 'visible';
+        element.style.height = 'auto';
+        element.style.maxHeight = 'none';
+    
+        const opt = {
+            margin:       0.5,
+            filename:     'برنامه-تغذیه.pdf',
+            image:        { type: 'jpeg', quality: 0.98 },
+            html2canvas:  { scale: 2, useCORS: true },
+            jsPDF:        { unit: 'in', format: 'a4', orientation: 'portrait' }
+        };
+    
+        html2pdf().set(opt).from(element).save().then(() => {
+            // برگردوندن به حالت اولیه
+            element.style.overflow = originalOverflow;
+            element.style.height = originalHeight;
+            element.style.maxHeight = originalMaxHeight;
+        });
     });
-});  
+});
+
+
+// کد نهایی برای نمایش آخرین تغییرات فایل‌ها (فقط در محیط تست)
+document.addEventListener('DOMContentLoaded', function() {
+    // فقط در محیط تست اجرا شود
+    if (window.location.hostname !== 'test.aidastyar.com') return;
+
+    const filesToCheck = [
+        {name: 'form-events.js', path: '/wp-content/themes/ai-assistant/assets/js/services/diet/form-events.js'},
+        {name: 'form-inputs.js', path: '/wp-content/themes/ai-assistant/assets/js/services/diet/form-inputs.js'},
+        {name: 'form-steps.js', path: '/wp-content/themes/ai-assistant/assets/js/services/diet/form-steps.js'},
+        {name: 'form-validation.js', path: '/wp-content/themes/ai-assistant/assets/js/services/diet/form-validation.js'},
+        {name: 'script.js', path: '/wp-content/themes/ai-assistant/assets/js/services/diet/script.js'},
+        {name: 'diet.js', path: '/wp-content/themes/ai-assistant/assets/js/services/diet/diet.js'},
+        {name: 'diet.css', path: '/wp-content/themes/ai-assistant/assets/css/services/diet.css'},
+        {name: 'functions.php', path: '/wp-content/themes/ai-assistant/functions.php'}
+    ];
+
+    function checkFile(file) {
+        return fetch(file.path, {method: 'HEAD', cache: 'no-store'})
+            .then(response => {
+                if (!response.ok) {
+                    return {
+                        name: file.name,
+                        lastModified: null,
+                        status: '❌ فایل یافت نشد'
+                    };
+                }
+                
+                const lastModified = response.headers.get('last-modified');
+                if (!lastModified) {
+                    return {
+                        name: file.name,
+                        lastModified: null,
+                        status: '⚠️ زمان تغییر نامشخص'
+                    };
+                }
+                
+                return {
+                    name: file.name,
+                    lastModified: new Date(lastModified),
+                    status: '✅ موجود'
+                };
+            })
+            .catch(() => ({
+                name: file.name,
+                lastModified: null,
+                status: '⚠️ خطا در بررسی'
+            }));
+    }
+
+    Promise.all(filesToCheck.map(checkFile))
+        .then(results => {
+            console.group('🛠️ آخرین تغییرات فایل‌ها - test.aidastyar.com');
+            console.log('⏳ زمان بررسی: ' + new Date().toLocaleString('fa-IR'));
+            
+            const formattedResults = results.map(r => ({
+                'فایل': r.name,
+                'آخرین تغییر': r.lastModified ? r.lastModified.toLocaleString('fa-IR') : '---',
+                'وضعیت': r.status
+            }));
+            
+            console.table(formattedResults);
+            console.groupEnd();
+        });
 });
 -----------------------------------------------------------------------------------------------------
 /*/home/aidastya/public_html/test/wp-content/themes/ai-assistant/assets/css/services/diet.css*/
@@ -5366,40 +5432,6 @@ function ai_assistant_scripts() {
             'loading' => __('در حال پردازش...', 'ai-assistant')
         ]
     ]);
-    
-    // بارگذاری اسکریپت سرویس فعلی
- /*   
-    if (is_page('service') && get_query_var('service')) {
-        $service_id = get_query_var('service');
-        wp_enqueue_script(
-            'ai-assistant-' . $service_id,
-            get_template_directory_uri() . '/assets/js/services/' . $service_id . '.js',
-            ['jquery'],
-            wp_get_theme()->get('Version'),
-            true
-        );
-    }
- */   
-/*    
-    if (is_page('service') && get_query_var('service')) {
-        $service_id = get_query_var('service');
-        $services_dir = get_template_directory() . '/assets/js/services/'.$service_id .'/';
-        $services_uri = get_template_directory_uri() . '/assets/js/services/'.$service_id .'/';
-    
-        foreach (glob($services_dir . '*.js') as $file_path) {
-            $filename = basename($file_path); // مثل myscript.js
-            $handle = 'ai-assistant-' . sanitize_title($filename); // دسته برای اسکریپت
-    
-            wp_enqueue_script(
-                $handle,
-                $services_uri . $filename,
-                ['jquery'],
-                filemtime($file_path), // استفاده از زمان آخرین تغییر برای کش‌نشدن
-                true
-            );
-        }
-    }*/
-    
 }
 add_action('wp_enqueue_scripts', 'ai_assistant_scripts');
 
