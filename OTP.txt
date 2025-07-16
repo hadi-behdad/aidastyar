@@ -1,0 +1,361 @@
+<?php
+/*
+/home/aidastya/public_html/test/wp-content/themes/ai-assistant/custom-login.php
+Template Name: Custom OTP Login
+*/
+get_header(); ?>
+
+<div class="otp-login-container">
+    <h2>ورود با کد یکبار مصرف</h2>
+    
+    <div id="step1">
+        <form id="otp-request-form">
+            <div class="form-group">
+                <label for="mobile">شماره موبایل</label>
+                <input type="text" id="mobile" name="mobile" placeholder="09xxxxxxxxx" required>
+            </div>
+            <button type="submit">دریافت کد تایید</button>
+        </form>
+    </div>
+    
+    <div id="step2" style="display:none;">
+        <form id="otp-verify-form">
+            <div class="form-group">
+                <label for="otp-code">کد تایید</label>
+                <input type="text" id="otp-code" name="otp_code" placeholder="کد ۵ رقمی" required>
+            </div>
+            <input type="hidden" id="verify-mobile" name="mobile">
+            <button type="submit">تایید و ورود</button>
+        </form>
+        <p id="countdown">زمان باقیمانده: ۲:۰۰</p>
+        <button id="resend-otp" style="display:none;">ارسال مجدد کد</button>
+    </div>
+    
+    <div id="message"></div>
+</div>
+
+<style>
+.otp-login-container {
+    max-width: 400px;
+    margin: 50px auto;
+    padding: 20px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    direction: rtl;
+    text-align: right;
+}
+.form-group {
+    margin-bottom: 15px;
+}
+.form-group label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: bold;
+}
+.form-group input {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    box-sizing: border-box;
+}
+button {
+    background: #0073aa;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    cursor: pointer;
+    border-radius: 4px;
+    font-size: 16px;
+    width: 100%;
+}
+button:hover {
+    background: #005177;
+}
+#message {
+    margin-top: 15px;
+    padding: 10px;
+    border-radius: 4px;
+    display: none;
+}
+.success {
+    background: #d4edda;
+    color: #155724;
+    border: 1px solid #c3e6cb;
+}
+.error {
+    background: #f8d7da;
+    color: #721c24;
+    border: 1px solid #f5c6cb;
+}
+#countdown {
+    color: #dc3545;
+    font-weight: bold;
+    text-align: center;
+    margin: 15px 0;
+}
+#resend-otp {
+    background: #6c757d;
+}
+#resend-otp:hover {
+    background: #5a6268;
+}
+</style>
+
+<script>
+jQuery(document).ready(function($) {
+    // تشخیص محیط اجرا
+    var isTestEnv = window.location.hostname.includes('test.');
+    
+    // ارسال درخواست OTP
+    $('#otp-request-form').on('submit', function(e) {
+        e.preventDefault();
+        var mobile = $('#mobile').val();
+        
+        if(!/^09\d{9}$/.test(mobile)) {
+            $('#message').text('شماره موبایل معتبر نیست (فرمت صحیح: 09123456789)').addClass('error').show();
+            return;
+        }
+        
+        $.ajax({
+            url: '<?php echo admin_url('admin-ajax.php'); ?>',
+            type: 'POST',
+            data: {
+                action: 'send_otp',
+                mobile: mobile,
+                is_test_env: isTestEnv
+            },
+            beforeSend: function() {
+                $('#message').hide().text('').removeClass('success error');
+                $('button').prop('disabled', true);
+            },
+            complete: function() {
+                $('button').prop('disabled', false);
+            },
+            success: function(response) {
+                if(response.success) {
+                    $('#step1').hide();
+                    $('#step2').show();
+                    $('#verify-mobile').val(mobile);
+                    startCountdown(120);
+                    
+                    if(isTestEnv && response.debug_code) {
+                        console.log('کد OTP (فقط برای تست):', response.debug_code);
+                        $('#message').html('کد تست: <strong>' + response.debug_code + '</strong><br>در محیط عملیاتی این کد نمایش داده نمی‌شود').addClass('success').show();
+                    }
+                } else {
+                    $('#message').text(response.data || 'خطا در ارسال کد تایید').addClass('error').show();
+                }
+            },
+            error: function() {
+                $('#message').text('خطا در ارتباط با سرور').addClass('error').show();
+            }
+        });
+    });
+    
+    // تایید OTP
+    $('#otp-verify-form').on('submit', function(e) {
+        e.preventDefault();
+        var mobile = $('#verify-mobile').val();
+        var otp_code = $('#otp-code').val();
+        
+        if(!otp_code || otp_code.length !== 5) {
+            $('#message').text('لطفا کد تایید ۵ رقمی را وارد کنید').addClass('error').show();
+            return;
+        }
+        
+        $.ajax({
+            url: '<?php echo admin_url('admin-ajax.php'); ?>',
+            type: 'POST',
+            data: {
+                action: 'verify_otp',
+                mobile: mobile,
+                otp_code: otp_code
+            },
+            beforeSend: function() {
+                $('#message').hide().text('').removeClass('success error');
+                $('button').prop('disabled', true);
+            },
+            complete: function() {
+                $('button').prop('disabled', false);
+            },
+            success: function(response) {
+                if(response.success) {
+                    $('#message').text('ورود موفقیت‌آمیز! در حال انتقال...').addClass('success').show();
+                    setTimeout(function() {
+                        window.location.href = '<?php echo home_url(); ?>';
+                    }, 2000);
+                } else {
+                    $('#message').text(response.data || 'کد تایید نادرست است').addClass('error').show();
+                }
+            },
+            error: function() {
+                $('#message').text('خطا در ارتباط با سرور').addClass('error').show();
+            }
+        });
+    });
+    
+    // تایمر معکوس
+    function startCountdown(duration) {
+        var timer = duration, minutes, seconds;
+        var countdownInterval = setInterval(function() {
+            minutes = parseInt(timer / 60, 10);
+            seconds = parseInt(timer % 60, 10);
+            
+            minutes = minutes < 10 ? "0" + minutes : minutes;
+            seconds = seconds < 10 ? "0" + seconds : seconds;
+            
+            $('#countdown').text("زمان باقیمانده: " + minutes + ":" + seconds);
+            
+            if (--timer < 0) {
+                clearInterval(countdownInterval);
+                $('#countdown').hide();
+                $('#resend-otp').show();
+            }
+        }, 1000);
+        
+        $('#resend-otp').off('click').on('click', function() {
+            $('#otp-request-form').trigger('submit');
+            $(this).hide();
+            $('#countdown').show();
+            clearInterval(countdownInterval);
+            startCountdown(120);
+        });
+    }
+});
+</script>
+
+<?php get_footer(); ?>
+---------------------------------------------------------------------------
+
+// تابع ارسال OTP
+function send_otp_request() {
+    $mobile = sanitize_text_field($_POST['mobile']);
+    $is_test_env = isset($_POST['is_test_env']) ? (bool)$_POST['is_test_env'] : false;
+    
+    // اعتبارسنجی شماره موبایل
+    if(empty($mobile) || !preg_match('/^09[0-9]{9}$/', $mobile)) {
+        wp_send_json_error('شماره موبایل معتبر نیست (فرمت صحیح: 09123456789)');
+        return;
+    }
+    
+    // تولید کد تصادفی
+    $otp_code = str_pad(rand(0, 99999), 5, '0', STR_PAD_LEFT);
+    $transient_name = 'otp_' . $mobile;
+    set_transient($transient_name, $otp_code, 10 * MINUTE_IN_SECONDS);
+    
+    if($is_test_env) {
+        // محیط تست - شبیه‌سازی ارسال پیامک
+        error_log("[OTP TEST] کد برای $mobile: $otp_code");
+        
+        $response = array(
+            'status' => 1,
+            'message' => 'موفق (شبیه‌سازی شده)'
+        );
+    } else {
+        // محیط عملیاتی - ارسال واقعی پیامک
+        $api_key = 'کلید-API-عملیاتی-شما'; // جایگزین کنید
+        $template_id = 123; // ID قالب واقعی
+        
+        $url = 'https://api.sms.ir/v1/send/verify';
+        $args = array(
+            'headers' => array(
+                'Content-Type' => 'application/json',
+                'Accept' => 'text/plain',
+                'x-api-key' => $api_key
+            ),
+            'body' => json_encode(array(
+                'mobile' => $mobile,
+                'templateId' => $template_id,
+                'parameters' => array(
+                    array(
+                        'name' => 'Code',
+                        'value' => $otp_code
+                    )
+                )
+            ))
+        );
+        
+        $response = wp_remote_post($url, $args);
+        $response = is_array($response) ? json_decode($response['body'], true) : null;
+    }
+    
+    // پردازش پاسخ
+    if(isset($response['status']) && $response['status'] == 1) {
+        $return_data = array(
+            'success' => true,
+            'data' => $is_test_env ? 'کد تست تولید شد' : 'کد تایید ارسال شد'
+        );
+        
+        if($is_test_env) {
+            $return_data['debug_code'] = $otp_code;
+        }
+        
+        wp_send_json($return_data);
+    } else {
+        $error_msg = $is_test_env ? 'خطا در شبیه‌سازی ارسال' : 
+                  (isset($response['message']) ? $response['message'] : 'خطا در ارتباط با سرور پیامک');
+        wp_send_json_error($error_msg);
+    }
+}
+add_action('wp_ajax_send_otp', 'send_otp_request');
+add_action('wp_ajax_nopriv_send_otp', 'send_otp_request');
+
+// تابع تایید OTP
+function verify_otp_request() {
+    $mobile = sanitize_text_field($_POST['mobile']);
+    $otp_code = sanitize_text_field($_POST['otp_code']);
+    
+    if(empty($mobile) || empty($otp_code)) {
+        wp_send_json_error('لطفا کد تایید را وارد کنید');
+        return;
+    }
+    
+    $transient_name = 'otp_' . $mobile;
+    $stored_otp = get_transient($transient_name);
+    
+    if($stored_otp === false) {
+        wp_send_json_error('کد تایید منقضی شده است');
+    } elseif($stored_otp != $otp_code) {
+        wp_send_json_error('کد تایید نادرست است');
+    } else {
+        // پیدا کردن یا ایجاد کاربر
+        $user = get_user_by('login', $mobile);
+        
+        if(!$user) {
+            $user_id = wp_create_user($mobile, wp_generate_password(), $mobile . '@aidastyar.com');
+            
+            if(is_wp_error($user_id)) {
+                wp_send_json_error('خطا در ایجاد حساب کاربری');
+                return;
+            }
+            
+            update_user_meta($user_id, 'mobile', $mobile);
+            $user = get_user_by('id', $user_id);
+        }
+        
+        // ورود کاربر
+        wp_clear_auth_cookie();
+        wp_set_current_user($user->ID);
+        wp_set_auth_cookie($user->ID);
+        
+        delete_transient($transient_name);
+        
+        wp_send_json_success('ورود موفقیت‌آمیز');
+    }
+}
+add_action('wp_ajax_verify_otp', 'verify_otp_request');
+add_action('wp_ajax_nopriv_verify_otp', 'verify_otp_request');
+
+// اضافه کردن منوی لاگین به نوار مدیریت
+function add_custom_login_menu_item($items, $args) {
+    if ($args->theme_location == 'primary') {
+        if (!is_user_logged_in()) {
+            $items .= '<li><a href="' . home_url('/login') . '">ورود / ثبت‌نام</a></li>';
+        } else {
+            $items .= '<li><a href="' . wp_logout_url(home_url()) . '">خروج</a></li>';
+        }
+    }
+    return $items;
+}
+add_filter('wp_nav_menu_items', 'add_custom_login_menu_item', 10, 2);
