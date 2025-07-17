@@ -1,40 +1,4 @@
-<?php
-/*
-/home/aidastya/public_html/test/wp-content/themes/ai-assistant/custom-login.php
-Template Name: Custom OTP Login
-*/
-get_header(); ?>
-
-<div class="otp-login-container">
-    <h2>ورود با کد یکبار مصرف</h2>
-    
-    <div id="step1">
-        <form id="otp-request-form">
-            <div class="form-group">
-                <label for="mobile">شماره موبایل</label>
-                <input type="text" id="mobile" name="mobile" placeholder="09xxxxxxxxx" required>
-            </div>
-            <button type="submit">دریافت کد تایید</button>
-        </form>
-    </div>
-    
-    <div id="step2" style="display:none;">
-        <form id="otp-verify-form">
-            <div class="form-group">
-                <label for="otp-code">کد تایید</label>
-                <input type="text" id="otp-code" name="otp_code" placeholder="کد ۵ رقمی" required>
-            </div>
-            <input type="hidden" id="verify-mobile" name="mobile">
-            <button type="submit">تایید و ورود</button>
-        </form>
-        <p id="countdown">زمان باقیمانده: ۲:۰۰</p>
-        <button id="resend-otp" style="display:none;">ارسال مجدد کد</button>
-    </div>
-    
-    <div id="message"></div>
-</div>
-
-<style>
+/*/home/aidastya/public_html/test/wp-content/themes/ai-assistant/modules/otp/otp-assets/otp.css*/
 .otp-login-container {
     max-width: 400px;
     margin: 50px auto;
@@ -44,14 +8,17 @@ get_header(); ?>
     direction: rtl;
     text-align: right;
 }
+
 .form-group {
     margin-bottom: 15px;
 }
+
 .form-group label {
     display: block;
     margin-bottom: 5px;
     font-weight: bold;
 }
+
 .form-group input {
     width: 100%;
     padding: 10px;
@@ -59,6 +26,7 @@ get_header(); ?>
     border-radius: 4px;
     box-sizing: border-box;
 }
+
 button {
     background: #0073aa;
     color: white;
@@ -69,44 +37,47 @@ button {
     font-size: 16px;
     width: 100%;
 }
+
 button:hover {
     background: #005177;
 }
+
 #message {
     margin-top: 15px;
     padding: 10px;
     border-radius: 4px;
     display: none;
 }
+
 .success {
     background: #d4edda;
     color: #155724;
     border: 1px solid #c3e6cb;
 }
+
 .error {
     background: #f8d7da;
     color: #721c24;
     border: 1px solid #f5c6cb;
 }
+
 #countdown {
     color: #dc3545;
     font-weight: bold;
     text-align: center;
     margin: 15px 0;
 }
+
 #resend-otp {
     background: #6c757d;
 }
+
 #resend-otp:hover {
     background: #5a6268;
 }
-</style>
-
-<script>
+-------------------------------------------------------------------------------------
+// /home/aidastya/public_html/test/wp-content/themes/ai-assistant/modules/otp/otp-assets/otp.js
 jQuery(document).ready(function($) {
-    // تشخیص محیط اجرا
-    var isTestEnv = window.location.hostname.includes('test.');
-    
     // ارسال درخواست OTP
     $('#otp-request-form').on('submit', function(e) {
         e.preventDefault();
@@ -118,12 +89,12 @@ jQuery(document).ready(function($) {
         }
         
         $.ajax({
-            url: '<?php echo admin_url('admin-ajax.php'); ?>',
+            url: otp_vars.ajax_url,
             type: 'POST',
             data: {
                 action: 'send_otp',
                 mobile: mobile,
-                is_test_env: isTestEnv
+                is_test_env: otp_vars.is_test_env
             },
             beforeSend: function() {
                 $('#message').hide().text('').removeClass('success error');
@@ -139,7 +110,7 @@ jQuery(document).ready(function($) {
                     $('#verify-mobile').val(mobile);
                     startCountdown(120);
                     
-                    if(isTestEnv && response.debug_code) {
+                    if(otp_vars.is_test_env && response.debug_code) {
                         console.log('کد OTP (فقط برای تست):', response.debug_code);
                         $('#message').html('کد تست: <strong>' + response.debug_code + '</strong><br>در محیط عملیاتی این کد نمایش داده نمی‌شود').addClass('success').show();
                     }
@@ -165,7 +136,7 @@ jQuery(document).ready(function($) {
         }
         
         $.ajax({
-            url: '<?php echo admin_url('admin-ajax.php'); ?>',
+            url: otp_vars.ajax_url,
             type: 'POST',
             data: {
                 action: 'verify_otp',
@@ -183,7 +154,7 @@ jQuery(document).ready(function($) {
                 if(response.success) {
                     $('#message').text('ورود موفقیت‌آمیز! در حال انتقال...').addClass('success').show();
                     setTimeout(function() {
-                        window.location.href = '<?php echo home_url(); ?>';
+                        window.location.href = otp_vars.home_url;
                     }, 2000);
                 } else {
                     $('#message').text(response.data || 'کد تایید نادرست است').addClass('error').show();
@@ -223,12 +194,107 @@ jQuery(document).ready(function($) {
         });
     }
 });
-</script>
+-------------------------------------------------------------------------------------
+<?php
+/*/home/aidastya/public_html/test/wp-content/themes/ai-assistant/modules/otp/class-otp-handler.php*/
+if (!defined('ABSPATH')) {
+    exit;
+}
 
-<?php get_footer(); ?>
----------------------------------------------------------------------------
+class OTP_Handler {
+    private static $instance = null;
+    
+    public static function get_instance() {
+        if (is_null(self::$instance)) {
+            self::$instance = new self();
+        }
+        return self::$instance;
+    }
+    
+    private function __construct() {
+        $this->init_hooks();
+    }
+    
+    private function init_hooks() {
+        // ثبت توابع AJAX
+        require_once __DIR__ . '/otp-ajax.php';
+        
+        // ثبت تمپلیت صفحه
+        add_filter('theme_page_templates', [$this, 'add_otp_template']);
+        add_filter('template_include', [$this, 'load_otp_template']);
+        
+        // اضافه کردن لینک لاگین به منو
+        add_filter('wp_nav_menu_items', [$this, 'add_login_menu_item'], 10, 2);
+        
+        // بارگذاری فایل‌های استاتیک
+        add_action('wp_enqueue_scripts', [$this, 'load_assets']);
+    }
+    
+    public function add_otp_template($templates) {
+        $templates['custom-login.php'] = 'Custom OTP Login';
+        return $templates;
+    }
+    
+    public function load_otp_template($template) {
+        if (get_page_template_slug() === 'custom-login.php') {
+            return __DIR__ . '/otp-login-template.php';
+        }
+        return $template;
+    }
+    
+    public function add_login_menu_item($items, $args) {
+        if ($args->theme_location == 'primary') {
+            if (!is_user_logged_in()) {
+                $items .= '<li><a href="' . home_url('/login') . '">ورود / ثبت‌نام</a></li>';
+            } else {
+                $items .= '<li><a href="' . wp_logout_url(home_url()) . '">خروج</a></li>';
+            }
+        }
+        return $items;
+    }
+    
+    public function load_assets() {
+        if (is_page_template('custom-login.php')) {
+            wp_enqueue_style('otp-css', get_template_directory_uri() . '/modules/otp/otp-assets/otp.css');
+            wp_enqueue_script('otp-js', get_template_directory_uri() . '/modules/otp/otp-assets/otp.js', ['jquery'], null, true);
+            
+            wp_localize_script('otp-js', 'otp_vars', [
+                'ajax_url' => admin_url('admin-ajax.php'),
+                'home_url' => home_url(),
+                'is_test_env' => strpos(home_url(), 'test.') !== false
+            ]);
+        }
+    }
+    
+    // توابع کمکی
+    public static function check_rate_limit($mobile) {
+        $max_attempts = 3;
+        $time_window = HOUR_IN_SECONDS;
+        $transient_key = 'otp_rate_' . md5($mobile . $_SERVER['REMOTE_ADDR']);
+        
+        $attempts = (int) get_transient($transient_key);
+        
+        if ($attempts >= $max_attempts) {
+            $remaining = get_transient_timeout($transient_key);
+            return new WP_Error(
+                'rate_limit_exceeded',
+                sprintf('تعداد درخواست‌های شما بیش از حد مجاز است. لطفاً پس از %d دقیقه مجدداً تلاش کنید.', ceil($remaining / 60))
+            );
+        }
+        
+        set_transient($transient_key, $attempts + 1, $time_window);
+        return true;
+    }
+}
 
-// /home/aidastya/public_html/test/wp-content/themes/ai-assistant/functions.php
+OTP_Handler::get_instance();
+-------------------------------------------------------------------------------------
+<?php
+/*/home/aidastya/public_html/test/wp-content/themes/ai-assistant/modules/otp/otp-ajax.php*/
+if (!defined('ABSPATH')) {
+    exit;
+}
+
 // تابع ارسال OTP
 function send_otp_request() {
     $mobile = sanitize_text_field($_POST['mobile']);
@@ -240,7 +306,7 @@ function send_otp_request() {
         return;
     }
     
-    $rate_check = check_rate_limit($mobile);
+    $rate_check = OTP_Handler::check_rate_limit($mobile);
     if (is_wp_error($rate_check)) {
         wp_send_json_error($rate_check->get_error_message());
         return;
@@ -363,37 +429,46 @@ function verify_otp_request() {
 }
 add_action('wp_ajax_verify_otp', 'verify_otp_request');
 add_action('wp_ajax_nopriv_verify_otp', 'verify_otp_request');
+-------------------------------------------------------------------------------------
+<?php
+/**
+ * /home/aidastya/public_html/test/wp-content/themes/ai-assistant/modules/otp/otp-login-template.php
+ * Template Name: Custom OTP Login
+ */
 
-// اضافه کردن منوی لاگین به نوار مدیریت
-function add_custom_login_menu_item($items, $args) {
-    if ($args->theme_location == 'primary') {
-        if (!is_user_logged_in()) {
-            $items .= '<li><a href="' . home_url('/login') . '">ورود / ثبت‌نام</a></li>';
-        } else {
-            $items .= '<li><a href="' . wp_logout_url(home_url()) . '">خروج</a></li>';
-        }
-    }
-    return $items;
-}
-add_filter('wp_nav_menu_items', 'add_custom_login_menu_item', 10, 2);
+get_header(); ?>
 
+<div class="otp-login-container">
+    <h2>ورود با کد یکبار مصرف</h2>
+    
+    <div id="step1">
+        <form id="otp-request-form">
+            <div class="form-group">
+                <label for="mobile">شماره موبایل</label>
+                <input type="text" id="mobile" name="mobile" placeholder="09xxxxxxxxx" required>
+            </div>
+            <button type="submit">دریافت کد تایید</button>
+        </form>
+    </div>
+    
+    <div id="step2" style="display:none;">
+        <form id="otp-verify-form">
+            <div class="form-group">
+                <label for="otp-code">کد تایید</label>
+                <input type="text" id="otp-code" name="otp_code" placeholder="کد ۵ رقمی" required>
+            </div>
+            <input type="hidden" id="verify-mobile" name="mobile">
+            <button type="submit">تایید و ورود</button>
+        </form>
+        <p id="countdown">زمان باقیمانده: ۲:۰۰</p>
+        <button id="resend-otp" style="display:none;">ارسال مجدد کد</button>
+    </div>
+    
+    <div id="message"></div>
+</div>
 
-function check_rate_limit($mobile) {
-    $max_attempts = 3; // حداکثر ۳ درخواست در هر بازه
-    $time_window = HOUR_IN_SECONDS; // بازه زمانی ۱ ساعت
-    
-    $transient_key = 'otp_rate_' . md5($mobile . $_SERVER['REMOTE_ADDR']); // ترکیب موبایل + IP
-    
-    $attempts = (int) get_transient($transient_key);
-    
-    if ($attempts >= $max_attempts) {
-        $remaining = get_transient_timeout($transient_key);
-        return new WP_Error(
-            'rate_limit_exceeded',
-            sprintf('تعداد درخواست‌های شما بیش از حد مجاز است. لطفاً پس از %d دقیقه مجدداً تلاش کنید.', ceil($remaining / 60))
-        );
-    }
-    
-    set_transient($transient_key, $attempts + 1, $time_window);
-    return true;
-}
+<?php get_footer(); ?>
+-------------------------------------------------------------------------------------
+// /home/aidastya/public_html/test/wp-content/themes/ai-assistant/functions.php
+require_once get_template_directory() . '/modules/otp/class-otp-handler.php';
+-------------------------------------------------------------------------------------
