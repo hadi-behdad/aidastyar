@@ -228,6 +228,7 @@ jQuery(document).ready(function($) {
 <?php get_footer(); ?>
 ---------------------------------------------------------------------------
 
+// /home/aidastya/public_html/test/wp-content/themes/ai-assistant/functions.php
 // تابع ارسال OTP
 function send_otp_request() {
     $mobile = sanitize_text_field($_POST['mobile']);
@@ -236,6 +237,12 @@ function send_otp_request() {
     // اعتبارسنجی شماره موبایل
     if(empty($mobile) || !preg_match('/^09[0-9]{9}$/', $mobile)) {
         wp_send_json_error('شماره موبایل معتبر نیست (فرمت صحیح: 09123456789)');
+        return;
+    }
+    
+    $rate_check = check_rate_limit($mobile);
+    if (is_wp_error($rate_check)) {
+        wp_send_json_error($rate_check->get_error_message());
         return;
     }
     
@@ -317,6 +324,16 @@ function verify_otp_request() {
     if($stored_otp === false) {
         wp_send_json_error('کد تایید منقضی شده است');
     } elseif($stored_otp != $otp_code) {
+        // افزایش شمارنده تلاش‌های ناموفق
+        $fail_key = 'otp_fails_' . md5($mobile . $_SERVER['REMOTE_ADDR']);
+        $fails = (int) get_transient($fail_key);
+        set_transient($fail_key, $fails + 1, 15 * MINUTE_IN_SECONDS);
+        
+        if ($fails >= 5) {
+            wp_send_json_error('تعداد تلاش‌های ناموفق شما بیش از حد مجاز است. لطفاً ۱۵ دقیقه دیگر تلاش کنید.');
+            return;
+        }
+        
         wp_send_json_error('کد تایید نادرست است');
     } else {
         // پیدا کردن یا ایجاد کاربر
@@ -359,3 +376,24 @@ function add_custom_login_menu_item($items, $args) {
     return $items;
 }
 add_filter('wp_nav_menu_items', 'add_custom_login_menu_item', 10, 2);
+
+
+function check_rate_limit($mobile) {
+    $max_attempts = 3; // حداکثر ۳ درخواست در هر بازه
+    $time_window = HOUR_IN_SECONDS; // بازه زمانی ۱ ساعت
+    
+    $transient_key = 'otp_rate_' . md5($mobile . $_SERVER['REMOTE_ADDR']); // ترکیب موبایل + IP
+    
+    $attempts = (int) get_transient($transient_key);
+    
+    if ($attempts >= $max_attempts) {
+        $remaining = get_transient_timeout($transient_key);
+        return new WP_Error(
+            'rate_limit_exceeded',
+            sprintf('تعداد درخواست‌های شما بیش از حد مجاز است. لطفاً پس از %d دقیقه مجدداً تلاش کنید.', ceil($remaining / 60))
+        );
+    }
+    
+    set_transient($transient_key, $attempts + 1, $time_window);
+    return true;
+}
