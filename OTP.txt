@@ -1,79 +1,354 @@
 /*/home/aidastya/public_html/test/wp-content/themes/ai-assistant/modules/otp/otp-assets/otp.css*/
-.otp-login-container {
-    max-width: 400px;
-    margin: 50px auto;
-    padding: 20px;
-    border: 1px solid #ddd;
-    border-radius: 5px;
-    direction: rtl;
+:root {
+    --primary-color: #4361ee;
+    --primary-dark: #3a56d4;
+    --secondary-color: #3f37c9;
+    --text-color: #2b2d42;
+    --light-gray: #f8f9fa;
+    --gray: #adb5bd;
+    --dark-gray: #495057;
+    --success-color: #4bb543;
+    --error-color: #ff3333;
+    --border-radius: 12px;
+    --box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+}
+
+@font-face {
+    font-family: Vazir;
+    src: url('../../../assets/fonts/Vazir.woff2') format('woff2'),
+         url('../../../assets/fonts/Vazir.woff') format('woff');
+    font-weight: normal;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: BordeauxBlack;
+    src: url('../../../assets/fonts/BordeauxBlack.woff2') format('woff2'),
+         url('../../../assets/fonts/BordeauxBlack.woff') format('woff');
+    font-weight: normal;
+    font-style: normal;
+}
+
+input, button, textarea, select {
+    font-family: Vazir, Tahoma, sans-serif;
+}
+
+input {
     text-align: right;
-}
-
-.form-group {
-    margin-bottom: 15px;
-}
-
-.form-group label {
-    display: block;
-    margin-bottom: 5px;
-    font-weight: bold;
-}
-
-.form-group input {
-    width: 100%;
-    padding: 10px;
-    border: 1px solid #ddd;
-    border-radius: 4px;
-    box-sizing: border-box;
-}
-
-button {
-    background: #0073aa;
-    color: white;
-    border: none;
-    padding: 10px 20px;
-    cursor: pointer;
-    border-radius: 4px;
-    font-size: 16px;
-    width: 100%;
-}
-
-button:hover {
-    background: #005177;
+    direction: rtl;
 }
 
 #message {
-    margin-top: 15px;
-    padding: 10px;
-    border-radius: 4px;
+    line-height: 1.6;
+    text-align: right;
+}
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: Vazir, Tahoma, sans-serif;
+    background-color: #f5f7ff;
+    color: var(--text-color);
+    text-align: right;
+    line-height: 1.8;
+}
+
+.otp-login-wrapper {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    padding: 20px;
+    position: relative;
+    overflow: hidden;
+}
+
+.otp-login-container {
+    width: 100%;
+    max-width: 420px;
+    background: white;
+    border-radius: var(--border-radius);
+    box-shadow: var(--box-shadow);
+    padding: 40px;
+    position: relative;
+    z-index: 2;
+}
+
+.otp-header {
+    text-align: center;
+    margin-bottom: 30px;
+}
+
+.otp-header .logo {
+    margin-bottom: 20px;
+}
+
+.otp-header .logo img {
+    height: 150px;
+}
+
+.otp-header h2 {
+    font-size: 24px;
+    font-weight: 700;
+    color: var(--text-color);
+    margin-bottom: 8px;
+}
+
+.otp-header p {
+    color: var(--gray);
+    font-size: 14px;
+}
+
+.form-group {
+    position: relative;
+    margin-bottom: 20px;
+}
+
+.floating-label input {
+    width: 100%;
+    padding: 16px 20px 16px 45px;
+    border: 1px solid #e0e0e0;
+    border-radius: var(--border-radius);
+    font-size: 15px;
+    transition: all 0.3s ease;
+    background-color: var(--light-gray);
+    height: 52px;
+}
+
+.floating-label input:focus {
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.1);
+    outline: none;
+}
+
+.floating-label input:focus + label,
+.floating-label input:not(:placeholder-shown) + label {
+    transform: translateY(-22px) scale(0.85);
+    background: white;
+    padding: 0 5px;
+    right: 35px;
+    color: var(--primary-color);
+}
+
+.floating-label label {
+    position: absolute;
+    right: 45px;
+    top: 16px;
+    color: var(--gray);
+    transition: all 0.3s ease;
+    pointer-events: none;
+    font-size: 15px;
+}
+
+.floating-label .prefix {
+    position: absolute;
+    left: 15px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--dark-gray);
+    font-size: 15px;
+}
+
+.btn-primary {
+    width: 100%;
+    padding: 16px;
+    background-color: var(--primary-color);
+    color: white;
+    border: none;
+    border-radius: var(--border-radius);
+    font-size: 15px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 52px;
+    margin-top: 10px;
+}
+
+.btn-primary:hover {
+    background-color: var(--primary-dark);
+    transform: translateY(-2px);
+}
+
+.btn-primary:active {
+    transform: translateY(0);
+}
+
+.btn-text {
+    transition: all 0.3s ease;
+}
+
+.btn-loader {
+    width: 20px;
+    height: 20px;
+    border: 3px solid rgba(255, 255, 255, 0.3);
+    border-radius: 50%;
+    border-top-color: white;
+    animation: spin 1s ease-in-out infinite;
+    display: none;
+    margin-right: 10px;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+.btn-resend {
+    background: none;
+    border: none;
+    color: var(--primary-color);
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    transition: all 0.3s ease;
+    padding: 8px 12px;
+    border-radius: 6px;
+}
+
+.btn-resend:hover {
+    background-color: rgba(67, 97, 238, 0.1);
+}
+
+.btn-resend svg {
+    transition: transform 0.5s ease;
+}
+
+.btn-resend:hover svg {
+    transform: rotate(360deg);
+}
+
+.otp-input-hint {
+    text-align: center;
+    margin: 15px 0;
+    font-size: 13px;
+    color: var(--gray);
+}
+
+.otp-input-hint #mobile-display {
+    font-weight: 600;
+    color: var(--text-color);
+}
+
+.otp-countdown {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-top: 25px;
+}
+
+.countdown-timer {
+    position: relative;
+    width: 60px;
+    height: 60px;
+    margin-bottom: 15px;
+}
+
+.countdown-circle {
+    width: 100%;
+    height: 100%;
+    transform: rotate(-90deg);
+}
+
+.circle-bg {
+    fill: none;
+    stroke: #e0e0e0;
+    stroke-width: 3;
+}
+
+.circle-fill {
+    fill: none;
+    stroke: var(--primary-color);
+    stroke-width: 3;
+    stroke-linecap: round;
+    transition: stroke-dasharray 1s linear;
+}
+
+.countdown-text {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--primary-color);
+}
+
+.otp-message {
+    margin-top: 20px;
+    padding: 12px 16px;
+    border-radius: var(--border-radius);
+    font-size: 14px;
     display: none;
 }
 
-.success {
-    background: #d4edda;
-    color: #155724;
-    border: 1px solid #c3e6cb;
+.otp-message.success {
+    background-color: rgba(75, 181, 67, 0.1);
+    color: var(--success-color);
+    border: 1px solid rgba(75, 181, 67, 0.3);
 }
 
-.error {
-    background: #f8d7da;
-    color: #721c24;
-    border: 1px solid #f5c6cb;
+.otp-message.error {
+    background-color: rgba(255, 51, 51, 0.1);
+    color: var(--error-color);
+    border: 1px solid rgba(255, 51, 51, 0.3);
 }
 
-#countdown {
-    color: #dc3545;
-    font-weight: bold;
+.otp-footer {
+    margin-top: 30px;
     text-align: center;
-    margin: 15px 0;
+    font-size: 12px;
+    color: var(--gray);
 }
 
-#resend-otp {
-    background: #6c757d;
+.otp-footer a {
+    color: var(--primary-color);
+    text-decoration: none;
 }
 
-#resend-otp:hover {
-    background: #5a6268;
+.otp-design-elements {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    top: 0;
+    left: 0;
+    pointer-events: none;
+    z-index: 1;
+}
+
+.circle {
+    position: absolute;
+    border-radius: 50%;
+    background: linear-gradient(135deg, rgba(67, 97, 238, 0.1) 0%, rgba(63, 55, 201, 0.1) 100%);
+}
+
+.circle-1 {
+    width: 300px;
+    height: 300px;
+    top: -100px;
+    right: -100px;
+}
+
+.circle-2 {
+    width: 200px;
+    height: 200px;
+    bottom: -50px;
+    left: -50px;
+}
+
+.circle-3 {
+    width: 150px;
+    height: 150px;
+    top: 50%;
+    left: 10%;
 }
 -------------------------------------------------------------------------------------
 // /home/aidastya/public_html/test/wp-content/themes/ai-assistant/modules/otp/otp-assets/otp.js
@@ -81,10 +356,11 @@ jQuery(document).ready(function($) {
     // ارسال درخواست OTP
     $('#otp-request-form').on('submit', function(e) {
         e.preventDefault();
+        var $form = $(this);
         var mobile = $('#mobile').val();
         
         if(!/^09\d{9}$/.test(mobile)) {
-            $('#message').text('شماره موبایل معتبر نیست (فرمت صحیح: 09123456789)').addClass('error').show();
+            showMessage('شماره موبایل معتبر نیست (فرمت صحیح: 09123456789)', 'error');
             return;
         }
         
@@ -97,29 +373,33 @@ jQuery(document).ready(function($) {
                 is_test_env: otp_vars.is_test_env
             },
             beforeSend: function() {
-                $('#message').hide().text('').removeClass('success error');
-                $('button').prop('disabled', true);
+                $form.find('.btn-text').text('در حال ارسال...');
+                $form.find('.btn-loader').show();
+                $form.find('button').prop('disabled', true);
+                $('#message').hide();
             },
             complete: function() {
-                $('button').prop('disabled', false);
+                $form.find('.btn-text').text('دریافت کد تایید');
+                $form.find('.btn-loader').hide();
+                $form.find('button').prop('disabled', false);
             },
             success: function(response) {
                 if(response.success) {
                     $('#step1').hide();
                     $('#step2').show();
                     $('#verify-mobile').val(mobile);
+                    $('#mobile-display').text(mobile);
                     startCountdown(120);
                     
                     if(otp_vars.is_test_env && response.debug_code) {
-                        console.log('کد OTP (فقط برای تست):', response.debug_code);
-                        $('#message').html('کد تست: <strong>' + response.debug_code + '</strong><br>در محیط عملیاتی این کد نمایش داده نمی‌شود').addClass('success').show();
+                        showMessage('کد تست: <strong>' + response.debug_code + '</strong><br>در محیط عملیاتی این کد نمایش داده نمی‌شود', 'success');
                     }
                 } else {
-                    $('#message').text(response.data || 'خطا در ارسال کد تایید').addClass('error').show();
+                    showMessage(response.data || 'خطا در ارسال کد تایید', 'error');
                 }
             },
             error: function() {
-                $('#message').text('خطا در ارتباط با سرور').addClass('error').show();
+                showMessage('خطا در ارتباط با سرور', 'error');
             }
         });
     });
@@ -127,11 +407,12 @@ jQuery(document).ready(function($) {
     // تایید OTP
     $('#otp-verify-form').on('submit', function(e) {
         e.preventDefault();
+        var $form = $(this);
         var mobile = $('#verify-mobile').val();
         var otp_code = $('#otp-code').val();
         
         if(!otp_code || otp_code.length !== 5) {
-            $('#message').text('لطفا کد تایید ۵ رقمی را وارد کنید').addClass('error').show();
+            showMessage('لطفا کد تایید ۵ رقمی را وارد کنید', 'error');
             return;
         }
         
@@ -144,51 +425,77 @@ jQuery(document).ready(function($) {
                 otp_code: otp_code
             },
             beforeSend: function() {
-                $('#message').hide().text('').removeClass('success error');
-                $('button').prop('disabled', true);
+                $form.find('.btn-text').text('در حال بررسی...');
+                $form.find('.btn-loader').show();
+                $form.find('button').prop('disabled', true);
+                $('#message').hide();
             },
             complete: function() {
-                $('button').prop('disabled', false);
+                $form.find('.btn-text').text('تایید و ورود');
+                $form.find('.btn-loader').hide();
+                $form.find('button').prop('disabled', false);
             },
             success: function(response) {
                 if(response.success) {
-                    $('#message').text('ورود موفقیت‌آمیز! در حال انتقال...').addClass('success').show();
+                    showMessage('ورود موفقیت‌آمیز! در حال انتقال...', 'success');
                     setTimeout(function() {
                         window.location.href = otp_vars.home_url;
                     }, 2000);
                 } else {
-                    $('#message').text(response.data || 'کد تایید نادرست است').addClass('error').show();
+                    showMessage(response.data || 'کد تایید نادرست است', 'error');
                 }
             },
             error: function() {
-                $('#message').text('خطا در ارتباط با سرور').addClass('error').show();
+                showMessage('خطا در ارتباط با سرور', 'error');
             }
         });
     });
     
+    // نمایش پیام
+    function showMessage(text, type) {
+        var $message = $('#message');
+        $message.css('font-family', 'Vazir, IRANSans, sans-serif');
+        $message.html(text).removeClass('success error').addClass(type).fadeIn();
+        setTimeout(function() {
+            $message.fadeOut();
+        }, 5000);
+    }
+    
     // تایمر معکوس
     function startCountdown(duration) {
-        var timer = duration, minutes, seconds;
+        var timer = duration;
+        var $countdown = $('.countdown-text');
+        var $circleFill = $('.circle-fill');
+        var $resendBtn = $('#resend-otp');
+        
+        // محاسبه محیط دایره (2πr)
+        var circumference = 2 * Math.PI * 15.9155;
+        $circleFill.css('stroke-dasharray', circumference);
+        
         var countdownInterval = setInterval(function() {
-            minutes = parseInt(timer / 60, 10);
-            seconds = parseInt(timer % 60, 10);
+            var minutes = parseInt(timer / 60, 10);
+            var seconds = parseInt(timer % 60, 10);
             
             minutes = minutes < 10 ? "0" + minutes : minutes;
             seconds = seconds < 10 ? "0" + seconds : seconds;
             
-            $('#countdown').text("زمان باقیمانده: " + minutes + ":" + seconds);
+            $countdown.text(minutes + ":" + seconds);
+            
+            // محاسبه پیشرفت تایمر برای انیمیشن دایره
+            var progress = timer / duration;
+            $circleFill.css('stroke-dashoffset', circumference * progress);
             
             if (--timer < 0) {
                 clearInterval(countdownInterval);
-                $('#countdown').hide();
-                $('#resend-otp').show();
+                $('.countdown-timer').hide();
+                $resendBtn.fadeIn();
             }
         }, 1000);
         
-        $('#resend-otp').off('click').on('click', function() {
+        $resendBtn.off('click').on('click', function() {
             $('#otp-request-form').trigger('submit');
             $(this).hide();
-            $('#countdown').show();
+            $('.countdown-timer').show();
             clearInterval(countdownInterval);
             startCountdown(120);
         });
@@ -438,33 +745,78 @@ add_action('wp_ajax_nopriv_verify_otp', 'verify_otp_request');
 
 get_header(); ?>
 
-<div class="otp-login-container">
-    <h2>ورود با کد یکبار مصرف</h2>
-    
-    <div id="step1">
-        <form id="otp-request-form">
-            <div class="form-group">
-                <label for="mobile">شماره موبایل</label>
-                <input type="text" id="mobile" name="mobile" placeholder="09xxxxxxxxx" required>
+<div class="otp-login-wrapper">
+    <div class="otp-login-container">
+        <div class="otp-header">
+            <div class="logo">
+                <img src="<?php echo get_template_directory_uri(); ?>/assets/images/login-logo.avif" alt="Logo">
             </div>
-            <button type="submit">دریافت کد تایید</button>
-        </form>
+            <h2>ورود / ثبت‌نام</h2>
+            <p>کد تایید به شماره موبایل شما ارسال خواهد شد</p>
+        </div>
+        
+        <div id="step1" class="otp-step">
+            <form id="otp-request-form">
+                <div class="form-group floating-label">
+                    <input type="text" id="mobile" name="mobile" placeholder=" " required>
+                    <label for="mobile">شماره موبایل</label>
+                    <span class="prefix">+98</span>
+                </div>
+                <button type="submit" class="btn-primary">
+                    <span class="btn-text">دریافت کد تایید</span>
+                    <span class="btn-loader"></span>
+                </button>
+            </form>
+            
+            <div class="otp-footer">
+                <p>با ورود یا ثبت‌نام، <a href="#">شرایط و قوانین</a> را پذیرفته‌اید.</p>
+            </div>
+        </div>
+        
+        <div id="step2" class="otp-step" style="display:none;">
+            <form id="otp-verify-form">
+                <div class="form-group floating-label">
+                    <input type="text" id="otp-code" name="otp_code" placeholder=" " required>
+                    <label for="otp-code">کد تایید</label>
+                </div>
+                <input type="hidden" id="verify-mobile" name="mobile">
+                
+                <div class="otp-input-hint">
+                    <p>کد ۵ رقمی ارسال شده به شماره <span id="mobile-display"></span> را وارد کنید</p>
+                </div>
+                
+                <button type="submit" class="btn-primary">
+                    <span class="btn-text">تایید و ورود</span>
+                    <span class="btn-loader"></span>
+                </button>
+            </form>
+            
+            <div class="otp-countdown">
+                <div id="countdown" class="countdown-timer">
+                    <svg class="countdown-circle" viewBox="0 0 36 36">
+                        <path class="circle-bg" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+                        <path class="circle-fill" stroke-dasharray="100, 100" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+                    </svg>
+                    <span class="countdown-text">02:00</span>
+                </div>
+                <button id="resend-otp" class="btn-resend" style="display:none;">
+                    ارسال مجدد کد
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M1 4v6h6"></path>
+                        <path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"></path>
+                    </svg>
+                </button>
+            </div>
+        </div>
+        
+        <div id="message" class="otp-message"></div>
     </div>
     
-    <div id="step2" style="display:none;">
-        <form id="otp-verify-form">
-            <div class="form-group">
-                <label for="otp-code">کد تایید</label>
-                <input type="text" id="otp-code" name="otp_code" placeholder="کد ۵ رقمی" required>
-            </div>
-            <input type="hidden" id="verify-mobile" name="mobile">
-            <button type="submit">تایید و ورود</button>
-        </form>
-        <p id="countdown">زمان باقیمانده: ۲:۰۰</p>
-        <button id="resend-otp" style="display:none;">ارسال مجدد کد</button>
+    <div class="otp-design-elements">
+        <div class="circle circle-1"></div>
+        <div class="circle circle-2"></div>
+        <div class="circle circle-3"></div>
     </div>
-    
-    <div id="message"></div>
 </div>
 
 <?php get_footer(); ?>
