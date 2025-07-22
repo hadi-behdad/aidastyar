@@ -694,6 +694,10 @@ function send_otp_request() {
         $is_test_env = isset($_POST['is_test_env']) ? (bool)$_POST['is_test_env'] : false;
         $mobile = sanitize_text_field($_POST['mobile']);
         
+        // تنظیم کلید و قالب بر اساس محیط
+        $api_key = SMS_API_KEY;
+        $template_id = SMS_TEMPLATE_ID;
+        
         // غیرفعال کردن Rate Limit در محیط تستی
         if (!$is_test_env) { // فقط در محیط غیرتستی بررسی شود
             $rate_check = OTP_Handler::check_rate_limit($mobile);
@@ -712,19 +716,19 @@ function send_otp_request() {
         $transient_name = 'otp_' . $mobile;
         set_transient($transient_name, $otp_code, 10 * MINUTE_IN_SECONDS);
         
-        if($is_test_env) {
-            $log_message = "[OTP TEST] کد برای $mobile: $otp_code";
-            error_log($log_message);
+        // if($is_test_env) {
+        //     $log_message = "[OTP TEST] کد برای $mobile: $otp_code";
+        //     error_log($log_message);
             
-            wp_send_json_success([
-                'message' => 'کد تست تولید شد',
-                'debug_code' => $otp_code,
-                'mobile' => $mobile,
-                'is_test' => true,
-                'log_message' => $log_message // اضافه کردن این خط
-            ]);
-            return;
-        }
+        //     wp_send_json_success([
+        //         'message' => 'کد تست تولید شد',
+        //         'debug_code' => $otp_code,
+        //         'mobile' => $mobile,
+        //         'is_test' => true,
+        //         'log_message' => $log_message // اضافه کردن این خط
+        //     ]);
+        //     return;
+        // }
 
         // محیط عملیاتی
         $response = wp_remote_post('https://api.sms.ir/v1/send/verify', [
@@ -930,4 +934,4 @@ require_once get_template_directory() . '/modules/otp/class-otp-handler.php';
 -------------------------------------------------------------------------------------
 // /home/aidastya/public_html/test/wp-config.php
 define('SMS_API_KEY', 'your-real-api-key-here');
-define('SMS_TEMPLATE_ID', 123);
+define('SMS_TEMPLATE_ID', 406006);
