@@ -931,6 +931,21 @@ get_header(); ?>
 -------------------------------------------------------------------------------------
 // /home/aidastya/public_html/test/wp-content/themes/ai-assistant/functions.php
 require_once get_template_directory() . '/modules/otp/class-otp-handler.php';
+
+// تغییر مسیر صفحه ورود پیشفرض
+add_action('init', function() {
+    global $pagenow;
+    
+    if ('wp-login.php' == $pagenow && !isset($_POST['wp-submit'])) {
+        wp_redirect(home_url('/otp-login'));
+        exit();
+    }
+});
+
+// غیرفعال کردن دسترسی مستقیم به wp-login.php
+add_filter('login_url', function($login_url, $redirect) {
+    return home_url('/otp-login');
+}, 10, 2);
 -------------------------------------------------------------------------------------
 // /home/aidastya/public_html/test/wp-config.php
 define('SMS_API_KEY', 'your-real-api-key-here');
