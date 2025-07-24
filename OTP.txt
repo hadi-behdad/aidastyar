@@ -60,12 +60,12 @@ body {
 .otp-login-wrapper {
     display: flex;
     justify-content: center;
-    align-items: center;
-    min-height: 100vh;
-    padding: 20px;
+    align-items: flex-start;
+    min-height: 80vh;
+    padding: 10px 20px;
     position: relative;
     overflow: hidden;
-    padding-top: 0px;
+    padding-top: 20px;
 }
 
 .otp-login-container {
@@ -115,8 +115,13 @@ body {
     transition: all 0.3s ease;
     background-color: var(--light-gray);
     height: 52px;
-    text-align: left; /* تغییر جهت متن به چپ */
+    text-align: center; /* تغییر جهت متن به چپ */
     direction: ltr; /* تغییر جهت نوشتار به چپ به راست */
+}
+
+.floating-label input:focus,
+.floating-label input:not(:placeholder-shown) {
+    text-align: center !important;
 }
 
 .floating-label input:focus {
@@ -246,6 +251,10 @@ body {
     margin-top: 25px;
 }
 
+#otp-code {
+    text-align: center !important;
+}
+
 .countdown-timer {
     position: relative;
     width: 60px;
@@ -350,6 +359,11 @@ body {
     height: 150px;
     top: 50%;
     left: 10%;
+}
+
+/* مخفی کردن فوتر فرم */
+.ai-footer {
+    display: none !important;
 }
 -------------------------------------------------------------------------------------
 // /home/aidastya/public_html/test/wp-content/themes/ai-assistant/modules/otp/otp-assets/otp.js
