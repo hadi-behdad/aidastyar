@@ -556,6 +556,24 @@ jQuery(document).ready(function($) {
             startCountdown(120);
         });
     }
+
+    // اضافه کردن این کد در انتهای فایل (قبل از بسته شدن document.ready)
+    $(document).on('click', 'a[href*="action=logout"], .logout-link', function(e) {
+        e.preventDefault();
+        
+        // نمایش وضعیت بارگذاری
+        $(this).addClass('logging-out').text('در حال خروج...');
+        
+        $.post(otp_vars.ajax_url, {
+            action: 'force_logout',
+            security: otp_vars.nonce
+        }).done(function(response) {
+            // ریدایرکت اجباری حتی اگر کش شده باشد
+            window.location.href = response.data.redirect + '?logout=' + Math.random().toString(36).substring(7);
+        }).fail(function() {
+            window.location.href = otp_vars.home_url + '?force_logout=1';
+        });
+    });  
 });
 -------------------------------------------------------------------------------------
 <?php
@@ -601,9 +619,9 @@ class OTP_Handler {
     public function add_login_menu_item($items, $args) {
         if ($args->theme_location == 'primary') {
             if (!is_user_logged_in()) {
-                $items .= '<li><a href="' . home_url('/login') . '">ورود / ثبت‌نام</a></li>';
+                $items .= '<li><a href="' . esc_url(home_url('/otp-login')) . '">ورود / ثبت‌نام</a></li>';
             } else {
-                $items .= '<li><a href="' . wp_logout_url(home_url()) . '">خروج</a></li>';
+                $items .= '<li><a href="#" class="logout-link" data-nonce="' . wp_create_nonce('log-out') . '">خروج</a></li>';
             }
         }
         return $items;
@@ -616,8 +634,9 @@ class OTP_Handler {
             
             wp_localize_script('otp-js', 'otp_vars', [
                 'ajax_url' => admin_url('admin-ajax.php'),
-                'home_url' => home_url(),
-                'is_test_env' => strpos(home_url(), 'test.') !== false
+                'home_url' => home_url('/'),
+                'nonce' => wp_create_nonce('custom_logout_nonce'),
+                'is_test_env' => defined('WP_ENV') && WP_ENV === 'development'
             ]);
         }
     }
@@ -845,6 +864,35 @@ function verify_otp_request() {
 }
 add_action('wp_ajax_verify_otp', 'verify_otp_request');
 add_action('wp_ajax_nopriv_verify_otp', 'verify_otp_request');
+
+
+// اضافه کردن این کد در انتهای فایل (قبل از بسته شدن تگ PHP اگر وجود دارد)
+add_action('wp_ajax_force_logout', 'force_logout_handler');
+add_action('wp_ajax_nopriv_force_logout', 'force_logout_handler');
+function force_logout_handler() {
+    check_ajax_referer('custom_logout_nonce', 'security');
+    
+    // تخریب کامل session
+    wp_destroy_current_session();
+    wp_clear_auth_cookie();
+    wp_set_current_user(0);
+    
+    // پاک کردن تمام کوکی‌های مرتبط
+    if (isset($_COOKIE)) {
+        foreach ($_COOKIE as $name => $value) {
+            if (strpos($name, 'wordpress') !== false || strpos($name, 'wp-settings') !== false) {
+                unset($_COOKIE[$name]);
+                setcookie($name, '', time() - 3600, '/');
+                setcookie($name, '', time() - 3600, '/', COOKIE_DOMAIN);
+            }
+        }
+    }
+    
+    // اطمینان از عدم کش شدن
+    nocache_headers();
+    
+    wp_send_json_success(['redirect' => home_url()]);
+}
 -------------------------------------------------------------------------------------
 <?php
 /**
@@ -936,16 +984,38 @@ require_once get_template_directory() . '/modules/otp/class-otp-handler.php';
 add_action('init', function() {
     global $pagenow;
     
-    if ('wp-login.php' == $pagenow && !isset($_POST['wp-submit'])) {
-        wp_redirect(home_url('/otp-login'));
-        exit();
+    // فقط برای کاربران غیروارد شده اعمال شود و فقط زمانی که به wp-login.php دسترسی دارند
+    // و نه زمانی که به wp-admin دسترسی دارند
+    if (!is_user_logged_in() && 'wp-login.php' == $pagenow && !isset($_POST['wp-submit'])) {
+        // اگر در حال دسترسی به wp-admin نیست، به otp-login ریدایرکت شود
+        if (strpos($_SERVER['REQUEST_URI'], 'wp-admin') === false) {
+            wp_redirect(home_url('/otp-login'));
+            exit();
+        }
     }
 });
 
-// غیرفعال کردن دسترسی مستقیم به wp-login.php
-add_filter('login_url', function($login_url, $redirect) {
-    return home_url('/otp-login');
-}, 10, 2);
+// اضافه کردن این کد در انتهای فایل
+add_filter('logout_url', 'custom_logout_url', 10, 2);
+function custom_logout_url($logout_url, $redirect) {
+    return wp_nonce_url(home_url('/wp-login.php?action=logout&redirect_to=' . home_url()), 'log-out');
+}
+
+add_action('wp_logout', 'clear_auth_cookies_completely');
+function clear_auth_cookies_completely() {
+    wp_clear_auth_cookie();
+    
+    if (isset($_COOKIE)) {
+        foreach ($_COOKIE as $name => $value) {
+            if (strpos($name, 'wordpress') !== false) {
+                unset($_COOKIE[$name]);
+                setcookie($name, '', time() - 3600, '/', COOKIE_DOMAIN);
+            }
+        }
+    }
+    
+    nocache_headers();
+}
 -------------------------------------------------------------------------------------
 // /home/aidastya/public_html/test/wp-config.php
 define('SMS_API_KEY', 'your-real-api-key-here');
