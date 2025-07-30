@@ -1,5 +1,5 @@
-
 <?php
+// /home/aidastya/public_html/test/wp-content/themes/ai-assistant/services/diet/template-parts/form.php
 $theme_assets = get_stylesheet_directory_uri();
 ?>
 
@@ -8,7 +8,7 @@ $theme_assets = get_stylesheet_directory_uri();
     <?php wp_nonce_field('diet_form_nonce', 'diet_form_security'); ?>
     
     <div id="header-container">
-        <div id="step-counter"><span id="current-step">1</span>/<span id="total-steps">12</span></div>
+        <div id="step-counter"><span id="current-step">1</span>/<span id="total-steps">19</span></div>
         <button type="button" id="back-button">›</button>
     </div>
     
@@ -1078,14 +1078,17 @@ $theme_assets = get_stylesheet_directory_uri();
     
  
 <script>
-
+// تابع ذخیره فرم و هدایت به صفحه لاگین
 function saveFormAndRedirect() {
-    // ذخیره داده‌های فرم در localStorage
+    // ذخیره تمام داده‌های فرم در localStorage
     localStorage.setItem('diet_form_data', JSON.stringify(window.state.formData));
     localStorage.setItem('diet_form_current_step', window.state.currentStep);
     
-    // هدایت به صفحه لاگین با پارامتر redirect_to
+    // ذخیره URL فعلی برای بازگشت بعد از لاگین
     const currentUrl = window.location.href;
+    localStorage.setItem('diet_form_redirect_url', currentUrl);
+    
+    // هدایت به صفحه لاگین با پارامتر redirect_to
     const loginUrl = '<?php echo wp_login_url(); ?>?redirect_to=' + encodeURIComponent(currentUrl);
     window.location.href = loginUrl;
 }
@@ -1099,9 +1102,13 @@ window.addEventListener('load', function() {
         // بازیابی داده‌ها
         const savedData = JSON.parse(localStorage.getItem('diet_form_data'));
         const savedStep = parseInt(localStorage.getItem('diet_form_current_step'));
+        const redirectUrl = localStorage.getItem('diet_form_redirect_url');
         
-        // آپدیت state
-        Object.assign(window.state.formData, savedData);
+        // آپدیت state با داده‌های ذخیره شده
+        if (savedData) {
+            Object.assign(window.state.formData, savedData);
+            window.state.updateFormElementsFromState();
+        }
         
         // رفتن به مرحله ذخیره شده
         if (savedStep) {
@@ -1111,6 +1118,12 @@ window.addEventListener('load', function() {
         // پاک کردن داده‌های ذخیره شده
         localStorage.removeItem('diet_form_data');
         localStorage.removeItem('diet_form_current_step');
+        localStorage.removeItem('diet_form_redirect_url');
+        
+        // اگر URL ذخیره شده با URL فعلی متفاوت است، به آن صفحه هدایت شود
+        if (redirectUrl && redirectUrl !== window.location.href) {
+            window.location.href = redirectUrl;
+        }
     }
 });
 </script>
@@ -2983,6 +2996,7 @@ window.state = {
             if (mealOption) mealOption.classList.add('selected');
         }
         
+        // به روزرسانی مصرف آب
         if (this.formData.waterIntake !== undefined && this.formData.waterIntake !== null) {
             const waterCups = document.querySelectorAll('.water-cup');
             const waterAmount = this.formData.waterIntake;
@@ -3024,33 +3038,7 @@ window.state = {
                 option.style.pointerEvents = "auto";
                 option.style.filter = "none";
             });
-        }  
-        
-        // به روزرسانی اطلاعات تکمیلی (مرحله 14)
-        if (this.formData.additionalInfo) {
-            this.formData.additionalInfo.forEach(item => {
-                const checkboxId = `info-${item}`;
-                const checkbox = document.getElementById(checkboxId);
-                if (checkbox) {
-                    checkbox.checked = true;
-                    const label = checkbox.nextElementSibling;
-                    if (label) label.classList.add('checked');
-                }
-            });
         }
-    
-        // به روزرسانی محدودیت‌های غذایی (مرحله 15)
-        if (this.formData.foodRestrictions) {
-            this.formData.foodRestrictions.forEach(item => {
-                const checkboxId = `restriction-${item}`;
-                const checkbox = document.getElementById(checkboxId);
-                if (checkbox) {
-                    checkbox.checked = true;
-                    const label = checkbox.nextElementSibling;
-                    if (label) label.classList.add('checked');
-                }
-            });
-        }        
     }
 };
 
@@ -5302,6 +5290,7 @@ body.dark-mode .scroll-indicator:hover {
 
 <?php
 /**
+ * /home/aidastya/public_html/test/wp-content/themes/ai-assistant/functions.php
  * Functions for AI Assistant Theme
  */
 
@@ -5589,6 +5578,48 @@ add_filter('query_vars', function($vars) {
     $vars[] = 'logged_in';
     return $vars;
 });
+
+
+
+// /home/aidastya/public_html/test/wp-content/themes/ai-assistant/functions.php
+require_once get_template_directory() . '/modules/otp/class-otp-handler.php';
+
+// تغییر مسیر صفحه ورود پیشفرض
+add_action('init', function() {
+    global $pagenow;
+    
+    // فقط برای کاربران غیروارد شده اعمال شود و فقط زمانی که به wp-login.php دسترسی دارند
+    // و نه زمانی که به wp-admin دسترسی دارند
+    if (!is_user_logged_in() && 'wp-login.php' == $pagenow && !isset($_POST['wp-submit'])) {
+        // اگر در حال دسترسی به wp-admin نیست، به otp-login ریدایرکت شود
+        if (strpos($_SERVER['REQUEST_URI'], 'wp-admin') === false) {
+            wp_redirect(home_url('/otp-login'));
+            exit();
+        }
+    }
+});
+
+// اضافه کردن این کد در انتهای فایل
+add_filter('logout_url', 'custom_logout_url', 10, 2);
+function custom_logout_url($logout_url, $redirect) {
+    return wp_nonce_url(home_url('/wp-login.php?action=logout&redirect_to=' . home_url()), 'log-out');
+}
+
+add_action('wp_logout', 'clear_auth_cookies_completely');
+function clear_auth_cookies_completely() {
+    wp_clear_auth_cookie();
+    
+    if (isset($_COOKIE)) {
+        foreach ($_COOKIE as $name => $value) {
+            if (strpos($name, 'wordpress') !== false) {
+                unset($_COOKIE[$name]);
+                setcookie($name, '', time() - 3600, '/', COOKIE_DOMAIN);
+            }
+        }
+    }
+    
+    nocache_headers();
+}
 -----------------------------------------------------------------------------------------------------
 این کد رو ببین. 
 چیزهایی که تو نوشته پایین ازت میخوام رو تو قالب تیکه های کد که امکان کپی و دانلود داره برام بفرست که راحت بتونم کپی کنم
