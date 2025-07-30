@@ -61,7 +61,7 @@ body {
     display: flex;
     justify-content: center;
     align-items: flex-start;
-    min-height: 80vh;
+    min-height: 100vh;
     padding: 10px 20px;
     position: relative;
     overflow: hidden;
@@ -369,7 +369,6 @@ body {
 // /home/aidastya/public_html/test/wp-content/themes/ai-assistant/modules/otp/otp-assets/otp.js
 jQuery(document).ready(function($) {
 
-    console.log('is_test_env value:', otp_vars.is_test_env); // باید true باشد
     $('#otp-request-form').on('submit', function(e) {
         e.preventDefault();
         var $form = $(this);
@@ -396,7 +395,6 @@ jQuery(document).ready(function($) {
             data: {
                 action: 'send_otp',
                 mobile: mobile,
-                is_test_env: otp_vars.is_test_env
             },
             success: function(response) {
                 if(response.success) {
@@ -439,23 +437,12 @@ jQuery(document).ready(function($) {
         $('#mobile-display').text(mobile);
         startCountdown(120);
         
-        // این بخش جدید را اضافه کنید
-        if(response.is_test && response.debug_code) {
-            // روش تضمینی برای نمایش در کنسول
-            setTimeout(function() {
-                console.log(
-                    '%c[OTP TEST] کد برای ' + response.mobile + ': ' + response.debug_code, 
-                    'color: #4CAF50; font-weight: bold; font-size: 14px'
-                );
-                console.log(
-                    '%cاین کد فقط در محیط تست نمایش داده می‌شود',
-                    'color: #FF5722; font-style: italic'
-                );
-            }, 100);
-            
-            showMessage(`کد تست: ${response.debug_code} (فقط محیط آزمایشی)`, 'success');
+        // اصلاح این بخش:
+        if(otp_vars.is_sandbox && response.data && response.data.debug_code) {
+            const debugCode = response.data.debug_code;
+            showMessage(`کد آزمایشی: ${debugCode}`, 'success');
         } else {
-            showMessage(response.message || 'کد تایید ارسال شد', 'success');
+            showMessage(response.data?.message || 'کد تایید ارسال شد', 'success');
         }
     }
     
@@ -650,15 +637,15 @@ class OTP_Handler {
                 'ajax_url' => admin_url('admin-ajax.php'),
                 'home_url' => home_url('/'),
                 'nonce' => wp_create_nonce('custom_logout_nonce'),
-                'is_test_env' => defined('WP_ENV') && WP_ENV === 'development'
+                'is_sandbox' => defined('OTP_ENV') && OTP_ENV === 'sandbox' // فقط این خط باقی می‌ماند
             ]);
         }
     }
     
     public static function check_rate_limit($mobile) {
-        if (defined('IS_TEST_ENV') && IS_TEST_ENV) {
-            return true; // غیرفعال در محیط تست
-        }        
+        if (defined('OTP_ENV') && OTP_ENV === 'sandbox') {
+            return true;
+        }    
         $max_attempts = 5;
         $time_window = HOUR_IN_SECONDS;
         $ip = $_SERVER['REMOTE_ADDR'];
@@ -723,21 +710,18 @@ if (!defined('ABSPATH')) {
 // تابع ارسال OTP
 function send_otp_request() {
     try {
-        // در ابتدای تابع send_otp_request() این شرط را اضافه کنید:
-        $is_test_env = isset($_POST['is_test_env']) ? (bool)$_POST['is_test_env'] : false;
         $mobile = sanitize_text_field($_POST['mobile']);
         
-        // تنظیم کلید و قالب بر اساس محیط
-        $api_key = SMS_API_KEY;
-        $template_id = SMS_TEMPLATE_ID;
+        // بررسی محیط اجرا
+        $is_sandbox = (defined('OTP_ENV') && OTP_ENV === 'sandbox');
         
         // غیرفعال کردن Rate Limit در محیط تستی
-        if (!$is_test_env) { // فقط در محیط غیرتستی بررسی شود
+        if (!$is_sandbox) {
             $rate_check = OTP_Handler::check_rate_limit($mobile);
             if (is_wp_error($rate_check)) {
                 throw new Exception($rate_check->get_error_message());
             }
-        }      
+        }
         
         // اعتبارسنجی شماره موبایل
         if(empty($mobile) || !preg_match('/^09[0-9]{9}$/', $mobile)) {
@@ -749,40 +733,36 @@ function send_otp_request() {
         $transient_name = 'otp_' . $mobile;
         set_transient($transient_name, $otp_code, 10 * MINUTE_IN_SECONDS);
         
-        // if($is_test_env) {
-        //     $log_message = "[OTP TEST] کد برای $mobile: $otp_code";
-        //     error_log($log_message);
-            
-        //     wp_send_json_success([
-        //         'message' => 'کد تست تولید شد',
-        //         'debug_code' => $otp_code,
-        //         'mobile' => $mobile,
-        //         'is_test' => true,
-        //         'log_message' => $log_message // اضافه کردن این خط
-        //     ]);
-        //     return;
-        // }
+        // اگر در محیط sandbox هستیم
+        if ($is_sandbox) {
+            wp_send_json_success([
+                'message' => 'کد آزمایشی تولید شد',
+                'debug_code' => $otp_code, // این خط بسیار مهم است
+                'mobile' => $mobile,
+                'is_test' => true
+            ]);
+            return;
+        }
 
-        // محیط عملیاتی
+        // محیط عملیاتی - ارسال واقعی پیامک
         $response = wp_remote_post('https://api.sms.ir/v1/send/verify', [
             'timeout' => 15,
             'headers' => [
                 'Content-Type' => 'application/json',
                 'Accept' => 'text/plain',
-                'x-api-key' => $api_key
+                'x-api-key' => SMS_API_KEY
             ],
             'body' => json_encode([
                 'mobile' => $mobile,
-                'templateId' => $template_id,
+                'templateId' => SMS_TEMPLATE_ID,
                 'parameters' => [['name' => 'Code', 'value' => $otp_code]]
             ])
         ]);
 
-        // ثبت کامل پاسخ سرور برای دیباگ
         error_log("[OTP API REQUEST] Request: " . print_r([
             'url' => 'https://api.sms.ir/v1/send/verify',
-            'headers' => ['x-api-key' => '****' . substr($api_key, -4)],
-            'body' => ['mobile' => $mobile, 'templateId' => $template_id]
+            'headers' => ['x-api-key' => '****' . substr(SMS_API_KEY, -4)],
+            'body' => ['mobile' => $mobile, 'templateId' => SMS_TEMPLATE_ID]
         ], true));
 
         if(is_wp_error($response)) {
@@ -1032,5 +1012,6 @@ function clear_auth_cookies_completely() {
 }
 -------------------------------------------------------------------------------------
 // /home/aidastya/public_html/test/wp-config.php
-define('SMS_API_KEY', 'your-real-api-key-here');
-define('SMS_TEMPLATE_ID', 406006);
+define( 'OTP_ENV',          'sandbox');
+define( 'SMS_API_KEY',      'AURMucsaG1wzQtYLNbrTWHzAW0Dil473OLy0EVuAfGkLIKEq');
+define( 'SMS_TEMPLATE_ID',  406006);
