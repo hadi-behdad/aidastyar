@@ -366,7 +366,7 @@ body {
     display: none !important;
 }
 -------------------------------------------------------------------------------------
-// /home/aidastya/public_html/test/wp-content/themes/ai-assistant/modules/otp/otp-assets/otp.js
+// /home/aidastya/public_html/test/wp-content/themes/ai-assistant-test/modules/otp/otp-assets/otp.js
 jQuery(document).ready(function($) {
 
     $('#otp-request-form').on('submit', function(e) {
@@ -475,11 +475,28 @@ jQuery(document).ready(function($) {
             },
             success: function(response) {
                 console.log('Raw response:', response);
+                // در قسمت موفقیت‌آمیز بودن ورود OTP
                 if(response.success) {
                     showMessage('ورود موفقیت‌آمیز! در حال انتقال...', 'success');
+                    
+                    // بررسی وجود redirect_url در sessionStorage
+                    let redirectUrl = sessionStorage.getItem('diet_form_redirect_url') || otp_vars.home_url;
+                    
+                    // حذف پارامترهای موجود از URL
+                    redirectUrl = redirectUrl.split('?')[0];
+                    
+                    // اضافه کردن پارامتر logged_in
+                    redirectUrl += (redirectUrl.includes('?') ? '&' : '?') + 'logged_in=1';
+                    
+                    // اضافه کردن هش مرحله ذخیره شده
+                    const savedStep = sessionStorage.getItem('diet_form_current_step');
+                    if (savedStep) {
+                        redirectUrl += `#step-${savedStep}`;
+                    }
+                    
                     setTimeout(function() {
-                        window.location.href = otp_vars.home_url;
-                    }, 2000);
+                        window.location.href = redirectUrl;
+                    }, 1500);
                 } else {
                     showMessage(response.data || 'کد تایید نادرست است', 'error');
                 }
@@ -498,7 +515,6 @@ jQuery(document).ready(function($) {
             }
         });
     });
-    
     // نمایش پیام
     function showMessage(text, type) {
         var $message = $('#message');
@@ -579,7 +595,7 @@ jQuery(document).ready(function($) {
 });
 -------------------------------------------------------------------------------------
 <?php
-/*/home/aidastya/public_html/test/wp-content/themes/ai-assistant/modules/otp/class-otp-handler.php*/
+/*/home/aidastya/public_html/test/wp-content/themes/ai-assistant-test/modules/otp/class-otp-handler.php*/
 if (!defined('ABSPATH')) {
     exit;
 }
@@ -703,7 +719,7 @@ class OTP_Handler {
 OTP_Handler::get_instance();
 -------------------------------------------------------------------------------------
 <?php
-// /home/aidastya/public_html/test/wp-content/themes/ai-assistant/modules/otp/otp-ajax.php
+// /home/aidastya/public_html/test/wp-content/themes/ai-assistant-test/modules/otp/otp-ajax.php
 if (!defined('ABSPATH')) {
     exit;
 }
@@ -891,7 +907,7 @@ function force_logout_handler() {
 -------------------------------------------------------------------------------------
 <?php
 /**
- * /home/aidastya/public_html/test/wp-content/themes/ai-assistant/modules/otp/otp-login-template.php
+ * /home/aidastya/public_html/test/wp-content/themes/ai-assistant-test/modules/otp/otp-login-template.php
  * Template Name: Custom OTP Login
  */
 
@@ -972,7 +988,7 @@ get_header(); ?>
 
 <?php get_footer(); ?>
 -------------------------------------------------------------------------------------
-// /home/aidastya/public_html/test/wp-content/themes/ai-assistant/functions.php
+// /home/aidastya/public_html/test/wp-content/themes/ai-assistant-test/functions.php
 require_once get_template_directory() . '/modules/otp/class-otp-handler.php';
 
 // تغییر مسیر صفحه ورود پیشفرض

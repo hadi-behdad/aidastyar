@@ -1086,6 +1086,7 @@ function saveFormAndRedirect() {
         _timestamp: Date.now()
     }));
     
+    // ذخیره مرحله فعلی
     sessionStorage.setItem('diet_form_current_step', window.state.currentStep);
     
     // ذخیره URL فعلی بدون هش
@@ -1112,28 +1113,28 @@ window.addEventListener('load', function() {
     if (loggedIn === '1' && sessionStorage.getItem('diet_form_data')) {
         // بازیابی داده‌ها
         const savedData = JSON.parse(sessionStorage.getItem('diet_form_data'));
-        const savedStep = parseInt(sessionStorage.getItem('diet_form_current_step'));
+        const savedStep = parseInt(sessionStorage.getItem('diet_form_current_step')) || savedData._currentStep || 1;
+        
+        console.log('بازیابی داده‌های ذخیره شده:', savedData);
         
         // آپدیت state با داده‌های ذخیره شده
         if (savedData) {
-            console.log('داده‌های بازیابی شده:', {
-                data: JSON.parse(savedData),
-                step: savedStep
-            });            
             // ابتدا به مرحله ذخیره شده بروید
-            if (savedStep) {
-                window.navigateToStep(savedStep);
-            }
+            window.navigateToStep(savedStep);
             
             // سپس داده‌ها را پر کنید
             setTimeout(() => {
-                Object.assign(window.state.formData, savedData);
-                window.state.updateFormElementsFromState();
+                // حذف فیلدهای سیستمی قبل از ادغام
+                const {_timestamp, _currentStep, ...formData} = savedData;
+                Object.assign(window.state.formData, formData);
+                
+                // به‌روزرسانی عناصر فرم از state
+                if (typeof window.state.updateFormElementsFromState === 'function') {
+                    window.state.updateFormElementsFromState();
+                }
                 
                 // برای اطمینان، دوباره به مرحله ذخیره شده بروید
-                if (savedStep) {
-                    window.navigateToStep(savedStep);
-                }
+                window.navigateToStep(savedStep);
             }, 500);
         }
         
@@ -5537,23 +5538,15 @@ add_action('init', function() {
 
 // اضافه کردن پارامتر logged_in بعد از لاگین موفق
 add_filter('login_redirect', function($redirect_to, $request, $user) {
-    // اگر redirect_to وجود داشت و حاوی 'service/diet' بود، آن را حفظ کنید
-    if (strpos($redirect_to, 'service/diet') !== false) {
-        if (strpos($redirect_to, '?') !== false) {
-            $redirect_to .= '&logged_in=1';
-        } else {
-            $redirect_to .= '?logged_in=1';
-        }
+    // اگر redirect_to وجود داشت، آن را حفظ کنید
+    if ($redirect_to) {
+        $redirect_to = remove_query_arg('logged_in', $redirect_to);
+        $redirect_to = add_query_arg('logged_in', '1', $redirect_to);
         return $redirect_to;
     }
     
     // در غیر این صورت به صفحه اصلی با پارامتر logged_in ریدایرکت شود
-    if (strpos($redirect_to, '?') !== false) {
-        $redirect_to .= '&logged_in=1';
-    } else {
-        $redirect_to .= '?logged_in=1';
-    }
-    return $redirect_to;
+    return add_query_arg('logged_in', '1', home_url());
 }, 10, 3);
 
 // اجازه دادن به پارامتر logged_in در وردپرس
