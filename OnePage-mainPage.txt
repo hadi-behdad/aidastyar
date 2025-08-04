@@ -1075,20 +1075,31 @@ $theme_assets = get_stylesheet_directory_uri();
 <script src="<?php echo $theme_assets; ?>/assets/js/services/<?php echo esc_attr($service_id); ?>/form-steps.js"></script>
 <script src="<?php echo $theme_assets; ?>/assets/js/services/<?php echo esc_attr($service_id); ?>/form-inputs.js"></script>
 
-    
- 
+
 <script>
 // تابع ذخیره فرم و هدایت به صفحه لاگین
 function saveFormAndRedirect() {
-    // ذخیره تمام داده‌های فرم در localStorage
-    localStorage.setItem('diet_form_data', JSON.stringify(window.state.formData));
-    localStorage.setItem('diet_form_current_step', window.state.currentStep);
+    // ذخیره تمام داده‌های فرم
+    sessionStorage.setItem('diet_form_data', JSON.stringify({
+        ...window.state.formData,
+        // ذخیره timestamp برای تشخیص داده‌های جدید
+        _timestamp: Date.now()
+    }));
     
-    // ذخیره URL فعلی برای بازگشت بعد از لاگین
-    const currentUrl = window.location.href;
-    localStorage.setItem('diet_form_redirect_url', currentUrl);
+    sessionStorage.setItem('diet_form_current_step', window.state.currentStep);
     
-    // هدایت به صفحه لاگین با پارامتر redirect_to
+    // ذخیره URL فعلی بدون هش
+    const currentUrl = window.location.href.split('#')[0];
+    sessionStorage.setItem('diet_form_redirect_url', currentUrl);
+    
+    console.log('ذخیره‌سازی انجام شد:', {
+        sessionStorage: {
+            data: sessionStorage.getItem('diet_form_data'),
+            step: sessionStorage.getItem('diet_form_current_step')
+        }
+    });    
+    
+    // هدایت به صفحه لاگین
     const loginUrl = '<?php echo wp_login_url(); ?>?redirect_to=' + encodeURIComponent(currentUrl);
     window.location.href = loginUrl;
 }
@@ -1098,31 +1109,42 @@ window.addEventListener('load', function() {
     const urlParams = new URLSearchParams(window.location.search);
     const loggedIn = urlParams.get('logged_in');
     
-    if (loggedIn === '1' && localStorage.getItem('diet_form_data')) {
+    if (loggedIn === '1' && sessionStorage.getItem('diet_form_data')) {
         // بازیابی داده‌ها
-        const savedData = JSON.parse(localStorage.getItem('diet_form_data'));
-        const savedStep = parseInt(localStorage.getItem('diet_form_current_step'));
-        const redirectUrl = localStorage.getItem('diet_form_redirect_url');
+        const savedData = JSON.parse(sessionStorage.getItem('diet_form_data'));
+        const savedStep = parseInt(sessionStorage.getItem('diet_form_current_step'));
         
         // آپدیت state با داده‌های ذخیره شده
         if (savedData) {
-            Object.assign(window.state.formData, savedData);
-            window.state.updateFormElementsFromState();
-        }
-        
-        // رفتن به مرحله ذخیره شده
-        if (savedStep) {
-            window.navigateToStep(savedStep);
+            console.log('داده‌های بازیابی شده:', {
+                data: JSON.parse(savedData),
+                step: savedStep
+            });            
+            // ابتدا به مرحله ذخیره شده بروید
+            if (savedStep) {
+                window.navigateToStep(savedStep);
+            }
+            
+            // سپس داده‌ها را پر کنید
+            setTimeout(() => {
+                Object.assign(window.state.formData, savedData);
+                window.state.updateFormElementsFromState();
+                
+                // برای اطمینان، دوباره به مرحله ذخیره شده بروید
+                if (savedStep) {
+                    window.navigateToStep(savedStep);
+                }
+            }, 500);
         }
         
         // پاک کردن داده‌های ذخیره شده
-        localStorage.removeItem('diet_form_data');
-        localStorage.removeItem('diet_form_current_step');
-        localStorage.removeItem('diet_form_redirect_url');
+        sessionStorage.removeItem('diet_form_data');
+        sessionStorage.removeItem('diet_form_current_step');
         
-        // اگر URL ذخیره شده با URL فعلی متفاوت است، به آن صفحه هدایت شود
-        if (redirectUrl && redirectUrl !== window.location.href) {
-            window.location.href = redirectUrl;
+        // حذف پارامتر logged_in از URL بدون ریلود صفحه
+        if (window.history.replaceState) {
+            const newUrl = window.location.pathname + window.location.hash;
+            window.history.replaceState({}, document.title, newUrl);
         }
     }
 });
@@ -2950,113 +2972,116 @@ window.state = {
     },
     
     updateFormElementsFromState() {
-        // به روزرسانی جنسیت
-        if (this.formData.gender) {
-            const genderOption = document.querySelector(`.gender-option[data-gender="${this.formData.gender}"]`);
-            if (genderOption) genderOption.classList.add('selected');
-        }
-    
-        // به روزرسانی هدف
-        if (this.formData.goal) {
-            const goalOption = document.querySelector(`.goal-option[data-goal="${this.formData.goal}"]`);
-            if (goalOption) goalOption.classList.add('selected');
-        }
-    
-        // به روزرسانی فیلدهای عددی
-        const numberFields = {
-            'age-input': 'age',
-            'height-input': 'height',
-            'weight-input': 'weight',
-            'target-weight-input': 'targetWeight'
-        };
-        
-        Object.entries(numberFields).forEach(([id, key]) => {
-            if (this.formData[key]) {
-                const input = document.getElementById(id);
-                if (input) {
-                    input.value = this.formData[key];
-                    // تریگر رویداد input برای به روزرسانی نمایش
-                    input.dispatchEvent(new Event('input'));
-                }
+        // تاخیر برای اطمینان از لود کامل DOM
+        setTimeout(() => {
+            // به روزرسانی جنسیت
+            if (this.formData.gender) {
+                const genderOption = document.querySelector(`.gender-option[data-gender="${this.formData.gender}"]`);
+                if (genderOption) genderOption.classList.add('selected');
             }
-        });
     
-        // به روزرسانی چک‌باکس‌ها
-        const checkboxGroups = {
-            'surgery': this.formData.surgery || [],
-            'hormonal': this.formData.hormonal || [],
-            'stomachDiscomfort': this.formData.stomachDiscomfort || [],
-            'additionalInfo': this.formData.additionalInfo || [],
-            'foodRestrictions': this.formData.foodRestrictions || []
-        };
+            // به روزرسانی هدف
+            if (this.formData.goal) {
+                const goalOption = document.querySelector(`.goal-option[data-goal="${this.formData.goal}"]`);
+                if (goalOption) goalOption.classList.add('selected');
+            }
     
-        Object.entries(checkboxGroups).forEach(([prefix, items]) => {
-            items.forEach(item => {
-                const checkboxId = `${prefix}-${item}`.replace('Discomfort', '');
-                const checkbox = document.getElementById(checkboxId);
-                if (checkbox) {
-                    checkbox.checked = true;
-                    // تریگر تغییر برای اعمال استایل
-                    checkbox.dispatchEvent(new Event('change'));
-                }
-            });
-        });
-    
-        // به روزرسانی فعالیت
-        if (this.formData.activity) {
-            const activityOption = document.querySelector(`.activity-option[data-activity="${this.formData.activity}"]`);
-            if (activityOption) activityOption.classList.add('selected');
-        }
-    
-        // به روزرسانی وعده‌های غذایی
-        if (this.formData.meals) {
-            const mealOption = document.querySelector(`.meal-option[data-meals="${this.formData.meals}"]`);
-            if (mealOption) mealOption.classList.add('selected');
-        }
-        
-        // به روزرسانی مصرف آب
-        if (this.formData.waterIntake !== undefined && this.formData.waterIntake !== null) {
-            const waterCups = document.querySelectorAll('.water-cup');
-            const waterAmount = this.formData.waterIntake;
+            // به روزرسانی فیلدهای عددی
+            const numberFields = {
+                'age-input': 'age',
+                'height-input': 'height',
+                'weight-input': 'weight',
+                'target-weight-input': 'targetWeight'
+            };
             
-            // انتخاب لیوان‌ها
-            waterCups.forEach((cup, index) => {
-                const cupAmount = parseInt(cup.dataset.amount);
-                if (cupAmount <= waterAmount) {
-                    cup.classList.add('selected');                    
+            Object.entries(numberFields).forEach(([id, key]) => {
+                if (this.formData[key]) {
+                    const input = document.getElementById(id);
+                    if (input) {
+                        input.value = this.formData[key];
+                        // تریگر رویداد input برای به روزرسانی نمایش
+                        input.dispatchEvent(new Event('input'));
+                    }
                 }
             });
     
-            // به روزرسانی نمایش مقدار آب
-            const waterAmountDisplay = document.getElementById('water-amount');
-            const waterLiterDisplay = document.getElementById('water-liter');
-            if (waterAmountDisplay && waterLiterDisplay) {
-                waterAmountDisplay.textContent = waterAmount;
-                waterLiterDisplay.textContent = (waterAmount * 0.25).toFixed(1);
-            }
-            
-            // غیرفعال کردن گزینه "نمی‌دانم"
-            const dontKnowCheckbox = document.getElementById('water-dont-know');
-            if (dontKnowCheckbox) {
-                dontKnowCheckbox.checked = false;
-                dontKnowCheckbox.nextElementSibling.classList.remove('checked');
-            }
-        }   
-        
-        // به روزرسانی چک‌باکس شرایط و قوانین
-        const confirmTermsCheckbox = document.getElementById('confirm-terms');
-        if (confirmTermsCheckbox) {
-            confirmTermsCheckbox.checked = true;
-            // تریگر رویداد change برای اعمال استایل
-            confirmTermsCheckbox.dispatchEvent(new Event('change'));
-            
-            // فعال کردن گزینه‌های جنسیت
-            document.querySelectorAll('.gender-option').forEach(option => {
-                option.style.opacity = "1";
-                option.style.pointerEvents = "auto";
-                option.style.filter = "none";
+            // به روزرسانی چک‌باکس‌ها
+            const checkboxGroups = {
+                'surgery': this.formData.surgery || [],
+                'hormonal': this.formData.hormonal || [],
+                'stomachDiscomfort': this.formData.stomachDiscomfort || [],
+                'additionalInfo': this.formData.additionalInfo || [],
+                'foodRestrictions': this.formData.foodRestrictions || []
+            };
+    
+            Object.entries(checkboxGroups).forEach(([prefix, items]) => {
+                items.forEach(item => {
+                    const checkboxId = `${prefix}-${item}`.replace('Discomfort', '');
+                    const checkbox = document.getElementById(checkboxId);
+                    if (checkbox) {
+                        checkbox.checked = true;
+                        // تریگر تغییر برای اعمال استایل
+                        checkbox.dispatchEvent(new Event('change'));
+                    }
+                });
             });
-        }
+    
+            // به روزرسانی فعالیت
+            if (this.formData.activity) {
+                const activityOption = document.querySelector(`.activity-option[data-activity="${this.formData.activity}"]`);
+                if (activityOption) activityOption.classList.add('selected');
+            }
+    
+            // به روزرسانی وعده‌های غذایی
+            if (this.formData.meals) {
+                const mealOption = document.querySelector(`.meal-option[data-meals="${this.formData.meals}"]`);
+                if (mealOption) mealOption.classList.add('selected');
+            }
+            
+            // به روزرسانی مصرف آب
+            if (this.formData.waterIntake !== undefined && this.formData.waterIntake !== null) {
+                const waterCups = document.querySelectorAll('.water-cup');
+                const waterAmount = this.formData.waterIntake;
+                
+                // انتخاب لیوان‌ها
+                waterCups.forEach((cup, index) => {
+                    const cupAmount = parseInt(cup.dataset.amount);
+                    if (cupAmount <= waterAmount) {
+                        cup.classList.add('selected');                    
+                    }
+                });
+    
+                // به روزرسانی نمایش مقدار آب
+                const waterAmountDisplay = document.getElementById('water-amount');
+                const waterLiterDisplay = document.getElementById('water-liter');
+                if (waterAmountDisplay && waterLiterDisplay) {
+                    waterAmountDisplay.textContent = waterAmount;
+                    waterLiterDisplay.textContent = (waterAmount * 0.25).toFixed(1);
+                }
+                
+                // غیرفعال کردن گزینه "نمی‌دانم"
+                const dontKnowCheckbox = document.getElementById('water-dont-know');
+                if (dontKnowCheckbox) {
+                    dontKnowCheckbox.checked = false;
+                    dontKnowCheckbox.nextElementSibling.classList.remove('checked');
+                }
+            }   
+            
+            // به روزرسانی چک‌باکس شرایط و قوانین
+            const confirmTermsCheckbox = document.getElementById('confirm-terms');
+            if (confirmTermsCheckbox) {
+                confirmTermsCheckbox.checked = true;
+                // تریگر رویداد change برای اعمال استایل
+                confirmTermsCheckbox.dispatchEvent(new Event('change'));
+                
+                // فعال کردن گزینه‌های جنسیت
+                document.querySelectorAll('.gender-option').forEach(option => {
+                    option.style.opacity = "1";
+                    option.style.pointerEvents = "auto";
+                    option.style.filter = "none";
+                });
+            }
+        }, 300);
     }
 };
 
@@ -5512,6 +5537,17 @@ add_action('init', function() {
 
 // اضافه کردن پارامتر logged_in بعد از لاگین موفق
 add_filter('login_redirect', function($redirect_to, $request, $user) {
+    // اگر redirect_to وجود داشت و حاوی 'service/diet' بود، آن را حفظ کنید
+    if (strpos($redirect_to, 'service/diet') !== false) {
+        if (strpos($redirect_to, '?') !== false) {
+            $redirect_to .= '&logged_in=1';
+        } else {
+            $redirect_to .= '?logged_in=1';
+        }
+        return $redirect_to;
+    }
+    
+    // در غیر این صورت به صفحه اصلی با پارامتر logged_in ریدایرکت شود
     if (strpos($redirect_to, '?') !== false) {
         $redirect_to .= '&logged_in=1';
     } else {
@@ -5526,9 +5562,6 @@ add_filter('query_vars', function($vars) {
     return $vars;
 });
 
-
-
-// /home/aidastya/public_html/test/wp-content/themes/ai-assistant/functions.php
 require_once get_template_directory() . '/modules/otp/class-otp-handler.php';
 
 // تغییر مسیر صفحه ورود پیشفرض
