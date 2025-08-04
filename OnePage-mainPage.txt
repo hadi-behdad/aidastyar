@@ -1,5 +1,5 @@
 <?php
-// /home/aidastya/public_html/test/wp-content/themes/ai-assistant/services/diet/template-parts/form.php
+// /home/aidastya/public_html/test/wp-content/themes/ai-assistant-test/services/diet/template-parts/form.php
 $theme_assets = get_stylesheet_directory_uri();
 ?>
 
@@ -1128,7 +1128,7 @@ window.addEventListener('load', function() {
 });
 </script>
 -----------------------------------------------------------------------------------------------------
-// /home/aidastya/public_html/test/wp-content/themes/ai-assistant/assets/js/services/diet/form-events.js
+// /home/aidastya/public_html/test/wp-content/themes/ai-assistant-test/assets/js/services/diet/form-events.js
 function setupScrollIndicator(containerId) {
     const container = document.getElementById(containerId);
     if (!container) return;
@@ -2490,7 +2490,7 @@ document.addEventListener("DOMContentLoaded", () => {
     document.addEventListener("keydown", handleEnterKey);
 });
 -----------------------------------------------------------------------------------------------------
-// /home/aidastya/public_html/test/wp-content/themes/ai-assistant/assets/js/services/diet/form-inputs.js
+// /home/aidastya/public_html/test/wp-content/themes/ai-assistant-test/assets/js/services/diet/form-inputs.js
 window.setupInput = function(inputId, displayId, field) {
     const input = document.getElementById(inputId);
     const display = document.getElementById(displayId);
@@ -2573,12 +2573,15 @@ window.setupOptionSelection = function(selector, key) {
     });
 }
 
+
+// این تابع را در form-inputs.js پیدا کنید و به این صورت اصلاح کنید:
 window.handleEnterKey = function(event) {
     if (event.key === "Enter") {
         event.preventDefault(); // جلوگیری از سابمیت فرم
         
-        // فقط اگر در مرحله‌ای هستیم که دکمه بعدی فعال است
-        if (state.currentStep < totalSteps) {
+        // فقط در مراحلی که دکمه بعدی فعال است و مرحله 12 یا 13 نیست
+        if (state.currentStep < totalSteps && 
+            ![STEPS.ACTIVITY, STEPS.MEALS].includes(state.currentStep)) {
             const nextButton = document.querySelector(".next-step:not([disabled])");
             if (nextButton) {
                 nextButton.click();
@@ -2586,10 +2589,9 @@ window.handleEnterKey = function(event) {
         }
     }
 };
-
 document.addEventListener("keydown", handleEnterKey);
 -----------------------------------------------------------------------------------------------------
-// /home/aidastya/public_html/test/wp-content/themes/ai-assistant/assets/js/services/diet/form-steps.js
+// /home/aidastya/public_html/test/wp-content/themes/ai-assistant-test/assets/js/services/diet/form-steps.js
 window.showStep = function(step) {
     const stepElements = [
         "gender-selection-step",
@@ -2647,9 +2649,9 @@ window.showStep = function(step) {
         let svgFile = '';
         
         if (state.formData.goal === 'weight-loss') {
-            svgFile = '/wp-content/themes/ai-assistant/assets/images/svg/weight-loss.svg';
+            svgFile = wpVars.themeBasePath + '/assets/images/svg/weight-loss.svg';
         } else if (state.formData.goal === 'weight-gain' || state.formData.goal === 'fitness') {
-            svgFile = '/wp-content/themes/ai-assistant/assets/images/svg/weight-gain.svg';
+            svgFile = wpVars.themeBasePath + '/assets/images/svg/weight-gain.svg';
         }
         
         imageContainer.innerHTML = `
@@ -2776,7 +2778,7 @@ window.handleEnterKey = function(event) {
     }
 }
 -----------------------------------------------------------------------------------------------------
-// /home/aidastya/public_html/test/wp-content/themes/ai-assistant/assets/js/services/diet/form-validation.js
+// /home/aidastya/public_html/test/wp-content/themes/ai-assistant-test/assets/js/services/diet/form-validation.js
 window.validateStep = function(step) {
     const nextButton = document.querySelector(".next-step");
     const errorMessages = {
@@ -2928,7 +2930,7 @@ window.calculateBMI = function(height, weight) {
     }, 800);
 }
 -----------------------------------------------------------------------------------------------------
-// /home/aidastya/public_html/test/wp-content/themes/ai-assistant/assets/js/services/diet/script.js
+// /home/aidastya/public_html/test/wp-content/themes/ai-assistant-test/assets/js/services/diet/script.js
 window.state = {
     currentStep: 1,
     formData: {},
@@ -3148,7 +3150,7 @@ window.STEPS = {
 
 window.totalSteps = Object.keys(STEPS).length;
 -----------------------------------------------------------------------------------------------------
-// /home/aidastya/public_html/test/wp-content/themes/ai-assistant/assets/js/services/diet/diet.js
+// /home/aidastya/public_html/test/wp-content/themes/ai-assistant-test/assets/js/services/diet/diet.js
 jQuery(document).ready(function($) {
     const form = $('#multi-step-form');
   //  const steps = form.find('.step');
@@ -3162,9 +3164,6 @@ jQuery(document).ready(function($) {
         // گرفتن جیسون از جاوااسکریپت
         const receivedUserData = event.detail.formData;
         console.log('Form data received in second script:', receivedUserData);
-
-        // ارسال به سرور
-
 
         submitBtn.prop('disabled', true).text(aiAssistantVars.i18n.loading);
         resultDiv.hide();
@@ -3250,74 +3249,8 @@ jQuery(document).ready(function($) {
         });
     });
 });
-
-
-// کد نهایی برای نمایش آخرین تغییرات فایل‌ها (فقط در محیط تست)
-document.addEventListener('DOMContentLoaded', function() {
-    // فقط در محیط تست اجرا شود
-    if (window.location.hostname !== 'test.aidastyar.com') return;
-
-    const filesToCheck = [
-        {name: 'form-events.js', path: '/wp-content/themes/ai-assistant/assets/js/services/diet/form-events.js'},
-        {name: 'form-inputs.js', path: '/wp-content/themes/ai-assistant/assets/js/services/diet/form-inputs.js'},
-        {name: 'form-steps.js', path: '/wp-content/themes/ai-assistant/assets/js/services/diet/form-steps.js'},
-        {name: 'form-validation.js', path: '/wp-content/themes/ai-assistant/assets/js/services/diet/form-validation.js'},
-        {name: 'script.js', path: '/wp-content/themes/ai-assistant/assets/js/services/diet/script.js'},
-        {name: 'diet.js', path: '/wp-content/themes/ai-assistant/assets/js/services/diet/diet.js'},
-        {name: 'diet.css', path: '/wp-content/themes/ai-assistant/assets/css/services/diet.css'},
-        {name: 'functions.php', path: '/wp-content/themes/ai-assistant/functions.php'}
-    ];
-
-    function checkFile(file) {
-        return fetch(file.path, {method: 'HEAD', cache: 'no-store'})
-            .then(response => {
-                if (!response.ok) {
-                    return {
-                        name: file.name,
-                        lastModified: null,
-                        status: '❌ فایل یافت نشد'
-                    };
-                }
-                
-                const lastModified = response.headers.get('last-modified');
-                if (!lastModified) {
-                    return {
-                        name: file.name,
-                        lastModified: null,
-                        status: '⚠️ زمان تغییر نامشخص'
-                    };
-                }
-                
-                return {
-                    name: file.name,
-                    lastModified: new Date(lastModified),
-                    status: '✅ موجود'
-                };
-            })
-            .catch(() => ({
-                name: file.name,
-                lastModified: null,
-                status: '⚠️ خطا در بررسی'
-            }));
-    }
-
-    Promise.all(filesToCheck.map(checkFile))
-        .then(results => {
-            console.group('🛠️ آخرین تغییرات فایل‌ها - test.aidastyar.com');
-            console.log('⏳ زمان بررسی: ' + new Date().toLocaleString('fa-IR'));
-            
-            const formattedResults = results.map(r => ({
-                'فایل': r.name,
-                'آخرین تغییر': r.lastModified ? r.lastModified.toLocaleString('fa-IR') : '---',
-                'وضعیت': r.status
-            }));
-            
-            console.table(formattedResults);
-            console.groupEnd();
-        });
-});
 -----------------------------------------------------------------------------------------------------
-/*/home/aidastya/public_html/test/wp-content/themes/ai-assistant/assets/css/services/diet.css*/
+/*/home/aidastya/public_html/test/wp-content/themes/ai-assistant-test/assets/css/services/diet.css*/
 @font-face {
     font-family: Vazir;
     src: url('../../fonts/Vazir.woff2') format('woff2'),
@@ -5202,8 +5135,7 @@ body:not(.dark-mode) .theme-toggle svg.sun-icon {
     overflow-y: auto;
     padding: 10px 5px;
     margin: 5px auto;
-    scrollbar-width: thin;
-    scrollbar-color: var(--primary-color) var(--background-color);
+    scrollbar-width: none;
     mask-image: linear-gradient(to bottom, 
         black 90%, 
         transparent 100%);
@@ -5303,10 +5235,9 @@ body.dark-mode .scroll-indicator:hover {
     animation: bounce 1.5s infinite;
 }
 -----------------------------------------------------------------------------------------------------
-
 <?php
 /**
- * /home/aidastya/public_html/test/wp-content/themes/ai-assistant/functions.php
+ * /home/aidastya/public_html/test/wp-content/themes/ai-assistant-test/functions.php
  * Functions for AI Assistant Theme
  */
 
@@ -5601,19 +5532,19 @@ add_filter('query_vars', function($vars) {
 require_once get_template_directory() . '/modules/otp/class-otp-handler.php';
 
 // تغییر مسیر صفحه ورود پیشفرض
-// add_action('init', function() {
-//     global $pagenow;
+add_action('init', function() {
+    global $pagenow;
     
-//     // فقط برای کاربران غیروارد شده اعمال شود و فقط زمانی که به wp-login.php دسترسی دارند
-//     // و نه زمانی که به wp-admin دسترسی دارند
-//     if (!is_user_logged_in() && 'wp-login.php' == $pagenow && !isset($_POST['wp-submit'])) {
-//         // اگر در حال دسترسی به wp-admin نیست، به otp-login ریدایرکت شود
-//         if (strpos($_SERVER['REQUEST_URI'], 'wp-admin') === false) {
-//             wp_redirect(home_url('/otp-login'));
-//             exit();
-//         }
-//     }
-// });
+    // فقط برای کاربران غیروارد شده اعمال شود و فقط زمانی که به wp-login.php دسترسی دارند
+    // و نه زمانی که به wp-admin دسترسی دارند
+    if (!is_user_logged_in() && 'wp-login.php' == $pagenow && !isset($_POST['wp-submit'])) {
+        // اگر در حال دسترسی به wp-admin نیست، به otp-login ریدایرکت شود
+        if (strpos($_SERVER['REQUEST_URI'], 'wp-admin') === false) {
+            wp_redirect(home_url('/otp-login'));
+            exit();
+        }
+    }
+});
 
 // اضافه کردن این کد در انتهای فایل
 add_filter('logout_url', 'custom_logout_url', 10, 2);
@@ -5674,8 +5605,20 @@ function ai_assistant_load_test_scripts() {
     }
 }
 add_action('wp_enqueue_scripts', 'ai_assistant_load_test_scripts', 20);
+
+function enqueue_diet_form_scripts() {
+    wp_enqueue_script('diet-form-script', get_template_directory_uri() . '/assets/js/services/diet/form-steps.js', array(), '1.0', true);
+
+    // انتقال متغیرهای PHP به جاوااسکریپت
+    wp_localize_script('diet-form-script', 'wpVars', array(
+        'themeBasePath' => (OTP_ENV === 'sandbox') 
+            ? '/wp-content/themes/ai-assistant-test' 
+            : '/wp-content/themes/ai-assistant',
+    ));
+}
+add_action('wp_enqueue_scripts', 'enqueue_diet_form_scripts');
 -----------------------------------------------------------------------------------------------------
-// /home/aidastya/public_html/test/wp-content/themes/ai-assistant/assets/js/auto-fill.js
+// /home/aidastya/public_html/test/wp-content/themes/ai-assistant-test/assets/js/auto-fill.js
 console.log('🔧 فایل auto-fill.js بارگذاری شد - حالت تست فعال');
 
 document.addEventListener('DOMContentLoaded', function() {
