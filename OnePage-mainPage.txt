@@ -2510,6 +2510,24 @@ document.addEventListener("DOMContentLoaded", () => {
     setupOptionSelection(".activity-option", "activity");
     setupOptionSelection(".meal-option", "meals");
 
+    document.getElementById("multi-step-form").addEventListener("keydown", function(event) {
+        // فقط اجازه کار Enter در مراحل خاص
+        if (event.key === "Enter") {
+            const allowedSteps = [
+                STEPS.AGE, 
+                STEPS.HEIGHT, 
+                STEPS.WEIGHT, 
+                STEPS.TARGET_WEIGHT,
+                STEPS.CONFIRMATION
+            ];
+            
+            if (!allowedSteps.includes(state.currentStep)) {
+                event.preventDefault();
+                return false;
+            }
+        }
+    });
+    
     document.addEventListener("keydown", handleEnterKey);
 });
 -----------------------------------------------------------------------------------------------------
@@ -2595,24 +2613,6 @@ window.setupOptionSelection = function(selector, key) {
         });
     });
 }
-
-
-// این تابع را در form-inputs.js پیدا کنید و به این صورت اصلاح کنید:
-window.handleEnterKey = function(event) {
-    if (event.key === "Enter") {
-        event.preventDefault(); // جلوگیری از سابمیت فرم
-        
-        // فقط در مراحلی که دکمه بعدی فعال است و مرحله 12 یا 13 نیست
-        if (state.currentStep < totalSteps && 
-            ![STEPS.ACTIVITY, STEPS.MEALS].includes(state.currentStep)) {
-            const nextButton = document.querySelector(".next-step:not([disabled])");
-            if (nextButton) {
-                nextButton.click();
-            }
-        }
-    }
-};
-document.addEventListener("keydown", handleEnterKey);
 -----------------------------------------------------------------------------------------------------
 // /home/aidastya/public_html/test/wp-content/themes/ai-assistant-test/assets/js/services/diet/form-steps.js
 window.showStep = function(step) {
@@ -2795,9 +2795,36 @@ window.handleBackStep = function() {
 }
 
 window.handleEnterKey = function(event) {
-    if (event.key === "Enter" && event.target.matches("input[type='text']")) {
+    // فقط در مراحل عددی (سن، قد، وزن، وزن هدف) و مرحله نهایی اجازه کار با Enter را بده
+    const allowedSteps = [
+        STEPS.AGE, 
+        STEPS.HEIGHT, 
+        STEPS.WEIGHT, 
+        STEPS.TARGET_WEIGHT,
+        STEPS.CONFIRMATION
+    ];
+    
+    if (event.key === "Enter" && 
+        allowedSteps.includes(state.currentStep) && 
+        (event.target.matches("input[type='text']") || state.currentStep === STEPS.CONFIRMATION)) {
+        
+        // جلوگیری از رفتار پیش‌فرض Enter
         event.preventDefault();
-        document.querySelector(".next-step").click();
+        
+        // در مراحل عددی، رفتن به مرحله بعد
+        if (state.currentStep !== STEPS.CONFIRMATION) {
+            document.querySelector(".next-step").click();
+        } 
+        // در مرحله نهایی، ارسال فرم
+        else {
+            const submitButton = document.querySelector(".submit-form:not([disabled])");
+            if (submitButton) {
+                submitButton.click();
+            }
+        }
+    } else if (event.key === "Enter") {
+        // جلوگیری از کار Enter در سایر مراحل
+        event.preventDefault();
     }
 }
 -----------------------------------------------------------------------------------------------------
