@@ -1105,7 +1105,6 @@ function saveFormAndRedirect() {
     window.location.href = loginUrl;
 }
 
-// بازیابی داده‌ها بعد از بازگشت از لاگین
 window.addEventListener('load', function() {
     const urlParams = new URLSearchParams(window.location.search);
     const loggedIn = urlParams.get('logged_in');
@@ -1113,34 +1112,26 @@ window.addEventListener('load', function() {
     if (loggedIn === '1' && sessionStorage.getItem('diet_form_data')) {
         // بازیابی داده‌ها
         const savedData = JSON.parse(sessionStorage.getItem('diet_form_data'));
-        const savedStep = parseInt(sessionStorage.getItem('diet_form_current_step')) || savedData._currentStep || 1;
-        
-        console.log('بازیابی داده‌های ذخیره شده:', savedData);
+        const savedStep = savedData._currentStep || 1; // استفاده از مرحله ذخیره شده
         
         // آپدیت state با داده‌های ذخیره شده
         if (savedData) {
-            // ابتدا به مرحله ذخیره شده بروید
-            window.navigateToStep(savedStep);
+            // حذف فیلدهای سیستمی قبل از ادغام
+            const {_timestamp, _currentStep, ...formData} = savedData;
+            Object.assign(window.state.formData, formData);
             
-            // سپس داده‌ها را پر کنید
-            setTimeout(() => {
-                // حذف فیلدهای سیستمی قبل از ادغام
-                const {_timestamp, _currentStep, ...formData} = savedData;
-                Object.assign(window.state.formData, formData);
-                
-                // به‌روزرسانی عناصر فرم از state
-                if (typeof window.state.updateFormElementsFromState === 'function') {
-                    window.state.updateFormElementsFromState();
-                }
-                
-                // برای اطمینان، دوباره به مرحله ذخیره شده بروید
-                window.navigateToStep(savedStep);
-            }, 500);
+            // همیشه به مرحله تائیدیه (۱۸) بروید، حتی اگر کاربر در مرحله دیگری بود
+            window.navigateToStep(STEPS.TERMS_AGREEMENT);
+            
+            // به‌روزرسانی عناصر فرم از state
+            if (typeof window.state.updateFormElementsFromState === 'function') {
+                window.state.updateFormElementsFromState();
+            }
         }
         
         // پاک کردن داده‌های ذخیره شده
         sessionStorage.removeItem('diet_form_data');
-        sessionStorage.removeItem('diet_form_current_step');
+        sessionStorage.removeItem('diet_form_redirect_url');
         
         // حذف پارامتر logged_in از URL بدون ریلود صفحه
         if (window.history.replaceState) {
