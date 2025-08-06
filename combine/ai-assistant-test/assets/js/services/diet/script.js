@@ -53,21 +53,38 @@ window.state = {
     
             // به روزرسانی چک‌باکس‌ها
             const checkboxGroups = {
-                'surgery': this.formData.surgery || [],
-                'hormonal': this.formData.hormonal || [],
-                'stomachDiscomfort': this.formData.stomachDiscomfort || [],
-                'additionalInfo': this.formData.additionalInfo || [],
-                'foodRestrictions': this.formData.foodRestrictions || []
+                'surgery': { prefix: 'surgery', items: this.formData.surgery || [] },
+                'hormonal': { prefix: 'hormonal', items: this.formData.hormonal || [] },
+                'stomachDiscomfort': { prefix: 'stomach', items: this.formData.stomachDiscomfort || [] },
+                'additionalInfo': { prefix: 'info', items: this.formData.additionalInfo || [] },
+                'dietStyle': { prefix: 'diet-style', items: this.formData.dietStyle || [] },
+                'foodLimitations': { prefix: 'limitation', items: this.formData.foodLimitations || [] },
+                'foodPreferences': { prefix: 'preference', items: this.formData.foodPreferences || [] }
             };
     
-            Object.entries(checkboxGroups).forEach(([prefix, items]) => {
+            Object.entries(checkboxGroups).forEach(([groupKey, groupData]) => {
+                const { prefix, items } = groupData;
+                
                 items.forEach(item => {
-                    const checkboxId = `${prefix}-${item}`.replace('Discomfort', '');
+                    // ساخت ID بر اساس پیشوند و آیتم
+                    const checkboxId = `${prefix}-${item}`;
                     const checkbox = document.getElementById(checkboxId);
+                    
                     if (checkbox) {
                         checkbox.checked = true;
-                        // تریگر تغییر برای اعمال استایل
-                        checkbox.dispatchEvent(new Event('change'));
+                        // اعمال استایل‌های بصری
+                        const label = checkbox.nextElementSibling;
+                        if (label) label.classList.add('checked');
+                    }
+                    // مدیریت مورد خاص برای 'none'
+                    else if (item === 'none') {
+                        const noneCheckboxId = `${prefix}s-none`; // مثل limitations-none
+                        const noneCheckbox = document.getElementById(noneCheckboxId);
+                        if (noneCheckbox) {
+                            noneCheckbox.checked = true;
+                            const label = noneCheckbox.nextElementSibling;
+                            if (label) label.classList.add('checked');
+                        }
                     }
                 });
             });
