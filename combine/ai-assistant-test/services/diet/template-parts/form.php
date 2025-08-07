@@ -20,6 +20,7 @@ $theme_assets = get_stylesheet_directory_uri();
     <div id="gender-selection-step" class="step active">
         <h1 id="form-title">سیستم هوشمند رژیم غذایی هوش مصنوعی</h1>
         <h2>جنسیت خود را انتخاب کنید</h2>
+        <!--<h2>1706</h2>-->
         <div id="gender-selection">
             <div class="gender-option" data-gender="male"><img src="<?php echo $theme_assets; ?>/assets/images/webp/male.webp" alt="مرد"></div>
             <div class="gender-option" data-gender="female"><img src="<?php echo $theme_assets; ?>/assets/images/webp/female.webp" alt="زن"></div>
@@ -1077,35 +1078,33 @@ $theme_assets = get_stylesheet_directory_uri();
 
 
 <script>
-// تابع ذخیره فرم و هدایت به صفحه لاگین
 function saveFormAndRedirect() {
-    // ذخیره تمام داده‌های فرم
-    sessionStorage.setItem('diet_form_data', JSON.stringify({
-        ...window.state.formData,
-        // ذخیره timestamp برای تشخیص داده‌های جدید
-        _timestamp: Date.now()
-    }));
-    
-    // ذخیره مرحله فعلی
-    sessionStorage.setItem('diet_form_current_step', window.state.currentStep);
-    
-    // ذخیره URL فعلی بدون هش
-    const currentUrl = window.location.href.split('#')[0];
-    sessionStorage.setItem('diet_form_redirect_url', currentUrl);
-    
-    console.log('ذخیره‌سازی انجام شد:', {
-        sessionStorage: {
-            data: sessionStorage.getItem('diet_form_data'),
-            step: sessionStorage.getItem('diet_form_current_step')
-        }
-    });    
-    
-    // هدایت به صفحه لاگین
-    const loginUrl = '<?php echo wp_login_url(); ?>?redirect_to=' + encodeURIComponent(currentUrl);
-    window.location.href = loginUrl;
+  // ذخیره داده‌های فرم
+  sessionStorage.setItem('diet_form_data', JSON.stringify({
+    ...window.state.formData,
+    _timestamp: Date.now(),
+    _currentStep: window.state.currentStep
+  }));
+  
+  // ذخیره URL فعلی
+  const currentUrl = window.location.href.split('#')[0];
+  sessionStorage.setItem('diet_form_redirect_url', currentUrl);
+  
+  // هدایت به صفحه لاگین با کامپوننت لودینگ
+  const loginUrl = '<?php echo wp_login_url(); ?>?redirect_to=' + encodeURIComponent(currentUrl);
+  
+  
+    const customLoader = new AiDastyarLoader({
+      message: 'در حال انتقال به صفحه ورود',
+      duration: 3000
+    });  
+    customLoader.redirect(loginUrl);    
 }
 
 window.addEventListener('load', function() {
+    // پنهان کردن لودینگ در صورت وجود
+    window.AiDastyarLoader.hide();
+    
     const urlParams = new URLSearchParams(window.location.search);
     const loggedIn = urlParams.get('logged_in');
     

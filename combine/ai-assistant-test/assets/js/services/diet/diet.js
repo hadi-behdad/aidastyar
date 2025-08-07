@@ -31,7 +31,6 @@ jQuery(document).ready(function($) {
                 console.log('response.success:', response.success);
                 if (response.success) {
                     
-                    console.log('response.success:', response.success);
                     document.getElementById('summary-container').style.display = 'none';
                     document.getElementById('confirmation-checkbox').style.display = 'none';
                     document.getElementById('submit-button-container').style.display = 'none';

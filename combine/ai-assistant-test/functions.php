@@ -380,3 +380,14 @@ function enqueue_diet_form_scripts() {
     ));
 }
 add_action('wp_enqueue_scripts', 'enqueue_diet_form_scripts');
+
+function enqueue_aidastyar_loader() {
+    wp_enqueue_script(
+        'aidastyar-loader',
+        get_template_directory_uri() . '/assets/js/components/aidastyar-loader.js',
+        array(),
+        filemtime(get_template_directory() . '/assets/js/components/aidastyar-loader.js'),
+        true
+    );
+}
+add_action('wp_enqueue_scripts', 'enqueue_aidastyar_loader');
