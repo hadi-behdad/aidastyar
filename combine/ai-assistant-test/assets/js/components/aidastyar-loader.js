@@ -1,10 +1,13 @@
-// /home/aidastya/public_html/test/wp-content/themes/ai-assistant-test/assets/js/services/diet/aidastyar-loader.js
-
+// /home/aidastya/public_html/test/wp-content/themes/ai-assistant-test/assets/js/components/aidastyar-loader.js
 class AiDastyarLoader {
   constructor(options = {}) {
     this.options = {
-      message: 'در حال انتقال به صفحه ورود',
+      message: 'در حال پردازش درخواست...',
       duration: 3000,
+      closable: false,
+      persistent: false,
+      redirectOnClose: null,
+      showProgress: true,
       ...options
     };
     
@@ -21,8 +24,29 @@ class AiDastyarLoader {
     this.loader.id = 'aidastyar-loading-overlay';
     this.loader.style.display = 'none';
     
+    let closeButton = '';
+    if (this.options.closable) {
+      closeButton = `
+        <button class="close-loader" aria-label="بستن">
+          <svg viewBox="0 0 24 24" width="24" height="24">
+            <path fill="currentColor" d="M19,6.41L17.59,5L12,10.59L6.41,5L5,6.41L10.59,12L5,17.59L6.41,19L12,13.41L17.59,19L19,17.59L13.41,12L19,6.41Z"/>
+          </svg>
+        </button>
+      `;
+    }
+    
+    let progressBar = '';
+    if (this.options.showProgress) {
+      progressBar = `
+        <div class="progress-bar">
+          <div class="progress-fill"></div>
+        </div>
+      `;
+    }
+    
     this.loader.innerHTML = `
       <div class="aidastyar-loader">
+        ${closeButton}
         <div class="logo-animation">
           <div class="logo-particle"></div>
           <div class="logo-particle"></div>
@@ -47,13 +71,21 @@ class AiDastyarLoader {
           <span class="letter">R</span>
         </div>
         <p class="loading-message">${this.options.message}</p>
-        <div class="progress-bar">
-          <div class="progress-fill"></div>
-        </div>
+        ${progressBar}
       </div>
     `;
     
     document.body.appendChild(this.loader);
+    
+    if (this.options.closable) {
+      const closeBtn = this.loader.querySelector('.close-loader');
+      closeBtn.addEventListener('click', () => {
+        this.hide();
+        if (this.options.redirectOnClose) {
+          window.location.href = this.options.redirectOnClose;
+        }
+      });
+    }
   }
   
   injectStyles() {
@@ -68,13 +100,14 @@ class AiDastyarLoader {
         left: 0;
         width: 100%;
         height: 100%;
-        background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+        background: rgba(248, 249, 250, 0.9);
         z-index: 9999;
         display: flex;
         justify-content: center;
         align-items: center;
         opacity: 0;
         transition: opacity 0.5s ease;
+        backdrop-filter: blur(3px);
       }
       
       #aidastyar-loading-overlay.show {
@@ -82,6 +115,7 @@ class AiDastyarLoader {
       }
       
       .aidastyar-loader {
+        position: relative;
         text-align: center;
         max-width: 400px;
         padding: 30px;
@@ -90,7 +124,26 @@ class AiDastyarLoader {
         box-shadow: 0 10px 30px rgba(0, 133, 122, 0.15);
       }
       
-      /* انیمیشن لوگو */
+      .close-loader {
+        position: absolute;
+        top: 15px;
+        left: 15px;
+        background: none;
+        border: none;
+        cursor: pointer;
+        padding: 5px;
+        color: #6c757d;
+        transition: color 0.2s;
+      }
+      
+      .close-loader:hover {
+        color: #00857a;
+      }
+      
+      .close-loader svg {
+        display: block;
+      }
+      
       .logo-animation {
         position: relative;
         width: 140px;
@@ -156,7 +209,6 @@ class AiDastyarLoader {
         50% { transform: translate(40px, 40px); }
       }
       
-      /* انیمیشن تایپ نام برند */
       .brand-text {
         font-size: 2.8rem;
         color: #212529;
@@ -190,7 +242,6 @@ class AiDastyarLoader {
         }
       }
       
-      /* نوار پیشرفت */
       .progress-bar {
         width: 100%;
         height: 8px;
@@ -209,9 +260,9 @@ class AiDastyarLoader {
       }
       
       @keyframes progress-loading {
-        0% { width: 0%; }
-        50% { width: 80%; }
-        100% { width: 100%; }
+        0% { width: 0%; left: 0%; }
+        50% { width: 100%; left: 0%; }
+        100% { width: 0%; left: 100%; }
       }
       
       .loading-message {
@@ -228,13 +279,15 @@ class AiDastyarLoader {
     this.loader.style.display = 'flex';
     setTimeout(() => this.loader.classList.add('show'), 10);
     
-    // غیرفعال کردن تعاملات صفحه
-    document.body.style.pointerEvents = 'none';
+    if (!this.options.persistent) {
+      document.body.style.pointerEvents = 'none';
+    }
     
-    // شروع انیمیشن پیشرفت
-    const progressFill = this.loader.querySelector('.progress-fill');
-    if (progressFill) {
-      progressFill.style.animation = 'progress-loading 2s infinite';
+    if (this.options.showProgress) {
+      const progressFill = this.loader.querySelector('.progress-fill');
+      if (progressFill) {
+        progressFill.style.animation = 'progress-loading 2s infinite';
+      }
     }
   }
   
@@ -246,6 +299,13 @@ class AiDastyarLoader {
     }, 500);
   }
   
+  updateMessage(newMessage) {
+    const messageElement = this.loader.querySelector('.loading-message');
+    if (messageElement) {
+      messageElement.textContent = newMessage;
+    }
+  }
+  
   redirect(url, delay = this.options.duration) {
     this.show();
     
@@ -255,5 +315,5 @@ class AiDastyarLoader {
   }
 }
 
-// ایجاد نمونه گلوبال برای دسترسی آسان
-window.AiDastyarLoader = new AiDastyarLoader();
+// ایجاد نمونه گلوبال
+window.AiDastyarLoader = AiDastyarLoader;

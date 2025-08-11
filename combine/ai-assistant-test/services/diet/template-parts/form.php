@@ -1093,36 +1093,48 @@ function saveFormAndRedirect() {
   // هدایت به صفحه لاگین با کامپوننت لودینگ
   const loginUrl = '<?php echo wp_login_url(); ?>?redirect_to=' + encodeURIComponent(currentUrl);
   
-  
-    const customLoader = new AiDastyarLoader({
-      message: 'در حال انتقال به صفحه ورود',
-      duration: 3000
-    });  
-    customLoader.redirect(loginUrl);    
+  const loader = new AiDastyarLoader({
+    message: 'در حال انتقال به صفحه ورود...',
+    duration: 1500,
+    closable: false,
+    persistent: false,
+    showProgress: true, 
+    redirectOnClose: null    
+  });
+  loader.redirect(loginUrl);
 }
 
 window.addEventListener('load', function() {
     // پنهان کردن لودینگ در صورت وجود
-    window.AiDastyarLoader.hide();
+    if (window.AiDastyarLoader && window.AiDastyarLoader.hide) {
+        window.AiDastyarLoader.hide();
+    }
     
     const urlParams = new URLSearchParams(window.location.search);
     const loggedIn = urlParams.get('logged_in');
     
     if (loggedIn === '1' && sessionStorage.getItem('diet_form_data')) {
+        // نمایش loader هنگام بازیابی داده‌ها
+        const loader = new AiDastyarLoader({
+            message: 'در حال بازیابی اطلاعات...',
+            duration: 1500,
+            closable: false,
+            persistent: false,
+            showProgress: true, 
+            redirectOnClose: null                
+        });
+        loader.show();
+
         // بازیابی داده‌ها
         const savedData = JSON.parse(sessionStorage.getItem('diet_form_data'));
-        const savedStep = savedData._currentStep || 1; // استفاده از مرحله ذخیره شده
+        const savedStep = savedData._currentStep || 1;
         
-        // آپدیت state با داده‌های ذخیره شده
         if (savedData) {
-            // حذف فیلدهای سیستمی قبل از ادغام
             const {_timestamp, _currentStep, ...formData} = savedData;
             Object.assign(window.state.formData, formData);
             
-            // همیشه به مرحله تائیدیه (۱۸) بروید، حتی اگر کاربر در مرحله دیگری بود
             window.navigateToStep(STEPS.TERMS_AGREEMENT);
             
-            // به‌روزرسانی عناصر فرم از state
             if (typeof window.state.updateFormElementsFromState === 'function') {
                 window.state.updateFormElementsFromState();
             }
@@ -1132,11 +1144,14 @@ window.addEventListener('load', function() {
         sessionStorage.removeItem('diet_form_data');
         sessionStorage.removeItem('diet_form_redirect_url');
         
-        // حذف پارامتر logged_in از URL بدون ریلود صفحه
+        // حذف پارامتر logged_in از URL
         if (window.history.replaceState) {
             const newUrl = window.location.pathname + window.location.hash;
             window.history.replaceState({}, document.title, newUrl);
         }
+        
+        // مخفی کردن loader پس از 1 ثانیه
+        setTimeout(() => loader.hide(), 1000);
     }
 });
 </script>
