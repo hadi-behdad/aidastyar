@@ -392,117 +392,18 @@ window.setupAdditionalInfoSelection = function(currentStep) {
     });
 };
 
+// Step X: Food Restrictions (اصلاح شده)
 window.setupFoodRestrictionSelection = function(currentStep) {
-    try {
-        if (currentStep !== STEPS.FOOD_RESTRICTIONS) return;
-
-        const elements = {
-            noneCheckbox: document.getElementById('restriction-none'),
-            vegetarian: document.getElementById('restriction-vegetarian'),
-            vegan: document.getElementById('restriction-vegan'),
-            halal: document.getElementById('restriction-halal'),
-            noSeafood: document.getElementById('restriction-no-seafood'),
-            noRedmeat: document.getElementById('restriction-no-redmeat'),
-            noPork: document.getElementById('restriction-no-pork'),
-            lowcarb: document.getElementById('restriction-lowcarb'),
-            lowfat: document.getElementById('restriction-lowfat'),
-            nextButton: document.querySelector('.next-step')
-        };
-
-        if (Object.values(elements).some(el => !el)) {
-            console.error('Some required elements for food restriction step are missing');
-            return;
-        }
-
-        elements.nextButton.disabled = true;
-
-        const validateForm = () => {
-            const anyChecked = [
-                elements.vegetarian,
-                elements.vegan,
-                elements.halal,
-                elements.noSeafood,
-                elements.noRedmeat,
-                elements.noPork,
-                elements.lowcarb,
-                elements.lowfat
-            ].some(option => option.checked) || elements.noneCheckbox.checked;
-            
-            elements.nextButton.disabled = !anyChecked;
-            
-            const foodRestrictions = [];
-            if (elements.vegetarian.checked) foodRestrictions.push('vegetarian');
-            if (elements.vegan.checked) foodRestrictions.push('vegan');
-            if (elements.halal.checked) foodRestrictions.push('halal');
-            if (elements.noSeafood.checked) foodRestrictions.push('no-seafood');
-            if (elements.noRedmeat.checked) foodRestrictions.push('no-redmeat');
-            if (elements.noPork.checked) foodRestrictions.push('no-pork');
-            if (elements.lowcarb.checked) foodRestrictions.push('low-carb');
-            if (elements.lowfat.checked) foodRestrictions.push('low-fat');
-            if (elements.noneCheckbox.checked) foodRestrictions.push('none');
-            
-            state.updateFormData('foodRestrictions', foodRestrictions);
-        };
-
-        const handleCheckboxChange = (checkbox) => {
-            checkbox.addEventListener('change', function() {
-                const label = this.nextElementSibling;
-                if (label) {
-                    label.classList.add('checked-animation');
-                    setTimeout(() => {
-                        label.classList.remove('checked-animation');
-                        label.classList.toggle('checked', this.checked);
-                    }, 800);
-                }
-                validateForm();
-            });
-        };
-
-        elements.noneCheckbox.addEventListener('change', function() {
-            if (this.checked) {
-                [
-                    elements.vegetarian,
-                    elements.vegan,
-                    elements.halal,
-                    elements.noSeafood,
-                    elements.noRedmeat,
-                    elements.noPork,
-                    elements.lowcarb,
-                    elements.lowfat
-                ].forEach(option => {
-                    option.checked = false;
-                    const label = option.nextElementSibling;
-                    if (label) label.classList.remove('checked');
-                });
-            }
-            validateForm();
-        });
-
-        [
-            elements.vegetarian,
-            elements.vegan,
-            elements.halal,
-            elements.noSeafood,
-            elements.noRedmeat,
-            elements.noPork,
-            elements.lowcarb,
-            elements.lowfat
-        ].forEach(option => {
-            handleCheckboxChange(option);
-            option.addEventListener('change', function() {
-                if (this.checked) {
-                    elements.noneCheckbox.checked = false;
-                    const label = elements.noneCheckbox.nextElementSibling;
-                    if (label) label.classList.remove('checked');
-                }
-                validateForm();
-            });
-        });
-
-        validateForm();
-    } catch (error) {
-        console.error('Error in food restriction selection step:', error);
-    }
+    setupCheckboxSelection({
+        step: STEPS.FOOD_RESTRICTIONS,
+        noneCheckboxId: "restriction-none",
+        optionIds: [
+            "restriction-vegetarian", "restriction-vegan", "restriction-halal",
+            "restriction-no-seafood", "restriction-no-redmeat", "restriction-no-pork",
+            "restriction-lowcarb", "restriction-lowfat"
+        ],
+        fieldName: "foodRestrictions"
+    });
 };
 
 window.setupConfirmationCheckbox = function(currentStep) {
