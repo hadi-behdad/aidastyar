@@ -1,4 +1,104 @@
 // /home/aidastya/public_html/test/wp-content/themes/ai-assistant-test/assets/js/services/diet/form-events.js
+
+function setupComplexCheckboxSelection(config) {
+    const {
+        step,
+        noneCheckboxId,
+        categories, // آرایه‌ای از دسته‌بندی‌ها
+        fieldName
+    } = config;
+
+    if (state.currentStep !== step) return;
+
+    const noneCheckbox = document.getElementById(noneCheckboxId);
+    const nextButton = document.querySelector(".next-step");
+    
+    if (!noneCheckbox || !nextButton) {
+        console.error("عناصر اصلی یافت نشدند");
+        return;
+    }
+
+    nextButton.disabled = true;
+    
+    // جمع‌آوری تمام چک‌باکس‌ها
+    const allCheckboxes = [];
+    categories.forEach(category => {
+        category.options.forEach(option => {
+            const checkbox = document.getElementById(option.id);
+            if (checkbox) {
+                checkbox.dataset.category = category.name;
+                allCheckboxes.push(checkbox);
+            }
+        });
+    });
+
+    // --- توابع مشترک ---
+    const updateLabelStyle = (checkbox) => {
+        const label = checkbox.nextElementSibling;
+        if (!label) return;
+
+        if (checkbox.checked) {
+            label.classList.add("checked-animation");
+            setTimeout(() => {
+                label.classList.remove("checked-animation");
+                label.classList.add("checked");
+            }, 800);
+        } else {
+            label.classList.remove("checked");
+        }
+    };
+
+    const validateForm = () => {
+        const anyChecked = allCheckboxes.some(opt => opt.checked) || noneCheckbox.checked;
+        nextButton.disabled = !anyChecked;
+
+        const selectedValues = [];
+        if (noneCheckbox.checked) {
+            selectedValues.push("none");
+        } else {
+            allCheckboxes.forEach(opt => {
+                if (opt.checked) {
+                    selectedValues.push({
+                        category: opt.dataset.category,
+                        value: opt.value
+                    });
+                }
+            });
+        }
+
+        state.updateFormData(fieldName, selectedValues);
+    };
+
+    // --- رویدادها ---
+    noneCheckbox.addEventListener("change", function() {
+        updateLabelStyle(this);
+        
+        if (this.checked) {
+            allCheckboxes.forEach(opt => {
+                opt.checked = false;
+                updateLabelStyle(opt);
+            });
+        }
+        
+        validateForm();
+    });
+
+    allCheckboxes.forEach(option => {
+        option.addEventListener("change", function() {
+            updateLabelStyle(this);
+            
+            if (this.checked) {
+                noneCheckbox.checked = false;
+                updateLabelStyle(noneCheckbox);
+            }
+            
+            validateForm();
+        });
+    });
+
+    validateForm();
+}
+
 function setupScrollIndicator(containerId) {
     const container = document.getElementById(containerId);
     if (!container) return;
@@ -110,272 +210,43 @@ window.setupTermsAgreement = function(currentStep) {
     });
 }
 
+// 5. سبک غذایی
 window.setupDietStyleSelection = function(currentStep) {
-    if (currentStep !== STEPS.DIET_STYLE) return;
-
-    const elements = {
-        noneCheckbox: document.getElementById('diet-style-none'),
-        vegetarian: document.getElementById('diet-style-vegetarian'),
-        vegan: document.getElementById('diet-style-vegan'),
-        halal: document.getElementById('diet-style-halal'),
-        nextButton: document.querySelector(".next-step")
-    };
-
-    if (!elements.noneCheckbox) return;
-
-    elements.nextButton.disabled = true;
-
-    const validateForm = () => {
-        const anyChecked = [
-            elements.vegetarian, 
-            elements.vegan, 
-            elements.halal
-        ].some(option => option.checked) || elements.noneCheckbox.checked;
-        
-        elements.nextButton.disabled = !anyChecked;
-        
-        const dietStyle = [];
-        if (elements.vegetarian.checked) dietStyle.push('vegetarian');
-        if (elements.vegan.checked) dietStyle.push('vegan');
-        if (elements.halal.checked) dietStyle.push('halal');
-        if (elements.noneCheckbox.checked) dietStyle.push('none');
-        
-        state.updateFormData('dietStyle', dietStyle);
-    };
-
-    const handleCheckboxChange = (checkbox) => {
-        checkbox.addEventListener('change', function() {
-            const label = this.nextElementSibling;
-            if (label) {
-                label.classList.add('checked-animation');
-                setTimeout(() => {
-                    label.classList.remove('checked-animation');
-                    label.classList.toggle('checked', this.checked);
-                }, 800);
-            }
-            validateForm();
-        });
-    };
-
-    elements.noneCheckbox.addEventListener('change', function() {
-        if (this.checked) {
-            [
-                elements.vegetarian,
-                elements.vegan,
-                elements.halal
-            ].forEach(option => {
-                option.checked = false;
-                const label = option.nextElementSibling;
-                if (label) label.classList.remove('checked');
-            });
-        }
-        validateForm();
+    setupCheckboxSelection({
+        step: STEPS.DIET_STYLE,
+        noneCheckboxId: "diet-style-none",
+        optionIds: [
+            "diet-style-vegetarian", "diet-style-vegan", "diet-style-halal"
+        ],
+        fieldName: "dietStyle"
     });
-
-    [
-        elements.vegetarian,
-        elements.vegan,
-        elements.halal
-    ].forEach(option => {
-        handleCheckboxChange(option);
-        option.addEventListener('change', function() {
-            if (this.checked) {
-                elements.noneCheckbox.checked = false;
-                const label = elements.noneCheckbox.nextElementSibling;
-                if (label) label.classList.remove('checked');
-            }
-            validateForm();
-        });
-    });
-
-    validateForm();
 };
 
+// 6. محدودیت‌های غذایی
 window.setupFoodLimitationsSelection = function(currentStep) {
-    if (currentStep !== STEPS.FOOD_LIMITATIONS) return;
-
-    const elements = {
-        noneCheckbox: document.getElementById('limitations-none'),
-        noSeafood: document.getElementById('limitation-no-seafood'),
-        noRedmeat: document.getElementById('limitation-no-redmeat'),
-        noPork: document.getElementById('limitation-no-pork'),
-        noGluten: document.getElementById('limitation-no-gluten'),
-        noDairy: document.getElementById('limitation-no-dairy'),
-        noEggs: document.getElementById('limitation-no-eggs'),
-        noNuts: document.getElementById('limitation-no-nuts'),
-        nextButton: document.querySelector(".next-step")
-    };
-
-    if (!elements.noneCheckbox) return;
-
-    elements.nextButton.disabled = true;
-
-    const validateForm = () => {
-        const anyChecked = [
-            elements.noSeafood,
-            elements.noRedmeat,
-            elements.noPork,
-            elements.noGluten,
-            elements.noDairy,
-            elements.noEggs,
-            elements.noNuts
-        ].some(option => option.checked) || elements.noneCheckbox.checked;
-        
-        elements.nextButton.disabled = !anyChecked;
-        
-        const limitations = [];
-        if (elements.noSeafood.checked) limitations.push('no-seafood');
-        if (elements.noRedmeat.checked) limitations.push('no-redmeat');
-        if (elements.noPork.checked) limitations.push('no-pork');
-        if (elements.noGluten.checked) limitations.push('no-gluten');
-        if (elements.noDairy.checked) limitations.push('no-dairy');
-        if (elements.noEggs.checked) limitations.push('no-eggs');
-        if (elements.noNuts.checked) limitations.push('no-nuts');
-        if (elements.noneCheckbox.checked) limitations.push('none');
-        
-        state.updateFormData('foodLimitations', limitations);
-    };
-
-    const handleCheckboxChange = (checkbox) => {
-        checkbox.addEventListener('change', function() {
-            const label = this.nextElementSibling;
-            if (label) {
-                label.classList.add('checked-animation');
-                setTimeout(() => {
-                    label.classList.remove('checked-animation');
-                    label.classList.toggle('checked', this.checked);
-                }, 800);
-            }
-            validateForm();
-        });
-    };
-
-    elements.noneCheckbox.addEventListener('change', function() {
-        if (this.checked) {
-            [
-                elements.noSeafood,
-                elements.noRedmeat,
-                elements.noPork,
-                elements.noGluten,
-                elements.noDairy,
-                elements.noEggs,
-                elements.noNuts
-            ].forEach(option => {
-                option.checked = false;
-                const label = option.nextElementSibling;
-                if (label) label.classList.remove('checked');
-            });
-        }
-        validateForm();
+    setupCheckboxSelection({
+        step: STEPS.FOOD_LIMITATIONS,
+        noneCheckboxId: "limitations-none",
+        optionIds: [
+            "limitation-no-seafood", "limitation-no-redmeat", "limitation-no-pork",
+            "limitation-no-gluten", "limitation-no-dairy", "limitation-no-eggs",
+            "limitation-no-nuts"
+        ],
+        fieldName: "foodLimitations"
     });
-
-    [
-        elements.noSeafood,
-        elements.noRedmeat,
-        elements.noPork,
-        elements.noGluten,
-        elements.noDairy,
-        elements.noEggs,
-        elements.noNuts
-    ].forEach(option => {
-        handleCheckboxChange(option);
-        option.addEventListener('change', function() {
-            if (this.checked) {
-                elements.noneCheckbox.checked = false;
-                const label = elements.noneCheckbox.nextElementSibling;
-                if (label) label.classList.remove('checked');
-            }
-            validateForm();
-        });
-    });
-
-    validateForm();
 };
 
+// 7. ترجیحات غذایی
 window.setupFoodPreferencesSelection = function(currentStep) {
-    if (currentStep !== STEPS.FOOD_PREFERENCES) return;
-
-    const elements = {
-        noneCheckbox: document.getElementById('preferences-none'),
-        lowcarb: document.getElementById('preference-lowcarb'),
-        lowfat: document.getElementById('preference-lowfat'),
-        highprotein: document.getElementById('preference-highprotein'),
-        organic: document.getElementById('preference-organic'),
-        nextButton: document.querySelector(".next-step")
-    };
-
-    if (!elements.noneCheckbox) return;
-
-    elements.nextButton.disabled = true;
-
-    const validateForm = () => {
-        const anyChecked = [
-            elements.lowcarb,
-            elements.lowfat,
-            elements.highprotein,
-            elements.organic
-        ].some(option => option.checked) || elements.noneCheckbox.checked;
-        
-        elements.nextButton.disabled = !anyChecked;
-        
-        const preferences = [];
-        if (elements.lowcarb.checked) preferences.push('low-carb');
-        if (elements.lowfat.checked) preferences.push('low-fat');
-        if (elements.highprotein.checked) preferences.push('high-protein');
-        if (elements.organic.checked) preferences.push('organic');
-        if (elements.noneCheckbox.checked) preferences.push('none');
-        
-        state.updateFormData('foodPreferences', preferences);
-    };
-
-    const handleCheckboxChange = (checkbox) => {
-        checkbox.addEventListener('change', function() {
-            const label = this.nextElementSibling;
-            if (label) {
-                label.classList.add('checked-animation');
-                setTimeout(() => {
-                    label.classList.remove('checked-animation');
-                    label.classList.toggle('checked', this.checked);
-                }, 800);
-            }
-            validateForm();
-        });
-    };
-
-    elements.noneCheckbox.addEventListener('change', function() {
-        if (this.checked) {
-            [
-                elements.lowcarb,
-                elements.lowfat,
-                elements.highprotein,
-                elements.organic
-            ].forEach(option => {
-                option.checked = false;
-                const label = option.nextElementSibling;
-                if (label) label.classList.remove('checked');
-            });
-        }
-        validateForm();
+    setupCheckboxSelection({
+        step: STEPS.FOOD_PREFERENCES,
+        noneCheckboxId: "preferences-none",
+        optionIds: [
+            "preference-lowcarb", "preference-lowfat",
+            "preference-highprotein", "preference-organic"
+        ],
+        fieldName: "foodPreferences"
     });
-
-    [
-        elements.lowcarb,
-        elements.lowfat,
-        elements.highprotein,
-        elements.organic
-    ].forEach(option => {
-        handleCheckboxChange(option);
-        option.addEventListener('change', function() {
-            if (this.checked) {
-                elements.noneCheckbox.checked = false;
-                const label = elements.noneCheckbox.nextElementSibling;
-                if (label) label.classList.remove('checked');
-            }
-            validateForm();
-        });
-    });
-
-    validateForm();
 };
 
 window.setupWaterIntakeSelection = function(currentStep) {
@@ -462,596 +333,94 @@ window.setupWaterIntakeSelection = function(currentStep) {
 };
 
 window.setupStomachDiscomfortSelection = function(currentStep) {
-    try {
-        if (currentStep !== STEPS.STOMACH) return;
-
-        const elements = {
-            noneCheckbox: document.getElementById('stomach-none'),
-            bloating: document.getElementById('stomach-bloating'),
-            pain: document.getElementById('stomach-pain'),
-            heartburn: document.getElementById('stomach-heartburn'),
-            nausea: document.getElementById('stomach-nausea'),
-            indigestion: document.getElementById('stomach-indigestion'),
-            constipation: document.getElementById('stomach-constipation'),
-            diarrhea: document.getElementById('stomach-diarrhea'),
-            foodIntolerance: document.getElementById('stomach-food-intolerance'),
-            acidReflux: document.getElementById('stomach-acid-reflux'),
-            slowDigestion: document.getElementById('stomach-slow-digestion'),
-            fullness: document.getElementById('stomach-fullness'),            
-            nextButton: document.querySelector('.next-step')
-        };
-
-        if (Object.values(elements).some(el => !el)) {
-            console.error('Some required elements for stomach step are missing');
-            return;
-        }
-
-        elements.nextButton.disabled = true;
-
-        const validateForm = () => {
-            const anyChecked = [
-                elements.bloating, 
-                elements.pain, 
-                elements.heartburn, 
-                elements.nausea,
-                elements.indigestion,
-                elements.constipation,
-                elements.diarrhea,
-                elements.foodIntolerance,
-                elements.acidReflux,
-                elements.slowDigestion,
-                elements.fullness
-            ].some(option => option.checked) || elements.noneCheckbox.checked;
-            
-            elements.nextButton.disabled = !anyChecked;
-            
-            const stomachInfo = [];
-            if (elements.bloating.checked) stomachInfo.push('bloating');
-            if (elements.pain.checked) stomachInfo.push('pain');
-            if (elements.heartburn.checked) stomachInfo.push('heartburn');
-            if (elements.nausea.checked) stomachInfo.push('nausea');
-            if (elements.indigestion.checked) stomachInfo.push('indigestion');
-            if (elements.constipation.checked) stomachInfo.push('constipation');
-            if (elements.diarrhea.checked) stomachInfo.push('diarrhea');
-            if (elements.foodIntolerance.checked) stomachInfo.push('food-intolerance');
-            if (elements.noneCheckbox.checked) stomachInfo.push('none');
-            if (elements.acidReflux.checked) stomachInfo.push('acid-reflux');
-            if (elements.slowDigestion.checked) stomachInfo.push('slow-digestion');
-            if (elements.fullness.checked) stomachInfo.push('fullness');            
-            
-            state.updateFormData('stomachDiscomfort', stomachInfo);
-        };
-
-        const handleCheckboxChange = (checkbox) => {
-            checkbox.addEventListener('change', function() {
-                const label = this.nextElementSibling;
-                if (label) {
-                    label.classList.add('checked-animation');
-                    setTimeout(() => {
-                        label.classList.remove('checked-animation');
-                        label.classList.toggle('checked', this.checked);
-                    }, 800);
-                }
-                validateForm();
-            });
-        };
-
-        elements.noneCheckbox.addEventListener('change', function() {
-            if (this.checked) {
-                [
-                    elements.bloating, 
-                    elements.pain, 
-                    elements.heartburn, 
-                    elements.nausea,
-                    elements.indigestion,
-                    elements.constipation,
-                    elements.diarrhea,
-                    elements.foodIntolerance,
-                    elements.acidReflux,
-                    elements.slowDigestion,
-                    elements.fullness
-                ].forEach(option => {
-                    option.checked = false;
-                    const label = option.nextElementSibling;
-                    if (label) label.classList.remove('checked');
-                });
-            }
-            validateForm();
-        });
-
-        [
-            elements.bloating, 
-            elements.pain, 
-            elements.heartburn, 
-            elements.nausea,
-            elements.indigestion,
-            elements.constipation,
-            elements.diarrhea,
-            elements.foodIntolerance,
-            elements.acidReflux,
-            elements.slowDigestion,
-            elements.fullness
-        ].forEach(option => {
-            handleCheckboxChange(option);
-            option.addEventListener('change', function() {
-                if (this.checked) {
-                    elements.noneCheckbox.checked = false;
-                    const label = elements.noneCheckbox.nextElementSibling;
-                    if (label) label.classList.remove('checked');
-                }
-                validateForm();
-            });
-        });
-
-        validateForm();
-    } catch (error) {
-        console.error('Error in stomach discomfort step:', error);
-    }
+    setupCheckboxSelection({
+        step: STEPS.STOMACH,
+        noneCheckboxId: "stomach-none",
+        optionIds: [
+            "stomach-bloating", "stomach-pain", "stomach-heartburn",
+            "stomach-nausea", "stomach-indigestion", "stomach-constipation",
+            "stomach-diarrhea", "stomach-food-intolerance", "stomach-acid-reflux",
+            "stomach-slow-digestion", "stomach-fullness"
+        ],
+        fieldName: "stomachDiscomfort"
+    });
 };
 
+// 2. اختلالات هورمونی
 window.setupHormonalSelection = function(currentStep) {
-    try {
-        if (currentStep !== STEPS.HORMONAL) return;
-
-        const elements = {
-            noneCheckbox: document.getElementById('hormonal-none'),
-            hypothyroidism: document.getElementById('hormonal-hypothyroidism'),
-            hyperthyroidism: document.getElementById('hormonal-hyperthyroidism'),
-            diabetes: document.getElementById('hormonal-diabetes'),
-            insulinResistance: document.getElementById('hormonal-insulin-resistance'),
-            pcos: document.getElementById('hormonal-pcos'),
-            menopause: document.getElementById('hormonal-menopause'),
-            cortisol: document.getElementById('hormonal-cortisol'),
-            growth: document.getElementById('hormonal-growth'),
-            nextButton: document.querySelector('.next-step')
-        };
-
-        if (Object.values(elements).some(el => !el)) {
-            console.error('Some required elements for hormonal step are missing');
-            return;
-        }
-
-        elements.nextButton.disabled = true;
-
-        const validateForm = () => {
-            const anyChecked = [
-                elements.hypothyroidism,
-                elements.hyperthyroidism,
-                elements.diabetes,
-                elements.insulinResistance,
-                elements.pcos,
-                elements.menopause,
-                elements.cortisol,
-                elements.growth
-            ].some(option => option.checked) || elements.noneCheckbox.checked;
-            
-            elements.nextButton.disabled = !anyChecked;
-            
-            const hormonalInfo = [];
-            if (elements.hypothyroidism.checked) hormonalInfo.push('hypothyroidism');
-            if (elements.hyperthyroidism.checked) hormonalInfo.push('hyperthyroidism');
-            if (elements.diabetes.checked) hormonalInfo.push('diabetes');
-            if (elements.insulinResistance.checked) hormonalInfo.push('insulin-resistance');
-            if (elements.pcos.checked) hormonalInfo.push('pcos');
-            if (elements.menopause.checked) hormonalInfo.push('menopause');
-            if (elements.cortisol.checked) hormonalInfo.push('cortisol');
-            if (elements.growth.checked) hormonalInfo.push('growth');
-            if (elements.noneCheckbox.checked) hormonalInfo.push('none');
-            
-            state.updateFormData('hormonal', hormonalInfo);
-        };
-
-        const handleCheckboxChange = (checkbox) => {
-            checkbox.addEventListener('change', function() {
-                const label = this.nextElementSibling;
-                if (label) {
-                    label.classList.add('checked-animation');
-                    setTimeout(() => {
-                        label.classList.remove('checked-animation');
-                        label.classList.toggle('checked', this.checked);
-                    }, 800);
-                }
-                validateForm();
-            });
-        };
-
-        elements.noneCheckbox.addEventListener('change', function() {
-            if (this.checked) {
-                [
-                    elements.hypothyroidism,
-                    elements.hyperthyroidism,
-                    elements.diabetes,
-                    elements.insulinResistance,
-                    elements.pcos,
-                    elements.menopause,
-                    elements.cortisol,
-                    elements.growth
-                ].forEach(option => {
-                    option.checked = false;
-                    const label = option.nextElementSibling;
-                    if (label) label.classList.remove('checked');
-                });
-            }
-            validateForm();
-        });
-
-        [
-            elements.hypothyroidism,
-            elements.hyperthyroidism,
-            elements.diabetes,
-            elements.insulinResistance,
-            elements.pcos,
-            elements.menopause,
-            elements.cortisol,
-            elements.growth
-        ].forEach(option => {
-            handleCheckboxChange(option);
-            option.addEventListener('change', function() {
-                if (this.checked) {
-                    elements.noneCheckbox.checked = false;
-                    const label = elements.noneCheckbox.nextElementSibling;
-                    if (label) label.classList.remove('checked');
-                }
-                validateForm();
-            });
-        });
-
-        validateForm();
-    } catch (error) {
-        console.error('Error in hormonal selection step:', error);
-    }
+    setupCheckboxSelection({
+        step: STEPS.HORMONAL,
+        noneCheckboxId: "hormonal-none",
+        optionIds: [
+            "hormonal-hypothyroidism", "hormonal-hyperthyroidism",
+            "hormonal-diabetes", "hormonal-insulin-resistance",
+            "hormonal-pcos", "hormonal-menopause",
+            "hormonal-cortisol", "hormonal-growth"
+        ],
+        fieldName: "hormonal",
+        categoryClass: "female-only"
+    });
 };
 
+// 1. جراحی‌ها
 window.setupSurgerySelection = function(currentStep) {
-    try {
-        if (currentStep !== STEPS.SURGERY) return;
-
-        const elements = {
-            noneCheckbox: document.getElementById('surgery-none'),
-            metabolic: document.getElementById('surgery-metabolic'),
-            gallbladder: document.getElementById('surgery-gallbladder'),
-            intestine: document.getElementById('surgery-intestine'),
-            thyroid: document.getElementById('surgery-thyroid'),
-            pancreas: document.getElementById('surgery-pancreas'),
-            gynecology: document.getElementById('surgery-gynecology'),
-            kidney: document.getElementById('surgery-kidney'),
-            liver: document.getElementById('surgery-liver'),
-            heart: document.getElementById('surgery-heart'),
-            nextButton: document.querySelector('.next-step')
-        };
-
-        if (Object.values(elements).some(el => !el)) {
-            console.error('Some required elements for surgery step are missing');
-            return;
-        }
-
-        document.body.setAttribute('data-gender', state.formData.gender);
-
-        const femaleOnlyOptions = document.querySelectorAll('.female-only');
-        if (state.formData.gender === 'female') {
-            femaleOnlyOptions.forEach(option => option.style.display = 'block');
-        } else {
-            femaleOnlyOptions.forEach(option => {
-                option.style.display = 'none';
-                const checkbox = option.querySelector('.real-checkbox');
-                if (checkbox) checkbox.checked = false;
-            });
-        }
-
-        elements.nextButton.disabled = true;
-
-        const validateForm = () => {
-            const anyChecked = [
-                elements.metabolic,
-                elements.gallbladder,
-                elements.intestine,
-                elements.thyroid,
-                elements.pancreas,
-                elements.gynecology,
-                elements.kidney,
-                elements.liver,
-                elements.heart
-            ].some(option => option.checked) || elements.noneCheckbox.checked;
-            
-            elements.nextButton.disabled = !anyChecked;
-            
-            const surgeryInfo = [];
-            if (elements.metabolic.checked) surgeryInfo.push('metabolic');
-            if (elements.gallbladder.checked) surgeryInfo.push('gallbladder');
-            if (elements.intestine.checked) surgeryInfo.push('intestine');
-            if (elements.thyroid.checked) surgeryInfo.push('thyroid');
-            if (elements.pancreas.checked) surgeryInfo.push('pancreas');
-            if (elements.gynecology.checked) surgeryInfo.push('gynecology');
-            if (elements.kidney.checked) surgeryInfo.push('kidney');
-            if (elements.liver.checked) surgeryInfo.push('liver');
-            if (elements.heart.checked) surgeryInfo.push('heart');
-            if (elements.noneCheckbox.checked) surgeryInfo.push('none');
-            
-            state.updateFormData('surgery', surgeryInfo);
-        };
-
-        const handleCheckboxChange = (checkbox) => {
-            checkbox.addEventListener('change', function() {
-                const label = this.nextElementSibling;
-                if (label) {
-                    label.classList.add('checked-animation');
-                    setTimeout(() => {
-                        label.classList.remove('checked-animation');
-                        label.classList.toggle('checked', this.checked);
-                    }, 800);
-                }
-                validateForm();
-            });
-        };
-
-        elements.noneCheckbox.addEventListener('change', function() {
-            if (this.checked) {
-                [
-                    elements.metabolic,
-                    elements.gallbladder,
-                    elements.intestine,
-                    elements.thyroid,
-                    elements.pancreas,
-                    elements.gynecology,
-                    elements.kidney,
-                    elements.liver,
-                    elements.heart
-                ].forEach(option => {
-                    option.checked = false;
-                    const label = option.nextElementSibling;
-                    if (label) label.classList.remove('checked');
-                });
-            }
-            validateForm();
-        });
-
-        [
-            elements.metabolic,
-            elements.gallbladder,
-            elements.intestine,
-            elements.thyroid,
-            elements.pancreas,
-            elements.gynecology,
-            elements.kidney,
-            elements.liver,
-            elements.heart
-        ].forEach(option => {
-            handleCheckboxChange(option);
-            option.addEventListener('change', function() {
-                if (this.checked) {
-                    elements.noneCheckbox.checked = false;
-                    const label = elements.noneCheckbox.nextElementSibling;
-                    if (label) label.classList.remove('checked');
-                }
-                validateForm();
-            });
-        });
-
-        validateForm();
-    } catch (error) {
-        console.error('Error in surgery selection step:', error);
-    }
+    setupCheckboxSelection({
+        step: STEPS.SURGERY,
+        noneCheckboxId: "surgery-none",
+        optionIds: [
+            "surgery-metabolic", "surgery-gallbladder", "surgery-intestine",
+            "surgery-thyroid", "surgery-pancreas", "surgery-gynecology",
+            "surgery-kidney", "surgery-liver", "surgery-heart"
+        ],
+        fieldName: "surgery",
+        categoryClass: "female-only"
+    });
 };
 
+// 4. اطلاعات تکمیلی سلامت
 window.setupAdditionalInfoSelection = function(currentStep) {
-    try {
-        if (currentStep !== STEPS.ADDITIONAL_INFO) return;
-
-        const elements = {
-            noneCheckbox: document.getElementById('info-none'),
-            diabetes: document.getElementById('info-diabetes'),
-            hypertension: document.getElementById('info-hypertension'),
-            cholesterol: document.getElementById('info-cholesterol'),
-            ibs: document.getElementById('info-ibs'),
-            celiac: document.getElementById('info-celiac'),
-            lactose: document.getElementById('info-lactose'),
-            foodAllergy: document.getElementById('info-food-allergy'),
-            nextButton: document.querySelector('.next-step')
-        };
-
-        if (Object.values(elements).some(el => !el)) {
-            console.error('Some required elements for additional info step are missing');
-            return;
-        }
-
-        elements.nextButton.disabled = true;
-
-        const validateForm = () => {
-            const anyChecked = [
-                elements.diabetes,
-                elements.hypertension,
-                elements.cholesterol,
-                elements.ibs,
-                elements.celiac,
-                elements.lactose,
-                elements.foodAllergy
-            ].some(option => option.checked) || elements.noneCheckbox.checked;
-            
-            elements.nextButton.disabled = !anyChecked;
-            
-            const additionalInfo = [];
-            if (elements.diabetes.checked) additionalInfo.push('diabetes');
-            if (elements.hypertension.checked) additionalInfo.push('hypertension');
-            if (elements.cholesterol.checked) additionalInfo.push('cholesterol');
-            if (elements.ibs.checked) additionalInfo.push('ibs');
-            if (elements.celiac.checked) additionalInfo.push('celiac');
-            if (elements.lactose.checked) additionalInfo.push('lactose');
-            if (elements.foodAllergy.checked) additionalInfo.push('food-allergy');
-            if (elements.noneCheckbox.checked) additionalInfo.push('none');
-            
-            state.updateFormData('additionalInfo', additionalInfo);
-        };
-
-        const handleCheckboxChange = (checkbox) => {
-            checkbox.addEventListener('change', function() {
-                const label = this.nextElementSibling;
-                if (label) {
-                    label.classList.add('checked-animation');
-                    setTimeout(() => {
-                        label.classList.remove('checked-animation');
-                        label.classList.toggle('checked', this.checked);
-                    }, 800);
-                }
-                validateForm();
-            });
-        };
-
-        elements.noneCheckbox.addEventListener('change', function() {
-            if (this.checked) {
-                [
-                    elements.diabetes,
-                    elements.hypertension,
-                    elements.cholesterol,
-                    elements.ibs,
-                    elements.celiac,
-                    elements.lactose,
-                    elements.foodAllergy
-                ].forEach(option => {
-                    option.checked = false;
-                    const label = option.nextElementSibling;
-                    if (label) label.classList.remove('checked');
-                });
-            }
-            validateForm();
-        });
-
-        [
-            elements.diabetes,
-            elements.hypertension,
-            elements.cholesterol,
-            elements.ibs,
-            elements.celiac,
-            elements.lactose,
-            elements.foodAllergy
-        ].forEach(option => {
-            handleCheckboxChange(option);
-            option.addEventListener('change', function() {
-                if (this.checked) {
-                    elements.noneCheckbox.checked = false;
-                    const label = elements.noneCheckbox.nextElementSibling;
-                    if (label) label.classList.remove('checked');
-                }
-                validateForm();
-            });
-        });
-
-        validateForm();
-    } catch (error) {
-        console.error('Error in additional info selection step:', error);
-    }
+    setupCheckboxSelection({
+        step: STEPS.ADDITIONAL_INFO,
+        noneCheckboxId: "info-none",
+        optionIds: [
+            "info-diabetes", "info-hypertension", "info-cholesterol",
+            "info-ibs", "info-celiac", "info-lactose", "info-food-allergy"
+        ],
+        fieldName: "additionalInfo"
+    });
 };
 
 window.setupFoodRestrictionSelection = function(currentStep) {
-    try {
-        if (currentStep !== STEPS.FOOD_RESTRICTIONS) return;
-
-        const elements = {
-            noneCheckbox: document.getElementById('restriction-none'),
-            vegetarian: document.getElementById('restriction-vegetarian'),
-            vegan: document.getElementById('restriction-vegan'),
-            halal: document.getElementById('restriction-halal'),
-            noSeafood: document.getElementById('restriction-no-seafood'),
-            noRedmeat: document.getElementById('restriction-no-redmeat'),
-            noPork: document.getElementById('restriction-no-pork'),
-            lowcarb: document.getElementById('restriction-lowcarb'),
-            lowfat: document.getElementById('restriction-lowfat'),
-            nextButton: document.querySelector('.next-step')
-        };
-
-        if (Object.values(elements).some(el => !el)) {
-            console.error('Some required elements for food restriction step are missing');
-            return;
-        }
-
-        elements.nextButton.disabled = true;
-
-        const validateForm = () => {
-            const anyChecked = [
-                elements.vegetarian,
-                elements.vegan,
-                elements.halal,
-                elements.noSeafood,
-                elements.noRedmeat,
-                elements.noPork,
-                elements.lowcarb,
-                elements.lowfat
-            ].some(option => option.checked) || elements.noneCheckbox.checked;
-            
-            elements.nextButton.disabled = !anyChecked;
-            
-            const foodRestrictions = [];
-            if (elements.vegetarian.checked) foodRestrictions.push('vegetarian');
-            if (elements.vegan.checked) foodRestrictions.push('vegan');
-            if (elements.halal.checked) foodRestrictions.push('halal');
-            if (elements.noSeafood.checked) foodRestrictions.push('no-seafood');
-            if (elements.noRedmeat.checked) foodRestrictions.push('no-redmeat');
-            if (elements.noPork.checked) foodRestrictions.push('no-pork');
-            if (elements.lowcarb.checked) foodRestrictions.push('low-carb');
-            if (elements.lowfat.checked) foodRestrictions.push('low-fat');
-            if (elements.noneCheckbox.checked) foodRestrictions.push('none');
-            
-            state.updateFormData('foodRestrictions', foodRestrictions);
-        };
-
-        const handleCheckboxChange = (checkbox) => {
-            checkbox.addEventListener('change', function() {
-                const label = this.nextElementSibling;
-                if (label) {
-                    label.classList.add('checked-animation');
-                    setTimeout(() => {
-                        label.classList.remove('checked-animation');
-                        label.classList.toggle('checked', this.checked);
-                    }, 800);
-                }
-                validateForm();
-            });
-        };
-
-        elements.noneCheckbox.addEventListener('change', function() {
-            if (this.checked) {
-                [
-                    elements.vegetarian,
-                    elements.vegan,
-                    elements.halal,
-                    elements.noSeafood,
-                    elements.noRedmeat,
-                    elements.noPork,
-                    elements.lowcarb,
-                    elements.lowfat
-                ].forEach(option => {
-                    option.checked = false;
-                    const label = option.nextElementSibling;
-                    if (label) label.classList.remove('checked');
-                });
+    setupComplexCheckboxSelection({
+        step: STEPS.FOOD_RESTRICTIONS,
+        noneCheckboxId: "restriction-none",
+        fieldName: "foodRestrictions",
+        categories: [
+            {
+                name: "diet-style",
+                options: [
+                    { id: "restriction-vegetarian", value: "vegetarian" },
+                    { id: "restriction-vegan", value: "vegan" },
+                    { id: "restriction-halal", value: "halal" }
+                ]
+            },
+            {
+                name: "limitations",
+                options: [
+                    { id: "restriction-no-seafood", value: "no-seafood" },
+                    { id: "restriction-no-redmeat", value: "no-redmeat" },
+                    { id: "restriction-no-pork", value: "no-pork" }
+                ]
+            },
+            {
+                name: "preferences",
+                options: [
+                    { id: "restriction-lowcarb", value: "low-carb" },
+                    { id: "restriction-lowfat", value: "low-fat" }
+                ]
             }
-            validateForm();
-        });
-
-        [
-            elements.vegetarian,
-            elements.vegan,
-            elements.halal,
-            elements.noSeafood,
-            elements.noRedmeat,
-            elements.noPork,
-            elements.lowcarb,
-            elements.lowfat
-        ].forEach(option => {
-            handleCheckboxChange(option);
-            option.addEventListener('change', function() {
-                if (this.checked) {
-                    elements.noneCheckbox.checked = false;
-                    const label = elements.noneCheckbox.nextElementSibling;
-                    if (label) label.classList.remove('checked');
-                }
-                validateForm();
-            });
-        });
-
-        validateForm();
-    } catch (error) {
-        console.error('Error in food restriction selection step:', error);
-    }
+        ]
+    });
 };
 
 window.setupConfirmationCheckbox = function(currentStep) {
