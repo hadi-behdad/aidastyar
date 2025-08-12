@@ -1,38 +1,30 @@
 // /home/aidastya/public_html/test/wp-content/themes/ai-assistant-test/assets/js/services/diet/form-events.js
-
-function setupComplexCheckboxSelection(config) {
+console.log('form-events.js : 0917')
+function setupCheckboxSelection(config) {
     const {
-        step,
-        noneCheckboxId,
-        categories, // آرایه‌ای از دسته‌بندی‌ها
-        fieldName
+        step, // STEP مربوطه
+        noneCheckboxId, // ID چک‌باکس "هیچکدام"
+        optionIds, // لیست IDهای گزینه‌ها
+        fieldName, // نام فیلد در state
+        categoryClass = null // کلاس دسته‌بندی اختیاری
     } = config;
 
+    // فقط در مرحله مورد نظر اجرا شود
     if (state.currentStep !== step) return;
 
     const noneCheckbox = document.getElementById(noneCheckboxId);
     const nextButton = document.querySelector(".next-step");
-    
-    if (!noneCheckbox || !nextButton) {
-        console.error("عناصر اصلی یافت نشدند");
+    const options = optionIds.map(id => document.getElementById(id));
+
+    // اعتبارسنجی عناصر
+    if (!noneCheckbox || options.some(opt => !opt) || !nextButton) {
+        console.error("عناصر چک‌باکس یافت نشدند");
         return;
     }
 
     nextButton.disabled = true;
-    
-    // جمع‌آوری تمام چک‌باکس‌ها
-    const allCheckboxes = [];
-    categories.forEach(category => {
-        category.options.forEach(option => {
-            const checkbox = document.getElementById(option.id);
-            if (checkbox) {
-                checkbox.dataset.category = category.name;
-                allCheckboxes.push(checkbox);
-            }
-        });
-    });
 
-    // --- توابع مشترک ---
+    // --- توابع کمکی ---
     const updateLabelStyle = (checkbox) => {
         const label = checkbox.nextElementSibling;
         if (!label) return;
@@ -49,32 +41,28 @@ function setupComplexCheckboxSelection(config) {
     };
 
     const validateForm = () => {
-        const anyChecked = allCheckboxes.some(opt => opt.checked) || noneCheckbox.checked;
+        const anyChecked = options.some(opt => opt.checked) || noneCheckbox.checked;
         nextButton.disabled = !anyChecked;
 
         const selectedValues = [];
         if (noneCheckbox.checked) {
             selectedValues.push("none");
         } else {
-            allCheckboxes.forEach(opt => {
-                if (opt.checked) {
-                    selectedValues.push({
-                        category: opt.dataset.category,
-                        value: opt.value
-                    });
-                }
+            options.forEach(opt => {
+                if (opt.checked) selectedValues.push(opt.value);
             });
         }
 
         state.updateFormData(fieldName, selectedValues);
     };
 
-    // --- رویدادها ---
+    // --- مدیریت رویدادها ---
+    // رویداد برای گزینه "هیچکدام"
     noneCheckbox.addEventListener("change", function() {
         updateLabelStyle(this);
         
         if (this.checked) {
-            allCheckboxes.forEach(opt => {
+            options.forEach(opt => {
                 opt.checked = false;
                 updateLabelStyle(opt);
             });
@@ -83,7 +71,8 @@ function setupComplexCheckboxSelection(config) {
         validateForm();
     });
 
-    allCheckboxes.forEach(option => {
+    // رویداد برای گزینه‌های معمولی
+    options.forEach(option => {
         option.addEventListener("change", function() {
             updateLabelStyle(this);
             
@@ -96,6 +85,19 @@ function setupComplexCheckboxSelection(config) {
         });
     });
 
+    // مدیریت دسته‌بندی‌های خاص (مثلاً فقط برای زنان)
+    if (categoryClass) {
+        const categoryElements = document.querySelectorAll(`.${categoryClass}`);
+        if (state.formData.gender !== "female") {
+            categoryElements.forEach(el => {
+                el.style.display = "none";
+                const checkbox = el.querySelector(".real-checkbox");
+                if (checkbox) checkbox.checked = false;
+            });
+        }
+    }
+
+    // اعتبارسنجی اولیه
     validateForm();
 }
 
@@ -391,36 +393,116 @@ window.setupAdditionalInfoSelection = function(currentStep) {
 };
 
 window.setupFoodRestrictionSelection = function(currentStep) {
-    setupComplexCheckboxSelection({
-        step: STEPS.FOOD_RESTRICTIONS,
-        noneCheckboxId: "restriction-none",
-        fieldName: "foodRestrictions",
-        categories: [
-            {
-                name: "diet-style",
-                options: [
-                    { id: "restriction-vegetarian", value: "vegetarian" },
-                    { id: "restriction-vegan", value: "vegan" },
-                    { id: "restriction-halal", value: "halal" }
-                ]
-            },
-            {
-                name: "limitations",
-                options: [
-                    { id: "restriction-no-seafood", value: "no-seafood" },
-                    { id: "restriction-no-redmeat", value: "no-redmeat" },
-                    { id: "restriction-no-pork", value: "no-pork" }
-                ]
-            },
-            {
-                name: "preferences",
-                options: [
-                    { id: "restriction-lowcarb", value: "low-carb" },
-                    { id: "restriction-lowfat", value: "low-fat" }
-                ]
+    try {
+        if (currentStep !== STEPS.FOOD_RESTRICTIONS) return;
+
+        const elements = {
+            noneCheckbox: document.getElementById('restriction-none'),
+            vegetarian: document.getElementById('restriction-vegetarian'),
+            vegan: document.getElementById('restriction-vegan'),
+            halal: document.getElementById('restriction-halal'),
+            noSeafood: document.getElementById('restriction-no-seafood'),
+            noRedmeat: document.getElementById('restriction-no-redmeat'),
+            noPork: document.getElementById('restriction-no-pork'),
+            lowcarb: document.getElementById('restriction-lowcarb'),
+            lowfat: document.getElementById('restriction-lowfat'),
+            nextButton: document.querySelector('.next-step')
+        };
+
+        if (Object.values(elements).some(el => !el)) {
+            console.error('Some required elements for food restriction step are missing');
+            return;
+        }
+
+        elements.nextButton.disabled = true;
+
+        const validateForm = () => {
+            const anyChecked = [
+                elements.vegetarian,
+                elements.vegan,
+                elements.halal,
+                elements.noSeafood,
+                elements.noRedmeat,
+                elements.noPork,
+                elements.lowcarb,
+                elements.lowfat
+            ].some(option => option.checked) || elements.noneCheckbox.checked;
+            
+            elements.nextButton.disabled = !anyChecked;
+            
+            const foodRestrictions = [];
+            if (elements.vegetarian.checked) foodRestrictions.push('vegetarian');
+            if (elements.vegan.checked) foodRestrictions.push('vegan');
+            if (elements.halal.checked) foodRestrictions.push('halal');
+            if (elements.noSeafood.checked) foodRestrictions.push('no-seafood');
+            if (elements.noRedmeat.checked) foodRestrictions.push('no-redmeat');
+            if (elements.noPork.checked) foodRestrictions.push('no-pork');
+            if (elements.lowcarb.checked) foodRestrictions.push('low-carb');
+            if (elements.lowfat.checked) foodRestrictions.push('low-fat');
+            if (elements.noneCheckbox.checked) foodRestrictions.push('none');
+            
+            state.updateFormData('foodRestrictions', foodRestrictions);
+        };
+
+        const handleCheckboxChange = (checkbox) => {
+            checkbox.addEventListener('change', function() {
+                const label = this.nextElementSibling;
+                if (label) {
+                    label.classList.add('checked-animation');
+                    setTimeout(() => {
+                        label.classList.remove('checked-animation');
+                        label.classList.toggle('checked', this.checked);
+                    }, 800);
+                }
+                validateForm();
+            });
+        };
+
+        elements.noneCheckbox.addEventListener('change', function() {
+            if (this.checked) {
+                [
+                    elements.vegetarian,
+                    elements.vegan,
+                    elements.halal,
+                    elements.noSeafood,
+                    elements.noRedmeat,
+                    elements.noPork,
+                    elements.lowcarb,
+                    elements.lowfat
+                ].forEach(option => {
+                    option.checked = false;
+                    const label = option.nextElementSibling;
+                    if (label) label.classList.remove('checked');
+                });
             }
-        ]
-    });
+            validateForm();
+        });
+
+        [
+            elements.vegetarian,
+            elements.vegan,
+            elements.halal,
+            elements.noSeafood,
+            elements.noRedmeat,
+            elements.noPork,
+            elements.lowcarb,
+            elements.lowfat
+        ].forEach(option => {
+            handleCheckboxChange(option);
+            option.addEventListener('change', function() {
+                if (this.checked) {
+                    elements.noneCheckbox.checked = false;
+                    const label = elements.noneCheckbox.nextElementSibling;
+                    if (label) label.classList.remove('checked');
+                }
+                validateForm();
+            });
+        });
+
+        validateForm();
+    } catch (error) {
+        console.error('Error in food restriction selection step:', error);
+    }
 };
 
 window.setupConfirmationCheckbox = function(currentStep) {

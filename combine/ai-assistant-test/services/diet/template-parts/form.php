@@ -2,7 +2,7 @@
 // /home/aidastya/public_html/test/wp-content/themes/ai-assistant-test/services/diet/template-parts/form.php
 $theme_assets = get_stylesheet_directory_uri();
 ?>
-
+<script>console.log('form.php : 0917')</script>
 <form id="multi-step-form" class="ai-multistep-form" method="post" action="<?php echo admin_url('admin-ajax.php'); ?>">
     <input type="hidden" name="action" value="submit_diet_form">
     <?php wp_nonce_field('diet_form_nonce', 'diet_form_security'); ?>
@@ -20,7 +20,6 @@ $theme_assets = get_stylesheet_directory_uri();
     <div id="gender-selection-step" class="step active">
         <h1 id="form-title">سیستم هوشمند رژیم غذایی هوش مصنوعی</h1>
         <h2>جنسیت خود را انتخاب کنید</h2>
-        <!--<h2>1706</h2>-->
         <div id="gender-selection">
             <div class="gender-option" data-gender="male"><img src="<?php echo $theme_assets; ?>/assets/images/webp/male.webp" alt="مرد"></div>
             <div class="gender-option" data-gender="female"><img src="<?php echo $theme_assets; ?>/assets/images/webp/female.webp" alt="زن"></div>
