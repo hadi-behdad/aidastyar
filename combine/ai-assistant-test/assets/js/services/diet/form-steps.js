@@ -220,6 +220,150 @@ window.setupFoodPreferencesSelection = function(currentStep) {
     });
 };
 
+window.setupWaterIntakeSelection = function(currentStep) {
+    if (currentStep !== STEPS.WATER_INTAKE) return;
+
+    const waterCups = document.querySelectorAll('.water-cup');
+    const waterAmountDisplay = document.getElementById('water-amount');
+    const waterLiterDisplay = document.getElementById('water-liter');
+    const waterAmountText = document.getElementById('water-amount-text');
+    const dontKnowCheckbox = document.getElementById('water-dont-know');
+    const dontKnowText = document.getElementById('water-dont-know-text');
+    const nextButton = document.querySelector('.next-step');
+    
+    nextButton.disabled = true;
+
+    const updateNextButtonState = () => {
+        const hasSelection = document.querySelector('.water-cup.selected') !== null;
+        const isDontKnowChecked = dontKnowCheckbox.checked;
+        nextButton.disabled = !(hasSelection || isDontKnowChecked);
+    };
+
+    const updateWaterDisplay = (amount, isDontKnow = false) => {
+        if (isDontKnow) {
+            waterAmountText.style.display = 'none';
+            dontKnowText.style.display = 'block';
+            state.updateFormData('waterIntake', null);
+        } else {
+            waterAmountDisplay.textContent = amount;
+            waterLiterDisplay.textContent = (amount * 0.25).toFixed(1); // محاسبه لیتر (هر لیوان 250 سی‌سی)
+            waterAmountText.style.display = 'flex';
+            dontKnowText.style.display = 'none';
+            state.updateFormData('waterIntake', amount);
+        }
+        updateNextButtonState();
+    };
+
+    waterCups.forEach((cup, index) => {
+        cup.addEventListener('click', function() {
+            dontKnowCheckbox.checked = false;
+            document.querySelector('.stand-alone-none .checkbox-label').classList.remove('checked');
+            
+            const amount = parseInt(this.dataset.amount);
+            
+            // Reset all cups
+            waterCups.forEach(c => {
+                c.classList.remove('selected');
+                c.querySelector('.water-wave')?.remove();
+            });
+            
+            // Select cups up to clicked amount
+            for (let i = 0; i < amount; i++) {
+                waterCups[i].classList.add('selected');
+            }
+            
+            updateWaterDisplay(amount);
+        });
+    });
+
+    dontKnowCheckbox.addEventListener('change', function() {
+        const label = this.nextElementSibling;
+        if (this.checked) {
+            label.classList.add('checked-animation');
+            setTimeout(() => {
+                label.classList.remove('checked-animation');
+                label.classList.add('checked');
+            }, 800);
+            
+            // Reset all cups
+            waterCups.forEach(c => {
+                c.classList.remove('selected');
+                c.querySelector('.water-wave')?.remove();
+            });
+            
+            updateWaterDisplay(0, true);
+        } else {
+            label.classList.remove('checked');
+            updateWaterDisplay(0, false);
+            updateNextButtonState();
+        }
+    });
+
+    // بررسی اولیه وضعیت دکمه
+    updateNextButtonState();
+};
+
+window.setupTermsAgreement = function(currentStep) {
+    if (currentStep !== STEPS.TERMS_AGREEMENT) return;
+
+    const nextButton = document.querySelector(".next-step");
+    const agreeCheckbox = document.getElementById("agree-terms");
+    
+    // Reset state
+    agreeCheckbox.checked = false;
+    nextButton.disabled = true;
+
+    agreeCheckbox.addEventListener("change", function() {
+        const label = this.nextElementSibling;
+        
+        if (this.checked) {
+            label.classList.add("checked-animation");
+            setTimeout(() => {
+                label.classList.remove("checked-animation");
+                label.classList.add("checked");
+            }, 800);
+        } else {
+            label.classList.remove("checked");
+        }
+        
+        nextButton.disabled = !this.checked;
+    });
+}
+
+window.setupConfirmationCheckbox = function(currentStep) {
+    const submitButton = document.querySelector(".submit-form");
+    const confirmCheckbox = document.getElementById("confirm-info");
+    
+    if (currentStep !== STEPS.CONFIRMATION) return;
+
+    submitButton.disabled = !confirmCheckbox.checked;
+    if (confirmCheckbox.checked) {
+        confirmCheckbox.nextElementSibling.classList.add("checked");
+    }
+
+    const validateForm = () => {
+        submitButton.disabled = !confirmCheckbox.checked;
+    };
+
+    confirmCheckbox.addEventListener("change", function() {
+        const label = this.nextElementSibling;
+        
+        if (this.checked) {
+            label.classList.add("checked-animation");
+            setTimeout(() => {
+                label.classList.remove("checked-animation");
+                label.classList.add("checked");
+            }, 800);
+        } else {
+            label.classList.remove("checked");
+        }
+        
+        validateForm();
+    });
+
+    validateForm();
+}
+
 window.showStep = function(step) {
     const stepElements = [
         "gender-selection-step",
