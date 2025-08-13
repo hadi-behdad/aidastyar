@@ -1,4 +1,225 @@
 // /home/aidastya/public_html/test/wp-content/themes/ai-assistant-test/assets/js/services/diet/form-steps.js
+
+window.setupComplexCheckboxSelection = function(step, config) {
+    if (state.currentStep !== step) return;
+
+    const elements = {
+        noneCheckbox: document.getElementById(config.noneCheckboxId),
+        nextButton: document.querySelector(".next-step")
+    };
+
+    // ساختاردهی گزینه‌ها
+    config.options.forEach(option => {
+        elements[option.key] = document.getElementById(option.id);
+    });
+
+    // مدیریت نمایش گزینه‌های زنانه
+    if (config.genderDependent) {
+        const femaleOnlyOptions = document.querySelectorAll('.female-only');
+        if (state.formData.gender === 'female') {
+            femaleOnlyOptions.forEach(el => el.style.display = 'block');
+        } else {
+            femaleOnlyOptions.forEach(el => {
+                el.style.display = 'none';
+                const checkbox = el.querySelector('.real-checkbox');
+                if (checkbox) checkbox.checked = false;
+            });
+        }
+    }
+
+    elements.nextButton.disabled = true;
+
+    const validateForm = () => {
+        let anyChecked = false;
+        
+        // بررسی انتخاب‌ها
+        config.options.forEach(option => {
+            if (elements[option.key]?.checked) {
+                anyChecked = true;
+            }
+        });
+
+        if (elements.noneCheckbox.checked) {
+            anyChecked = true;
+        }
+
+        elements.nextButton.disabled = !anyChecked;
+        
+        // به‌روزرسانی state
+        const selectedValues = [];
+        config.options.forEach(option => {
+            if (elements[option.key]?.checked) {
+                selectedValues.push(option.key);
+            }
+        });
+
+        if (elements.noneCheckbox.checked) {
+            selectedValues.push('none');
+        }
+
+        state.updateFormData(config.dataKey, selectedValues);
+    };
+
+    const handleCheckboxChange = (checkbox) => {
+        checkbox.addEventListener('change', function() {
+            const label = this.nextElementSibling;
+            if (label) {
+                label.classList.add('checked-animation');
+                setTimeout(() => {
+                    label.classList.remove('checked-animation');
+                    label.classList.toggle('checked', this.checked);
+                }, 800);
+            }
+            validateForm();
+        });
+    };
+
+    // مدیریت چک‌باکس "هیچکدام"
+    elements.noneCheckbox.addEventListener('change', function() {
+        if (this.checked) {
+            config.options.forEach(option => {
+                if (elements[option.key]) {
+                    elements[option.key].checked = false;
+                    const label = elements[option.key].nextElementSibling;
+                    if (label) label.classList.remove('checked');
+                }
+            });
+        }
+        validateForm();
+    });
+
+    // مدیریت سایر چک‌باکس‌ها
+    config.options.forEach(option => {
+        if (elements[option.key]) {
+            handleCheckboxChange(elements[option.key]);
+            elements[option.key].addEventListener('change', function() {
+                if (this.checked) {
+                    elements.noneCheckbox.checked = false;
+                    const label = elements.noneCheckbox.nextElementSibling;
+                    if (label) label.classList.remove('checked');
+                }
+                validateForm();
+            });
+        }
+    });
+
+    validateForm();
+};
+
+window.setupSurgerySelection = function(currentStep) {
+    setupComplexCheckboxSelection(currentStep, {
+        noneCheckboxId: 'surgery-none',
+        dataKey: 'surgery',
+        genderDependent: true,
+        options: [
+            { key: 'metabolic', id: 'surgery-metabolic' },
+            { key: 'gallbladder', id: 'surgery-gallbladder' },
+            { key: 'intestine', id: 'surgery-intestine' },
+            { key: 'thyroid', id: 'surgery-thyroid' },
+            { key: 'pancreas', id: 'surgery-pancreas' },
+            { key: 'gynecology', id: 'surgery-gynecology' },
+            { key: 'kidney', id: 'surgery-kidney' },
+            { key: 'liver', id: 'surgery-liver' },
+            { key: 'heart', id: 'surgery-heart' }
+        ]
+    });
+};
+
+window.setupHormonalSelection = function(currentStep) {
+    setupComplexCheckboxSelection(currentStep, {
+        noneCheckboxId: 'hormonal-none',
+        dataKey: 'hormonal',
+        genderDependent: true,
+        options: [
+            { key: 'hypothyroidism', id: 'hormonal-hypothyroidism' },
+            { key: 'hyperthyroidism', id: 'hormonal-hyperthyroidism' },
+            { key: 'diabetes', id: 'hormonal-diabetes' },
+            { key: 'insulin-resistance', id: 'hormonal-insulin-resistance' },
+            { key: 'pcos', id: 'hormonal-pcos' },
+            { key: 'menopause', id: 'hormonal-menopause' },
+            { key: 'cortisol', id: 'hormonal-cortisol' },
+            { key: 'growth', id: 'hormonal-growth' }
+        ]
+    });
+};
+
+window.setupStomachDiscomfortSelection = function(currentStep) {
+    setupComplexCheckboxSelection(currentStep, {
+        noneCheckboxId: 'stomach-none',
+        dataKey: 'stomachDiscomfort',
+        options: [
+            { key: 'bloating', id: 'stomach-bloating' },
+            { key: 'pain', id: 'stomach-pain' },
+            { key: 'heartburn', id: 'stomach-heartburn' },
+            { key: 'nausea', id: 'stomach-nausea' },
+            { key: 'indigestion', id: 'stomach-indigestion' },
+            { key: 'constipation', id: 'stomach-constipation' },
+            { key: 'diarrhea', id: 'stomach-diarrhea' },
+            { key: 'food-intolerance', id: 'stomach-food-intolerance' },
+            { key: 'acid-reflux', id: 'stomach-acid-reflux' },
+            { key: 'slow-digestion', id: 'stomach-slow-digestion' },
+            { key: 'fullness', id: 'stomach-fullness' }
+        ]
+    });
+};
+
+window.setupAdditionalInfoSelection = function(currentStep) {
+    setupComplexCheckboxSelection(currentStep, {
+        noneCheckboxId: 'info-none',
+        dataKey: 'additionalInfo',
+        options: [
+            { key: 'diabetes', id: 'info-diabetes' },
+            { key: 'hypertension', id: 'info-hypertension' },
+            { key: 'cholesterol', id: 'info-cholesterol' },
+            { key: 'ibs', id: 'info-ibs' },
+            { key: 'celiac', id: 'info-celiac' },
+            { key: 'lactose', id: 'info-lactose' },
+            { key: 'food-allergy', id: 'info-food-allergy' }
+        ]
+    });
+};
+
+window.setupDietStyleSelection = function(currentStep) {
+    setupComplexCheckboxSelection(currentStep, {
+        noneCheckboxId: 'diet-style-none',
+        dataKey: 'dietStyle',
+        options: [
+            { key: 'vegetarian', id: 'diet-style-vegetarian' },
+            { key: 'vegan', id: 'diet-style-vegan' },
+            { key: 'halal', id: 'diet-style-halal' }
+        ]
+    });
+};
+
+window.setupFoodLimitationsSelection = function(currentStep) {
+    setupComplexCheckboxSelection(currentStep, {
+        noneCheckboxId: 'limitations-none',
+        dataKey: 'foodLimitations',
+        options: [
+            { key: 'no-seafood', id: 'limitation-no-seafood' },
+            { key: 'no-redmeat', id: 'limitation-no-redmeat' },
+            { key: 'no-pork', id: 'limitation-no-pork' },
+            { key: 'no-gluten', id: 'limitation-no-gluten' },
+            { key: 'no-dairy', id: 'limitation-no-dairy' },
+            { key: 'no-eggs', id: 'limitation-no-eggs' },
+            { key: 'no-nuts', id: 'limitation-no-nuts' }
+        ]
+    });
+};
+
+window.setupFoodPreferencesSelection = function(currentStep) {
+    setupComplexCheckboxSelection(currentStep, {
+        noneCheckboxId: 'preferences-none',
+        dataKey: 'foodPreferences',
+        options: [
+            { key: 'low-carb', id: 'preference-lowcarb' },
+            { key: 'low-fat', id: 'preference-lowfat' },
+            { key: 'high-protein', id: 'preference-highprotein' },
+            { key: 'organic', id: 'preference-organic' }
+        ]
+    });
+};
+
 window.showStep = function(step) {
     const stepElements = [
         "gender-selection-step",

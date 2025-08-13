@@ -1,3 +1,4 @@
+ 
 // /home/aidastya/public_html/test/wp-content/themes/ai-assistant-test/assets/js/auto-fill.js
 console.log('🔧 فایل auto-fill.js بارگذاری شد - حالت تست فعال');
 
@@ -317,7 +318,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     setTimeout(() => {
                         window.removeEventListener('stateUpdated', stateChangeHandler);
                         console.log('✅ پر کردن خودکار تکمیل شد - هندلر حذف شد');
-                    }, 15000); // حداکثر 15 ثانیه
+                    }, 5000); // حداکثر 15 ثانیه
                 }, 500);
             });
 
@@ -328,4 +329,4 @@ document.addEventListener('DOMContentLoaded', function() {
         // ایجاد دکمه پس از لود کامل صفحه
         setTimeout(createAutoFillButton, 1000);
     }
-});
+}); 
