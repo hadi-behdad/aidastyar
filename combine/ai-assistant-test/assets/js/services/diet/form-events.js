@@ -372,4 +372,19 @@ document.addEventListener("DOMContentLoaded", () => {
     });
     
     document.addEventListener("keydown", handleEnterKey);
+    
+    document.querySelectorAll('.real-checkbox').forEach(checkbox => {
+        checkbox.addEventListener('change', function() {
+            const label = this.nextElementSibling;
+            
+            if (this.checked) {
+                label.classList.add('checked-animation');
+                
+                // حذف انیمیشن پس از اجرا
+                setTimeout(() => {
+                    label.classList.remove('checked-animation');
+                }, 800);
+            }
+        });
+    });    
 });
