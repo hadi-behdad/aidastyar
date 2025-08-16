@@ -56,6 +56,13 @@ window.validateStep = function(step) {
         }
     };
     
+    if (step === STEPS.PERSONAL_INFO) {
+        const firstName = state.formData.firstName;
+        const lastName = state.formData.lastName;
+        nextButton.disabled = !(firstName && lastName);
+        return;
+    }    
+    
     if (errorMessages[step]) {
         const { field, min, max, unit, label, errorId, customValidation } = errorMessages[step];
         const value = state.formData[field];

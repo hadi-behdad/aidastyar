@@ -134,12 +134,18 @@ window.showSummary = function() {
     nextButton.disabled = true;
     
     const { 
+        firstName,
+        lastName,
         gender, age, height, weight, targetWeight, goal, 
         activity, meals, waterIntake, surgery = [], hormonal = [],
         stomachDiscomfort = [], additionalInfo = [], dietStyle = [],
         foodLimitations = [], foodPreferences = []
     } = state.formData;
 
+    const personalInfoText = [];
+    if (firstName) personalInfoText.push(`نام: ${firstName}`);
+    if (lastName) personalInfoText.push(`نام خانوادگی: ${lastName}`);
+    
     const goalText = { 
         "weight-loss": "کاهش وزن", 
         "weight-gain": "افزایش وزن", 
@@ -243,6 +249,17 @@ window.showSummary = function() {
     if (foodPreferences.includes('none')) foodPreferencesText.push('هیچکدام');
 
     summaryContainer.innerHTML = `
+        ${personalInfoText.length > 0 ? `
+        <div class="summary-section">
+            <h3 class="summary-section-title">اطلاعات شخصی</h3>
+            ${personalInfoText.map(item => `
+                <div class="summary-item">
+                    <span class="summary-label">${item.split(':')[0]}:</span>
+                    <span class="summary-value">${item.split(':')[1]}</span>
+                </div>
+            `).join('')}
+        </div>
+        ` : ''}    
         <div class="summary-item">
             <span class="summary-label">جنسیت:</span>
             <span class="summary-value">${gender === "male" ? "مرد" : "زن"}</span>
@@ -347,6 +364,9 @@ document.addEventListener("DOMContentLoaded", () => {
     setupInput("height-input", "height-display", "height");
     setupInput("weight-input", "weight-display", "weight");
     setupInput("target-weight-input", "target-weight-display", "targetWeight");
+    
+    setupTextInput("first-name-input", "first-name-display", "firstName");
+    setupTextInput("last-name-input", "last-name-display", "lastName");
 
     setupOptionSelection(".gender-option", "gender");
     setupOptionSelection(".goal-option", "goal");

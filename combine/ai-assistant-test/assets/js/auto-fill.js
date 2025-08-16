@@ -21,6 +21,8 @@ document.addEventListener('DOMContentLoaded', function() {
             
             // داده‌های تستی
             const testData = {
+                firstName: "تست",
+                lastName: "کاربر",
                 gender: 'male',
                 goal: 'weight-loss',
                 age: 30,
@@ -39,6 +41,29 @@ document.addEventListener('DOMContentLoaded', function() {
                 foodPreferences: ['none']
             };
 
+            // تابع جدید برای پر کردن مرحله اطلاعات شخصی
+            function fillPersonalInfoStep() {
+                if (state.currentStep === STEPS.PERSONAL_INFO) {
+                    // پر کردن نام
+                    const firstNameInput = document.getElementById('first-name-input');
+                    if (firstNameInput) {
+                        firstNameInput.value = testData.firstName;
+                        firstNameInput.dispatchEvent(new Event('input'));
+                        console.log(`✅ نام "${testData.firstName}" وارد شد`);
+                    }
+                    
+                    // پر کردن نام خانوادگی
+                    const lastNameInput = document.getElementById('last-name-input');
+                    if (lastNameInput) {
+                        lastNameInput.value = testData.lastName;
+                        lastNameInput.dispatchEvent(new Event('input'));
+                        console.log(`✅ نام خانوادگی "${testData.lastName}" وارد شد`);
+                    }
+                    
+                    // کلیک روی دکمه بعدی
+                    clickNextButton(500);
+                }
+            }
             // پر کردن مرحله جنسیت
             function fillGenderStep() {
                 if (state.currentStep === STEPS.GENDER) {
@@ -258,6 +283,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
             // اجرای توابع پر کردن بر اساس مرحله فعلی
             fillGenderStep();
+            fillPersonalInfoStep()
             fillGoalStep();
             fillNumberSteps();
             fillActivityStep();

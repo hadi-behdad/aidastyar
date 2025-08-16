@@ -367,6 +367,7 @@ window.setupConfirmationCheckbox = function(currentStep) {
 window.showStep = function(step) {
     const stepElements = [
         "gender-selection-step",
+        "personal-info-step",
         "goal-selection-step",
         "age-input-step", 
         "height-input-step",
@@ -461,8 +462,8 @@ window.showStep = function(step) {
         ].includes(step) ? "none" : "block";
     }
 
-    if ([STEPS.AGE, STEPS.HEIGHT, STEPS.WEIGHT, STEPS.TARGET_WEIGHT, STEPS.WATER_INTAKE].includes(step)) {
-        const inputId = `${["age", "height", "weight", "target-weight"][step - 3]}-input`;
+    if ([STEPS.PERSONAL_INFO, STEPS.AGE, STEPS.HEIGHT, STEPS.WEIGHT, STEPS.TARGET_WEIGHT].includes(step)) {
+        const inputId = `${["first-name", "last-name", "age", "height", "weight", "target-weight"][step - 2]}-input`;
         const inputElement = document.getElementById(inputId);
         if (inputElement) inputElement.focus();
         
@@ -470,7 +471,7 @@ window.showStep = function(step) {
         if (nextButton) nextButton.disabled = true;
         
         validateStep(step);
-    }
+    }    
     
     if (step === STEPS.WATER_INTAKE) {
         setupWaterIntakeSelection(step);
@@ -550,6 +551,7 @@ window.handleEnterKey = function(event) {
         STEPS.HEIGHT, 
         STEPS.WEIGHT, 
         STEPS.TARGET_WEIGHT,
+        STEPS.PERSONAL_INFO,
         STEPS.CONFIRMATION
     ];
     

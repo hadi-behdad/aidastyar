@@ -25,7 +25,23 @@ window.state = {
                 const genderOption = document.querySelector(`.gender-option[data-gender="${this.formData.gender}"]`);
                 if (genderOption) genderOption.classList.add('selected');
             }
-    
+        
+            if (this.formData.firstName) {
+                const firstNameInput = document.getElementById('first-name-input');
+                if (firstNameInput) {
+                    firstNameInput.value = this.formData.firstName;
+                    firstNameInput.dispatchEvent(new Event('input'));
+                }
+            }
+            
+            if (this.formData.lastName) {
+                const lastNameInput = document.getElementById('last-name-input');
+                if (lastNameInput) {
+                    lastNameInput.value = this.formData.lastName;
+                    lastNameInput.dispatchEvent(new Event('input'));
+                }
+            }    
+            
             // به روزرسانی هدف
             if (this.formData.goal) {
                 const goalOption = document.querySelector(`.goal-option[data-goal="${this.formData.goal}"]`);
@@ -216,24 +232,25 @@ window.CONSTANTS = {
 
 window.STEPS = {
     GENDER: 1,
-    GOAL: 2,
-    AGE: 3,
-    HEIGHT: 4,
-    WEIGHT: 5,
-    TARGET_WEIGHT: 6,
-    GOAL_DISPLAY: 7,
-    SURGERY: 8,
-    HORMONAL: 9, 
-    STOMACH: 10,
-    WATER_INTAKE: 11,
-    ACTIVITY: 12,
-    MEALS: 13,
-    ADDITIONAL_INFO: 14,
-    DIET_STYLE: 15,
-    FOOD_LIMITATIONS: 16,
-    FOOD_PREFERENCES: 17,
-    TERMS_AGREEMENT: 18,
-    CONFIRMATION: 19
+    PERSONAL_INFO: 2,
+    GOAL: 3,
+    AGE: 4,
+    HEIGHT: 5,
+    WEIGHT: 6,
+    TARGET_WEIGHT: 7,
+    GOAL_DISPLAY: 8,
+    SURGERY: 9,
+    HORMONAL: 10, 
+    STOMACH: 11,
+    WATER_INTAKE: 12,
+    ACTIVITY: 13,
+    MEALS: 14,
+    ADDITIONAL_INFO: 15,
+    DIET_STYLE: 16,
+    FOOD_LIMITATIONS: 17,
+    FOOD_PREFERENCES: 18,
+    TERMS_AGREEMENT: 19,
+    CONFIRMATION: 20
 };
 
 window.totalSteps = Object.keys(STEPS).length;

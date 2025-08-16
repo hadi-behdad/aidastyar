@@ -1982,3 +1982,31 @@ body.dark-mode .scroll-indicator:hover {
 .scroll-indicator:not(.hidden) {
     animation: bounce 1.5s infinite;
 }
+
+.summary-section {
+    margin-bottom: 20px;
+    border-bottom: 1px dashed var(--border-color);
+    padding-bottom: 15px;
+}
+
+.summary-section:last-child {
+    border-bottom: none;
+}
+
+.summary-section-title {
+    color: var(--primary-color);
+    font-size: 16px;
+    margin: 0 0 10px 0;
+    padding-right: 10px;
+}
+
+/* اضافه کردن استایل برای نمایش پیش‌فرض نام و نام خانوادگی */
+#first-name-display, #last-name-display {
+    color: var(--light-text-color);
+    transition: color 0.3s ease;
+}
+
+/* استایل زمانی که فیلد پر شده است */
+.input-container input:not(:placeholder-shown) + span {
+    color: var(--text-color);
+}
