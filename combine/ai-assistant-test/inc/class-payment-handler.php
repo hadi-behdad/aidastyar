@@ -1,7 +1,8 @@
-
 <?php
 class AI_Assistant_Payment_Handler {
     private static $instance;
+    private $table_name;
+    private $history_table;
     
     public static function get_instance() {
         if (!isset(self::$instance)) {
@@ -10,61 +11,211 @@ class AI_Assistant_Payment_Handler {
         return self::$instance;
     }
     
+    private function __construct() {
+        global $wpdb;
+        $this->table_name = $wpdb->prefix . 'wallet_balance';
+        $this->history_table = $wpdb->prefix . 'wallet_history';
+        $this->maybe_create_tables();
+    }
+    
+    private function maybe_create_tables() {
+        global $wpdb;
+        
+        // ایجاد جدول موجودی کیف پول
+        if ($wpdb->get_var("SHOW TABLES LIKE '{$this->table_name}'") != $this->table_name) {
+            $charset_collate = $wpdb->get_charset_collate();
+            
+            $sql = "CREATE TABLE {$this->table_name} (
+                user_id bigint(20) UNSIGNED NOT NULL,
+                balance decimal(15,2) NOT NULL DEFAULT 0,
+                updated_at datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+                PRIMARY KEY (user_id),
+                INDEX (updated_at)
+            ) {$charset_collate};";
+            
+            require_once(ABSPATH . 'wp-admin/includes/upgrade.php');
+            dbDelta($sql);
+            
+            // انتقال داده‌های موجود از user_meta به جدول جدید
+            $users = get_users([
+                'meta_key' => 'ai_assistant_credit',
+                'meta_compare' => 'EXISTS'
+            ]);
+            
+            foreach ($users as $user) {
+                $credit = get_user_meta($user->ID, 'ai_assistant_credit', true);
+                $wpdb->replace($this->table_name, [
+                    'user_id' => $user->ID,
+                    'balance' => $credit
+                ]);
+            }
+        }
+        
+        // ایجاد جدول تاریخچه تراکنش‌ها
+        if ($wpdb->get_var("SHOW TABLES LIKE '{$this->history_table}'") != $this->history_table) {
+            $charset_collate = $wpdb->get_charset_collate();
+            
+            // استفاده از ساختار جایگزین برای enum
+            $sql = "CREATE TABLE {$this->history_table} (
+                id bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT,
+                user_id bigint(20) UNSIGNED NOT NULL,
+                amount decimal(15,2) NOT NULL,
+                new_balance decimal(15,2) NOT NULL,
+                type varchar(20) NOT NULL, -- تغییر از enum به varchar
+                description varchar(255) NOT NULL,
+                reference_id varchar(100) DEFAULT NULL,
+                created_at datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                PRIMARY KEY (id),
+                INDEX (user_id),
+                INDEX (type),
+                INDEX (created_at),
+                INDEX (reference_id)
+            ) {$charset_collate};";
+            
+            require_once(ABSPATH . 'wp-admin/includes/upgrade.php');
+            dbDelta($sql);
+            
+            // اضافه کردن محدودیت مقدار برای فیلد type
+            $wpdb->query(
+                "ALTER TABLE {$this->history_table} 
+                 ADD CONSTRAINT chk_type CHECK (type IN ('credit', 'debit'))"
+            );
+        }
+    }
+    
     public function get_user_credit($user_id) {
-        $credit = get_user_meta($user_id, 'ai_assistant_credit', true);
-        return $credit ? (float) $credit : 0;
+        global $wpdb;
+        
+        $balance = $wpdb->get_var($wpdb->prepare(
+            "SELECT balance FROM {$this->table_name} WHERE user_id = %d",
+            $user_id
+        ));
+        
+        return $balance !== null ? (float) $balance : 0;
     }
     
     public function has_enough_credit($user_id, $amount) {
         return $this->get_user_credit($user_id) >= $amount;
     }
     
-    public function deduct_credit($user_id, $amount, $description ) {
-        $current = $this->get_user_credit($user_id);
-        $new_credit = $current - $amount;
+    public function deduct_credit($user_id, $amount, $description, $reference_id = null) {
+        global $wpdb;
         
-        if ($new_credit < 0) {
+        $current = $this->get_user_credit($user_id);
+        $new_balance = $current - $amount;
+        
+        if ($new_balance < 0) {
             return false;
         }
         
-        update_user_meta($user_id, 'ai_assistant_credit', $new_credit);
+        $wpdb->replace($this->table_name, [
+            'user_id' => $user_id,
+            'balance' => $new_balance
+        ], ['%d', '%f']);
         
-        // ثبت در تاریخچه کیف پول
-        AI_Assistant_Wallet_History_Manager::get_instance()->save_wallet_history(
+        $this->save_wallet_history(
             $user_id,
             $amount,
-            $new_credit,
+            $new_balance,
             'debit',
-            $description
-        );  
+            $description,
+            $reference_id
+        );
         
         return true;
     }
     
-    public function add_credit($user_id, $amount) {
-        $current = $this->get_user_credit($user_id);
-        $new_credit = $current + $amount;
-        update_user_meta($user_id, 'ai_assistant_credit', $new_credit);
+    public function add_credit($user_id, $amount, $description = 'شارژ کیف پول', $reference_id = null) {
+        global $wpdb;
         
-        $description = 'شارژکیف پول';
-        // ثبت در تاریخچه کیف پول
-        AI_Assistant_Wallet_History_Manager::get_instance()->save_wallet_history(
+        $current = $this->get_user_credit($user_id);
+        $new_balance = $current + $amount;
+        
+        $wpdb->replace($this->table_name, [
+            'user_id' => $user_id,
+            'balance' => $new_balance
+        ], ['%d', '%f']);
+        
+        $this->save_wallet_history(
             $user_id,
             $amount,
-            $new_credit,
+            $new_balance,
             'credit',
-            $description
-        );        
+            $description,
+            $reference_id
+        );
         
-        //ثبت لاگ
         AI_Assistant_Logger::get_instance()->log('کیف پول با موفقیت شارژ شد', [
             'user_id' => $user_id,
-            'مبلغ اضافه‌شده' => $amount,
-            'اعتبار جدید' => $new_credit
+            'amount' => $amount,
+            'new_balance' => $new_balance
         ]);
-    
+        
         return true;
     }
+    
+    private function save_wallet_history($user_id, $amount, $new_balance, $type, $description, $reference_id = null) {
+        global $wpdb;
+        
+        $wpdb->insert($this->history_table, [
+            'user_id' => $user_id,
+            'amount' => $amount,
+            'new_balance' => $new_balance,
+            'type' => $type,
+            'description' => $description,
+            'reference_id' => $reference_id
+        ], [
+            '%d', '%f', '%f', '%s', '%s', '%s'
+        ]);
+    }
+    
+    public function get_transaction_history($user_id, $per_page = 10, $page = 1) {
+        global $wpdb;
+        
+        $offset = ($page - 1) * $per_page;
+        
+        $items = $wpdb->get_results($wpdb->prepare(
+            "SELECT * FROM {$this->history_table}
+             WHERE user_id = %d
+             ORDER BY created_at DESC
+             LIMIT %d, %d",
+            $user_id, $offset, $per_page
+        ));
+        
+        $total = $wpdb->get_var($wpdb->prepare(
+            "SELECT COUNT(*) FROM {$this->history_table} WHERE user_id = %d",
+            $user_id
+        ));
+        
+        return [
+            'items' => $items,
+            'total' => $total,
+            'pages' => ceil($total / $per_page)
+        ];
+    }
+    
+    public function delete_transaction($transaction_id, $user_id) {
+        global $wpdb;
+        
+        // ابتدا تراکنش را پیدا می‌کنیم
+        $transaction = $wpdb->get_row($wpdb->prepare(
+            "SELECT * FROM {$this->history_table} WHERE id = %d AND user_id = %d",
+            $transaction_id, $user_id
+        ));
+        
+        if (!$transaction) {
+            return false;
+        }
+        
+        // حذف تراکنش
+        $deleted = $wpdb->delete($this->history_table, [
+            'id' => $transaction_id,
+            'user_id' => $user_id
+        ], ['%d', '%d']);
+        
+        return (bool) $deleted;
+    }
+    
     
     public function create_payment_link($service_id, $price) {
         
@@ -170,8 +321,4 @@ class AI_Assistant_Payment_Handler {
         ]);
         return false;
     }
-    
-   
-
-    
 }

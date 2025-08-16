@@ -28,7 +28,7 @@ $services = AI_Assistant_Service_Manager::get_instance()->get_active_services();
 
 if ($service_id && isset($services[$service_id])) {
     $service = $services[$service_id];
-    $template_path = $service['template'];
+    $template_path = get_template_directory() . $service['template'];
     
     if (file_exists($template_path)) {
         include $template_path;

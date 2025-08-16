@@ -26,6 +26,7 @@ function ai_assistant_setup() {
 add_action('after_setup_theme', 'ai_assistant_setup');
 
 // 2. بارگذاری فایل‌های جانبی
+require_once get_template_directory() . '/inc/class-service-db.php';
 require_once get_template_directory() . '/inc/class-service-manager.php';
 require_once get_template_directory() . '/inc/class-payment-handler.php';
 

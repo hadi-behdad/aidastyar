@@ -6,8 +6,17 @@
     
     <form method="post" class="ai-service-form">
         <?php wp_nonce_field('ai_service_nonce'); ?>
-        <input type="hidden" name="service_id" value="<?php echo esc_attr($service_id); ?>">
+        
 
+        <div class="form-group">
+            <label>آی دی سرویس</label>
+            <input type="text" name="service_id" value="<?php echo esc_attr($service_id); ?> " 
+                <?php if($service_id !== 'new' && !empty($service_id)): ?>
+                    readonly style="background-color: #f5f5f5; cursor: not-allowed;"
+                <?php endif; ?> required>
+        </div>
+
+        
         <div class="form-group">
             <label>نام سرویس</label>
             <input type="text" name="service_data[name]" value="<?php echo esc_attr($service['name']); ?>" required>

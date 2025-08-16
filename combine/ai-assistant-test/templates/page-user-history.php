@@ -1,4 +1,3 @@
-<!--/home/aidastya/public_html/wp-content/themes/ai-assistant/templates/page-user-history.php-->
 <?php
 /**
  * Template Name: تاریخچه سرویس‌های من
@@ -13,7 +12,21 @@ get_header();
 
 $current_user_id = get_current_user_id();
 $history_manager = AI_Assistant_History_Manager::get_instance();
+$logger = AI_Assistant_Logger::get_instance();
 $history = $history_manager->get_user_history($current_user_id, 10);
+
+$logger->log('page-user-history: ', [
+    'data:  ' => $history
+]); 
+
+// محاسبه تعداد کل آیتم‌ها برای صفحه‌بندی
+global $wpdb;
+$total_items = $wpdb->get_var(
+    $wpdb->prepare(
+        "SELECT COUNT(*) FROM {$wpdb->prefix}service_history WHERE user_id = %d",
+        $current_user_id
+    )
+);
 ?>
 
 <div class="ai-history-page">
@@ -40,47 +53,46 @@ $history = $history_manager->get_user_history($current_user_id, 10);
                     </thead>
                     <tbody>
                         <?php foreach ($history as $item) : 
-                             
-                            $service_id = get_post_meta($item->ID, 'service_id', true); 
-                            $service_info = AI_Assistant_Service_Manager::get_instance()->get_service($service_id);
+                            error_log(print_r($item,true));
+                            $service_info = AI_Assistant_Service_Manager::get_instance()->get_service($item->service_id);
                             $service_name = esc_attr($service_info['name']);
-                            $output_url = home_url('/service-output/' . $item->ID);
+                            
+                            
+$logger->log('page-user-history: ', [
+    'service_info:  ' => $service_info
+]);                             
+                            $output_url = home_url('/service-output/' . intval($item->ID) . '/');
                             $delete_url = add_query_arg([
                                 'delete_history' => $item->ID,
                                 '_wpnonce' => wp_create_nonce('delete_history_' . $item->ID),
                             ], get_permalink());
-                           
-                          
                         ?>
                             <tr data-history-id="<?php echo esc_attr($item->ID); ?>">
-                                <td >
+                                <td>
                                     <div class="ai-service-info">
                                         <?php if ($service_info && isset($service_info['icon'])) : ?>
                                             <span class="dashicons <?php echo esc_attr($service_info['icon']); ?>"></span>
-                                            <span><?php echo esc_attr($service_info['name']); ?></span>
+                                            <span><?php echo $service_name ?></span>
                                         <?php endif; ?>
-                                        
                                     </div>
                                 </td>
-                                <td >
-                                    <?php echo esc_html(get_the_date('j F Y - H:i', $item)); ?>
+                                <td>
+                                    <?php echo esc_html(date_i18n('j F Y - H:i', strtotime($item->created_at))); ?>
                                 </td>
-                                <td >
+                                <td>
                                     <span class="ai-status-badge ai-status-completed">تکمیل شده</span>
                                 </td>
-                                <td class="ai-history-actions" >
+                                <td class="ai-history-actions">
                                     <a href="<?php echo esc_url($output_url); ?>" class="ai-view-button" target="_blank" title="مشاهده نتیجه">
                                         <span class="dashicons dashicons-visibility"></span>
                                     </a>
-                                    <?php /*
                                     <a href="#" class="ai-delete-button delete-history" 
-                                                                       data-nonce="<?php echo esc_attr(wp_create_nonce('delete_history_' . $item->ID)); ?>" 
-                                                                       data-id="<?php echo esc_attr($item->ID); ?>" 
-                                                                       title="حذف از تاریخچه">
-                                                                        <span class="dashicons dashicons-trash"></span>
-                                                                    </a>
-                                    */ ?>
-                                    <a href="<?php echo esc_url(home_url('/service/' . $service_id . '/')); ?>" class="ai-repeat-button" title="استفاده مجدد">
+                                       data-nonce="<?php echo esc_attr(wp_create_nonce('delete_history_' . $item->ID)); ?>" 
+                                       data-id="<?php echo esc_attr($item->ID); ?>" 
+                                       title="حذف از تاریخچه">
+                                        <span class="dashicons dashicons-trash"></span>
+                                    </a>
+                                    <a href="<?php echo esc_url(home_url('/service/' . $item->service_id . '/')); ?>" class="ai-repeat-button" title="استفاده مجدد">
                                         <span class="dashicons dashicons-update"></span>
                                     </a>
                                 </td>
@@ -95,7 +107,7 @@ $history = $history_manager->get_user_history($current_user_id, 10);
                     'base' => str_replace(999999999, '%#%', esc_url(get_pagenum_link(999999999))),
                     'format' => '?paged=%#%',
                     'current' => max(1, get_query_var('paged')),
-                    'total' => ceil(wp_count_posts('ai_service_history')->publish / 10),
+                    'total' => ceil($total_items / 10),
                     'prev_text' => __('&laquo; قبلی'),
                     'next_text' => __('بعدی &raquo;'),
                 ]); ?>

@@ -1,12 +1,11 @@
-
 <?php
 /**
- * مدیریت تاریخچه سرویس‌های هوش مصنوعی
+ * مدیریت تاریخچه سرویس‌های هوش مصنوعی با جدول اختصاصی (نسخه خودکار)
  */
- 
- 
 class AI_Assistant_History_Manager {
     private static $instance;
+    private $table_name;
+    private $table_created = false;
 
     public static function get_instance() {
         if (!self::$instance) {
@@ -16,82 +15,177 @@ class AI_Assistant_History_Manager {
     }
 
     private function __construct() {
-        add_action('init', [$this, 'register_history_cpt']);
+        global $wpdb;
+        $this->table_name = $wpdb->prefix . 'service_history';
         add_action('admin_init', [$this, 'handle_history_deletion']);
     }
 
     /**
-     * ثبت نوع پست سفارشی برای تاریخچه
+     * بررسی و ایجاد جدول در صورت عدم وجود
      */
-    public function register_history_cpt() {
-        $args = [
-            'labels' => [
-                'name' => 'تاریخچه سرویس‌ها',
-                'singular_name' => 'تاریخچه سرویس',
-            ],
-            'public' => true,
-            'show_ui' => true,
-            'publicly_queryable' => true,
-            'show_in_nav_menus' => false,
-            'exclude_from_search' => true,
-            'has_archive' => false,
-            'rewrite' => [
-                'slug' => 'service-output',
-                'with_front' => false 
-            ],
-            'supports' => ['title', 'editor', 'author'],
-            'capability_type' => 'post',
-            'query_var' => true 
-        ];
-    
-        register_post_type('ai_service_history', $args);
-        flush_rewrite_rules();
+    private function maybe_create_table() {
+        if ($this->table_created) {
+            return true;
+        }
+
+        global $wpdb;
+        
+        // بررسی وجود جدول
+        if ($wpdb->get_var("SHOW TABLES LIKE '{$this->table_name}'") != $this->table_name) {
+            $charset_collate = $wpdb->get_charset_collate();
+            
+            $sql = "CREATE TABLE {$this->table_name} (
+                id bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT,
+                user_id bigint(20) UNSIGNED NOT NULL,
+                service_id varchar(100) NOT NULL,
+                service_name varchar(255) NOT NULL,
+                html_output longtext NOT NULL,
+                created_at datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                PRIMARY KEY (id),
+                KEY user_id (user_id),
+                KEY service_id (service_id),
+                KEY created_at (created_at)
+            ) {$charset_collate};";
+            
+            require_once(ABSPATH . 'wp-admin/includes/upgrade.php');
+            dbDelta($sql);
+            
+            // لاگ برای اشکالزدایی
+            error_log('[AI History] Table created: ' . $this->table_name);
+        }
+        
+        $this->table_created = true;
+        return true;
     }
 
     /**
      * ذخیره یک آیتم در تاریخچه
-     * @param int $user_id آی دی کاربر
-     * @param string $service_name نام سرویس
-     * @param string $html_output خروجی HTML
-     * @return int|false آی دی پست یا false در صورت خطا
      */
-    public function save_history($user_id , $service_id , $service_name, $html_output) {
-        // اعتبارسنجی اولیه
+    public function save_history($user_id, $service_id, $service_name, $html_output) {
+        global $wpdb;
+        
+        // بررسی و ایجاد جدول اگر وجود نداشته باشد
+        $this->maybe_create_table();
+        
         if (!get_user_by('ID', $user_id)) {
             error_log('[AI History] Invalid user ID: ' . $user_id);
             return false;
         }
-   
-        error_log('[AI History] Attempting to save for user: ' . $user_id . ', service: ' . $service_id);
-    
-        // ذخیره‌سازی با بررسی خطاها
-        $post_data = [
-            'post_type'    => 'ai_service_history',
-            'post_title'   => 'سرویس: ' . sanitize_text_field($service_name),
-            'post_id'   => sanitize_text_field($service_id),
-            //'post_content' => wp_kses_post($html_output),
-            'post_content' => wp_kses($html_output, $this->get_allowed_html_tags()),
-            'post_status'  => 'publish',
-            'post_author'  => $user_id,
-        ];
-    
-        error_log('[AI History] Post data: ' . print_r($post_data, true));
-    
-        $post_id = wp_insert_post($post_data, true);
-    
-        if (is_wp_error($post_id)) {
-            error_log('[AI History] WP_Error: ' . $post_id->get_error_message());
+        
+        $result = $wpdb->insert(
+            $this->table_name,
+            [
+                'user_id' => $user_id,
+                'service_id' => $service_id,
+                'service_name' => $service_name,
+                'html_output' => wp_kses($html_output, $this->get_allowed_html_tags())
+            ],
+            ['%d', '%s', '%s', '%s']
+        );
+        
+        if ($result === false) {
+            error_log('[AI History] Database error: ' . $wpdb->last_error);
             return false;
         }
-    
-        // ذخیره متادیتا
-        update_post_meta($post_id, 'service_id', $service_id);
-        error_log('[AI History] Saved successfully. Post ID: ' . $post_id);
         
-        return $post_id;
+        return $wpdb->insert_id;
     }
-    
-    
+
+    /**
+     * دریافت تاریخچه کاربر با قابلیت صفحه‌بندی
+     */
+    public function get_user_history($user_id, $per_page = 10) {
+        global $wpdb;
+        
+        // بررسی و ایجاد جدول اگر وجود نداشته باشد
+        $this->maybe_create_table();
+        
+        $paged = get_query_var('paged') ?: 1;
+        $offset = ($paged - 1) * $per_page;
+        
+        $query = $wpdb->prepare(
+            "SELECT * FROM {$this->table_name} 
+             WHERE user_id = %d 
+             ORDER BY created_at DESC 
+             LIMIT %d, %d",
+            $user_id,
+            $offset,
+            $per_page
+        );
+        
+        $items = $wpdb->get_results($query);
+        
+        // تبدیل به ساختار شبه-Post برای سازگاری با کدهای موجود
+        return array_map(function($item) {
+            return (object)[
+                'ID' => $item->id,
+                'user_id' => $item->user_id,
+                'service_name' => 'سرویس: ' . $item->service_name,
+                'html_output' => $item->html_output,
+                'created_at' => $item->created_at,
+                'service_id' => $item->service_id
+            ];
+        }, $items);
+    }
+
+    /**
+     * حذف یک آیتم از تاریخچه
+     */
+    public function delete_history_item($item_id, $user_id) {
+        global $wpdb;
+        
+        // بررسی و ایجاد جدول اگر وجود نداشته باشد
+        $this->maybe_create_table();
+        
+        if (!$this->is_user_owner($item_id, $user_id)) {
+            return false;
+        }
+        
+        return (bool) $wpdb->delete(
+            $this->table_name,
+            ['id' => $item_id, 'user_id' => $user_id],
+            ['%d', '%d']
+        );
+    }
+
+    /**
+     * بررسی مالکیت آیتم
+     */
+    public function is_user_owner($item_id, $user_id) {
+        global $wpdb;
+        
+        // بررسی و ایجاد جدول اگر وجود نداشته باشد
+        $this->maybe_create_table();
+        
+        $owner_id = $wpdb->get_var(
+            $wpdb->prepare(
+                "SELECT user_id FROM {$this->table_name} WHERE id = %d",
+                $item_id
+            )
+        );
+        
+        return $owner_id == $user_id;
+    }
+
+    /**
+     * مدیریت درخواست‌های حذف
+     */
+    public function handle_history_deletion() {
+        if (!isset($_GET['delete_history'], $_GET['_wpnonce'])) return;
+
+        $post_id = absint($_GET['delete_history']);
+        $user_id = get_current_user_id();
+
+        if (wp_verify_nonce($_GET['_wpnonce'], 'delete_history_' . $post_id)) {
+            $this->delete_history_item($post_id, $user_id);
+            wp_redirect(remove_query_arg(['delete_history', '_wpnonce']));
+            exit;
+        }
+    }
+
+    /**
+     * لیست تگ‌های مجاز HTML
+     */
     private function get_allowed_html_tags() {
         return [
             'html' => [],
@@ -114,70 +208,7 @@ class AI_Assistant_History_Manager {
             'tr' => ['style' => true],
             'td' => ['style' => true, 'colspan' => true, 'rowspan' => true],
             'th' => ['style' => true, 'colspan' => true],
-            // می‌توانید تگ‌های بیشتری اضافه کنید
         ];
-    }
-    
-    /**
-     * دریافت تاریخچه کاربر با قابلیت صفحه‌بندی
-     * @param int $user_id آی دی کاربر
-     * @param int $per_page تعداد آیتم در هر صفحه
-     * @return array لیست پست‌ها
-     */
-    public function get_user_history($user_id, $per_page = 10) {
-        $paged = get_query_var('paged') ?: 1;
-
-        return get_posts([
-            'post_type' => 'ai_service_history',
-            'posts_per_page' => $per_page,
-            'paged' => $paged,
-            'author' => absint($user_id),
-            'orderby' => 'date',
-            'order' => 'DESC',
-        ]);
-    }
-    
-    
-
-    /**
-     * مدیریت درخواست‌های حذف
-     */
-    public function handle_history_deletion() {
-        if (!isset($_GET['delete_history'], $_GET['_wpnonce'])) return;
-
-        $post_id = absint($_GET['delete_history']);
-        $user_id = get_current_user_id();
-
-        if (wp_verify_nonce($_GET['_wpnonce'], 'delete_history_' . $post_id)) {
-            $this->delete_history_item($post_id, $user_id);
-            wp_redirect(remove_query_arg(['delete_history', '_wpnonce']));
-            exit;
-        }
-    }
-
-    /**
-     * حذف یک آیتم از تاریخچه
-     * @param int $post_id آی دی پست
-     * @param int $user_id آی دی کاربر
-     * @return bool نتیجه عملیات
-     */
-    public function delete_history_item($post_id, $user_id) {
-        if (!$this->is_user_owner($post_id, $user_id)) {
-            return false;
-        }
-
-        return (bool) wp_delete_post($post_id, true);
-    }
-
-    /**
-     * بررسی مالکیت آیتم
-     * @param int $post_id آی دی پست
-     * @param int $user_id آی دی کاربر
-     * @return bool نتیجه بررسی
-     */
-    public function is_user_owner($post_id, $user_id) {
-        $post = get_post($post_id);
-        return $post && $post->post_type === 'ai_service_history' && $post->post_author == $user_id;
     }
 }
 

@@ -42,6 +42,21 @@ $theme_assets = get_stylesheet_directory_uri();
         </div>
     </div>
 
+    <!-- Step 2: Personal Information -->
+    <div id="personal-info-step" class="step">
+        <h2>لطفا نام و نام خانوادگی را وارد کنید</h2>
+        
+        <div class="input-container" style="margin-bottom: 15px;">
+            <input type="text" id="first-name-input" dir="rtl" placeholder=" ">
+            <span id="first-name-display"></span>
+        </div>
+        
+        <div class="input-container">
+            <input type="text" id="last-name-input" dir="rtl" placeholder=" ">
+            <span id="last-name-display"></span>
+        </div>        
+    </div>
+
     <!-- Step 2: Goal Selection -->
     <div id="goal-selection-step" class="step">
         <h2>هدف شما از این برنامه غذایی چیست؟</h2>

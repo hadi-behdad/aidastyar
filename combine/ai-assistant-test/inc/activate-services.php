@@ -1,19 +1,22 @@
-
 <?php
 // فعال‌سازی اولیه سرویس‌ها
 function ai_assistant_activate_services() {
+    $db = AI_Assistant_Service_DB::get_instance();
+    $db->create_table();
     
     $default_services = [
-        'chat' => [ // تغییر service_id به 'chat' برای یکپارچگی
+        [
+            'service_id' => 'chat',
             'name' => 'چت هوشمند',
-            'price' => 10000, // قیمت پیش‌فرض
+            'price' => 10000,
             'description' => 'سرویس گفتگوی هوش مصنوعی',
             'system_prompt' => '',
             'icon' => 'dashicons-format-chat',
             'active' => true,
             'template' => get_template_directory() . '/services/chat/template-parts/form.php'
         ],
-        'diet' => [
+        [
+            'service_id' => 'diet',
             'name' => 'رژیم غذایی',
             'price' => 15000,
             'description' => 'طراحی برنامه غذایی شخصی‌سازی شده',
@@ -22,7 +25,8 @@ function ai_assistant_activate_services() {
             'active' => true,
             'template' => get_template_directory() . '/services/diet/template-parts/form.php'
         ],
-        'workout' => [
+        [
+            'service_id' => 'workout',
             'name' => 'برنامه بدنسازی',
             'price' => 15000,
             'description' => 'طراحی برنامه تمرینی شخصی‌سازی شده',
@@ -33,8 +37,12 @@ function ai_assistant_activate_services() {
         ]
     ];
     
-    if (!get_option('ai_assistant_services')) {
-        update_option('ai_assistant_services', $default_services);
+    // فقط اگر جدول خالی است، سرویس‌های پیش‌فرض را اضافه کن
+    $existing_services = $db->get_all_services();
+    if (empty($existing_services)) {
+        foreach ($default_services as $service) {
+            $db->add_service($service);
+        }
     }
 }
 

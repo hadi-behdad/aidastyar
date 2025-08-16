@@ -1,31 +1,19 @@
-<!--/home/aidastya/public_html/wp-content/themes/ai-assistant/templates/user-wallet-history.php-->
 <?php
 /**
  * Template Name: تاریخچه تراکنش‌های کیف پول
  */
-
-
 
 if (!is_user_logged_in()) {
     wp_redirect(wp_login_url(get_permalink()));
     exit;
 }
 
-
-
 get_header();
 
 $current_user_id = get_current_user_id();
-$wallet_history_manager = AI_Assistant_Wallet_History_Manager::get_instance();
-$wallet_history = $wallet_history_manager->get_user_wallet_history($current_user_id, 10);
-
-
+$wallet = AI_Assistant_Payment_Handler::get_instance();
+$history = $wallet->get_transaction_history($current_user_id, 10, get_query_var('paged') ?: 1);
 ?>
-
-
-
-
-
 
 <div class="ai-history-page">
     <div class="ai-history-header">
@@ -38,7 +26,7 @@ $wallet_history = $wallet_history_manager->get_user_wallet_history($current_user
     </div>
 
     <div class="ai-history-container">
-        <?php if (!empty($wallet_history)) : ?>
+        <?php if (!empty($history['items'])) : ?>
             <div class="ai-history-table-responsive">
                 <table class="ai-history-table">
                     <thead>
@@ -46,45 +34,39 @@ $wallet_history = $wallet_history_manager->get_user_wallet_history($current_user
                             <th>نوع تراکنش</th>
                             <th>تاریخ</th>
                             <th>مبلغ (تومان)</th>
-                            <th>موجودی </th>
+                            <th>موجودی</th>
                             <th>توضیحات</th>
-
+                            <th>عملیات</th>
                         </tr>
                     </thead>
-                    
                     <tbody>
-                        
-
-                        <?php foreach ($wallet_history['items'] as $item) : 
-                            $delete_url = add_query_arg([
-                                'delete_wallet_history' => $item['id'],
-                                '_wpnonce' => wp_create_nonce('delete_wallet_history_' . $item['id']),
-                            ], get_permalink());
-                        ?>
-                            <tr data-history-id="<?php echo esc_attr($item['id']); ?>">
+                        <?php foreach ($history['items'] as $item) : ?>
+                            <tr data-history-id="<?php echo esc_attr($item->id); ?>">
                                 <td>
-                                    <?php if ($item['type'] == 'credit') : ?>
+                                    <?php if ($item->type == 'credit') : ?>
                                         <span class="ai-status-badge ai-status-success">واریز</span>
                                     <?php else : ?>
                                         <span class="ai-status-badge ai-status-warning">برداشت</span>
                                     <?php endif; ?>
                                 </td>
-                                <td><?php echo date_i18n('j F Y - H:i', strtotime($item['date'])); ?></td>
-
+                                <td><?php echo date_i18n('j F Y - H:i', strtotime($item->created_at)); ?></td>
                                 <td>
-                                    <?php if ($item['type'] == 'credit') : ?>
-                                        <span style="color:green; vertical-align:middle;">
-                                            <?php echo number_format($item['amount']); ?>
-                                        </span>
+                                    <?php if ($item->type == 'credit') : ?>
+                                        <span style="color:green;">+<?php echo number_format($item->amount); ?></span>
                                     <?php else : ?>
-                                        <span style="color:red; vertical-align:middle;">
-                                            <?php echo number_format($item['amount']); ?>
-                                        </span>
+                                        <span style="color:red;">-<?php echo number_format($item->amount); ?></span>
                                     <?php endif; ?>
-                                </td>                                
-                                
-                                <td><?php echo number_format($item['balance']); ?></td>
-                                <td><?php echo esc_html($item['description']); ?></td>
+                                </td>
+                                <td><?php echo number_format($item->new_balance); ?></td>
+                                <td><?php echo esc_html($item->description); ?></td>
+                                <td>
+                                    <a href="#" class="ai-delete-button delete-wallet-history" 
+                                       data-nonce="<?php echo esc_attr(wp_create_nonce('delete_wallet_history_' . $item->id)); ?>" 
+                                       data-id="<?php echo esc_attr($item->id); ?>" 
+                                       title="حذف">
+                                        <span class="dashicons dashicons-trash"></span>
+                                    </a>
+                                </td>
                             </tr>
                         <?php endforeach; ?>
                     </tbody>
@@ -96,7 +78,7 @@ $wallet_history = $wallet_history_manager->get_user_wallet_history($current_user
                     'base' => str_replace(999999999, '%#%', esc_url(get_pagenum_link(999999999))),
                     'format' => '?paged=%#%',
                     'current' => max(1, get_query_var('paged')),
-                    'total' => $wallet_history['pages'],
+                    'total' => $history['pages'],
                     'prev_text' => __('&laquo; قبلی'),
                     'next_text' => __('بعدی &raquo;'),
                 ]); ?>
@@ -117,6 +99,12 @@ $wallet_history = $wallet_history_manager->get_user_wallet_history($current_user
 </div>
 
 <?php
-
+// اسکریپت AJAX برای حذف
+wp_enqueue_script('wallet-history-ajax', get_template_directory_uri() . '/assets/js/wallet-history-ajax.js', ['jquery'], null, true);
+wp_localize_script('wallet-history-ajax', 'wallet_history_ajax', [
+    'ajax_url' => admin_url('admin-ajax.php'),
+    'nonce' => wp_create_nonce('wallet_history_ajax_nonce'),
+    'confirm_delete' => __('آیا از حذف این تراکنش مطمئن هستید؟', 'ai-assistant'),
+]);
 
 get_footer();

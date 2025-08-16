@@ -7,6 +7,7 @@
     <table class="wp-list-table widefat fixed striped">
         <thead>
             <tr>
+                <th>آی دی سرویس</th>
                 <th>نام سرویس</th>
                 <th>قیمت (تومان)</th>
                 <th>وضعیت</th>
@@ -16,6 +17,9 @@
         <tbody>
             <?php foreach ($service_manager->get_all_services() as $id => $service): ?>
             <tr>
+                <td>
+                    <strong><?php echo esc_html($service['service_id']); ?></strong>
+                </td>                
                 <td>
                     <strong><?php echo esc_html($service['name']); ?></strong>
                 </td>
@@ -28,6 +32,7 @@
                 <td>
                     <a href="<?php echo add_query_arg(['edit_service' => $id]); ?>" class="button">ویرایش</a>
                 </td>
+               
             </tr>
             <?php endforeach; ?>
         </tbody>

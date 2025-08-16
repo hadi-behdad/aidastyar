@@ -1,8 +1,9 @@
-
 <?php
+// /inc/class-service-manager.php
+
 class AI_Assistant_Service_Manager {
     private static $instance;
-    private $services = [];
+    private $db;
     
     public static function get_instance() {
         if (!isset(self::$instance)) {
@@ -12,40 +13,43 @@ class AI_Assistant_Service_Manager {
     }
     
     public function __construct() {
-        $this->services = get_option('ai_assistant_services', []);
-    }    
+        $this->db = AI_Assistant_Service_DB::get_instance();
+         $this->logger = AI_Assistant_Logger::get_instance();
+    }
     
-
     // افزودن/ویرایش سرویس
-     public function update_service($service_id, $data) {
-        if (!isset($this->services[$service_id])) {
-            return false;
-        }
-        $current_service = $this->services[$service_id] ?? [];
-        // حفظ مقادیر موجود برای فیلدهایی که در فرم نیستند
-        $this->services[$service_id] = [
+    public function update_service($service_id, $data) {
+        $sanitized_data = [
+            'id' => sanitize_text_field($_POST['service_id']),
             'name' => sanitize_text_field($data['name']),
             'price' => absint($data['price']),
             'description' => sanitize_textarea_field($data['description'] ?? ''),
-          //  'system_prompt' => sanitize_textarea_field($data['system_prompt'] ?? ''),
-            'system_prompt' => $data['system_prompt'],
-           // 'system_prompt' => wp_kses($data['system_prompt'] ?? '', $this->get_allowed_html_tags()),
+            'system_prompt' => $data['system_prompt'], // اعتبارسنجی خاص برای این فیلد
             'icon' => sanitize_text_field($data['icon']),
-            'active' => isset($data['active']) ? true : false ,
-            
-            'active' => isset($data['active']) ? (bool)$data['active'] : ($current_service['active'] ?? false),            
-            'template' => $this->services[$service_id]['template'] ?? '' // حفظ مسیر قالب موجود
+            'active' => isset($data['active']) ? (bool)$data['active'] : false,
+            'template' => sanitize_text_field($data['template'] ?? '')
         ];
         
-    
+        // اگر سرویس وجود دارد، آن را به‌روزرسانی کن
+        if ($this->db->get_service($service_id)) {
+            
+        $this->logger->log('service-manager.update_service', [
+                'step' => $data
+            ]);             
+            
+            return $this->db->update_service($service_id, $sanitized_data);
+        }
         
-        return $this->save_services();
+        // در غیر این صورت سرویس جدید اضافه کن
+        $sanitized_data['service_id'] = $service_id;
+        return $this->db->add_service($sanitized_data);
     }
-    
   
+    
+    // ثبت سرویس جدید
     public function register_service($service_data) {
         $defaults = [
-            'id' => '',
+            'service_id' => '',
             'name' => '',
             'description' => '',
             'system_prompt' => '',
@@ -57,18 +61,18 @@ class AI_Assistant_Service_Manager {
         
         $service = wp_parse_args($service_data, $defaults);
         
-        if (empty($service['id'])) {
+        if (empty($service['service_id'])) {
             return false;
         }
         
-        $this->services[$service['id']] = $service;
-        return true;
+        return $this->db->add_service($service);
     }
-    
-    
+     
+    // افزودن سرویس جدید از طریق رابط کاربری
     public function add_new_service() {
         $new_id = 'service_' . uniqid();
-        $this->services[$new_id] = [
+        $service_data = [
+            'service_id' => $new_id,
             'name' => 'سرویس جدید',
             'price' => 0,
             'description' => '',
@@ -77,54 +81,48 @@ class AI_Assistant_Service_Manager {
             'active' => true,
             'template' => ''
         ];
-        $this->save_services();
-        return $new_id;
-    }    
-    
+        
+        if ($this->db->add_service($service_data)) {
+            return $new_id;
+        }
+        
+        return false;
+    }
+
    
- 
+    
     // دریافت اطلاعات سرویس
     public function get_service($service_id) {
-        return $this->services[$service_id] ?? false;
+        return $this->db->get_service($service_id);
     }
     
-    
-
     // دریافت همه سرویس‌های فعال
-    
     public function get_active_services() {
-        return array_filter($this->services, function($service) {
-            return !empty($service['active']); // استفاده از !empty برای اطمینان از مقدار true
-        });
-    }   
+        return $this->db->get_all_services(true);
+    }
     
-    
-    // دریافت همه سرویس‌ها (فعال و غیرفعال)
+    // دریافت همه سرویس‌ها
     public function get_all_services() {
-        return $this->services; // مستقیماً آرایه سرویس‌ها را برگردانید
+        return $this->db->get_all_services();
     }
-
-/*
+    
     // دریافت قیمت سرویس
     public function get_service_price($service_id) {
-        return $this->services[$service_id]['price'] ?? 0;
+        $service = $this->db->get_service($service_id);
+        return $service ? (int)$service['price'] : 0;
     }
-*/
-    // دریافت قیمت سرویس
-    public function get_service_price($service_id) {
-        if (isset($this->services[$service_id]['price'])) {
-            return (int)$this->services[$service_id]['price'];
+    
+    
+    public function delete_service($service_id) {
+        // ابتدا بررسی می‌کنیم سرویس وجود دارد یا نه
+        if (!isset($this->services[$service_id])) {
+            return false;
         }
-        return 0;
-    }    
         
-    
- //-----------------------------------------------------------------
- 
- private function save_services() {
-    update_option('ai_assistant_services', $this->services);
-}
-
-    
-    
+        // حذف سرویس از آرایه
+        unset($this->services[$service_id]);
+        
+        // ذخیره تغییرات
+        return $this->save_services();
+    }    
 }
