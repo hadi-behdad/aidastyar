@@ -538,7 +538,7 @@ body.dark-mode .checked-animation .check-icon {
 
 /* استایل‌های خلاصه اطلاعات */
 #summary-container {
-    max-height: calc(60vh - 100px);
+    max-height: calc(70vh - 100px);
     overflow-y: auto;
     margin-top: 20px;
     width: 100%;
@@ -597,7 +597,7 @@ body.dark-mode .checked-animation .check-icon {
     margin: 20px auto;
     width: 100%;
     max-width: 500px;
-    padding: 0 20px;
+    padding: 0 5px;
     box-sizing: border-box;
 }
 
