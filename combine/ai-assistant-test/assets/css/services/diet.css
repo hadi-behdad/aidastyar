@@ -1890,7 +1890,6 @@ body:not(.dark-mode) .theme-toggle svg.sun-icon {
     position: relative;
 }
 
-/* استایل اسکرولبار برای مرورگرهای وبکیت */
 #goal-selection::-webkit-scrollbar,
 #meal-selection::-webkit-scrollbar,
 #activity-selection::-webkit-scrollbar {
@@ -1965,7 +1964,6 @@ body.dark-mode .scroll-indicator-arrow {
     background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 50" fill="none" stroke="%234db6ac" stroke-width="15" stroke-linecap="square" stroke-linejoin="miter"><path d="M20 15 L50 35 L80 15"/></svg>');
 }
 
-/* انیمیشن و hover */
 .scroll-indicator:hover {
     background: rgba(0, 133, 122, 0.3);
 }
@@ -2000,13 +1998,19 @@ body.dark-mode .scroll-indicator:hover {
     padding-right: 10px;
 }
 
-/* اضافه کردن استایل برای نمایش پیش‌فرض نام و نام خانوادگی */
 #first-name-display, #last-name-display {
     color: var(--light-text-color);
     transition: color 0.3s ease;
 }
 
-/* استایل زمانی که فیلد پر شده است */
 .input-container input:not(:placeholder-shown) + span {
     color: var(--text-color);
+}
+
+.error-message {
+    color: #dc3545;
+    padding: 1rem;
+    border: 1px solid #f5c6cb;
+    border-radius: 4px;
+    background: #f8d7da;
 }

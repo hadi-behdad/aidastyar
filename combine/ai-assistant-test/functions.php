@@ -392,3 +392,16 @@ function enqueue_aidastyar_loader() {
     );
 }
 add_action('wp_enqueue_scripts', 'enqueue_aidastyar_loader');
+
+
+// بارگذاری تمپلیت بر اساس پارامتر URL
+function ai_assistant_load_result_template_simple($template) {
+    if (isset($_GET['ai_diet_result']) && $_GET['ai_diet_result'] === '1') {
+        $template_path = get_template_directory() . '/template-result.php';
+        if (file_exists($template_path)) {
+            return $template_path;
+        }
+    }
+    return $template;
+}
+add_filter('template_include', 'ai_assistant_load_result_template_simple');

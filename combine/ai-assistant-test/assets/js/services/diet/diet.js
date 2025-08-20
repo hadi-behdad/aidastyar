@@ -33,14 +33,11 @@ jQuery(document).ready(function($) {
                 if (response.success) {
                     loader.hide();
                     
-                    document.getElementById('summary-container').style.display = 'none';
-                    document.getElementById('confirmation-checkbox').style.display = 'none';
-                    document.getElementById('submit-button-container').style.display = 'none';
-                    document.getElementById('SubmitBtn').style.display = 'none';
-                    document.getElementById('downloadPdf').style.display = 'inline-block';
+                    // ذخیره نتیجه در sessionStorage
+                    sessionStorage.setItem('diet_form_result', JSON.stringify(response.data));
                     
-                    responseContent.html(response.data.response);
-                    resultDiv.hide().fadeIn(400);
+                    // هدایت به صفحه نتیجه با پارامتر
+                    window.location.href = '/?ai_diet_result=1';
                 } else {
                     // حالت خطا (مثلاً کمبود اعتبار)
                     loader.updateMessage(response.data || 'اعتبار کافی نیست. لطفاً کیف پول خود را شارژ کنید.');
