@@ -1,18 +1,9 @@
-<?php
-/**
- * /home/aidastya/public_html/test/wp-content/themes/ai-assistant-test/template-result.php
- * Template Name: نمایش نتیجه رژیم غذایی
- * Template Post Type: page
- */
- 
-?>
 <!DOCTYPE html>
 <html <?php language_attributes(); ?>>
 <head>
     <meta charset="<?php bloginfo('charset'); ?>">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>برنامه تغذیه‌ای بالینی</title>
-    <!--<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">-->
     <link rel="stylesheet" href="<?php echo get_template_directory_uri(); ?>/assets/fonts/webfonts/all.min.css">
     <style>
         :root {
@@ -21,7 +12,7 @@
             --primary-light: #E8F5E8;
             --text-color: #333;
             --light-gray: #f5f5f5;
-            --border-radius: 12px;
+            --border-radius: 8px; /* کاهش گردی گوشه‌ها */
             --box-shadow: 0 2px 8px rgba(0,0,0,0.1);
             --transition-time: 0.4s;
         }
@@ -57,7 +48,7 @@
         }
         
         .result-container {
-            max-width: 1200px;
+            max-width: 500px;
             margin: 0 auto;
             padding: 0 10px;
         }
@@ -73,15 +64,16 @@
         }
         
         .header h1 {
-            font-size: 1.8rem;
+            font-size: 1.5rem;
             margin-bottom: 10px;
         }
         
         .header p {
             opacity: 0.9;
+            font-size: 0.9rem;
         }
         
-        /* استایل آکاردئون - بهبود یافته */
+        /* استایل آکاردئون */
         .accordion-section {
             background: #fff;
             border-radius: var(--border-radius);
@@ -107,7 +99,7 @@
         
         .accordion-header h2 {
             margin: 0;
-            font-size: 1.3rem;
+            font-size: 1.1rem;
             display: flex;
             align-items: center;
             gap: 10px;
@@ -137,21 +129,65 @@
         }
         
         .accordion-content.active {
-            max-height: 50000px; /* ارتفاع زیاد برای محتوای طولانی */
+            max-height: 50000px;
             opacity: 1;
             transform: translateY(0);
         }
         
         .accordion-content.active .accordion-content-inner {
             opacity: 1;
-            transition: opacity 0.3s ease 0.2s; /* تأخیر برای ظاهر شدن محتوا */
+            transition: opacity 0.3s ease 0.2s;
+        }
+        
+        /* استایل‌های دکمه‌های عمل - بهبود یافته */
+        .action-controls {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin: 25px 0;
+            flex-wrap: wrap;
+        }
+        
+        .action-btn {
+            padding: 14px 20px;
+            background: var(--primary-dark);
+            color: white;
+            border: none;
+            border-radius: var(--border-radius); /* استفاده از همان گردی آکاردئون */
+            cursor: pointer;
+            font-family: Tahoma, sans-serif;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            transition: all 0.3s ease;
+            box-shadow: var(--box-shadow);
+            width: 100%; /* دکمه کشیده و هم‌عرض با آکاردئون */
+            max-width: 100%;
+            text-align: center;
+            font-size: 1rem;
+        }
+        
+        .action-btn:hover {
+            background: var(--primary-color);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+        
+        .action-btn.print {
+            background: var(--primary-dark);
+        }
+        
+        .action-btn.print:hover {
+            background: var(--primary-color);
         }
         
         /* استایل‌های باقی مانده */
         h3 {
             color: var(--primary-color);
             margin: 15px 0 10px;
-            font-size: 1.1rem;
+            font-size: 1rem;
             padding-right: 10px;
             border-right: 3px solid var(--primary-color);
         }
@@ -166,7 +202,7 @@
             border-bottom: 1px dashed #ddd;
             background-color: var(--light-gray);
             margin-bottom: 8px;
-            border-radius: 8px;
+            border-radius: var(--border-radius);
             display: flex;
             justify-content: space-between;
         }
@@ -249,28 +285,29 @@
             color: #777;
             padding: 15px;
             font-size: 0.9rem;
-        }
+        }        
         
         .back-button {
             display: inline-block;
             margin: 20px auto;
-            padding: 12px 25px;
+            padding: 14px 20px;
             background: var(--primary-dark);
             color: white;
             text-decoration: none;
-            border-radius: 30px;
+            border-radius: var(--border-radius);
             cursor: pointer;
             text-align: center;
             font-weight: bold;
             border: none;
             box-shadow: var(--box-shadow);
-            width: 80%;
-            max-width: 300px;
+            width: 100%;
+            max-width: 100%;
             transition: all 0.3s ease;
             display: flex;
             align-items: center;
             justify-content: center;
             gap: 8px;
+            font-size: 1rem;
         }
         
         .back-button:hover {
@@ -312,7 +349,7 @@
             }
             
             .header h1 {
-                font-size: 2.2rem;
+                font-size: 1.8rem; /* کاهش سایز فونت */
             }
             
             .mobile-cards {
@@ -334,7 +371,7 @@
             }
             
             .accordion-header h2 {
-                font-size: 1.1rem;
+                font-size: 1rem; /* کاهش سایز فونت */
             }
             
             ul li {
@@ -345,7 +382,7 @@
             }
             
             .day-card {
-                padding: 12px;
+                padding: 7px;
             }
             
             .day-header {
@@ -412,27 +449,113 @@
             border-radius: 4px;
         }
         
-        /* دکمه‌های کنترل آکاردئون */
-        .accordion-controls {
+        /* استایل‌های جدید برای دکمه‌ها - بهبود یافته */
+        .action-controls {
             display: flex;
             justify-content: center;
-            gap: 10px;
-            margin: 20px 0;
+            gap: 15px;
+            margin: 25px 0;
+            flex-wrap: wrap;
         }
         
-        .accordion-btn {
-            padding: 8px 15px;
+        .action-btn {
+            padding: 12px 25px;
             background: var(--primary-color);
             color: white;
             border: none;
-            border-radius: 5px;
+            border-radius: 30px;
             cursor: pointer;
             font-family: Vazir, Tahoma, sans-serif;
-            transition: background 0.3s ease;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            transition: all 0.3s ease;
+            box-shadow: var(--box-shadow);
+            min-width: 160px;
+            justify-content: center;
         }
         
-        .accordion-btn:hover {
+        .action-btn:hover {
             background: var(--primary-dark);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+        
+        .action-btn.print {
+            background: var(--primary-dark); /* تغییر رنگ به پالت اصلی */
+        }
+        
+        .action-btn.print:hover {
+            background: var(--primary-color); /* تغییر رنگ به پالت اصلی */
+        }        
+        
+        @media (max-width: 480px) {
+            .action-controls {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .action-btn {
+                width: 100%;
+            }
+        }
+        
+        /* استایل‌های مخصوص چاپ */
+        @media print {
+            .action-controls,
+            .back-button {
+                display: none !important;
+            }
+            
+            .accordion-content {
+                display: block !important;
+                max-height: none !important;
+                opacity: 1 !important;
+                height: auto !important;
+            }
+            
+            .accordion-header {
+                border-bottom: 2px solid var(--primary-color);
+                pointer-events: none;
+            }
+            
+            .accordion-header .accordion-icon {
+                display: none !important;
+            }
+            
+            body {
+                padding: 0;
+                background: white;
+                color: black;
+                font-size: 12pt;
+            }
+            
+            .result-container {
+                max-width: 100%;
+                padding: 0;
+                margin: 0;
+            }
+            
+            .header {
+                background: white !important;
+                color: black !important;
+                border: 2px solid black;
+            }
+            
+            .accordion-icon,
+            .badge {
+                display: none !important;
+            }
+            
+            ul li {
+                background: white !important;
+                border: 1px solid #ddd !important;
+            }
+            
+            .day-card {
+                break-inside: avoid; /* جلوگیری از تقسیم کارت بین صفحات */
+            }            
         }
     </style>
 </head>
@@ -441,6 +564,13 @@
         <div class="header">
             <h1><i class="fas fa-utensils"></i> برنامه تغذیه‌ای بالینی</h1>
             <p>برنامه غذایی شخصی شده بر اساس مشخصات شما</p>
+        </div>
+        
+        <!-- دکمه‌های کنترل -->
+        <div class="action-controls">
+            <button class="action-btn print" onclick="printDocument()">
+                <i class="fas fa-print"></i> چاپ برنامه
+            </button>
         </div>
         
         <div id="debug-info"></div>
@@ -455,13 +585,42 @@
     </div>
 
     <script>
+    // تابع برای باز کردن همه آکاردئون‌ها قبل از چاپ
+    function expandAllForPrint() {
+        const accordionHeaders = document.querySelectorAll('.accordion-header');
+        const accordionContents = document.querySelectorAll('.accordion-content');
+        const accordionContentInners = document.querySelectorAll('.accordion-content-inner');
+        
+        accordionHeaders.forEach(header => {
+            header.classList.add('active');
+        });
+        
+        accordionContents.forEach(content => {
+            content.classList.add('active');
+            content.style.maxHeight = 'none';
+            content.style.opacity = '1';
+        });
+        
+        accordionContentInners.forEach(inner => {
+            inner.style.opacity = '1';
+        });
+    }
+    
+    // تابع چاپ با اطمینان از نمایش تمام محتوا
+    function printDocument() {
+        expandAllForPrint();
+        
+        // کمی تاخیر برای اطمینان از رندر کامل قبل از چاپ
+        setTimeout(() => {
+            window.print();
+        }, 100);
+    }
+    
     // بازیابی داده از sessionStorage
     document.addEventListener('DOMContentLoaded', function() {
         const resultData = sessionStorage.getItem('diet_form_result');
         const debugContainer = document.getElementById('debug-info');
         const contentContainer = document.getElementById('content');
-        
-        // console.log(resultData);
         
         if (resultData) {
             try {
@@ -511,11 +670,12 @@
                     // اگر باز است، بسته شود
                     this.classList.remove('active');
                     content.classList.remove('active');
+                    content.style.maxHeight = '0';
                 } else {
-                    collapseAllSections();
                     // اگر بسته است، باز شود
                     this.classList.add('active');
                     content.classList.add('active');
+                    content.style.maxHeight = content.scrollHeight + 'px';
                 }
             });
         });
@@ -523,35 +683,10 @@
         // باز کردن اولین بخش به صورت پیش‌فرض
         if (accordionHeaders[0]) {
             accordionHeaders[0].classList.add('active');
-            accordionHeaders[0].nextElementSibling.classList.add('active');
+            const firstContent = accordionHeaders[0].nextElementSibling;
+            firstContent.classList.add('active');
+            firstContent.style.maxHeight = firstContent.scrollHeight + 'px';
         }
-    }
-    
-    // توابع کنترل همه بخش‌ها
-    function expandAllSections() {
-        const accordionHeaders = document.querySelectorAll('.accordion-header');
-        const accordionContents = document.querySelectorAll('.accordion-content');
-        
-        accordionHeaders.forEach(header => {
-            header.classList.add('active');
-        });
-        
-        accordionContents.forEach(content => {
-            content.classList.add('active');
-        });
-    }
-    
-    function collapseAllSections() {
-        const accordionHeaders = document.querySelectorAll('.accordion-header');
-        const accordionContents = document.querySelectorAll('.accordion-content');
-        
-        accordionHeaders.forEach(header => {
-            header.classList.remove('active');
-        });
-        
-        accordionContents.forEach(content => {
-            content.classList.remove('active');
-        });
     }
 
     function renderContent(data) {
