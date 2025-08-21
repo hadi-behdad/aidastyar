@@ -55,6 +55,12 @@ $theme_assets = get_stylesheet_directory_uri();
             <input type="text" id="last-name-input" dir="rtl" placeholder=" ">
             <span id="last-name-display"></span>
         </div>        
+        
+        <!-- Animated Illustration Container -->
+        <div class="name-input-illustration">
+            <div class="floating-pen"></div>
+            <div class="floating-document"></div>
+        </div>        
     </div>
 
     <!-- Step 2: Goal Selection -->
