@@ -10,6 +10,10 @@ $theme_assets = get_stylesheet_directory_uri();
     <div id="header-container">
         <div id="step-counter"><span id="current-step">1</span>/<span id="total-steps">19</span></div>
         <button type="button" id="back-button">›</button>
+        
+        <div id="header-logo" onclick="window.location.href='<?php echo home_url(); ?>'">
+            AiDASTYAR
+        </div>
     </div>
     
     <div id="progress-bar-container">

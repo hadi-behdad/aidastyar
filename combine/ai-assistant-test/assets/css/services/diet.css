@@ -104,7 +104,7 @@ body {
     color: var(--primary-color);
 }
 
-#header-container::before {
+#header-logo {
     content: "AiDASTYAR";
     font-family: BordeauxBlack, sans-serif;
     font-size: 24px;
@@ -112,6 +112,13 @@ body {
     position: absolute;
     left: 50%;
     transform: translateX(-50%);
+    cursor: pointer;
+    transition: color 0.3s ease;
+}
+
+#header-logo:hover {
+    color: var(--primary-color-dark);
+    opacity: 0.8;
 }
 
 #back-button {

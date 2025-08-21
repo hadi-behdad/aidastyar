@@ -6,7 +6,6 @@ function addFieldIcons() {
     icon.className = 'input-field-icon';
     icon.innerHTML = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>';
     
-    
     firstNameInput.parentNode.appendChild(icon);
   }
   
@@ -33,7 +32,7 @@ function addFieldIcons() {
   if (heightInput) {
     const icon = document.createElement('div');
     icon.className = 'input-field-icon';
-    icon.innerHTML = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M12 22V2"></path><path d="M8 6L12 2L16 6"></path><path d="M8 18L12 22L16 18"></path></svg>';
+    icon.innerHTML = `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"><line x1="12" y1="2" x2="12" y2="22"></line><path d="M8 4L12 2L16 4"></path><path d="M8 20L12 22L16 20"></path></svg>`;
     heightInput.parentNode.appendChild(icon);
   }
   
