@@ -72,7 +72,7 @@ body {
 }
 
 .ai-nav {
-  display: flex;
+  display: none;
   gap: 20px;
 }
 

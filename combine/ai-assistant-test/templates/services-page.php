@@ -25,7 +25,7 @@ $theme_assets = get_stylesheet_directory_uri();
             
 
             
-            <a href="https://aidastyar.com/wallet-charge" class="ai-button">
+            <a href="https://test.aidastyar.com/wallet-charge" class="ai-button">
                 <?php _e('شارژ حساب', 'ai-assistant'); ?>
             </a>
             

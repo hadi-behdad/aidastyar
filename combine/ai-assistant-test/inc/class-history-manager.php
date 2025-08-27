@@ -39,7 +39,8 @@ class AI_Assistant_History_Manager {
                 user_id bigint(20) UNSIGNED NOT NULL,
                 service_id varchar(100) NOT NULL,
                 service_name varchar(255) NOT NULL,
-                html_output longtext NOT NULL,
+                response longtext NOT NULL,
+                user_data longtext NULL,
                 created_at datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
                 PRIMARY KEY (id),
                 KEY user_id (user_id),
@@ -61,8 +62,10 @@ class AI_Assistant_History_Manager {
     /**
      * ذخیره یک آیتم در تاریخچه
      */
-    public function save_history($user_id, $service_id, $service_name, $html_output) {
+    public function save_history($user_id, $service_id, $service_name, $user_data , $response) {
         global $wpdb;
+        
+        
         
         // بررسی و ایجاد جدول اگر وجود نداشته باشد
         $this->maybe_create_table();
@@ -72,15 +75,17 @@ class AI_Assistant_History_Manager {
             return false;
         }
         
+        $wpdb->query("SET time_zone = '+03:30';");
         $result = $wpdb->insert(
             $this->table_name,
             [
                 'user_id' => $user_id,
                 'service_id' => $service_id,
                 'service_name' => $service_name,
-                'html_output' => wp_kses($html_output, $this->get_allowed_html_tags())
+                'user_data' => $user_data,
+                'response' => wp_kses($response, $this->get_allowed_html_tags())
             ],
-            ['%d', '%s', '%s', '%s']
+            ['%d', '%s', '%s','%s', '%s']
         );
         
         if ($result === false) {
@@ -104,7 +109,7 @@ class AI_Assistant_History_Manager {
         $offset = ($paged - 1) * $per_page;
         
         $query = $wpdb->prepare(
-            "SELECT * FROM {$this->table_name} 
+            "SELECT SQL_NO_CACHE * FROM {$this->table_name} 
              WHERE user_id = %d 
              ORDER BY created_at DESC 
              LIMIT %d, %d",
@@ -121,7 +126,7 @@ class AI_Assistant_History_Manager {
                 'ID' => $item->id,
                 'user_id' => $item->user_id,
                 'service_name' => 'سرویس: ' . $item->service_name,
-                'html_output' => $item->html_output,
+                'response' => $item->response,
                 'created_at' => $item->created_at,
                 'service_id' => $item->service_id
             ];

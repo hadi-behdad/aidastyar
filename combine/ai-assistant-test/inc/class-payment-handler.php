@@ -475,6 +475,7 @@ class AI_Assistant_Payment_Handler {
     
     private function save_wallet_history($user_id, $amount, $new_balance, $type, $description, $reference_id = null) {
         global $wpdb;
+        $wpdb->query("SET time_zone = '+03:30';");
         
         $wpdb->insert($this->history_table, [
             'user_id' => $user_id,

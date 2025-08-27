@@ -232,7 +232,8 @@ function ai_service_add_query_vars( $vars ) {
 }
 add_filter( 'query_vars', 'ai_service_add_query_vars' );
 
-// بعد از اضافه کردن این کدها، به تنظیمات > پیوندهای یکتا رفته و ذخیره کنید
+
+
 //---------------------------------------------------------
 // حذف آیتم تاریخچه با AJAX
 add_action('wp_ajax_delete_history_item', function() {

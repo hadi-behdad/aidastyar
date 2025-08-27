@@ -24,7 +24,8 @@ class AI_Assistant_Service_Manager {
             'name' => sanitize_text_field($data['name']),
             'price' => absint($data['price']),
             'description' => sanitize_textarea_field($data['description'] ?? ''),
-            'system_prompt' => $data['system_prompt'], // اعتبارسنجی خاص برای این فیلد
+//            'system_prompt' => $data['system_prompt'], // اعتبارسنجی خاص برای این فیلد
+            'system_prompt' => $this->sanitize_system_prompt($data['system_prompt'] ?? ''),
             'icon' => sanitize_text_field($data['icon']),
             'active' => isset($data['active']) ? (bool)$data['active'] : false,
             'template' => sanitize_text_field($data['template'] ?? '')
@@ -45,6 +46,58 @@ class AI_Assistant_Service_Manager {
         return $this->db->add_service($sanitized_data);
     }
   
+  
+  
+    /**
+     * سانیتیزیشن تخصصی برای system_prompt
+     * بدون آسیب زدن به ساختار JSON
+     */
+    private function sanitize_system_prompt($prompt) {
+        if (empty($prompt)) {
+            return '';
+        }
+        
+        // حذف slash های اضافی ناشی از magic quotes
+        $prompt = stripslashes($prompt);
+        $prompt = wp_unslash($prompt);
+        
+        // اگر داده JSON است، آن را نرمالایز کن
+        if ($this->is_valid_json($prompt)) {
+            return $this->normalize_json($prompt);
+        }
+        
+        // برای متن معمولی، حذف تگ‌های HTML خطرناک
+        return wp_kses_post($prompt);
+    }
+    
+    /**
+     * بررسی معتبر بودن JSON
+     */
+    private function is_valid_json($string) {
+        if (!is_string($string) || empty($string)) {
+            return false;
+        }
+        
+        json_decode($string);
+        return json_last_error() === JSON_ERROR_NONE;
+    }
+    
+    /**
+     * نرمالایز کردن JSON - حذف escape های اضافی
+     */
+    private function normalize_json($json_string) {
+        $decoded = json_decode($json_string, true);
+        
+        if ($decoded === null) {
+            return $json_string; // اگر decode شکست خورد، داده اصلی را برگردان
+        }
+        
+        // encode مجدد با حذف escape های غیرضروری
+        return json_encode(
+            $decoded, 
+            JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT
+        );
+    }  
     
     // ثبت سرویس جدید
     public function register_service($service_data) {
