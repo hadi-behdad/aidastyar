@@ -121,6 +121,10 @@ body {
     opacity: 0.8;
 }
 
+#header-logo:active {
+    color: var(--primary-color); 
+}
+
 #back-button {
     background: none;
     border: none;

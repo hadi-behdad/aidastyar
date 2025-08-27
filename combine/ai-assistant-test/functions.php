@@ -4,6 +4,11 @@
  * Functions for AI Assistant Theme
  */
 
+// تعریف ثابت برای حداقل مبلغ شارژ
+define('AI_WALLET_MINIMUM_CHARGE', 1000); // حداقل مبلغ شارژ به 1000 تومان
+
+
+
 if (!defined('ABSPATH')) {
     exit; // Exit if accessed directly
 }
@@ -64,9 +69,9 @@ function ai_assistant_load_css() {
 add_action('wp_enqueue_scripts', 'ai_assistant_load_css');
 
 // 3. بارگذاری سرویس‌ها
-foreach (glob(get_template_directory() . '/services/*/functions.php') as $service_file) {
-    require_once $service_file;
-}
+// foreach (glob(get_template_directory() . '/services/*/functions.php') as $service_file) {
+//     require_once $service_file;
+// }
 
 // 4. ایجاد صفحات ضروری
 function ai_assistant_create_pages() {
@@ -211,33 +216,21 @@ require_once __DIR__ . '/inc/admin/services-admin.php';
 
 require_once get_template_directory() . '/inc/class-history-manager.php';
 
-add_action('init', function() {
+
+function ai_service_history_output() {
     add_rewrite_rule(
         '^service-output/([0-9]+)/?$',
-        'index.php?post_type=ai_service_history&p=$matches[1]',
+        'index.php?pagename=service-output&history_id=$matches[1]',
         'top'
     );
-    
-    add_rewrite_rule(
-        '^service-output/([0-9]+)/?$',
-        'index.php?post_type=ai_wallet_history&p=$matches[1]',
-        'top'
-    );
-    
-});
+}
+add_action('init', 'ai_service_history_output');
 
-add_action('pre_get_posts', function($query) {
-    if (!is_admin() && $query->is_main_query() && isset($query->query['post_type']) && $query->query['post_type'] === 'ai_service_history') {
-        $query->set('post_type', 'ai_service_history');
-        $query->set('post_status', 'publish');
-    }
-});
-
-add_action('pre_get_posts', function($query) {
-    if (!is_admin() && $query->is_main_query() && isset($query->query['service-output'])) {
-        $query->set('post_type', 'ai_service_history');
-    }
-});
+function ai_service_add_query_vars( $vars ) {
+    $vars[] = 'history_id';
+    return $vars;
+}
+add_filter( 'query_vars', 'ai_service_add_query_vars' );
 
 // بعد از اضافه کردن این کدها، به تنظیمات > پیوندهای یکتا رفته و ذخیره کنید
 //---------------------------------------------------------
@@ -258,7 +251,7 @@ add_action('wp_ajax_delete_history_item', function() {
 
 //---------------------------------------------------------
 
-require_once get_template_directory() . '/inc/class-wallet-history-manager.php';
+//require_once get_template_directory() . '/inc/class-wallet-history-manager.php';
 
 
 
@@ -405,3 +398,182 @@ function ai_assistant_load_result_template_simple($template) {
     return $template;
 }
 add_filter('template_include', 'ai_assistant_load_result_template_simple');
+
+
+// اضافه کردن فایل هوک‌های ووکامرس
+// require_once get_template_directory() . '/inc/woocommerce-hooks.php';
+
+// اضافه کردن این هوک در functions.php یا فایل مربوطه
+add_filter('woocommerce_cart_item_price', function($price, $cart_item, $cart_item_key) {
+    if (isset($cart_item['ai_wallet_charge']) && !empty($cart_item['ai_wallet_charge']['amount'])) {
+        return wc_price($cart_item['ai_wallet_charge']['amount']);
+    }
+    return $price;
+}, 10, 3);
+
+// اضافه کردن متا داده به آیتم سفارش
+add_action('woocommerce_checkout_create_order_line_item', function($item, $cart_item_key, $values, $order) {
+    if (isset($values['ai_wallet_charge'])) {
+        $item->add_meta_data('ai_wallet_charge', $values['ai_wallet_charge']);
+    }
+}, 10, 4);
+
+// نمایش اطلاعات شارژ در صفحه مدیریت سفارشات
+add_action('woocommerce_after_order_itemmeta', function($item_id, $item, $product) {
+    if ($item->get_meta('ai_wallet_charge')) {
+        $charge_data = $item->get_meta('ai_wallet_charge');
+        echo '<div class="wallet-charge-info">';
+        echo '<strong>شارژ کیف پول:</strong> ' . number_format($charge_data['amount']) . ' تومان';
+        echo '<br><small>شناسه: ' . $charge_data['unique_id'] . '</small>';
+        echo '</div>';
+    }
+}, 10, 3);
+
+add_filter('woocommerce_is_taxable', function($taxable, $product) {
+    $wallet_product_id = get_option('ai_assistant_wallet_product_id');
+    
+    if ($product && $product->get_id() == $wallet_product_id) {
+        return false;
+    }
+    
+    return $taxable;
+}, 10, 2);
+
+add_filter('woocommerce_product_needs_shipping', function($needs_shipping, $product) {
+    $wallet_product_id = get_option('ai_assistant_wallet_product_id');
+    
+    if ($product && $product->get_id() == $wallet_product_id) {
+        return false;
+    }
+    
+    return $needs_shipping;
+}, 10, 2);
+
+// در functions.php این کد رو اضافه کنید
+add_action('woocommerce_before_calculate_totals', function($cart) {
+    if (is_admin() && !defined('DOING_AJAX')) return;
+    
+    $wallet_total = 0;
+    $has_wallet_item = false;
+    
+    foreach ($cart->get_cart() as $cart_item_key => $cart_item) {
+        if (isset($cart_item['ai_wallet_charge']) && !empty($cart_item['ai_wallet_charge']['amount'])) {
+            $has_wallet_item = true;
+            $amount = floatval($cart_item['ai_wallet_charge']['amount']);
+            
+            // تنظیم قیمت
+            $cart_item['data']->set_price($amount);
+            $cart_item['data']->set_regular_price($amount);
+            $cart_item['data']->set_sale_price($amount);
+            
+            // اضافه کردن به مجموع
+            $wallet_total += $amount * $cart_item['quantity'];
+        }
+    }
+    
+    if ($has_wallet_item) {
+        // Override کامل محاسبات ووکامرس
+        add_filter('woocommerce_cart_get_total', function($total) use ($wallet_total) {
+            return floatval($wallet_total);
+        }, 9999);
+        
+        add_filter('woocommerce_cart_get_subtotal', function($subtotal) use ($wallet_total) {
+            return floatval($wallet_total);
+        }, 9999);
+        
+        add_filter('woocommerce_cart_get_totals', function($totals) use ($wallet_total) {
+            $totals['total'] = floatval($wallet_total);
+            $totals['subtotal'] = floatval($wallet_total);
+            $totals['subtotal_tax'] = 0;
+            $totals['tax_total'] = 0;
+            $totals['shipping_total'] = 0;
+            $totals['shipping_tax'] = 0;
+            return $totals;
+        }, 9999);
+    }
+}, 9999);
+
+// غیرفعال کردن کامل مالیات و حمل و نقل برای محصولات کیف پول
+add_filter('woocommerce_cart_needs_shipping', function($needs_shipping) {
+    $cart = WC()->cart;
+    
+    foreach ($cart->get_cart() as $cart_item) {
+        if (isset($cart_item['ai_wallet_charge'])) {
+            return false;
+        }
+    }
+    
+    return $needs_shipping;
+}, 9999);
+
+add_filter('woocommerce_cart_needs_payment', function($needs_payment) {
+    $cart = WC()->cart;
+    
+    foreach ($cart->get_cart() as $cart_item) {
+        if (isset($cart_item['ai_wallet_charge'])) {
+            return true; // همچنان نیاز به پرداخت دارد
+        }
+    }
+    
+    return $needs_payment;
+}, 9999);
+
+// نمایش صحیح قیمت‌ها در checkout
+add_filter('woocommerce_cart_item_subtotal', function($subtotal, $cart_item, $cart_item_key) {
+    if (isset($cart_item['ai_wallet_charge']) && !empty($cart_item['ai_wallet_charge']['amount'])) {
+        return wc_price($cart_item['ai_wallet_charge']['amount'] * $cart_item['quantity']);
+    }
+    return $subtotal;
+}, 9999, 3);
+
+add_filter('woocommerce_cart_subtotal', function($subtotal, $compound, $cart) {
+    $wallet_total = 0;
+    
+    foreach ($cart->get_cart() as $cart_item) {
+        if (isset($cart_item['ai_wallet_charge']) && !empty($cart_item['ai_wallet_charge']['amount'])) {
+            $wallet_total += $cart_item['ai_wallet_charge']['amount'] * $cart_item['quantity'];
+        }
+    }
+    
+    if ($wallet_total > 0) {
+        return wc_price($wallet_total);
+    }
+    
+    return $subtotal;
+}, 9999, 3);
+
+add_filter('woocommerce_cart_total', function($total) {
+    $cart = WC()->cart;
+    $wallet_total = 0;
+    
+    foreach ($cart->get_cart() as $cart_item) {
+        if (isset($cart_item['ai_wallet_charge']) && !empty($cart_item['ai_wallet_charge']['amount'])) {
+            $wallet_total += $cart_item['ai_wallet_charge']['amount'] * $cart_item['quantity'];
+        }
+    }
+    
+    if ($wallet_total > 0) {
+        return wc_price($wallet_total);
+    }
+    
+    return $total;
+}, 9999);
+
+
+// اضافه کردن این کد در جایی مناسب در functions.php
+function ai_wallet_get_minimum_charge() {
+    return defined('AI_WALLET_MINIMUM_CHARGE') ? AI_WALLET_MINIMUM_CHARGE : 1000;
+}
+
+// تابع برای فرمت اعداد به فارسی
+function format_number_fa($number) {
+    $persian_numbers = array('۰', '۱', '۲', '۳', '۴', '۵', '۶', '۷', '۸', '۹');
+    $english_numbers = array('0', '1', '2', '3', '4', '5', '6', '7', '8', '9');
+    
+    return str_replace($english_numbers, $persian_numbers, number_format($number));
+}
+
+// تابع برای حداقل مبلغ به صورت فارسی
+function ai_wallet_format_minimum_charge_fa() {
+    return format_number_fa(ai_wallet_get_minimum_charge());
+}
