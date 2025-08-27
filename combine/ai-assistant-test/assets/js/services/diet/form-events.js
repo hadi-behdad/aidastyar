@@ -112,9 +112,9 @@ window.showPaymentConfirmation = function(formData) {
                         <h3>تایید پرداخت</h3>
                     </div>
                     <div class="payment-details">
-                        <div class="wallet-balance">
+                        <div class="wallet-balance-popup">
                             <span>موجودی فعلی کیف پول شما:</span>
-                            <span class="balance-amount" id="current-balance">در حال بارگذاری...</span>
+                            <span class="balance-amount-popup" id="current-balance">در حال بارگذاری...</span>
                         </div>
                         <div class="payment-cost">
                             <span>هزینه دریافت رژیم غذایی اختصاصی:</span>

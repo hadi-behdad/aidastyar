@@ -2172,6 +2172,15 @@ body.dark-mode .floating-document {
     max-width: 450px;
     box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
     text-align: center;
+    margin: 0 10px;
+}
+
+.payment-details > div > span:nth-child(1) {
+    text-align: right;
+}
+
+.payment-details > div > span:nth-child(2) {
+    text-align: left;
 }
 
 .payment-header h3 {
@@ -2184,7 +2193,7 @@ body.dark-mode .floating-document {
     margin-bottom: 25px;
 }
 
-.wallet-balance, .payment-cost {
+.wallet-balance-popup, .payment-cost {
     display: flex;
     justify-content: space-between;
     margin-bottom: 15px;
@@ -2193,12 +2202,12 @@ body.dark-mode .floating-document {
     border-radius: 8px;
 }
 
-.balance-amount, .cost-amount {
+.balance-amount-popup, .cost-amount {
     font-weight: bold;
     color: #00857a;
 }
 
-.balance-amount[style*="color: #e53935"] {
+.balance-amount-popup[style*="color: #e53935"] {
     color: #e53935 !important;
 }
 
