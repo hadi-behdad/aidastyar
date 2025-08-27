@@ -2148,3 +2148,126 @@ body.dark-mode .floating-document {
   0%, 50% { opacity: 1; }
   51%, 100% { opacity: 0; }
 }
+
+/* پاپ‌آپ تأیید پرداخت */
+.payment-confirmation-popup {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.7);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 10000;
+    backdrop-filter: blur(5px);
+}
+
+.payment-confirmation-content {
+    background: white;
+    border-radius: 16px;
+    padding: 30px;
+    width: 90%;
+    max-width: 450px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+    text-align: center;
+}
+
+.payment-header h3 {
+    color: #00857a;
+    margin-bottom: 20px;
+    font-size: 1.4rem;
+}
+
+.payment-details {
+    margin-bottom: 25px;
+}
+
+.wallet-balance, .payment-cost {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 15px;
+    padding: 10px;
+    background: #f8f9fa;
+    border-radius: 8px;
+}
+
+.balance-amount, .cost-amount {
+    font-weight: bold;
+    color: #00857a;
+}
+
+.balance-amount[style*="color: #e53935"] {
+    color: #e53935 !important;
+}
+
+.payment-warning {
+    color: #6c757d;
+    font-size: 0.9rem;
+    margin-top: 15px;
+}
+
+.payment-buttons {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.confirm-btn {
+    background: linear-gradient(135deg, #00857a, #00c9b7);
+    color: white;
+    border: none;
+    padding: 15px;
+    border-radius: 8px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.confirm-btn:hover:not(:disabled) {
+    background: linear-gradient(135deg, #00665c, #00b3a1);
+    transform: translateY(-2px);
+}
+
+.confirm-btn:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+}
+
+.cancel-btn {
+    background: transparent;
+    color: #6c757d;
+    border: 1px solid #dee2e6;
+    padding: 12px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.cancel-btn:hover {
+    background: #f8f9fa;
+    border-color: #00857a;
+    color: #00857a;
+}
+
+.btn-loading {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.btn-loading::after {
+    content: '';
+    width: 12px;
+    height: 12px;
+    border: 2px solid transparent;
+    border-top: 2px solid white;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}

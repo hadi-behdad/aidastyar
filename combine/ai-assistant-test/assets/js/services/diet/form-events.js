@@ -84,6 +84,151 @@ window.preloadImages = function() {
     });
 }
 
+// تغییر تابع window.showPaymentConfirmation
+window.showPaymentConfirmation = function(formData) {
+    // دریافت قیمت سرویس از طریق AJAX
+    fetch(aiAssistantVars.ajaxurl, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: new URLSearchParams({
+            'action': 'get_diet_service_price',
+            'security': aiAssistantVars.nonce
+        })
+    })
+    .then(response => response.json())
+    .then(priceData => {
+        if (priceData.success) {
+            const servicePrice = priceData.data.price;
+            const formattedPrice = new Intl.NumberFormat('fa-IR').format(servicePrice);
+            
+            // ایجاد المان پاپ‌آپ با قیمت داینامیک
+            const popup = document.createElement('div');
+            popup.className = 'payment-confirmation-popup';
+            popup.innerHTML = `
+                <div class="payment-confirmation-content">
+                    <div class="payment-header">
+                        <h3>تایید پرداخت</h3>
+                    </div>
+                    <div class="payment-details">
+                        <div class="wallet-balance">
+                            <span>موجودی فعلی کیف پول شما:</span>
+                            <span class="balance-amount" id="current-balance">در حال بارگذاری...</span>
+                        </div>
+                        <div class="payment-cost">
+                            <span>هزینه دریافت رژیم غذایی اختصاصی:</span>
+                            <span class="cost-amount">${formattedPrice} تومان</span>
+                        </div>
+                        <p class="payment-warning">در صورت تأیید، این مبلغ از حساب شما کسر خواهد شد.</p>
+                    </div>
+                    <div class="payment-buttons">
+                        <button id="confirm-payment" class="confirm-btn" data-price="${servicePrice}">
+                            <span class="btn-text">تأیید و پرداخت (${formattedPrice} تومان)</span>
+                            <span class="btn-loading" style="display:none">در حال پردازش...</span>
+                        </button>
+                        <button id="cancel-payment" class="cancel-btn">انصراف</button>
+                    </div>
+                </div>
+            `;
+            
+            document.body.appendChild(popup);
+            
+            // غیرفعال کردن کلیک خارج از پاپ‌آپ و دکمه ESC
+            popup.addEventListener('click', function(e) {
+                if (e.target === popup) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                }
+            });
+            
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'Escape') {
+                    e.preventDefault();
+                    e.stopPropagation();
+                }
+            });
+            
+            // دریافت موجودی کاربر
+            fetchUserBalance(servicePrice);
+            
+            // مدیریت رویدادهای دکمه‌ها
+            document.getElementById('confirm-payment').addEventListener('click', function() {
+                const btn = this;
+                const btnText = btn.querySelector('.btn-text');
+                const btnLoading = btn.querySelector('.btn-loading');
+                
+                btn.disabled = true;
+                btnText.style.display = 'none';
+                btnLoading.style.display = 'inline-block';
+                
+                // ارسال فرم پس از تأیید
+                setTimeout(() => {
+                    window.dispatchEvent(new CustomEvent('formSubmitted', {
+                        detail: { formData }
+                    }));
+                }, 500);
+            });
+            
+            document.getElementById('cancel-payment').addEventListener('click', function() {
+                document.body.removeChild(popup);
+                // فعال کردن مجدد دکمه سابمیت
+                document.getElementById('SubmitBtn').disabled = false;
+                document.getElementById('SubmitBtn').innerHTML = 'ثبت نهایی';
+            });
+        } else {
+            // خطا در دریافت قیمت
+            alert('خطا در دریافت اطلاعات قیمت. لطفاً مجدداً تلاش کنید.');
+            document.getElementById('SubmitBtn').disabled = false;
+        }
+    })
+    .catch(error => {
+        console.error('Error fetching service price:', error);
+        alert('خطا در ارتباط با سرور. لطفاً مجدداً تلاش کنید.');
+        document.getElementById('SubmitBtn').disabled = false;
+    });
+};
+
+// تغییر تابع fetchUserBalance برای دریافت قیمت به عنوان پارامتر
+function fetchUserBalance(servicePrice) {
+    fetch(aiAssistantVars.ajaxurl, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: new URLSearchParams({
+            'action': 'get_user_wallet_credit',
+            'security': aiAssistantVars.nonce
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            const balanceElement = document.getElementById('current-balance');
+            const formattedBalance = new Intl.NumberFormat('fa-IR').format(data.data.credit);
+            balanceElement.textContent = formattedBalance + ' تومان';
+            
+            // تغییر رنگ موجودی اگر کم باشد
+            if (data.data.credit < servicePrice) {
+                balanceElement.style.color = '#e53935';
+                
+                // غیرفعال کردن دکمه تأیید اگر موجودی کافی نیست
+                const confirmBtn = document.getElementById('confirm-payment');
+                if (confirmBtn) {
+                    confirmBtn.disabled = true;
+                    confirmBtn.style.opacity = '0.6';
+                    confirmBtn.title = 'موجودی کافی نیست';
+                }
+            }
+        }
+    })
+    .catch(error => {
+        console.error('Error fetching balance:', error);
+        document.getElementById('current-balance').textContent = 'خطا در دریافت موجودی';
+    });
+}
+
+// در تابع window.handleFormSubmit، تغییرات زیر را اعمال کنید:
 window.handleFormSubmit = function(event) {
     event.preventDefault();
     
@@ -116,14 +261,11 @@ window.handleFormSubmit = function(event) {
 
     console.log('Form submitted:', formData);
     
-    document.getElementById('SubmitBtn').innerHTML = 'در حال ارسال درخواست ...';
+    // غیرفعال کردن دکمه سابمیت
     document.getElementById('SubmitBtn').disabled = true;
-    // ایجاد و ارسال یک رویداد سفارشی
-    const formSubmittedEvent = new CustomEvent('formSubmitted', {
-        detail: { formData }
-    });
-    window.dispatchEvent(formSubmittedEvent);
-   
+    
+    // نمایش پاپ‌آپ تأیید پرداخت
+    window.showPaymentConfirmation(formData);
 };
 
 window.showSummary = function() {

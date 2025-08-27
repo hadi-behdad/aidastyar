@@ -31,6 +31,12 @@ jQuery(document).ready(function($) {
             },
             success: function(response) {
                 if (response.success) {
+                    // مخفی کردن پاپ‌آپ پرداخت اگر باز است
+                    const paymentPopup = document.querySelector('.payment-confirmation-popup');
+                    if (paymentPopup) {
+                        document.body.removeChild(paymentPopup);
+                    }
+                    
                     loader.hide();
                     
                     // ذخیره نتیجه در sessionStorage
@@ -39,8 +45,20 @@ jQuery(document).ready(function($) {
                     // هدایت به صفحه نتیجه با پارامتر
                     window.location.href = '/?ai_diet_result=1';
                 } else {
-                    // حالت خطا (مثلاً کمبود اعتبار)
-                    loader.updateMessage(response.data || 'اعتبار کافی نیست. لطفاً کیف پول خود را شارژ کنید.');
+                    // مخفی کردن لودینگ دکمه
+                    const confirmBtn = document.querySelector('#confirm-payment');
+                    if (confirmBtn) {
+                        confirmBtn.disabled = false;
+                        confirmBtn.querySelector('.btn-text').style.display = 'inline-block';
+                        confirmBtn.querySelector('.btn-loading').style.display = 'none';
+                    }
+                    
+                    // نمایش خطا
+                    if (response.data && response.data.includes('اعتبار')) {
+                        loader.updateMessage(response.data);
+                    } else {
+                        loader.updateMessage('خطا در پردازش درخواست. لطفاً مجدداً تلاش کنید.');
+                    }
                     
                     // تغییر دکمه بستن برای ریدایرکت به صفحه شارژ
                     const closeBtn = document.querySelector('#aidastyar-loading-overlay .close-loader');

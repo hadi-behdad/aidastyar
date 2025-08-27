@@ -192,6 +192,27 @@ function ai_wallet_payment_complete($order_id) {
 
 //------------------------------------
 
+// اضافه کردن endpoint جدید برای دریافت قیمت سرویس
+add_action('wp_ajax_get_diet_service_price', 'get_diet_service_price_callback');
+add_action('wp_ajax_nopriv_get_diet_service_price', 'get_diet_service_price_callback');
+
+function get_diet_service_price_callback() {
+    if (!class_exists('AI_Assistant_Service_Manager')) {
+        wp_send_json_error(['message' => 'کلاس مدیریت سرویس موجود نیست.']);
+    }
+
+    $service_id = 'diet';
+    $service_manager = AI_Assistant_Service_Manager::get_instance();
+    $price = $service_manager->get_service_price($service_id);
+
+    if ($price === false) {
+        wp_send_json_error(['message' => 'قیمت سرویس یافت نشد.']);
+    }
+
+    wp_send_json_success(['price' => $price]);
+}
+
+// مطمئن شوید endpoint موجودی کاربر نیز وجود دارد
 add_action('wp_ajax_get_user_wallet_credit', 'get_user_wallet_credit_callback');
 add_action('wp_ajax_nopriv_get_user_wallet_credit', 'get_user_wallet_credit_callback');
 

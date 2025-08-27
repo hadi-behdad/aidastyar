@@ -48,7 +48,7 @@
         }
         
         .result-container {
-            max-width: 500px;
+            max-width: 900px;
             margin: 0 auto;
             padding: 0 10px;
         }
@@ -132,6 +132,7 @@
             max-height: 50000px;
             opacity: 1;
             transform: translateY(0);
+            overflow-x: auto;
         }
         
         .accordion-content.active .accordion-content-inner {
