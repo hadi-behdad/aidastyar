@@ -193,7 +193,7 @@ foreach ($recent_history as $item) {
 <style>
 /* استایل‌های عمومی */
 .dash-ai-dashboard-container {
-    max-width: 1200px;
+    max-width: 500px;
     margin: 0 auto;
     padding: 20px;
     font-family: 'Vazir', 'Tahoma', sans-serif;
@@ -218,10 +218,26 @@ foreach ($recent_history as $item) {
     gap: 20px;
 }
 
+.dash-welcome-section {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: flex-start;
+    text-align: right;
+    flex: 1;
+}
+
 .dash-welcome-section h1 {
     margin: 0 0 8px 0;
     font-size: 22px;
     font-weight: 700;
+    text-align: right;
+    width: 100%;
+}
+
+.dash-welcome-section h1,
+.dash-welcome-message {
+    text-align: center;
 }
 
 .dash-user-name {
@@ -232,12 +248,13 @@ foreach ($recent_history as $item) {
     margin: 0;
     opacity: 0.9;
     font-size: 16px;
+    width: 100%;
 }
 
 .dash-wallet-section {
-    display: flex;
-    align-items: center;
-    gap: 20px;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 15px;
 }
 
 .dash-wallet-balance {
@@ -246,7 +263,7 @@ foreach ($recent_history as $item) {
     background: rgba(255, 255, 255, 0.15);
     padding: 12px 20px;
     border-radius: 12px;
-    gap: 12px;
+    margin-bottom: 10px;
 }
 
 .dash-balance-info {
@@ -274,6 +291,7 @@ foreach ($recent_history as $item) {
 .dash-charge-wallet-btn {
     display: flex;
     align-items: center;
+    justify-content: center;
     gap: 8px;
     background: rgba(255, 255, 255, 0.2);
     color: white;
@@ -283,6 +301,7 @@ foreach ($recent_history as $item) {
     font-weight: 600;
     transition: all 0.3s ease;
     border: 1px solid rgba(255, 255, 255, 0.3);
+    min-width: 120px;
 }
 
 .dash-charge-wallet-btn:hover {
@@ -539,13 +558,14 @@ h2.dash-section-title {
     
     .dash-header-content {
         flex-direction: column;
-        /*align-items: flex-start;*/
+        align-items: stretch;
+        text-align: center;
     }
     
-    .dash-wallet-section {
-        flex-direction: column;
-        /*align-items: flex-start;*/
-        width: 100%;
+    .dash-welcome-section {
+        align-items: center;
+        text-align: center;
+        margin-bottom: 20px;
     }
     
     .dash-wallet-balance, .dash-charge-wallet-btn {
