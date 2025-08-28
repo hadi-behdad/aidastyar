@@ -607,3 +607,6 @@ function number_fa($number) {
 function ai_wallet_format_minimum_charge_fa() {
     return format_number_fa(ai_wallet_get_minimum_charge());
 }
+
+
+require_once get_template_directory() . '/templates/functions.php';

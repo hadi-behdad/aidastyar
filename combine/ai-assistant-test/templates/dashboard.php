@@ -1,11 +1,16 @@
 <?php
 /**
+ * /home/aidastya/public_html/test/wp-content/themes/ai-assistant-test/templates/dashboard.php
  * Template Name: داشبورد کاربری
  */
 
 if (!is_user_logged_in()) {
     wp_redirect(wp_login_url());
     exit;
+}
+
+if (!defined('ABSPATH')) {
+    exit; // Exit if accessed directly
 }
 
 get_header();
