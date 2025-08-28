@@ -1,18 +1,13 @@
  
 // /home/aidastya/public_html/test/wp-content/themes/ai-assistant-test/assets/js/auto-fill.js
-console.log('🔧 فایل auto-fill.js بارگذاری شد - حالت تست فعال');
 
 document.addEventListener('DOMContentLoaded', function() {
     // فقط در محیط تست اجرا شود
     if (window.location.hostname.includes('test.') || 
         (typeof aiAssistantVars !== 'undefined' && aiAssistantVars.env === 'sandbox')) {
         
-        console.log('🔧 محیط تست تشخیص داده شد - دکمه پر کردن خودکار اضافه خواهد شد');
-
         // تابع اصلی برای پر کردن خودکار فرم
         function autoFillForm() {
-            console.log('🔧 شروع فرآیند پر کردن خودکار فرم...');
-            
             // بررسی وجود فرم
             if (!document.getElementById('multi-step-form')) {
                 console.log('⚠️ فرم مورد نظر یافت نشد');
@@ -49,7 +44,6 @@ document.addEventListener('DOMContentLoaded', function() {
                     if (firstNameInput) {
                         firstNameInput.value = testData.firstName;
                         firstNameInput.dispatchEvent(new Event('input'));
-                        console.log(`✅ نام "${testData.firstName}" وارد شد`);
                     }
                     
                     // پر کردن نام خانوادگی
@@ -57,7 +51,6 @@ document.addEventListener('DOMContentLoaded', function() {
                     if (lastNameInput) {
                         lastNameInput.value = testData.lastName;
                         lastNameInput.dispatchEvent(new Event('input'));
-                        console.log(`✅ نام خانوادگی "${testData.lastName}" وارد شد`);
                     }
                     
                     // کلیک روی دکمه بعدی
@@ -72,7 +65,6 @@ document.addEventListener('DOMContentLoaded', function() {
                     if (termsCheckbox && !termsCheckbox.checked) {
                         termsCheckbox.checked = true;
                         termsCheckbox.dispatchEvent(new Event('change'));
-                        console.log('✅ شرایط و قوانین تائید شد');
                     }
 
                     // انتخاب جنسیت
@@ -80,7 +72,6 @@ document.addEventListener('DOMContentLoaded', function() {
                         const genderOption = document.querySelector(`.gender-option[data-gender="${testData.gender}"]`);
                         if (genderOption) {
                             genderOption.click();
-                            console.log(`✅ جنسیت "${testData.gender}" انتخاب شد`);
                             
                             // کلیک روی دکمه بعدی
                             clickNextButton(1000);
@@ -95,7 +86,6 @@ document.addEventListener('DOMContentLoaded', function() {
                     const goalOption = document.querySelector(`.goal-option[data-goal="${testData.goal}"]`);
                     if (goalOption) {
                         goalOption.click();
-                        console.log(`✅ هدف "${testData.goal}" انتخاب شد`);
                         clickNextButton(500);
                     }
                 }
@@ -117,7 +107,6 @@ document.addEventListener('DOMContentLoaded', function() {
                     if (input) {
                         input.value = value;
                         input.dispatchEvent(new Event('input'));
-                        console.log(`✅ ${name} "${value}" وارد شد`);
                         
                         // اعتبارسنجی ویژه برای وزن هدف
                         if (state.currentStep === STEPS.TARGET_WEIGHT) {
@@ -142,7 +131,6 @@ document.addEventListener('DOMContentLoaded', function() {
                     const activityOption = document.querySelector(`.activity-option[data-activity="${testData.activity}"]`);
                     if (activityOption) {
                         activityOption.click();
-                        console.log(`✅ سطح فعالیت "${testData.activity}" انتخاب شد`);
                         clickNextButton(500);
                     }
                 }
@@ -154,7 +142,6 @@ document.addEventListener('DOMContentLoaded', function() {
                     const mealOption = document.querySelector(`.meal-option[data-meals="${testData.meals}"]`);
                     if (mealOption) {
                         mealOption.click();
-                        console.log(`✅ تعداد وعده‌ها "${testData.meals}" انتخاب شد`);
                         clickNextButton(500);
                     }
                 }
@@ -166,7 +153,6 @@ document.addEventListener('DOMContentLoaded', function() {
                     const waterCups = document.querySelectorAll('.water-cup');
                     if (waterCups.length >= testData.waterIntake) {
                         waterCups[testData.waterIntake - 1].click();
-                        console.log(`✅ تعداد لیوان آب "${testData.waterIntake}" انتخاب شد`);
                         clickNextButton(500);
                     }
                 }
@@ -191,7 +177,6 @@ document.addEventListener('DOMContentLoaded', function() {
                     if (noneCheckbox) {
                         noneCheckbox.checked = true;
                         noneCheckbox.dispatchEvent(new Event('change'));
-                        console.log(`✅ گزینه "هیچکدام" برای ${name} انتخاب شد`);
                         clickNextButton(500);
                     }
                 }
@@ -200,20 +185,17 @@ document.addEventListener('DOMContentLoaded', function() {
             // پر کردن مرحله نمایش هدف
             function fillGoalDisplayStep() {
                 if (state.currentStep === STEPS.GOAL_DISPLAY) {
-                    console.log('🔧 مرحله نمایش وزن هدف');
                     
                     const checkSVGLoaded = setInterval(() => {
                         const svgElement = document.querySelector('#goal-weight-display object');
                         if (svgElement && svgElement.contentDocument) {
                             clearInterval(checkSVGLoaded);
-                            console.log('✅ SVG با موفقیت لود شد');
                             clickNextButton(1000);
                         }
                     }, 200);
 
                     setTimeout(() => {
                         if (state.currentStep === STEPS.GOAL_DISPLAY) {
-                            console.log('⚠️ استفاده از راهکار جایگزین برای مرحله نمایش هدف');
                             clickNextButton(0);
                         }
                     }, 3000);
@@ -227,7 +209,6 @@ document.addEventListener('DOMContentLoaded', function() {
                     if (agreeCheckbox) {
                         agreeCheckbox.checked = true;
                         agreeCheckbox.dispatchEvent(new Event('change'));
-                        console.log('✅ شرایط و قوانین تائید شد');
                         clickNextButton(500);
                     }
                 }
@@ -241,14 +222,12 @@ document.addEventListener('DOMContentLoaded', function() {
                     if (confirmCheckbox) {
                         confirmCheckbox.checked = true;
                         confirmCheckbox.dispatchEvent(new Event('change'));
-                        console.log('✅ اطلاعات تأیید شدند');
                         
                         // اضافه کردن تاخیر قبل از ارسال فرم
                         setTimeout(() => {
                             // پیدا کردن دکمه ارسال نهایی
                             const submitButton = document.querySelector('.final-submit');
                             if (submitButton) {
-                                console.log('🔄 در حال ارسال فرم...');
                                 
                                 // غیرفعال کردن دکمه و تغییر متن آن (مطابق با کد diet.js)
                                 submitButton.disabled = true;
@@ -263,7 +242,6 @@ document.addEventListener('DOMContentLoaded', function() {
                                 });
                                 window.dispatchEvent(formSubmittedEvent);
                                 
-                                console.log('✅ رویداد formSubmitted ارسال شد');
                             }
                         }, 1000);
                     }
@@ -276,7 +254,6 @@ document.addEventListener('DOMContentLoaded', function() {
                     const nextButton = document.querySelector('.next-step:not([disabled])');
                     if (nextButton) {
                         nextButton.click();
-                        console.log('🔄 رفتن به مرحله بعد');
                     }
                 }, delay);
             }
@@ -316,12 +293,10 @@ document.addEventListener('DOMContentLoaded', function() {
             btn.style.boxShadow = '0 2px 5px rgba(0,0,0,0.2)';
 
             btn.addEventListener('click', function() {
-                console.log('🚀 دکمه پر کردن خودکار کلیک شد');
                 
                 // بازنشانی به مرحله اول
                 if (state && typeof state.updateStep === 'function') {
                     state.updateStep(1);
-                    console.log('🔄 بازنشانی به مرحله اول');
                 }
 
                 // شروع پر کردن خودکار پس از تاخیر
@@ -330,7 +305,6 @@ document.addEventListener('DOMContentLoaded', function() {
                     
                     // اضافه کردن هندلر برای تغییر مراحل
                     const stateChangeHandler = function() {
-                        console.log('🔄 تغییر مرحله تشخیص داده شد - ادامه پر کردن خودکار');
                         autoFillForm();
                     };
 
@@ -343,13 +317,11 @@ document.addEventListener('DOMContentLoaded', function() {
                     // حذف هندلر پس از تکمیل فرم
                     setTimeout(() => {
                         window.removeEventListener('stateUpdated', stateChangeHandler);
-                        console.log('✅ پر کردن خودکار تکمیل شد - هندلر حذف شد');
                     }, 5000); // حداکثر 15 ثانیه
                 }, 500);
             });
 
             document.body.appendChild(btn);
-            console.log('✅ دکمه پر کردن خودکار اضافه شد');
         }
 
         // ایجاد دکمه پس از لود کامل صفحه

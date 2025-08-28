@@ -106,7 +106,6 @@ jQuery(document).ready(function($) {
                 otp_code: otp_code
             },
             success: function(response) {
-                console.log('Raw response:', response);
                 // در قسمت موفقیت‌آمیز بودن ورود OTP
                 if(response.success) {
                     showMessage('ورود موفقیت‌آمیز! در حال انتقال...', 'success');
@@ -114,11 +113,15 @@ jQuery(document).ready(function($) {
                     // بررسی وجود redirect_url در sessionStorage
                     let redirectUrl = sessionStorage.getItem('diet_form_redirect_url') || otp_vars.home_url;
                     
-                    // حذف پارامترهای موجود از URL
-                    redirectUrl = redirectUrl.split('?')[0];
-                    
-                    // اضافه کردن پارامتر logged_in
-                    redirectUrl += (redirectUrl.includes('?') ? '&' : '?') + 'logged_in=1';
+                    // اگر redirectUrl برابر با home_url است، پارامتر logged_in را اضافه نکن
+                    if (redirectUrl === otp_vars.home_url) {
+                        // فقط به صفحه اصلی بدون پارامتر ریدایرکت شود
+                        redirectUrl = otp_vars.home_url;
+                    } else {
+                        // حذف پارامترهای موجود از URL و اضافه کردن logged_in
+                        redirectUrl = redirectUrl.split('?')[0];
+                        redirectUrl += (redirectUrl.includes('?') ? '&' : '?') + 'logged_in=1';
+                    }
                     
                     // اضافه کردن هش مرحله ذخیره شده
                     const savedStep = sessionStorage.getItem('diet_form_current_step');

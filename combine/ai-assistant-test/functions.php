@@ -595,6 +595,14 @@ function format_number_fa($number) {
     return str_replace($english_numbers, $persian_numbers, number_format($number));
 }
 
+// تابع برای فرمت اعداد به فارسی
+function number_fa($number) {
+    $persian_numbers = array('۰', '۱', '۲', '۳', '۴', '۵', '۶', '۷', '۸', '۹');
+    $english_numbers = array('0', '1', '2', '3', '4', '5', '6', '7', '8', '9');
+    
+    return str_replace($english_numbers, $persian_numbers, $number);
+}
+
 // تابع برای حداقل مبلغ به صورت فارسی
 function ai_wallet_format_minimum_charge_fa() {
     return format_number_fa(ai_wallet_get_minimum_charge());
