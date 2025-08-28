@@ -71,10 +71,14 @@ body {
   font-weight: bold;
 }
 
-.ai-nav {
-  display: none;
-  gap: 20px;
-}
+
+.ai-nav-desktop { display: flex; }
+.ai-nav-mobile { display: none; }
+
+/*.ai-nav {*/
+/*  display: flex;*/
+/*  gap: 20px;*/
+/*}*/
 
 .ai-nav a {
   color: #333;
@@ -147,10 +151,10 @@ body {
   padding: 8px 15px;
 }
 
-.ai-wallet-button {
-  padding: 5px 10px;
-  font-size: 13px;
-}
+/*.ai-wallet-button {*/
+/*  padding: 5px 10px;*/
+/*  font-size: 13px;*/
+/*}*/
 
 /* ========== Cards ========== */
 
@@ -324,6 +328,153 @@ body {
         -webkit-box-orient: vertical;
         overflow: hidden;
         text-overflow: ellipsis;
+    }
+  
+  
+ 
+    /* بخش کیف پول */  
+    .menu-item-card {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 12px 15px;
+        margin: 0 auto 12px auto;
+        background: #f2f2f2;
+        border-radius: 6px;
+        color: #333;
+        text-decoration: none;
+        transition: all 0.3s;
+        width: 80%;
+    }  
+    
+    .menu-item-card:hover {
+        background-color: #e8e8e8;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+    }
+    
+    /* استایل برای آیتم پروفایل در منو */
+    .user-profile-menu-item {
+        background-color: #f0f2f5;
+        border-left: 4px solid #6b47dc;
+    }
+    
+    .wallet-section {
+        padding: 20px 25px;
+        /*margin-top: 20px;*/
+        border-top: 1px solid #eee;
+    }
+    
+    .wallet-title {
+        font-size: 14px;
+        color: #777;
+        display: block;
+        margin-bottom: 8px;
+    }
+    
+    .wallet-balance {
+        font-size: 32px;
+        font-weight: bold;
+        color: #333;
+        display: flex;
+        align-items: flex-end;
+    }
+    
+    .wallet-balance .currency {
+        font-size: 24px;
+        margin-left: 5px;
+    }
+    
+    .wallet-balance .decimal {
+        font-size: 18px;
+        font-weight: normal;
+        color: #555;
+        margin-right: 2px;
+        padding-bottom: 2px;
+    } 
+    
+    /* دکمه ها */
+    .menu-actions {
+        padding: 0 25px;
+        margin-top: 5px;
+    }
+    
+    .btn {
+        display: grid;
+        width: 90%;
+        padding: 15px;
+        border: none;
+        border-radius: 10px;
+        font-size: 16px;
+        font-weight: bold;
+        cursor: pointer;
+        transition: background-color 0.2s ease-in-out;
+    }
+    
+    .btn-primary {
+        background-color: #6b47dc;
+        color: #ffffff;
+        margin-bottom: 12px;
+        justify-content: center;
+    }
+    
+    .btn-primary:hover {
+        background-color: #5a3ba8;
+    }
+    
+    .btn-secondary {
+        background-color: #333333;
+        color: #ffffff;
+        justify-content: center;
+        flex-grow: 1;
+        margin-left: 10px;
+    }
+    
+    .btn-secondary:hover {
+        background-color: #1a1a1a;
+    }    
+    
+    /* استایل‌دهی به بخش جدید دکمه‌ها و آیکون کاربر در پایین */
+    .bottom-actions {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+        margin-top: 15px;
+    }    
+    
+    /* استایل جدید برای خلاصه پروفایل کاربر */
+    .user-profile-summary {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 8px 12px;
+        background-color: #f8f9fa;
+        border-radius: 25px;
+        border: 1px solid #e9ecef;
+    }
+    
+    .user-profile-summary img {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+    }
+    
+    .user-info {
+        display: flex;
+        flex-direction: column;
+    }
+    
+    .user-name {
+        font-size: 14px;
+        font-weight: 600;
+        color: #333;
+    }
+    
+    .user-credit {
+        font-size: 12px;
+        color: #6b47dc;
+        font-weight: 500;
     }
 }
 
@@ -793,13 +944,20 @@ body {
   .ai-user-section {
         flex-direction:column;  
   }
-    
-  .ai-nav {
-    width: 90%;
-    flex-direction: column;
-    gap: 10px;
-    margin: 0 auto;
-  }
+ 
+ 
+  .ai-nav-desktop { display: none; }
+  .ai-nav-mobile { display: flex; flex-direction: column; }
+  
+
+  
+  
+  /*.ai-nav {*/
+  /*  width: 90%;*/
+  /*  flex-direction: column;*/
+  /*  gap: 10px;*/
+  /*  margin: 0 auto;*/
+  /*}*/
   
 
   .ai-footer-container {
@@ -911,13 +1069,13 @@ body {
     font-size: 14px;
   }
   
-   .ai-nav-wrapper .ai-nav a:not(:last-child) {
-        border-bottom: 1px solid #f0f0f0;
-        padding-bottom: 8px;
-        margin-bottom: 1px;
-        display: inline-block;
-        width: 100%;
-    }
+   /*.ai-nav-wrapper .ai-nav a:not(:last-child) {*/
+   /*     border-bottom: 1px solid #f0f0f0;*/
+   /*     padding-bottom: 8px;*/
+   /*     margin-bottom: 1px;*/
+   /*     display: inline-block;*/
+   /*     width: 100%;*/
+   /* }*/
     
   
   .ai-header-container {
@@ -937,7 +1095,7 @@ body {
   }
   
   .ai-wallet-info {
-    width: 100%; 
+    width: 90%; 
     flex-direction: column;
     align-items: stretch;
     gap: 5px;

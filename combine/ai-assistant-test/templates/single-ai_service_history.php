@@ -3,7 +3,7 @@
  * Template Name: نمایش خروجی سرویس
  */
 
-get_header();
+get_header('service');
 
 // دریافت ID از URL
 $history_id = get_query_var('history_id');

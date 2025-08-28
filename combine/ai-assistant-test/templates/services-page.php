@@ -11,38 +11,7 @@ $theme_assets = get_stylesheet_directory_uri();
 ?>
 
 <div class="ai-container">
-    <?php if (is_user_logged_in()): ?>
-        <div class="ai-card ai-user-info">
-            <h2><?php _e('داشبورد کاربری', 'ai-assistant'); ?></h2>
 
-
-
-            
-            
-            <p><?php _e('موجودی شما:', 'ai-assistant'); ?> 
-               <span id="user-wallet-credit">در حال بارگذاری...</span>
-            </p>
-            
-
-            
-            <a href="https://test.aidastyar.com/wallet-charge" class="ai-button">
-                <?php _e('شارژ حساب', 'ai-assistant'); ?>
-            </a>
-            
-            
-
-
-
-
-        </div>
-    <?php else: ?>
-        <div class="ai-card ai-notice">
-            <p><?php _e('برای استفاده از سرویس‌ها باید وارد حساب کاربری خود شوید.', 'ai-assistant'); ?></p>
-            <a href="<?php echo wp_login_url(get_permalink()); ?>" class="ai-button">
-                <?php _e('ورود به حساب کاربری', 'ai-assistant'); ?>
-            </a>
-        </div>
-    <?php endif; ?>
     
     <div class="ai-services-grid">
         <?php 
@@ -86,29 +55,7 @@ $theme_assets = get_stylesheet_directory_uri();
     </div>
 </div>
 
-<?php if (is_user_logged_in()): ?>
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-    fetch('<?php echo admin_url('admin-ajax.php'); ?>?action=get_user_wallet_credit', {
-        credentials: 'same-origin'
-    })
-    .then(response => response.json())
-    .then(data => {
-        console.log(data);  // نمایش داده‌های دریافتی برای دیباگ
-        if (data.success && !isNaN(data.data.credit)) {  // دسترسی به credit داخل data
-            document.getElementById('user-wallet-credit').innerText = new Intl.NumberFormat('fa-IR').format(data.data.credit) + ' تومان';
-        } else {
-            document.getElementById('user-wallet-credit').innerText = 'خطا در دریافت موجودی';
-        }
-    })
-    .catch(error => {
-        console.error('Error:', error);  // چاپ خطا در کنسول در صورت بروز مشکل در ارتباط
-        document.getElementById('user-wallet-credit').innerText = 'خطا در ارتباط';
-    });
-});
 
-</script>
-<?php endif; ?>
 
 
 <?php
