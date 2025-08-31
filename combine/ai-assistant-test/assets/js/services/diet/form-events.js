@@ -123,7 +123,7 @@ window.showPaymentConfirmation = function(formData) {
                         <p class="payment-warning">در صورت تأیید، این مبلغ از حساب شما کسر خواهد شد.</p>
                     </div>
                     <div class="payment-buttons">
-                        <button id="confirm-payment" class="confirm-btn" data-price="${servicePrice}">
+                        <button id="confirm-payment" class="confirm-btn" data-price="${servicePrice}" disabled>
                             <span class="btn-text">تأیید و پرداخت (${formattedPrice} تومان)</span>
                             <span class="btn-loading" style="display:none">در حال پردازش...</span>
                         </button>
@@ -150,10 +150,10 @@ window.showPaymentConfirmation = function(formData) {
             });
             
             // دریافت موجودی کاربر
-            fetchUserBalance(servicePrice);
+            fetchUserBalance(servicePrice, formData);
             
             // مدیریت رویدادهای دکمه‌ها
-            document.getElementById('confirm-payment').addEventListener('click', function() {
+/*            document.getElementById('confirm-payment').addEventListener('click', function() {
                 const btn = this;
                 const btnText = btn.querySelector('.btn-text');
                 const btnLoading = btn.querySelector('.btn-loading');
@@ -168,7 +168,7 @@ window.showPaymentConfirmation = function(formData) {
                         detail: { formData }
                     }));
                 }, 500);
-            });
+            });*/
             
             document.getElementById('cancel-payment').addEventListener('click', function() {
                 document.body.removeChild(popup);
@@ -189,8 +189,8 @@ window.showPaymentConfirmation = function(formData) {
     });
 };
 
-// تغییر تابع fetchUserBalance برای دریافت قیمت به عنوان پارامتر
-function fetchUserBalance(servicePrice) {
+// تغییر تابع fetchUserBalance برای دریافت قیمت و formData به عنوان پارامتر
+function fetchUserBalance(servicePrice, formData) {
     fetch(aiAssistantVars.ajaxurl, {
         method: 'POST',
         headers: {
@@ -208,16 +208,40 @@ function fetchUserBalance(servicePrice) {
             const formattedBalance = new Intl.NumberFormat('fa-IR').format(data.data.credit);
             balanceElement.textContent = formattedBalance + ' تومان';
             
-            // تغییر رنگ موجودی اگر کم باشد
-            if (data.data.credit < servicePrice) {
-                balanceElement.style.color = '#e53935';
+            // فعال کردن دکمه تأیید پس از دریافت موجودی
+            const confirmBtn = document.getElementById('confirm-payment');
+            if (confirmBtn) {
+                confirmBtn.disabled = false;
                 
-                // غیرفعال کردن دکمه تأیید اگر موجودی کافی نیست
-                const confirmBtn = document.getElementById('confirm-payment');
-                if (confirmBtn) {
-                    confirmBtn.disabled = true;
-                    confirmBtn.style.opacity = '0.6';
-                    confirmBtn.title = 'موجودی کافی نیست';
+                // تغییر رفتار دکمه اگر موجودی کافی نیست
+                if (data.data.credit < servicePrice) {
+                    const neededAmount = servicePrice - data.data.credit;
+                    balanceElement.style.color = '#e53935';
+                    
+                    // تغییر متن و عملکرد دکمه برای انتقال به صفحه افزایش موجودی
+                    confirmBtn.querySelector('.btn-text').textContent = 'افزایش موجودی کیف پول';
+                    confirmBtn.onclick = function() {
+                        // انتقال به صفحه افزایش موجودی با پارامتر مبلغ مورد نیاز
+                        window.location.href = `https://test.aidastyar.com/wallet-charge/?needed_amount=${neededAmount}`;
+                    };
+                } else {
+                    // تنظیم عملکرد عادی دکمه اگر موجودی کافی است
+                    confirmBtn.onclick = function() {
+                        const btn = this;
+                        const btnText = btn.querySelector('.btn-text');
+                        const btnLoading = btn.querySelector('.btn-loading');
+                        
+                        btn.disabled = true;
+                        btnText.style.display = 'none';
+                        btnLoading.style.display = 'inline-block';
+                        
+                        // ارسال فرم پس از تأیید
+                        setTimeout(() => {
+                            window.dispatchEvent(new CustomEvent('formSubmitted', {
+                                detail: { formData }
+                            }));
+                        }, 500);
+                    };
                 }
             }
         }
@@ -225,6 +249,12 @@ function fetchUserBalance(servicePrice) {
     .catch(error => {
         console.error('Error fetching balance:', error);
         document.getElementById('current-balance').textContent = 'خطا در دریافت موجودی';
+        
+        // فعال کردن دکمه حتی در صورت خطا
+        const confirmBtn = document.getElementById('confirm-payment');
+        if (confirmBtn) {
+            confirmBtn.disabled = false;
+        }
     });
 }
 

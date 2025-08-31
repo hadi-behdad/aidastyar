@@ -2280,3 +2280,14 @@ body.dark-mode .floating-document {
     0% { transform: rotate(0deg); }
     100% { transform: rotate(360deg); }
 }
+
+.payment-confirmation-popup {
+    font-family: Vazir, Tahoma, Arial, sans-serif !important;
+}
+
+.payment-confirmation-content h3,
+.payment-confirmation-content span,
+.payment-confirmation-content p,
+.payment-confirmation-content button {
+    font-family: Vazir, Tahoma, Arial, sans-serif !important;
+}
