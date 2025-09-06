@@ -4,12 +4,6 @@
  * Functions for AI Assistant Theme
  */
 
-// تعریف ثابت برای حداقل مبلغ شارژ
-define('AI_WALLET_MINIMUM_CHARGE', 1000); // حداقل مبلغ شارژ به 1000 تومان
-define('AI_WALLET_MAXIMUM_CHARGE', 9000000); // حداقل مبلغ شارژ به 1000 تومان
-
-
-
 if (!defined('ABSPATH')) {
     exit; // Exit if accessed directly
 }
@@ -583,15 +577,6 @@ add_filter('woocommerce_cart_total', function($total) {
 }, 9999);
 
 
-// اضافه کردن این کد در جایی مناسب در functions.php
-function ai_wallet_get_minimum_charge() {
-    return defined('AI_WALLET_MINIMUM_CHARGE') ? AI_WALLET_MINIMUM_CHARGE : 1000;
-}
-
-function ai_wallet_get_maximum_charge() {
-    return defined('AI_WALLET_MAXIMUM_CHARGE') ? AI_WALLET_MAXIMUM_CHARGE : 9000000;
-}
-
 // تابع برای فرمت اعداد به فارسی
 function format_number_fa($number) {
     $persian_numbers = array('۰', '۱', '۲', '۳', '۴', '۵', '۶', '۷', '۸', '۹');
@@ -608,14 +593,6 @@ function number_fa($number) {
     return str_replace($english_numbers, $persian_numbers, $number);
 }
 
-// تابع برای حداقل مبلغ به صورت فارسی
-function ai_wallet_format_minimum_charge_fa() {
-    return format_number_fa(ai_wallet_get_minimum_charge());
-}
+require_once get_template_directory() . '/templates/profile-functions.php';
 
-function ai_wallet_format_maximum_charge_fa() {
-    return format_number_fa(ai_wallet_get_maximum_charge());
-}
-
-
-require_once get_template_directory() . '/templates/functions.php';
+require_once get_template_directory() . '/templates/wallet-functions.php';
