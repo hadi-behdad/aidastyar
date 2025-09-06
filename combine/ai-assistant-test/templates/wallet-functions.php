@@ -47,7 +47,7 @@ add_filter('query_vars', 'ai_assistant_add_wallet_checkout_query_var');
 // مدیریت تمپلیت برای wallet-checkout
 function ai_assistant_wallet_checkout_template($template) {
     if (get_query_var('wallet_checkout')) {
-        $new_template = locate_template(array('wallet-checkout.php'));
+        $new_template = locate_template(array('templates/wallet-checkout.php')); // تغییر این خط
         if (!empty($new_template)) {
             return $new_template;
         }
