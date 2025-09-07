@@ -62,22 +62,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 navWrapper.style.boxShadow = '0 5px 15px rgba(0, 0, 0, 0.1)';
                 navWrapper.style.maxHeight = 'calc(100vh - 100%)';
                 navWrapper.style.overflowY = 'auto';
-            } else {
-                // حالت دسکتاپ
-                navWrapper.style.display = 'flex';
-                navWrapper.style.opacity = '1';
-                navWrapper.style.transform = 'none';
-                navWrapper.style.transition = 'none';
-                navWrapper.style.position = 'static';
-                navWrapper.style.width = 'auto';
-                navWrapper.style.background = 'none';
-                navWrapper.style.zIndex = 'auto';
-                navWrapper.style.padding = '0';
-                navWrapper.style.boxShadow = 'none';
-                navWrapper.style.overflowY = 'visible';
-                navWrapper.style.maxHeight = 'none';
-                mobileMenuToggle.innerHTML = '<span class="dashicons dashicons-menu"></span>';
-            }
+            } 
         };
         
         // فراخوانی اولیه
