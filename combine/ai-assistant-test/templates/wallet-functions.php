@@ -102,7 +102,9 @@ add_action('template_redirect', 'ai_assistant_clear_payment_session');
 
 // تعریف ثابت‌های زرین پال
 define('ZARINPAL_MERCHANT_ID', 'd05ca4ae-fab1-49b3-8da8-2e2d07b32fc9'); // مرچنت کد خود را قرار دهید
-define('ZARINPAL_SANDBOX', true); // حالت sandbox فعال باشد
+if (!defined('ZARINPAL_SANDBOX')) {
+    define('ZARINPAL_SANDBOX', defined('OTP_ENV') && OTP_ENV === 'sandbox');
+}
 define('ZARINPAL_SANDBOX_MERCHANT_ID', 'd05ca4ae-fab1-49b3-8da8-2e2d07b32fc9'); // مرچنت کد sandbox
 
 // تابع برای دریافت مرچنت آیدی مناسب
