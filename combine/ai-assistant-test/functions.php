@@ -596,3 +596,5 @@ function number_fa($number) {
 require_once get_template_directory() . '/templates/profile-functions.php';
 
 require_once get_template_directory() . '/templates/wallet-functions.php';
+
+require_once get_template_directory() . '/functions/farsi-num-functions.php';
