@@ -380,6 +380,12 @@ function ai_assistant_load_test_scripts() {
 }
 add_action('wp_enqueue_scripts', 'ai_assistant_load_test_scripts', 20);
 
+// در فایل functions.php یا فایل اصلی تم
+wp_localize_script('your-script-handle', 'siteEnv', [
+    'otpEnv' => OTP_ENV,
+    'baseUrl' => (OTP_ENV === 'sandbox') ? 'https://test.aidastyar.com' : 'https://aidastyar.com'
+]);
+
 function enqueue_diet_form_scripts() {
     wp_enqueue_script('diet-form-script', get_template_directory_uri() . '/assets/js/services/diet/form-steps.js', array(), '1.0', true);
 

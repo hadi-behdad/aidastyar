@@ -189,7 +189,16 @@ window.showPaymentConfirmation = function(formData) {
     });
 };
 
-// تغییر تابع fetchUserBalance برای دریافت قیمت و formData به عنوان پارامتر
+// تابع برای دریافت آدرس پایه بر اساس محیط
+function getBaseUrl() {
+    if (typeof siteEnv !== 'undefined' && siteEnv.baseUrl) {
+        return siteEnv.baseUrl;
+    }
+    
+    // Fallback در صورت عدم وجود متغیر
+    return window.location.origin;
+}
+
 function fetchUserBalance(servicePrice, formData) {
     fetch(aiAssistantVars.ajaxurl, {
         method: 'POST',
@@ -220,9 +229,14 @@ function fetchUserBalance(servicePrice, formData) {
                     
                     // تغییر متن و عملکرد دکمه برای انتقال به صفحه افزایش موجودی
                     confirmBtn.querySelector('.btn-text').textContent = 'افزایش موجودی کیف پول';
+                    
+                    // استفاده از متغیر محیطی برای آدرس دهی
                     confirmBtn.onclick = function() {
-                        // انتقال به صفحه افزایش موجودی با پارامتر مبلغ مورد نیاز
-                        window.location.href = `https://test.aidastyar.com/wallet-charge/?needed_amount=${neededAmount}`;
+                        const baseUrl = (typeof siteEnv !== 'undefined' && siteEnv.baseUrl) 
+                            ? siteEnv.baseUrl 
+                            : window.location.origin;
+                        
+                        window.location.href = `${baseUrl}/wallet-charge/?needed_amount=${neededAmount}`;
                     };
                 } else {
                     // تنظیم عملکرد عادی دکمه اگر موجودی کافی است
