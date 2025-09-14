@@ -88,14 +88,16 @@ $logger->log('page-user-history: ', [
                                 <td>
                                     <span class="ai-status-badge ai-status-completed">تکمیل شده</span>
                                 </td>
-                                <td class="ai-history-actions">
-                                    <a href="<?php echo esc_url($output_url); ?>" class="ai-view-button" target="_blank" title="مشاهده نتیجه">
-                                        <span class="dashicons dashicons-visibility"></span>
-                                    </a>
-
-                                    <a href="<?php echo esc_url(home_url('/service/' . $item->service_id . '/')); ?>" class="ai-repeat-button" title="استفاده مجدد">
-                                        <span class="dashicons dashicons-update"></span>
-                                    </a>
+                                <td >
+                                    <div class="ai-history-actions">
+                                        <a href="<?php echo esc_url($output_url); ?>" class="ai-view-button" target="_blank" title="مشاهده نتیجه">
+                                            <span class="dashicons dashicons-visibility"></span>
+                                        </a>
+    
+                                        <a href="<?php echo esc_url(home_url('/service/' . $item->service_id . '/')); ?>" class="ai-repeat-button" title="استفاده مجدد">
+                                            <span class="dashicons dashicons-update"></span>
+                                        </a>
+                                    </div>
                                 </td>
                             </tr>
                         <?php endforeach; ?>
