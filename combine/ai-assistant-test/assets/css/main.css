@@ -1192,6 +1192,7 @@ margin: 0 auto;
   color: #10b759;
 }
 
+
 .ai-history-actions {
   display: flex;
   gap: 10px;
@@ -1415,12 +1416,13 @@ margin: 0 auto;
     padding: 10px;
     font-size: 14px;
   }
-  
+ 
+ 
   .ai-history-actions {
     gap: 5px;
   
   }
-  
+
   .ai-view-button,
   .ai-delete-button,
   .ai-repeat-button {

@@ -217,17 +217,14 @@ function fetchUserBalance(servicePrice, formData) {
             const formattedBalance = new Intl.NumberFormat('fa-IR').format(data.data.credit);
             balanceElement.textContent = formattedBalance + ' تومان';
             
-            // فعال کردن دکمه تأیید پس از دریافت موجودی
             const confirmBtn = document.getElementById('confirm-payment');
             if (confirmBtn) {
                 confirmBtn.disabled = false;
                 
-                // تغییر رفتار دکمه اگر موجودی کافی نیست
                 if (data.data.credit < servicePrice) {
                     const neededAmount = servicePrice - data.data.credit;
                     balanceElement.style.color = '#e53935';
                     
-                    // تغییر متن و عملکرد دکمه برای انتقال به صفحه افزایش موجودی
                     confirmBtn.querySelector('.btn-text').textContent = 'افزایش موجودی کیف پول';
                     
                     // استفاده از متغیر محیطی برای آدرس دهی
@@ -239,7 +236,7 @@ function fetchUserBalance(servicePrice, formData) {
                         window.location.href = `${baseUrl}/wallet-charge/?needed_amount=${neededAmount}`;
                     };
                 } else {
-                    // تنظیم عملکرد عادی دکمه اگر موجودی کافی است
+                    // عملکرد عادی برای موجودی کافی
                     confirmBtn.onclick = function() {
                         const btn = this;
                         const btnText = btn.querySelector('.btn-text');
@@ -249,7 +246,6 @@ function fetchUserBalance(servicePrice, formData) {
                         btnText.style.display = 'none';
                         btnLoading.style.display = 'inline-block';
                         
-                        // ارسال فرم پس از تأیید
                         setTimeout(() => {
                             window.dispatchEvent(new CustomEvent('formSubmitted', {
                                 detail: { formData }
@@ -264,7 +260,6 @@ function fetchUserBalance(servicePrice, formData) {
         console.error('Error fetching balance:', error);
         document.getElementById('current-balance').textContent = 'خطا در دریافت موجودی';
         
-        // فعال کردن دکمه حتی در صورت خطا
         const confirmBtn = document.getElementById('confirm-payment');
         if (confirmBtn) {
             confirmBtn.disabled = false;
