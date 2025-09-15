@@ -607,3 +607,13 @@ require_once get_template_directory() . '/functions/farsi-num-functions.php';
 
 require_once get_template_directory() . '/inc/comments-functions.php';
 
+// بارگذاری گزارش کیف پول
+require get_template_directory() . '/inc/admin/ai-wallet-admin-report.php';
+
+// فراخوانی کلاس مدیریت تخفیف‌ها
+require_once get_template_directory() . '/inc/admin/class-discount-manager.php';
+
+// مقداردهی اولیه
+add_action('init', function() {
+    AI_Assistant_Discount_Manager::get_instance();
+});

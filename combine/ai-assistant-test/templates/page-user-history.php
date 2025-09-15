@@ -21,9 +21,7 @@ $history_manager = AI_Assistant_History_Manager::get_instance();
 $logger = AI_Assistant_Logger::get_instance();
 $history = $history_manager->get_user_history($current_user_id, 10);
 
-$logger->log('page-user-history: ', [
-    'data:  ' => $history
-]); 
+
 
 // محاسبه تعداد کل آیتم‌ها برای صفحه‌بندی
 global $wpdb;
@@ -59,14 +57,11 @@ $total_items = $wpdb->get_var(
                     </thead>
                     <tbody>
                         <?php foreach ($history as $item) : 
-                            error_log(print_r($item,true));
+                            
                             $service_info = AI_Assistant_Service_Manager::get_instance()->get_service($item->service_id);
                             $service_name = esc_attr($service_info['name']);
                             
-                            
-$logger->log('page-user-history: ', [
-    'service_info:  ' => $service_info
-]);                             
+                        
                             $output_url = home_url('/service-output/' . intval($item->ID) . '/');
                             $delete_url = add_query_arg([
                                 'delete_history' => $item->ID,
