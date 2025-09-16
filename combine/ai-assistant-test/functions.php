@@ -605,7 +605,7 @@ require_once get_template_directory() . '/templates/wallet-functions.php';
 
 require_once get_template_directory() . '/functions/farsi-num-functions.php';
 
-require_once get_template_directory() . '/inc/comments-functions.php';
+require_once get_template_directory() . '/functions/comments-functions.php';
 
 // بارگذاری گزارش کیف پول
 require get_template_directory() . '/inc/admin/ai-wallet-admin-report.php';

@@ -3,8 +3,7 @@
 
 document.addEventListener('DOMContentLoaded', function() {
     // فقط در محیط تست اجرا شود
-    if (window.location.hostname.includes('test.') || 
-        (typeof aiAssistantVars !== 'undefined' && aiAssistantVars.env === 'sandbox')) {
+    if ((typeof aiAssistantVars !== 'undefined' && aiAssistantVars.env === 'sandbox' && window.location.pathname.includes('service/diet'))) {
         
         // تابع اصلی برای پر کردن خودکار فرم
         function autoFillForm() {
