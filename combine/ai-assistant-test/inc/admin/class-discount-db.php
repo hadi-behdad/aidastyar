@@ -146,21 +146,39 @@ class AI_Assistant_Discount_DB {
         
         if ($result) {
             // حذف ارتباط با سرویس‌ها
-            $wpdb->delete(
-                $this->table_discount_services,
-                ['discount_id' => $discount_id],
-                ['%d']
-            );
+            $this->delete_discount_services($discount_id);
             
             // حذف ارتباط با کاربران
-            $wpdb->delete(
-                $this->table_discount_users,
-                ['discount_id' => $discount_id],
-                ['%d']
-            );
+            $this->delete_discount_users($discount_id);
         }
         
         return $result;
+    }
+    
+    /**
+     * حذف تمام سرویس‌های مرتبط با یک تخفیف
+     */
+    public function delete_discount_services($discount_id) {
+        global $wpdb;
+        
+        return $wpdb->delete(
+            $this->table_discount_services,
+            ['discount_id' => $discount_id],
+            ['%d']
+        );
+    }
+    
+    /**
+     * حذف تمام کاربران مرتبط با یک تخفیف
+     */
+    public function delete_discount_users($discount_id) {
+        global $wpdb;
+        
+        return $wpdb->delete(
+            $this->table_discount_users,
+            ['discount_id' => $discount_id],
+            ['%d']
+        );
     }
     
     /**

@@ -610,10 +610,16 @@ require_once get_template_directory() . '/functions/comments-functions.php';
 // بارگذاری گزارش کیف پول
 require get_template_directory() . '/inc/admin/ai-wallet-admin-report.php';
 
-// فراخوانی کلاس مدیریت تخفیف‌ها
-require_once get_template_directory() . '/inc/admin/class-discount-manager.php';
+// فراخوانی کلاس‌های مدیریت تخفیف
+require_once get_template_directory() . '/inc/admin/class-discount-db.php';
+require_once get_template_directory() . '/inc/admin/class-discount-admin.php';
 
-// مقداردهی اولیه
-add_action('init', function() {
-    AI_Assistant_Discount_Manager::get_instance();
-});
+// مقداردهی اولیه سیستم تخفیف
+function init_ai_assistant_discounts() {
+    // فقط در بخش ادمین یا زمانی که لازم است کلاس‌ها را مقداردهی کنیم
+    if (is_admin() || defined('DOING_CRON') || wp_doing_ajax()) {
+        AI_Assistant_Discount_DB::get_instance();
+        AI_Assistant_Discount_Admin::get_instance();
+    }
+}
+add_action('init', 'init_ai_assistant_discounts');
