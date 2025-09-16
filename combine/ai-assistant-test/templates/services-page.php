@@ -140,14 +140,16 @@ $theme_assets = get_stylesheet_directory_uri();
 
 /* استایل جدید برای بخش نظرات */
 .testimonials-section {
-    /*padding: 3rem 0;*/
-    /*background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);*/
+    max-width: 1200px;
+    margin: 2rem auto;
+    margin-bottom: 0px;
+    padding: 0px 20px;
+    box-sizing: border-box;
     position: relative;
     overflow: hidden;
-    max-width: 1200px;
-    margin: 0 auto;
-    padding: 20px;
-    box-sizing: border-box;
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    border-radius: 16px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
 }
 
 .testimonials-section::before {
@@ -160,46 +162,18 @@ $theme_assets = get_stylesheet_directory_uri();
     background: linear-gradient(90deg, #f5f5f5, #c9c8c8, #f5f5f5)
 }
 
-.testimonials-header {
-    text-align: center;
-    margin-bottom: 3rem;
-    position: relative;
-}
-
-.testimonials-header h2 {
-    font-size: 2.2rem;
-    color: #333;
-    margin-bottom: 1rem;
-    font-weight: 700;
-    position: relative;
-    display: inline-block;
-}
-
-.testimonials-header h2::after {
-    content: "";
-    position: absolute;
-    bottom: -10px;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 60px;
-    height: 3px;
-    background: linear-gradient(90deg, #4e54c8, #8f94fb);
-    border-radius: 3px;
-}
-
 .testimonials-slider {
     display: flex;
     overflow-x: auto;
-    gap: 0.5rem;
-    /*padding: 1.5rem;*/
+    gap: 1.5rem;
+    padding: 1.5rem 0.5rem;
     scrollbar-width: none;
     -ms-overflow-style: none;
     scroll-behavior: smooth;
     -webkit-user-select: none;
     -moz-user-select: none;
     -ms-user-select: none;
-    user-select: none;    
-    /*justify-content: center;*/
+    user-select: none;
 }
 
 .testimonials-slider::-webkit-scrollbar {
@@ -209,13 +183,14 @@ $theme_assets = get_stylesheet_directory_uri();
 .testimonial-item {
     flex: 0 0 340px;
     background: white;
-    padding: 1rem;
-    border-radius: 8px;
-    border: 1px solid rgba(0,0,0,0.2);
+    padding: 2rem 1.5rem;
+    border-radius: 6px;
     scroll-snap-align: start;
     transition: all 0.3s ease;
     position: relative;
     overflow: hidden;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+    border: none;
 }
 
 .testimonial-item::before {
@@ -224,23 +199,24 @@ $theme_assets = get_stylesheet_directory_uri();
     top: 15px;
     left: 20px;
     font-size: 5rem;
-    color: rgba(78, 84, 200, 0.1);
+    color: rgba(78, 84, 200, 0.08);
     font-family: Georgia, serif;
     line-height: 1;
 }
 
 .testimonial-rating {
     text-align: center;
-    margin-bottom: 1.5rem;
+    margin-bottom: 0.7rem;
     color: #ffc107;
     font-size: 1.4rem;
     display: flex;
     justify-content: center;
     gap: 3px;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
 }
 
 .testimonial-content {
-    margin-bottom: 1.5rem;
+    margin-bottom: 0.7rem;
     position: relative;
     z-index: 1;
 }
@@ -253,6 +229,7 @@ $theme_assets = get_stylesheet_directory_uri();
     margin: 0;
     font-style: italic;
     position: relative;
+    text-shadow: 0 1px 1px rgba(0, 0, 0, 0.05);
 }
 
 .testimonial-author {
@@ -262,19 +239,20 @@ $theme_assets = get_stylesheet_directory_uri();
     display: flex;
     flex-direction: column;
     align-items: center;
-    padding-top: 1rem;
-    border-top: 1px solid rgba(0,0,0,0.05);
+    padding-top: 0.7rem;
+    border-top: 1px solid rgba(0, 0, 0, 0.06);
 }
 
 .author-name {
     font-weight: 700;
     color: #4e54c8;
     margin-bottom: 5px;
+    text-shadow: 0 1px 1px rgba(0, 0, 0, 0.05);
 }
 
 .service-name {
     font-style: italic;
-    color: #888;
+    color: #6c757d;
     font-size: 0.85rem;
 }
 
@@ -284,6 +262,14 @@ $theme_assets = get_stylesheet_directory_uri();
     padding: 3rem;
     font-style: italic;
     font-size: 1.1rem;
+}
+
+/* استایل برای نشانگرهای اسلاید (در صورت نیاز) */
+.testimonial-indicators {
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+    margin-top: 1.5rem;
 }
 
 .testimonial-indicator {
@@ -298,21 +284,26 @@ $theme_assets = get_stylesheet_directory_uri();
 .testimonial-indicator.active {
     background: #4e54c8;
     transform: scale(1.2);
+    box-shadow: 0 0 8px rgba(78, 84, 200, 0.5);
 }
 
 /* رسپانسیو */
 @media (max-width: 768px) {
     .testimonial-item {
-        flex: 0 0 280px;
-        padding: 0.7rem;
+        flex: 0 0 calc(100% - 2rem);
+        padding: 1rem 0.5rem;
     }
     
     .testimonials-section {
-        /*padding: 2rem 0;*/
+        margin: 1rem auto;
+        margin-bottom: 0px;
+        padding: 0px 15px;
+        border-radius: 12px;
     }
     
-    .testimonials-header h2 {
-        font-size: 1.8rem;
+    .testimonials-slider {
+        gap: 1rem;
+        padding: 1rem 0.5rem;
     }
 }
 </style>
