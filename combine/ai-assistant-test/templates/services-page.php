@@ -335,13 +335,25 @@ jQuery(document).ready(function($) {
             }, 5000);
         }
         
+        function safeScrollTo(element, position) {
+            // ذخیره موقعیت اسکرول عمودی فعلی
+            const currentVerticalScroll = window.pageYOffset || document.documentElement.scrollTop;
+            
+            // انجام اسکرول افقی
+            element.animate({
+                scrollLeft: position
+            }, 10);
+            
+            // بازگرداندن موقعیت اسکرول عمودی به حالت قبلی
+            window.scrollTo(0, currentVerticalScroll);
+        }
+        
+        // و در تابع scrollToSlide از آن استفاده کنید:
         function scrollToSlide(index) {
             const slide = items.eq(index);
             const position = slide.offset().left - slider.offset().left + slider.scrollLeft() - 15;
             
-            slider.animate({
-                scrollLeft: position
-            }, 10);
+            safeScrollTo(slider, position);
         }
         
         // شروع اسلایدشو اتوماتیک
