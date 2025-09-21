@@ -26,6 +26,13 @@ function handle_submit_service_comment() {
     
     if (!is_user_logged_in()) {
         wp_send_json_error('لطفاً ابتدا وارد حساب کاربری خود شوید.');
+        return;
+    }
+    
+    check_ajax_referer('service_comment_nonce', 'security');
+    
+    if (!is_user_logged_in()) {
+        wp_send_json_error('لطفاً ابتدا وارد حساب کاربری خود شوید.');
     }
     
     $service_id = sanitize_text_field($_POST['service_id']);

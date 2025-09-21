@@ -106,6 +106,38 @@ $theme_assets = get_stylesheet_directory_uri();
     </div>
 </div>
 
+<!-- بعد از اسلایدر نظرات، فرم ثبت نظر را اضافه کنید -->
+<div class="user-comment-section">
+    <?php if (is_user_logged_in()) : ?>
+        <div class="comment-form-container">
+            <h3>ثبت نظر جدید</h3>
+            <form class="service-comment-form" method="post">
+                <div class="rating-input">
+                    <label>امتیاز شما:</label>
+                    <div class="stars-input">
+                        <i class="fas fa-star" data-value="1"></i>
+                        <i class="fas fa-star" data-value="2"></i>
+                        <i class="fas fa-star" data-value="3"></i>
+                        <i class="fas fa-star" data-value="4"></i>
+                        <i class="fas fa-star" data-value="5"></i>
+                    </div>
+                    <input type="hidden" name="rating" value="0">
+                </div>
+                <div class="comment-textarea-container">
+                    <textarea name="comment_text" class="comment-textarea" placeholder="نظر خود را اینجا بنویسید..." required></textarea>
+                </div>
+                <div class="form-submit">
+                    <button type="submit" class="comment-submit-btn">ثبت نظر</button>
+                </div>
+            </form>
+        </div>
+    <?php else : ?>
+        <div class="login-to-comment">
+            <p>برای ثبت نظر باید <a href="<?php echo wp_login_url(get_permalink()); ?>">وارد حساب کاربری</a> خود شوید.</p>
+        </div>
+    <?php endif; ?>
+</div>
+
 <style>
 .main-ai-service-image {
     position: relative;
@@ -306,6 +338,148 @@ $theme_assets = get_stylesheet_directory_uri();
         padding: 1rem 0.5rem;
     }
 }
+
+.user-comment-section {
+    max-width: 1200px;
+    margin: 2rem auto;
+    padding: 0 20px;
+}
+
+.comment-form-container {
+    background: #fff;
+    padding: 2rem;
+    border-radius: 12px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+}
+
+.comment-form-container h3 {
+    margin-bottom: 1.5rem;
+    color: #333;
+    text-align: center;
+}
+
+.rating-input {
+    margin-bottom: 1.5rem;
+    text-align: center;
+}
+
+.rating-input label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: 600;
+    color: #555;
+}
+
+.stars-input {
+    display: flex;
+    justify-content: center;
+    gap: 5px;
+    direction: ltr;
+}
+
+.stars-input i {
+    font-size: 2rem;
+    color: #ddd;
+    cursor: pointer;
+    transition: color 0.2s;
+}
+
+.stars-input i:hover,
+.stars-input i.active {
+    color: #ffc107;
+}
+
+.comment-textarea-container {
+    margin-bottom: 1.5rem;
+}
+
+.comment-textarea {
+    width: 90%;
+    min-height: 120px;
+    padding: 5%;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    resize: vertical;
+    font-family: inherit;
+    transition: border-color 0.3s;
+}
+
+.comment-textarea:focus {
+    border-color: #4e54c8;
+    outline: none;
+}
+
+.form-submit {
+    text-align: center;
+}
+
+.comment-submit-btn {
+    background: linear-gradient(135deg, #4e54c8, #8f94fb);
+    color: white;
+    border: none;
+    padding: 12px 30px;
+    border-radius: 50px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.comment-submit-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(78, 84, 200, 0.3);
+}
+
+.login-to-comment {
+    text-align: center;
+    padding: 2rem;
+    background: #f8f9fa;
+    border-radius: 12px;
+    border: 1px dashed #dee2e6;
+}
+
+.login-to-comment a {
+    color: #4e54c8;
+    font-weight: 600;
+    text-decoration: none;
+}
+
+.login-to-comment a:hover {
+    text-decoration: underline;
+}
+
+/* رسپانسیو */
+@media (max-width: 768px) {
+    .user-comment-section {
+        padding: 0 15px;
+    }
+    
+    .comment-form-container {
+        padding: 1.5rem;
+    }
+    
+    .stars-input i {
+        font-size: 1.7rem;
+    }
+}
+
+.comment-message {
+    padding: 12px 15px;
+    border-radius: 8px;
+    margin-bottom: 1rem;
+    font-weight: 500;
+}
+
+.comment-success {
+    background-color: #d4edda;
+    color: #155724;
+    border: 1px solid #c3e6cb;
+}
+
+.comment-error {
+    background-color: #f8d7da;
+    color: #721c24;
+    border: 1px solid #f5c6cb;
+}
 </style>
 
 <script>
@@ -411,6 +585,73 @@ jQuery(document).ready(function($) {
             slider.scrollLeft(scrollLeft - walk);
         });
     }
+});
+
+jQuery(document).ready(function($) {
+    // مدیریت ستاره‌های امتیازدهی
+    $('.stars-input i').on('click', function(e) {
+        const stars = $(this).parent().find('i');
+        const rating = parseInt($(this).data('value'));
+        
+        stars.removeClass('active');
+        stars.each(function() {
+            if (parseInt($(this).data('value')) <= rating) {
+                $(this).addClass('active');
+            }
+        });
+        
+        $(this).closest('.rating-input').find('input[name="rating"]').val(rating);
+    });
+    
+    // ارسال فرم نظر
+    $('.service-comment-form').on('submit', function(e) {
+        e.preventDefault();
+        
+        const form = $(this);
+        const commentText = form.find('.comment-textarea').val().trim();
+        const rating = form.find('input[name="rating"]').val();
+        
+        if (!commentText) {
+            alert('لطفاً متن نظر خود را وارد کنید.');
+            return;
+        }
+        
+        if (!rating || rating < 1) {
+            alert('لطفاً امتیاز دهید.');
+            return;
+        }
+
+        const submitBtn = form.find('.comment-submit-btn');
+        submitBtn.prop('disabled', true).text('در حال ثبت...');
+
+        $.ajax({
+            url: '<?php echo admin_url("admin-ajax.php"); ?>',
+            type: 'POST',
+            data: {
+                action: 'submit_service_comment',
+                security: '<?php echo wp_create_nonce("service_comment_nonce"); ?>',
+                service_id: 'general', // یا می‌توانید یک service_id مناسب تعیین کنید
+                comment_text: commentText,
+                rating: rating
+            },
+            success: function(response) {
+                if (response.success) {
+                    alert(response.data);
+                    form.find('.comment-textarea').val('');
+                    form.find('input[name="rating"]').val('0');
+                    form.find('.stars-input i').removeClass('active');
+                } else {
+                    alert(response.data);
+                }
+            },
+            error: function() {
+                alert('خطا در ارتباط با سرور. لطفاً مجدداً تلاش کنید.');
+            },
+            complete: function() {
+                submitBtn.prop('disabled', false).text('ثبت نظر');
+            }
+        });
+    });
 });
 </script>
 
