@@ -57,4 +57,107 @@ jQuery(document).ready(function($) {
         
         return true;
     });
+    
+    
+    // مدیریت جستجوی کاربران
+    $('#user_search').on('keyup', function() {
+        searchUsers($(this).val());
+    });
+    
+    $('#user_search_btn').on('click', function() {
+        searchUsers($('#user_search').val());
+    });
+    
+    // highlight کاربران انتخاب شده
+    function updateSelectedUsers() {
+        $('.user-checkbox-label').each(function() {
+            var $label = $(this);
+            var $checkbox = $label.find('input[type="checkbox"]');
+            if ($checkbox.is(':checked')) {
+                $label.addClass('selected');
+            } else {
+                $label.removeClass('selected');
+            }
+        });
+    }
+    
+    // ابتدا وضعیت انتخاب‌ها را به روز کنیم
+    updateSelectedUsers();
+    
+    // هنگام تغییر چک‌بکس‌ها
+    $(document).on('change', '.user-checkbox-label input[type="checkbox"]', function() {
+        updateSelectedUsers();
+    });
+    
+    // تابع جستجوی کاربران
+    function searchUsers(searchTerm) {
+        if (!searchTerm) {
+            // اگر جستجو خالی است، همه کاربران را نشان بده
+            $('.user-checkbox-label').show();
+            return;
+        }
+        
+        var searchLower = searchTerm.toLowerCase();
+        
+        $('.user-checkbox-label').each(function() {
+            var $label = $(this);
+            var text = $label.text().toLowerCase();
+            
+            if (text.includes(searchLower)) {
+                $label.show();
+                
+                // highlight متن پیدا شده
+                var html = $label.html();
+                var regex = new RegExp('(' + searchTerm + ')', 'gi');
+                html = html.replace(regex, '<span class="search-highlight">$1</span>');
+                $label.html(html);
+            } else {
+                $label.hide();
+            }
+        });
+    }
+    
+    // بارگذاری بیشتر کاربران با اسکرول
+    var usersPage = 1;
+    var isLoading = false;
+    
+    $('#users_checkbox_container').on('scroll', function() {
+        var $container = $(this);
+        if (isLoading) return;
+        
+        if ($container.scrollTop() + $container.innerHeight() >= $container[0].scrollHeight - 100) {
+            loadMoreUsers();
+        }
+    });
+    
+    function loadMoreUsers() {
+        if (isLoading) return;
+        
+        isLoading = true;
+        $('.users-loading').show();
+        
+        var searchTerm = $('#user_search').val();
+        
+        $.ajax({
+            url: ajaxurl,
+            type: 'POST',
+            data: {
+                action: 'load_more_discount_users',
+                page: usersPage + 1,
+                search: searchTerm,
+                security: discountAdmin.nonce // از localized script استفاده می‌کنیم
+            },
+            success: function(response) {
+                if (response.success) {
+                    usersPage++;
+                    $('#users_checkbox_container .users-list').append(response.data);
+                    updateSelectedUsers();
+                }
+            },
+            complete: function() {
+                isLoading = false;
+                $('.users-loading').hide();
+            }
+        });
+    }
 });

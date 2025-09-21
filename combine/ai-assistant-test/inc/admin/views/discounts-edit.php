@@ -83,15 +83,30 @@ $users = get_users();
     <div class="discount-form-section" id="user_section" style="display: none;">
         <h2>کاربران موردنظر</h2>
         <div class="discount-form-row">
-            <select id="user_ids" name="user_ids[]" multiple>
-                <?php foreach ($users as $user): ?>
-                    <?php $selected = $discount && in_array($user->ID, $discount->users) ? 'selected' : ''; ?>
-                    <option value="<?php echo esc_attr($user->ID); ?>" <?php echo $selected; ?>>
-                        <?php echo esc_html($user->display_name) . ' (' . esc_html($user->user_email) . ')'; ?>
-                    </option>
-                <?php endforeach; ?>
-            </select>
-            <p class="description">برای انتخاب چند کاربر، کلید Ctrl را نگه دارید</p>
+            <div class="user-search-container">
+                <input type="text" id="user_search" placeholder="جستجوی کاربران..." class="regular-text">
+                <button type="button" id="user_search_btn" class="button">جستجو</button>
+                <button type="button" id="select_all_users" class="button">انتخاب همه</button>
+                <button type="button" id="deselect_all_users" class="button">عدم انتخاب همه</button>
+            </div>
+            
+            <div class="users-checkbox-container" id="users_checkbox_container">
+                <div class="users-loading" style="display: none;">در حال بارگذاری...</div>
+                <div class="users-list">
+                    <?php 
+                    $limited_users = array_slice($users, 0, 1000);
+                    foreach ($limited_users as $user): 
+                        $checked = $discount && in_array($user->ID, $discount->users) ? 'checked' : '';
+                    ?>
+                        <label class="user-checkbox-label">
+                            <input type="checkbox" name="user_ids[]" value="<?php echo esc_attr($user->ID); ?>" <?php echo $checked; ?>>
+                            <?php echo esc_html($user->display_name) . ' (' . esc_html($user->user_email) . ')'; ?>
+                        </label>
+                    <?php endforeach; ?>
+                </div>
+            </div>
+            
+            <p class="description">می‌توانید با تایپ در کادر جستجو، کاربران را فیلتر کنید</p>
         </div>
     </div>
     

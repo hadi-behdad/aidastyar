@@ -300,33 +300,90 @@ class AI_Assistant_Discount_DB {
         return $result;
     }
     
+
+
     /**
-     * محاسبه تخفیف برای یک سرویس
+     * محاسبه تخفیف برای یک سرویس (نسخه ساده‌تر)
      */
     public function calculate_discount($service_id, $original_price, $user_id = 0, $coupon_code = '') {
         global $wpdb;
         
         $now = current_time('mysql');
+        
+        // ابتدا همه تخفیف‌های فعال را بگیریم
         $discounts = $wpdb->get_results($wpdb->prepare(
-            "SELECT d.*,
-            (SELECT COUNT(*) FROM {$this->table_discount_services} ds WHERE ds.discount_id = d.id AND ds.service_id = %s) as has_service,
-            (SELECT COUNT(*) FROM {$this->table_discount_users} du WHERE du.discount_id = d.id AND du.user_id = %d) as has_user
+            "SELECT d.* 
             FROM {$this->table_discounts} d
             WHERE d.active = 1
             AND (d.start_date IS NULL OR d.start_date <= %s)
             AND (d.end_date IS NULL OR d.end_date >= %s)
-            AND (d.usage_limit = 0 OR d.usage_count < d.usage_limit)
-            AND (d.scope = 'global' 
-                 OR (d.scope = 'service' AND has_service > 0)
-                 OR (d.scope = 'coupon' AND d.code = %s AND (has_service = 0 OR has_service > 0))
-                 OR (d.scope = 'user_based' AND (d.user_restriction = 'first_time' OR has_user > 0))
-            )",
-            $service_id, $user_id, $now, $now, $coupon_code
+            AND (d.usage_limit = 0 OR d.usage_count < d.usage_limit)",
+            $now,
+            $now
         ));
         
-        $best_discount = ['amount' => 0, 'type' => '', 'id' => 0];
+        $applicable_discounts = [];
         
         foreach ($discounts as $discount) {
+            $is_applicable = false;
+            
+            switch ($discount->scope) {
+                case 'global':
+                    $is_applicable = true;
+                    break;
+                    
+                case 'service':
+                    $service_count = $wpdb->get_var($wpdb->prepare(
+                        "SELECT COUNT(*) FROM {$this->table_discount_services} 
+                        WHERE discount_id = %d AND service_id = %s",
+                        $discount->id,
+                        $service_id
+                    ));
+                    $is_applicable = $service_count > 0;
+                    break;
+                    
+                case 'coupon':
+                    if ($discount->code === $coupon_code) {
+                        $service_count = $wpdb->get_var($wpdb->prepare(
+                            "SELECT COUNT(*) FROM {$this->table_discount_services} 
+                            WHERE discount_id = %d AND service_id = %s",
+                            $discount->id,
+                            $service_id
+                        ));
+                        // اگر سرویس خاصی تعریف نشده یا سرویس مطابقت دارد
+                        $is_applicable = $service_count === 0 || $service_count > 0;
+                    }
+                    break;
+                    
+                case 'user_based':
+                    if ($discount->user_restriction === 'first_time') {
+                        $order_count = $wpdb->get_var($wpdb->prepare(
+                            "SELECT COUNT(*) FROM {$wpdb->prefix}assistant_orders 
+                            WHERE user_id = %d AND service_id = %s",
+                            $user_id,
+                            $service_id
+                        ));
+                        $is_applicable = $order_count === 0;
+                    } elseif ($discount->user_restriction === 'specific_users') {
+                        $user_count = $wpdb->get_var($wpdb->prepare(
+                            "SELECT COUNT(*) FROM {$this->table_discount_users} 
+                            WHERE discount_id = %d AND user_id = %d",
+                            $discount->id,
+                            $user_id
+                        ));
+                        $is_applicable = $user_count > 0;
+                    }
+                    break;
+            }
+            
+            if ($is_applicable) {
+                $applicable_discounts[] = $discount;
+            }
+        }
+        
+        $best_discount = ['amount' => 0, 'type' => '', 'id' => 0, 'name' => ''];
+        
+        foreach ($applicable_discounts as $discount) {
             $discount_amount = 0;
             
             if ($discount->amount_type == 'percentage') {

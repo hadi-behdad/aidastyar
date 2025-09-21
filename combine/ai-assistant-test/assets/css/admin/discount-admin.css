@@ -54,7 +54,7 @@
 
 .discount-form-row {
     margin-bottom: 15px;
-    display: flex;
+ /*   display: flex; */
     flex-direction: column;
 }
 
@@ -103,6 +103,66 @@
     color: #dc3232;
 }
 
+/* /assets/css/admin/discount-admin.css */
+
+.user-search-container {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 15px;
+}
+
+.user-search-container input {
+    flex: 1;
+}
+
+.users-checkbox-container {
+    width : 85%;
+    max-height: 300px;
+    overflow-y: auto;
+    border: 1px solid #ccd0d4;
+    border-radius: 4px;
+    padding: 10px;
+    background: #f9f9f9;
+}
+
+.user-checkbox-label {
+    display: block;
+    padding: 8px;
+    margin: 2px 0;
+    background: white;
+    border: 1px solid #e1e1e1;
+    border-radius: 3px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.user-checkbox-label:hover {
+    background-color: #f0f6fc;
+    border-color: #007cba;
+}
+
+.user-checkbox-label input[type="checkbox"] {
+    margin-left: 8px;
+}
+
+.users-loading {
+    text-align: center;
+    padding: 20px;
+    color: #646970;
+}
+
+/* استایل برای حالت انتخاب شده */
+.user-checkbox-label.selected {
+    background-color: #e1f5fe;
+    border-color: #007cba;
+}
+
+/* استایل برای نتایج جستجو */
+.search-highlight {
+    background-color: #fff8e1;
+    font-weight: bold;
+}
+
 @media screen and (min-width: 783px) {
     .discount-form-row {
         flex-direction: row;
@@ -110,7 +170,7 @@
     }
     
     .discount-form-row label {
-        width: 200px;
+     /*   width: 200px; */
         margin-bottom: 0;
         margin-right: 20px;
         text-align: right;

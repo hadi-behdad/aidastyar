@@ -623,3 +623,5 @@ function init_ai_assistant_discounts() {
     }
 }
 add_action('init', 'init_ai_assistant_discounts');
+
+require_once get_template_directory() . '/inc/admin/ajax-discount-handlers-functions.php';

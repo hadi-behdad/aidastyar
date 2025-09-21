@@ -48,6 +48,12 @@ class AI_Assistant_Discount_Admin {
             '1.0.0',
             true
         );
+        
+        // انتقال متغیرها به JavaScript
+        wp_localize_script('ai-assistant-discount-admin', 'discountAdmin', [
+            'ajaxurl' => admin_url('admin-ajax.php'),
+            'nonce' => wp_create_nonce('load_more_users')
+        ]);        
     }
     
     /**
