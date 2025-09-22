@@ -21,6 +21,7 @@ add_action('wp_ajax_nopriv_submit_service_comment', 'handle_submit_service_comme
 add_action('wp_ajax_get_service_comments', 'handle_get_service_comments');
 add_action('wp_ajax_nopriv_get_service_comments', 'handle_get_service_comments');
 
+// در تابع handle_submit_service_comment() این تغییرات را اعمال کنید:
 function handle_submit_service_comment() {
     check_ajax_referer('service_comment_nonce', 'security');
     
@@ -29,18 +30,25 @@ function handle_submit_service_comment() {
         return;
     }
     
-    check_ajax_referer('service_comment_nonce', 'security');
-    
-    if (!is_user_logged_in()) {
-        wp_send_json_error('لطفاً ابتدا وارد حساب کاربری خود شوید.');
-    }
-    
     $service_id = sanitize_text_field($_POST['service_id']);
     $comment_text = sanitize_textarea_field($_POST['comment_text']);
     $rating = intval($_POST['rating']);
     
-    if (empty($service_id) || empty($comment_text)) {
-        wp_send_json_error('لطفاً تمام فیلدهای ضروری را پر کنید.');
+    // اعتبارسنجی انتخاب سرویس
+    if (empty($service_id) || $service_id === '') {
+        wp_send_json_error('لطفاً یک سرویس انتخاب کنید.');
+    }
+    
+    // اعتبارسنجی وجود سرویس
+    $service_manager = AI_Assistant_Service_Manager::get_instance();
+    $services = $service_manager->get_active_services();
+    
+    if (!isset($services[$service_id])) {
+        wp_send_json_error('سرویس انتخاب شده معتبر نیست.');
+    }
+    
+    if (empty($comment_text)) {
+        wp_send_json_error('لطفاً متن نظر خود را وارد کنید.');
     }
     
     if ($rating < 1 || $rating > 5) {
