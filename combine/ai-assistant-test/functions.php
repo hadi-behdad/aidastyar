@@ -601,6 +601,7 @@ function number_fa($number) {
 
 require_once get_template_directory() . '/templates/profile-functions.php';
 
+
 require_once get_template_directory() . '/templates/wallet-functions.php';
 
 require_once get_template_directory() . '/functions/farsi-num-functions.php';
@@ -625,3 +626,8 @@ function init_ai_assistant_discounts() {
 add_action('init', 'init_ai_assistant_discounts');
 
 require_once get_template_directory() . '/inc/admin/ajax-discount-handlers-functions.php';
+
+
+require_once get_template_directory() . '/templates/service-info-functions.php';
+
+

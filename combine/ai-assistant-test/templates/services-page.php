@@ -35,21 +35,28 @@ $theme_assets = get_stylesheet_directory_uri();
             $average_rating = $comments_db->get_average_rating($service_id);
             $average_rating = $average_rating ? round($average_rating, 1) : 0;
         ?>
-        <a href="<?php echo esc_url(home_url('/service/' . $service_id . '/')); ?>" class="main-ai-service-card" target="_blank">
-            <div class="main-ai-service-info">
-                <h3><?php echo esc_html($service['name']); ?></h3>
-                <p><?php echo esc_html($service['description']); ?></p>
-            </div>
-            <div class="main-ai-service-image" style="background-image: url('<?= $theme_assets ?>/assets/images/<?= $service_id ?>.jpg')">
-                <!-- اضافه کردن نشان امتیاز -->
-                <?php if ($average_rating > 0): ?>
-                <div class="service-rating-badge">
-                    <span class="rating-value"><?php echo esc_html($average_rating); ?></span>
-                    <span class="rating-star">★</span>
+        <div class="main-ai-service-card-wrapper">
+            <a href="<?php echo esc_url(home_url('/service/' . $service_id . '/')); ?>" class="main-ai-service-card" target="_blank">
+                <div class="main-ai-service-info">
+                    <h3><?php echo esc_html($service['name']); ?></h3>
+                    <p><?php echo esc_html($service['description']); ?></p>
                 </div>
-                <?php endif; ?>
-            </div>
-        </a>
+                <div class="main-ai-service-image" style="background-image: url('<?= $theme_assets ?>/assets/images/<?= $service_id ?>.jpg')">
+                    <!-- اضافه کردن نشان امتیاز -->
+                    <?php if ($average_rating > 0): ?>
+                    <div class="service-rating-badge">
+                        <span class="rating-value"><?php echo esc_html($average_rating); ?></span>
+                        <span class="rating-star">★</span>
+                    </div>
+                    <?php endif; ?>
+                </div>
+            </a>
+            
+            <!-- آیکن اطلاعات سرویس -->
+            <a href="<?php echo esc_url(home_url('/service-info/' . $service_id . '/')); ?>" class="service-info-icon" title="اطلاعات سرویس">
+                <i class="fas fa-info-circle"></i>
+            </a>
+        </div>
         <?php endforeach; ?>
     </div>
 </div><!-- .ai-services-grid -->
