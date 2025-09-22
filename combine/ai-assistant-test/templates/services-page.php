@@ -179,15 +179,15 @@ $theme_assets = get_stylesheet_directory_uri();
 
 /* استایل جدید برای بخش نظرات */
 .testimonials-section {
-    max-width: 1200px;
+    /*max-width: 1200px;*/
     margin: 2rem auto;
     margin-bottom: 0px;
-    padding: 0px 20px;
+    padding: 0px 0px;
     box-sizing: border-box;
     position: relative;
     overflow: hidden;
     background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
-    border-radius: 16px;
+    border-radius: 0px;
     box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
 }
 
@@ -199,6 +199,16 @@ $theme_assets = get_stylesheet_directory_uri();
     right: 0;
     height: 4px;
     background: linear-gradient(90deg, #f5f5f5, #c9c8c8, #f5f5f5)
+}
+
+.testimonials-section::after {
+    content: "";
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: linear-gradient(90deg, #f5f5f5, #c9c8c8, #f5f5f5);
 }
 
 .testimonials-slider {
@@ -329,19 +339,19 @@ $theme_assets = get_stylesheet_directory_uri();
 /* رسپانسیو */
 @media (max-width: 768px) {
     .testimonial-item {
-        flex: 0 0 calc(100% - 2rem);
+        flex: 0 0 calc(90% - 3rem);
         padding: 1rem 0.5rem;
     }
     
     .testimonials-section {
         margin: 1rem auto;
         margin-bottom: 0px;
-        padding: 0px 15px;
-        border-radius: 12px;
+        padding: 0px 0px;
+        border-radius: 0px;
     }
     
     .testimonials-slider {
-        gap: 1rem;
+        gap: 0.5rem;
         padding: 1rem 0.5rem;
     }
 }
@@ -354,15 +364,24 @@ $theme_assets = get_stylesheet_directory_uri();
 
 .comment-form-container {
     background: #fff;
-    padding: 2rem;
-    border-radius: 12px;
-    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+    padding: 2.5rem;
+    border-radius: 8px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+    border: 1px solid #f0f0f0;
+    transition: all 0.3s ease;
+}
+
+.comment-form-container:hover {
+    box-shadow: 0 15px 40px rgba(0, 0, 0, 0.12);
 }
 
 .comment-form-container h3 {
-    margin-bottom: 1.5rem;
-    color: #333;
+    margin-bottom: 1.8rem;
+    margin-top: 0.5rem;
+    color: #2d3748;
     text-align: center;
+    font-size: 1.5rem;
+    font-weight: 600;
 }
 
 .rating-input {
@@ -372,9 +391,10 @@ $theme_assets = get_stylesheet_directory_uri();
 
 .rating-input label {
     display: block;
-    margin-bottom: 0.5rem;
+    margin-bottom: 0.8rem;
     font-weight: 600;
-    color: #555;
+    color: #4a5568;
+    font-size: 1.1rem;
 }
 
 .stars-input {
@@ -385,15 +405,16 @@ $theme_assets = get_stylesheet_directory_uri();
 }
 
 .stars-input i {
-    font-size: 2rem;
-    color: #ddd;
+    font-size: 1.5rem;
+    color: #e2e8f0;
     cursor: pointer;
-    transition: color 0.2s;
+    transition: all 0.2s ease;
 }
 
 .stars-input i:hover,
 .stars-input i.active {
     color: #ffc107;
+    transform: scale(1.15);
 }
 
 .comment-textarea-container {
@@ -401,19 +422,23 @@ $theme_assets = get_stylesheet_directory_uri();
 }
 
 .comment-textarea {
-    width: 90%;
-    min-height: 120px;
-    padding: 5%;
-    border: 1px solid #ddd;
-    border-radius: 8px;
+    width: 100%;
+    min-height: 140px;
+    padding: 1.2rem;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
     resize: vertical;
     font-family: inherit;
-    transition: border-color 0.3s;
+    font-size: 1rem;
+    line-height: 1.6;
+    transition: all 0.3s ease;
+    box-sizing: border-box;
 }
 
 .comment-textarea:focus {
     border-color: #4e54c8;
     outline: none;
+    box-shadow: 0 0 0 3px rgba(78, 84, 200, 0.1);
 }
 
 .form-submit {
@@ -424,68 +449,84 @@ $theme_assets = get_stylesheet_directory_uri();
     background: linear-gradient(135deg, #4e54c8, #8f94fb);
     color: white;
     border: none;
-    padding: 12px 30px;
+    padding: 14px 36px;
     border-radius: 50px;
     font-weight: 600;
+    font-size: 1.1rem;
     cursor: pointer;
     transition: all 0.3s;
+    box-shadow: 0 4px 12px rgba(78, 84, 200, 0.25);
 }
 
 .comment-submit-btn:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 5px 15px rgba(78, 84, 200, 0.3);
+    transform: translateY(-3px);
+    box-shadow: 0 8px 20px rgba(78, 84, 200, 0.35);
+}
+
+.comment-submit-btn:active {
+    transform: translateY(-1px);
 }
 
 .login-to-comment {
     text-align: center;
-    padding: 2rem;
+    padding: 2.5rem;
     background: #f8f9fa;
-    border-radius: 12px;
-    border: 1px dashed #dee2e6;
+    border-radius: 16px;
+    border: 1px dashed #d2d6dc;
+    color: #718096;
 }
 
 .login-to-comment a {
     color: #4e54c8;
     font-weight: 600;
     text-decoration: none;
+    transition: all 0.2s;
 }
 
 .login-to-comment a:hover {
+    color: #3b42b5;
     text-decoration: underline;
 }
 
-/* رسپانسیو */
-@media (max-width: 768px) {
-    .user-comment-section {
-        padding: 0 15px;
-    }
-    
-    .comment-form-container {
-        padding: 1.5rem;
-    }
-    
-    .stars-input i {
-        font-size: 1.7rem;
-    }
-}
-
 .comment-message {
-    padding: 12px 15px;
-    border-radius: 8px;
-    margin-bottom: 1rem;
+    padding: 14px 18px;
+    border-radius: 10px;
+    margin-bottom: 1.5rem;
     font-weight: 500;
+    text-align: center;
 }
 
 .comment-success {
-    background-color: #d4edda;
-    color: #155724;
-    border: 1px solid #c3e6cb;
+    background-color: #f0fff4;
+    color: #2f855a;
+    border: 1px solid #c6f6d5;
 }
 
 .comment-error {
-    background-color: #f8d7da;
-    color: #721c24;
-    border: 1px solid #f5c6cb;
+    background-color: #fff5f5;
+    color: #c53030;
+    border: 1px solid #fed7d7;
+}
+
+/* رسپانسیو برای موبایل */
+@media (max-width: 768px) {
+    .user-comment-section {
+        padding: 0 15px;
+        margin: 2rem auto;
+    }
+    
+    .comment-form-container {
+        padding: 1.3rem;
+    }
+    
+    .stars-input i {
+        font-size: 1.3rem;
+    }
+    
+    .comment-submit-btn {
+        padding: 12px 28px;
+        font-size: 1rem;
+    }
 }
 </style>
 
@@ -614,17 +655,22 @@ jQuery(document).ready(function($) {
     $('.service-comment-form').on('submit', function(e) {
         e.preventDefault();
         
+        // حذف پیام خطای قبلی اگر وجود دارد
+        $('.comment-message').remove();
+        
         const form = $(this);
         const commentText = form.find('.comment-textarea').val().trim();
         const rating = form.find('input[name="rating"]').val();
         
         if (!commentText) {
-            alert('لطفاً متن نظر خود را وارد کنید.');
+            const messageEl = $('<div class="comment-message comment-error">لطفاً متن نظر خود را وارد کنید.</div>');
+            $('.comment-form-container').prepend(messageEl);
             return;
         }
         
         if (!rating || rating < 1) {
-            alert('لطفاً امتیاز دهید.');
+            const messageEl = $('<div class="comment-message comment-error">لطفاً امتیاز دهید.</div>');
+            $('.comment-form-container').prepend(messageEl);
             return;
         }
 
@@ -637,22 +683,29 @@ jQuery(document).ready(function($) {
             data: {
                 action: 'submit_service_comment',
                 security: '<?php echo wp_create_nonce("service_comment_nonce"); ?>',
-                service_id: 'general', // یا می‌توانید یک service_id مناسب تعیین کنید
+                service_id: 'general',
                 comment_text: commentText,
                 rating: rating
             },
             success: function(response) {
                 if (response.success) {
-                    alert(response.data);
+                    // نمایش پیام موفقیت
+                    const messageEl = $('<div class="comment-message comment-success">' + response.data + '</div>');
+                    $('.comment-form-container').prepend(messageEl);
+                    
                     form.find('.comment-textarea').val('');
                     form.find('input[name="rating"]').val('0');
                     form.find('.stars-input i').removeClass('active');
                 } else {
-                    alert(response.data);
+                    // نمایش پیام خطا
+                    const messageEl = $('<div class="comment-message comment-error">' + response.data + '</div>');
+                    $('.comment-form-container').prepend(messageEl);
                 }
             },
             error: function() {
-                alert('خطا در ارتباط با سرور. لطفاً مجدداً تلاش کنید.');
+                // نمایش پیام خطای سرور
+                const messageEl = $('<div class="comment-message comment-error">خطا در ارتباط با سرور. لطفاً مجدداً تلاش کنید.</div>');
+                $('.comment-form-container').prepend(messageEl);
             },
             complete: function() {
                 submitBtn.prop('disabled', false).text('ثبت نظر');
