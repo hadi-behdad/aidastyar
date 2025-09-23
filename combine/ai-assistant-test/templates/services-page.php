@@ -101,7 +101,16 @@ $theme_assets = get_stylesheet_directory_uri();
                 <p class="testimonial-text"><?php echo esc_html($comment->comment_text); ?></p>
             </div>
             <div class="testimonial-author">
-                <span class="author-name"><?php echo esc_html($comment->display_name ?: $comment->user_login); ?></span>
+                <?php
+                $author_name = $comment->display_name ?: $comment->user_login;
+                // اگر دقیقاً 11 رقم باشد (شماره موبایل ایرانی)
+                if (preg_match('/^[0-9]{11}$/', $author_name)) {
+                    $formatted_name = substr($author_name, 0, 4) . '****' . substr($author_name, 7, 4);
+                } else {
+                    $formatted_name = $author_name;
+                }
+                ?>
+                <span class="author-name" style="direction: ltr; unicode-bidi: embed;"><?php echo esc_html($formatted_name); ?></span>
                 <span class="service-name">- <?php echo esc_html($service_name); ?></span>
             </div>
         </div>
@@ -209,29 +218,20 @@ $theme_assets = get_stylesheet_directory_uri();
     box-sizing: border-box;
     position: relative;
     overflow: hidden;
-    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    /*background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);*/
     border-radius: 0px;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+    /*box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);*/
 }
 
-.testimonials-section::before {
-    content: "";
+.testimonial-item::before {
+    content: """;
     position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    height: 4px;
-    background: linear-gradient(90deg, #f5f5f5, #c9c8c8, #f5f5f5)
-}
-
-.testimonials-section::after {
-    content: "";
-    position: absolute;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    height: 4px;
-    background: linear-gradient(90deg, #f5f5f5, #c9c8c8, #f5f5f5);
+    top: 15px;
+    left: 20px;
+    font-size: 5rem;
+    color: rgba(78, 84, 200, 0.08);
+    font-family: Georgia, serif;
+    line-height: 1;
 }
 
 .testimonials-slider {
@@ -253,16 +253,20 @@ $theme_assets = get_stylesheet_directory_uri();
 }
 
 .testimonial-item {
-    flex: 0 0 340px;
+    flex: 0 0 220px;
     background: white;
-    padding: 2rem 1.5rem;
-    border-radius: 6px;
+    padding: 1.5rem 1rem; /* افزایش padding برای فضای داخلی بیشتر */
+    border-radius: 12px; /* افزایش radius برای گوشه‌های نرم‌تر */
     scroll-snap-align: start;
     transition: all 0.3s ease;
     position: relative;
     overflow: hidden;
-    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
-    border: none;
+    box-shadow: 0 8px 10px rgba(0, 0, 0, 0.1); /* سایه عمیق‌تر برای بعد سه‌بعدی */
+    border: 1px solid #e0e0e0; /* border نازک‌تر و روشن‌تر */
+    min-height: 200px; /* ارتفاع ثابت برای حالت مربع‌تر */
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between; /* محتوای داخلی را به خوبی پخش می‌کند */
 }
 
 .testimonial-item::before {
@@ -288,20 +292,22 @@ $theme_assets = get_stylesheet_directory_uri();
 }
 
 .testimonial-content {
-    margin-bottom: 0.7rem;
     position: relative;
     z-index: 1;
+    flex-grow: 1; /* محتوا فضای available را پر می‌کند */
+    display: flex;
+    align-items: center; /* محتوا را عمودی وسط‌چین می‌کند */
+    flex-direction: column;
 }
 
 .testimonial-text {
-    font-size: 1.05rem;
+    font-size: 0.8rem;
     line-height: 1.7;
     color: #555;
-    text-align: center;
+    text-align: right;
     margin: 0;
-    font-style: italic;
     position: relative;
-    text-shadow: 0 1px 1px rgba(0, 0, 0, 0.05);
+    width: 100%;
 }
 
 .testimonial-author {
@@ -316,16 +322,14 @@ $theme_assets = get_stylesheet_directory_uri();
 }
 
 .author-name {
-    font-weight: 700;
-    color: #4e54c8;
-    margin-bottom: 5px;
-    text-shadow: 0 1px 1px rgba(0, 0, 0, 0.05);
+    font-weight: 600;
+    color: #496da2;
+    font-size: 0.75rem;
 }
 
 .service-name {
-    font-style: italic;
     color: #6c757d;
-    font-size: 0.85rem;
+    font-size: 0.7rem;
 }
 
 .no-testimonials {
@@ -362,8 +366,9 @@ $theme_assets = get_stylesheet_directory_uri();
 /* رسپانسیو */
 @media (max-width: 768px) {
     .testimonial-item {
-        flex: 0 0 calc(90% - 3rem);
+        flex: 0 0 calc(70% - 3rem);
         padding: 1rem 0.5rem;
+        min-height: 180px;
     }
     
     .testimonials-section {
@@ -450,7 +455,7 @@ $theme_assets = get_stylesheet_directory_uri();
     padding: 1.2rem;
     border: 1px solid #e2e8f0;
     border-radius: 12px;
-    resize: vertical;
+    resize: none;
     font-family: inherit;
     font-size: 1rem;
     line-height: 1.6;
