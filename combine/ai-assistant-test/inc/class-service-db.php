@@ -42,6 +42,7 @@ class AI_Assistant_Service_DB {
             name varchar(255) NOT NULL,
             price int(11) NOT NULL DEFAULT 0,
             description text,
+            full_description text,
             system_prompt longtext,
             icon varchar(100) NOT NULL DEFAULT 'dashicons-admin-generic',
             active tinyint(1) NOT NULL DEFAULT 1,
@@ -102,6 +103,7 @@ class AI_Assistant_Service_DB {
             'name' => '',
             'price' => 0,
             'description' => '',
+            'full_description' => '',
             'system_prompt' => '',
             'icon' => 'dashicons-admin-generic',
             'active' => true,
@@ -114,11 +116,12 @@ class AI_Assistant_Service_DB {
             return new WP_Error('missing_id', 'شناسه سرویس الزامی است.');
         }
         
+        
         $result = $wpdb->insert(
             $this->table_name,
             $data,
             ['%s', '%s', '%d', '%s', '%s', '%s', '%d', '%s']
-        );
+        );        
         
         return $result ? $wpdb->insert_id : false;
     }
@@ -143,12 +146,24 @@ class AI_Assistant_Service_DB {
             'service_id' => $service_id
         ]);   
         
+        // حذف فیلد id از داده‌ها چون PRIMARY KEY نباید آپدیت شود
+        unset($data['id']);
+        
         $result = $wpdb->update(
             $this->table_name,
             $data,
             ['service_id' => $service_id],
-            ['%s', '%s', '%d', '%s', '%s', '%s', '%d', '%s'],
-            ['%s']
+            [
+                '%s', // name - string
+                '%d', // price - integer
+                '%s', // description - string
+                '%s', // full_description - string
+                '%s', // system_prompt - string
+                '%s', // icon - string
+                '%d', // active - integer (boolean)
+                '%s'  // template - string
+            ],
+            ['%s'] // service_id در WHERE - string
         );
         
         return $result !== false;
