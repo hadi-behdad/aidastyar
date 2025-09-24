@@ -630,4 +630,5 @@ require_once get_template_directory() . '/inc/admin/ajax-discount-handlers-funct
 
 require_once get_template_directory() . '/templates/service-info-functions.php';
 
-
+// بارگذاری سیستم مدیریت نظرات Front-end
+require_once get_template_directory() . '/inc/class-comments-frontend-admin.php';

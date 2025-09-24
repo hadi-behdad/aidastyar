@@ -127,3 +127,44 @@ function enqueue_comments_assets() {
     }
 }
 add_action('wp_enqueue_scripts', 'enqueue_comments_assets');
+
+// مقداردهی اولیه سیستم نظرات Front-end
+function init_ai_assistant_comments_frontend_admin() {
+    AI_Assistant_Comments_Frontend_Admin::get_instance();
+}
+add_action('init', 'init_ai_assistant_comments_frontend_admin');
+
+
+// ایجاد خودکار صفحه مدیریت نظرات
+function create_comments_admin_page() {
+    $page_slug = 'management-comments';
+    
+    // بررسی وجود صفحه
+    $page = get_page_by_path($page_slug);
+    
+    if (!$page) {
+        // ایجاد صفحه جدید
+        $page_id = wp_insert_post([
+            'post_title' => 'مدیریت نظرات',
+            'post_name' => $page_slug,
+            'post_content' => '[service_comments_admin]',
+            'post_status' => 'publish',
+            'post_type' => 'page',
+            'post_author' => 1,
+            'comment_status' => 'closed',
+            'ping_status' => 'closed'
+        ]);
+        
+        // ذخیره ID صفحه در options برای استفاده بعدی
+        if ($page_id && !is_wp_error($page_id)) {
+            update_option('ai_comments_admin_page_id', $page_id);
+        }
+    }
+}
+
+// اجرای ایجاد صفحه هنگام فعال سازی تم
+add_action('after_switch_theme', 'create_comments_admin_page');
+
+// همچنین هنگام بارگذاری اولیه نیز بررسی شود
+add_action('init', 'create_comments_admin_page');
+
