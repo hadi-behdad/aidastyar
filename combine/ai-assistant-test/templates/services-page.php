@@ -105,7 +105,7 @@ $theme_assets = get_stylesheet_directory_uri();
                 $author_name = $comment->display_name ?: $comment->user_login;
                 // اگر دقیقاً 11 رقم باشد (شماره موبایل ایرانی)
                 if (preg_match('/^[0-9]{11}$/', $author_name)) {
-                    $formatted_name = substr($author_name, 0, 4) . '****' . substr($author_name, 7, 4);
+                    $formatted_name = substr($author_name, 0, 4) . '***' . substr($author_name, 7, 4);
                 } else {
                     $formatted_name = $author_name;
                 }
