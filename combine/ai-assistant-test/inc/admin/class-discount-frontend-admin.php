@@ -1,0 +1,684 @@
+<?php
+/**
+ * مدیریت کدهای تخفیف در Front-end برای ادمین
+ */
+
+if (!defined('ABSPATH')) exit;
+
+class AI_Assistant_Discount_Frontend_Admin {
+    private static $instance = null;
+    private $discount_db;
+
+    public static function get_instance() {
+        if (null === self::$instance) {
+            self::$instance = new self();
+        }
+        return self::$instance;
+    }
+
+    private function __construct() {
+        // بررسی وجود کلاس Discount DB
+        if (!class_exists('AI_Assistant_Discount_DB')) {
+            require_once get_template_directory() . '/inc/admin/class-discount-db.php';
+        }
+        
+        $this->discount_db = AI_Assistant_Discount_DB::get_instance();
+        $this->init_hooks();
+    }
+
+    private function init_hooks() {
+        // اضافه کردن shortcode برای نمایش پنل مدیریت
+        add_shortcode('discount_codes_admin', [$this, 'render_admin_panel']);
+        
+        // ثبت اسکریپت‌ها و استایل‌ها
+        add_action('wp_enqueue_scripts', [$this, 'enqueue_assets']);
+        
+        // هندلرهای AJAX
+        add_action('wp_ajax_create_discount_code', [$this, 'handle_create_discount']);
+        add_action('wp_ajax_update_discount_code', [$this, 'handle_update_discount']);
+        add_action('wp_ajax_delete_discount_code', [$this, 'handle_delete_discount']);
+        add_action('wp_ajax_toggle_discount_status', [$this, 'handle_toggle_status']);
+        add_action('wp_ajax_get_discounts_list', [$this, 'handle_get_discounts']);
+        add_action('wp_ajax_get_discount_details', [$this, 'handle_get_discount_details']);
+    }
+
+    public function enqueue_assets() {
+        // فقط در صفحاتی که پنل مدیریت نمایش داده می‌شود
+        if (is_page() && has_shortcode(get_post()->post_content, 'discount_codes_admin')) {
+            wp_enqueue_style('ai-discount-frontend-admin-css', 
+                get_template_directory_uri() . '/assets/css/discount-frontend-admin.css',
+                [],
+                filemtime(get_template_directory() . '/assets/css/discount-frontend-admin.css')
+            );
+
+            wp_enqueue_script('ai-discount-frontend-admin-js',
+                get_template_directory_uri() . '/assets/js/discount-frontend-admin.js',
+                ['jquery'],
+                filemtime(get_template_directory() . '/assets/js/discount-frontend-admin.js'),
+                true
+            );
+
+            wp_localize_script('ai-discount-frontend-admin-js', 'discountFrontendAdminVars', [
+                'ajaxurl' => admin_url('admin-ajax.php'),
+                'nonce' => wp_create_nonce('discount_frontend_admin_nonce'),
+                'i18n' => [
+                    'confirm_delete' => 'آیا از حذف این کد تخفیف مطمئن هستید؟',
+                    'confirm_deactivate' => 'آیا از غیرفعال کردن این کد تخفیف مطمئن هستید؟',
+                    'error' => 'خطا در انجام عملیات',
+                    'loading' => 'در حال بارگذاری...',
+                    'copy_success' => 'کد تخفیف با موفقیت کپی شد'
+                ]
+            ]);
+        }
+    }
+
+    public function render_admin_panel($atts) {
+        // فقط برای کاربران ادمین قابل نمایش است
+        if (!current_user_can('manage_options')) {
+            return '<div class="discount-admin-error">شما دسترسی لازم برای مشاهده این صفحه را ندارید.</div>';
+        }
+
+        // دریافت لیست سرویس‌های فعال
+        $service_manager = AI_Assistant_Service_Manager::get_instance();
+        $services = $service_manager->get_active_services();
+
+        ob_start();
+        ?>
+        <div class="discount-admin-panel">
+            <div class="discount-admin-panel-header">
+                <h2>مدیریت کدهای تخفیف</h2>
+                <div class="discount-admin-user-info">
+                    <span>خوش آمدید، <?php echo wp_get_current_user()->display_name; ?></span>
+                </div>
+            </div>
+
+            <!-- دکمه ایجاد تخفیف جدید -->
+            <div class="discount-actions-top">
+                <button class="discount-btn discount-btn-primary" id="create-discount-btn">
+                    <i class="fas fa-plus"></i> ایجاد کد تخفیف جدید
+                </button>
+                
+                <div class="discount-stats-summary">
+                    <span class="discount-stat-item">
+                        <strong id="active-count">0</strong> فعال
+                    </span>
+                    <span class="discount-stat-item">
+                        <strong id="inactive-count">0</strong> غیرفعال
+                    </span>
+                    <span class="discount-stat-item">
+                        <strong id="total-count">0</strong> کل
+                    </span>
+                </div>
+            </div>
+
+            <!-- فیلترها و جستجو -->
+            <div class="discount-filters">
+                <div class="filter-group">
+                    <label for="discount-status-filter">وضعیت:</label>
+                    <select id="discount-status-filter">
+                        <option value="all">همه</option>
+                        <option value="active">فعال</option>
+                        <option value="inactive">غیرفعال</option>
+                    </select>
+                </div>
+                
+                <div class="filter-group">
+                    <label for="discount-type-filter">نوع:</label>
+                    <select id="discount-type-filter">
+                        <option value="all">همه</option>
+                        <option value="percentage">درصدی</option>
+                        <option value="fixed">مبلغی</option>
+                    </select>
+                </div>
+                
+                <div class="filter-group">
+                    <input type="text" id="discount-search" placeholder="جستجو در کدها و نام‌ها...">
+                    <button class="discount-btn discount-btn-info" id="search-discounts">
+                        <i class="fas fa-search"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- لیست کدهای تخفیف -->
+            <div class="discount-list-container">
+                <div id="discounts-list" class="discounts-list">
+                    <div class="discounts-loading">در حال بارگذاری کدهای تخفیف...</div>
+                </div>
+            </div>
+
+            <!-- Modal برای ایجاد/ویرایش تخفیف -->
+            <div id="discount-modal" class="discount-modal">
+                <div class="discount-modal-content">
+                    <span class="discount-close-modal">&times;</span>
+                    <h3 id="discount-modal-title">ایجاد کد تخفیف جدید</h3>
+                    
+                    <form id="discount-form" class="discount-form">
+                        <input type="hidden" id="discount-id" name="discount_id" value="">
+                        
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="discount-name">نام تخفیف *</label>
+                                <input type="text" id="discount-name" name="name" required>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="discount-code">کد تخفیف *</label>
+                                <div class="code-input-container">
+                                    <input type="text" id="discount-code" name="code" required>
+                                    <button type="button" id="generate-code" class="discount-btn discount-btn-secondary">
+                                        <i class="fas fa-sync-alt"></i> تولید کد
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="discount-type">نوع تخفیف *</label>
+                                <select id="discount-type" name="type" required>
+                                    <option value="percentage">درصدی</option>
+                                    <option value="fixed">مبلغی (تومان)</option>
+                                </select>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="discount-amount">مقدار تخفیف *</label>
+                                <input type="number" id="discount-amount" name="amount" min="1" required>
+                            </div>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="discount-scope">حوزه اعتبار *</label>
+                                <select id="discount-scope" name="scope" required>
+                                    <option value="global">عمومی (همه سرویس‌ها)</option>
+                                    <option value="service">مخصوص سرویس</option>
+                                    <option value="coupon">کد کوپن</option>
+                                    <option value="user_based">مبتنی بر کاربر</option>
+                                </select>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="discount-usage-limit">حداکثر استفاده (0 = نامحدود)</label>
+                                <input type="number" id="discount-usage-limit" name="usage_limit" min="0" value="0">
+                            </div>
+                        </div>
+
+                        <!-- سرویس‌های مرتبط (فقط برای scope=service) -->
+                        <div class="form-row" id="services-section" style="display: none;">
+                            <div class="form-group full-width">
+                                <label>سرویس‌های مرتبط</label>
+                                <div class="services-checkbox-list">
+                                    <?php foreach ($services as $service_id => $service): ?>
+                                        <label class="checkbox-label">
+                                            <input type="checkbox" name="services[]" value="<?php echo esc_attr($service_id); ?>">
+                                            <?php echo esc_html($service['name']); ?>
+                                        </label>
+                                    <?php endforeach; ?>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- محدودیت کاربر (فقط برای scope=user_based) -->
+                        <div class="form-row" id="user-restriction-section" style="display: none;">
+                            <div class="form-group">
+                                <label for="discount-user-restriction">محدودیت کاربر</label>
+                                <select id="discount-user-restriction" name="user_restriction">
+                                    <option value="first_time">اولین خرید از سرویس</option>
+                                    <option value="specific_users">کاربران خاص</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="discount-start-date">تاریخ شروع (اختیاری)</label>
+                                <input type="datetime-local" id="discount-start-date" name="start_date">
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="discount-end-date">تاریخ انقضا (اختیاری)</label>
+                                <input type="datetime-local" id="discount-end-date" name="end_date">
+                            </div>
+                        </div>
+
+                        <div class="form-actions">
+                            <button type="submit" class="discount-btn discount-btn-success">
+                                <i class="fas fa-save"></i> ذخیره
+                            </button>
+                            <button type="button" class="discount-btn discount-btn-secondary" id="cancel-discount">
+                                انصراف
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Modal برای نمایش جزئیات -->
+            <div id="discount-details-modal" class="discount-modal">
+                <div class="discount-modal-content">
+                    <span class="discount-close-modal">&times;</span>
+                    <div id="discount-details-content"></div>
+                </div>
+            </div>
+        </div>
+        <?php
+        return ob_get_clean();
+    }
+
+    // هندلرهای AJAX
+    public function handle_create_discount() {
+        $this->verify_nonce_and_permissions();
+        
+        $data = $this->validate_discount_data($_POST);
+        if (is_wp_error($data)) {
+            wp_send_json_error($data->get_error_message());
+        }
+        
+        $discount_id = $this->discount_db->add_discount($data);
+        
+        if ($discount_id) {
+            // اضافه کردن سرویس‌های مرتبط
+            if (isset($_POST['services']) && is_array($_POST['services'])) {
+                foreach ($_POST['services'] as $service_id) {
+                    $this->discount_db->add_discount_service($discount_id, sanitize_text_field($service_id));
+                }
+            }
+            
+            wp_send_json_success([
+                'message' => 'کد تخفیف با موفقیت ایجاد شد.',
+                'discount_id' => $discount_id
+            ]);
+        } else {
+            wp_send_json_error('خطا در ایجاد کد تخفیف.');
+        }
+    }
+
+    public function handle_update_discount() {
+        $this->verify_nonce_and_permissions();
+        
+        $discount_id = intval($_POST['discount_id']);
+        if (!$discount_id) {
+            wp_send_json_error('شناسه تخفیف معتبر نیست.');
+        }
+        
+        $data = $this->validate_discount_data($_POST);
+        if (is_wp_error($data)) {
+            wp_send_json_error($data->get_error_message());
+        }
+        
+        $result = $this->discount_db->update_discount($discount_id, $data);
+        
+        if ($result !== false) {
+            // به‌روزرسانی سرویس‌های مرتبط
+            $this->discount_db->delete_discount_services($discount_id);
+            if (isset($_POST['services']) && is_array($_POST['services'])) {
+                foreach ($_POST['services'] as $service_id) {
+                    $this->discount_db->add_discount_service($discount_id, sanitize_text_field($service_id));
+                }
+            }
+            
+            wp_send_json_success([
+                'message' => 'کد تخفیف با موفقیت به‌روزرسانی شد.' // اضافه کردن آرایه با کلید message
+            ]);
+        } else {
+            wp_send_json_error('خطا در به‌روزرسانی کد تخفیف.');
+        }
+    }
+
+    public function handle_delete_discount() {
+        $this->verify_nonce_and_permissions();
+        
+        $discount_id = intval($_POST['discount_id']);
+        $result = $this->discount_db->delete_discount($discount_id);
+        
+        if ($result) {
+            wp_send_json_success([
+                'message' => 'کد تخفیف با موفقیت حذف شد.' // اضافه کردن آرایه با کلید message
+            ]);
+        } else {
+            wp_send_json_error('خطا در حذف کد تخفیف.');
+        }
+    }
+
+    public function handle_toggle_status() {
+        $this->verify_nonce_and_permissions();
+        
+        $discount_id = intval($_POST['discount_id']);
+        $current_status = $this->get_discount_status($discount_id);
+        $new_status = $current_status ? 0 : 1;
+        
+        $result = $this->discount_db->update_discount($discount_id, ['active' => $new_status]);
+        
+        if ($result !== false) {
+            $action = $new_status ? 'فعال' : 'غیرفعال';
+            wp_send_json_success([
+                'message' => "کد تخفیف با موفقیت {$action} شد." // اضافه کردن آرایه با کلید message
+            ]);
+        } else {
+            wp_send_json_error('خطا در تغییر وضعیت کد تخفیف.');
+        }
+    }
+
+    public function handle_get_discounts() {
+        $this->verify_nonce_and_permissions();
+        
+        $filters = [
+            'status' => sanitize_text_field($_POST['status'] ?? 'all'),
+            'type' => sanitize_text_field($_POST['type'] ?? 'all'),
+            'search' => sanitize_text_field($_POST['search'] ?? '')
+        ];
+        
+        $discounts = $this->get_filtered_discounts($filters);
+        $stats = $this->get_discounts_stats();
+        
+        ob_start();
+        $this->render_discounts_list($discounts);
+        $html = ob_get_clean();
+        
+        wp_send_json_success([
+            'html' => $html,
+            'stats' => $stats
+        ]);
+    }
+
+    public function handle_get_discount_details() {
+        $this->verify_nonce_and_permissions();
+        
+        $discount_id = intval($_POST['discount_id']);
+        $discount = $this->discount_db->get_discount($discount_id);
+        
+        if (!$discount) {
+            wp_send_json_error('کد تخفیف یافت نشد.');
+        }
+        
+        // اگر برای ویرایش درخواست شده
+        if (isset($_POST['for_edit']) && $_POST['for_edit'] === 'true') {
+            wp_send_json_success(['discount' => $discount]);
+        }
+        
+        // اگر برای نمایش جزئیات درخواست شده
+        ob_start();
+        $this->render_discount_details($discount);
+        $html = ob_get_clean();
+        
+        wp_send_json_success(['html' => $html]);
+    }
+
+    private function verify_nonce_and_permissions() {
+        check_ajax_referer('discount_frontend_admin_nonce', 'nonce');
+        
+        if (!current_user_can('manage_options')) {
+            wp_send_json_error('دسترسی غیرمجاز');
+        }
+    }
+
+    private function validate_discount_data($post_data) {
+        $required_fields = ['name', 'code', 'type', 'amount', 'scope'];
+        
+        foreach ($required_fields as $field) {
+            if (empty($post_data[$field])) {
+                return new WP_Error('missing_field', "فیلد {$field} الزامی است.");
+            }
+        }
+        
+        $data = [
+            'name' => sanitize_text_field($post_data['name']),
+            'code' => sanitize_text_field($post_data['code']),
+            'type' => sanitize_text_field($post_data['type']),
+            'amount' => floatval($post_data['amount']),
+            'scope' => sanitize_text_field($post_data['scope']),
+            'usage_limit' => intval($post_data['usage_limit'] ?? 0),
+            'start_date' => !empty($post_data['start_date']) ? sanitize_text_field($post_data['start_date']) : null,
+            'end_date' => !empty($post_data['end_date']) ? sanitize_text_field($post_data['end_date']) : null,
+            'user_restriction' => sanitize_text_field($post_data['user_restriction'] ?? null),
+            'active' => 1
+        ];
+        
+        // اعتبارسنجی مقادیر
+        if ($data['amount'] <= 0) {
+            return new WP_Error('invalid_amount', 'مقدار تخفیف باید بیشتر از صفر باشد.');
+        }
+        
+        if ($data['type'] === 'percentage' && $data['amount'] > 100) {
+            return new WP_Error('invalid_percentage', 'تخفیف درصدی نمی‌تواند بیشتر از ۱۰۰٪ باشد.');
+        }
+        
+        return $data;
+    }
+
+    private function get_discount_status($discount_id) {
+        global $wpdb;
+        return $wpdb->get_var($wpdb->prepare(
+            "SELECT active FROM {$this->discount_db->get_table_name()} WHERE id = %d",
+            $discount_id
+        ));
+    }
+
+    private function get_filtered_discounts($filters) {
+        $all_discounts = $this->discount_db->get_all_discounts();
+        $filtered = [];
+        
+        foreach ($all_discounts as $discount) {
+            // فیلتر وضعیت
+            if ($filters['status'] !== 'all') {
+                $status_match = ($filters['status'] === 'active') ? 1 : 0;
+                if ($discount->active != $status_match) continue;
+            }
+            
+            // فیلتر نوع
+            if ($filters['type'] !== 'all' && $discount->type !== $filters['type']) {
+                continue;
+            }
+            
+            // فیلتر جستجو
+            if (!empty($filters['search'])) {
+                $search = strtolower($filters['search']);
+                $name_contains = stripos($discount->name, $search) !== false;
+                $code_contains = stripos($discount->code, $search) !== false;
+                
+                if (!$name_contains && !$code_contains) continue;
+            }
+            
+            $filtered[] = $discount;
+        }
+        
+        return $filtered;
+    }
+
+    private function get_discounts_stats() {
+        $all_discounts = $this->discount_db->get_all_discounts();
+        
+        $stats = [
+            'active' => 0,
+            'inactive' => 0,
+            'total' => count($all_discounts)
+        ];
+        
+        foreach ($all_discounts as $discount) {
+            if ($discount->active) {
+                $stats['active']++;
+            } else {
+                $stats['inactive']++;
+            }
+        }
+        
+        return $stats;
+    }
+
+    private function render_discounts_list($discounts) {
+        if (empty($discounts)) {
+            echo '<div class="no-discounts">هیچ کد تخفیفی یافت نشد.</div>';
+            return;
+        }
+
+        foreach ($discounts as $discount) {
+            $this->render_discount_item($discount);
+        }
+    }
+
+    private function render_discount_item($discount) {
+        $status_class = $discount->active ? 'active' : 'inactive';
+        $status_text = $discount->active ? 'فعال' : 'غیرفعال';
+        $type_text = $discount->type === 'percentage' ? '٪' : 'تومان';
+        
+        $services = $this->discount_db->get_discount_services($discount->id);
+        $services_text = empty($services) ? 'همه سرویس‌ها' : implode(', ', array_slice($services, 0, 3)) . (count($services) > 3 ? '...' : '');
+        ?>
+        <div class="discount-item" data-discount-id="<?php echo $discount->id; ?>">
+            <div class="discount-header">
+                <div class="discount-info">
+                    <h4 class="discount-name"><?php echo esc_html($discount->name); ?></h4>
+                    <div class="discount-code-container">
+                        <code class="discount-code"><?php echo esc_html($discount->code); ?></code>
+                        <button class="discount-copy-code" data-code="<?php echo esc_attr($discount->code); ?>">
+                            <i class="fas fa-copy"></i>
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="discount-meta">
+                    <span class="discount-status <?php echo $status_class; ?>">
+                        <i class="fas fa-circle"></i> <?php echo $status_text; ?>
+                    </span>
+                    <span class="discount-amount">
+                        <?php echo number_format($discount->amount); ?> <?php echo $type_text; ?>
+                    </span>
+                    <span class="discount-usage">
+                        استفاده: <?php echo $discount->usage_count; ?> از 
+                        <?php echo $discount->usage_limit ?: '∞'; ?>
+                    </span>
+                </div>
+            </div>
+            
+            <div class="discount-details">
+                <div class="discount-scope">
+                    <strong>حوزه:</strong> <?php echo $this->get_scope_text($discount->scope); ?>
+                </div>
+                <div class="discount-services">
+                    <strong>سرویس‌ها:</strong> <?php echo esc_html($services_text); ?>
+                </div>
+                <div class="discount-dates">
+                    <?php if ($discount->start_date): ?>
+                        <span class="discount-date">شروع: <?php echo $this->format_date($discount->start_date); ?></span>
+                    <?php endif; ?>
+                    <?php if ($discount->end_date): ?>
+                        <span class="discount-date">انقضا: <?php echo $this->format_date($discount->end_date); ?></span>
+                    <?php endif; ?>
+                </div>
+            </div>
+            
+            <div class="discount-actions">
+                <button class="discount-btn discount-btn-info discount-view-details" data-discount-id="<?php echo $discount->id; ?>">
+                    <i class="fas fa-eye"></i> جزئیات
+                </button>
+                
+                <button class="discount-btn discount-btn-warning discount-edit" data-discount-id="<?php echo $discount->id; ?>">
+                    <i class="fas fa-edit"></i> ویرایش
+                </button>
+                
+                <?php if ($discount->active): ?>
+                    <button class="discount-btn discount-btn-secondary discount-toggle-status" data-discount-id="<?php echo $discount->id; ?>">
+                        <i class="fas fa-pause"></i> غیرفعال
+                    </button>
+                <?php else: ?>
+                    <button class="discount-btn discount-btn-success discount-toggle-status" data-discount-id="<?php echo $discount->id; ?>">
+                        <i class="fas fa-play"></i> فعال
+                    </button>
+                <?php endif; ?>
+                
+                <button class="discount-btn discount-btn-danger discount-delete" data-discount-id="<?php echo $discount->id; ?>">
+                    <i class="fas fa-trash"></i> حذف
+                </button>
+            </div>
+        </div>
+        <?php
+    }
+
+    private function render_discount_details($discount) {
+        $services = $this->discount_db->get_discount_services($discount->id);
+        $type_text = $discount->type === 'percentage' ? '٪' : 'تومان';
+        ?>
+        <h3>جزئیات کد تخفیف</h3>
+        <div class="discount-details-content">
+            <div class="detail-row">
+                <strong>نام:</strong> <?php echo esc_html($discount->name); ?>
+            </div>
+            <div class="detail-row">
+                <strong>کد:</strong> <code><?php echo esc_html($discount->code); ?></code>
+            </div>
+            <div class="detail-row">
+                <strong>نوع:</strong> <?php echo $discount->type === 'percentage' ? 'درصدی' : 'مبلغی'; ?>
+            </div>
+            <div class="detail-row">
+                <strong>مقدار:</strong> <?php echo number_format($discount->amount); ?> <?php echo $type_text; ?>
+            </div>
+            <div class="detail-row">
+                <strong>حوزه اعتبار:</strong> <?php echo $this->get_scope_text($discount->scope); ?>
+            </div>
+            <div class="detail-row">
+                <strong>وضعیت:</strong> 
+                <span class="discount-status <?php echo $discount->active ? 'active' : 'inactive'; ?>">
+                    <?php echo $discount->active ? 'فعال' : 'غیرفعال'; ?>
+                </span>
+            </div>
+            <div class="detail-row">
+                <strong>تعداد استفاده:</strong> 
+                <?php echo $discount->usage_count; ?> از <?php echo $discount->usage_limit ?: 'نامحدود'; ?>
+            </div>
+            
+            <?php if (!empty($services)): ?>
+            <div class="detail-row">
+                <strong>سرویس‌های مرتبط:</strong>
+                <ul class="services-list">
+                    <?php foreach ($services as $service_id): 
+                        $service_manager = AI_Assistant_Service_Manager::get_instance();
+                        $services_list = $service_manager->get_active_services();
+                        $service_name = isset($services_list[$service_id]) ? $services_list[$service_id]['name'] : $service_id;
+                    ?>
+                        <li><?php echo esc_html($service_name); ?></li>
+                    <?php endforeach; ?>
+                </ul>
+            </div>
+            <?php endif; ?>
+            
+            <?php if ($discount->start_date): ?>
+            <div class="detail-row">
+                <strong>تاریخ شروع:</strong> <?php echo $this->format_date($discount->start_date); ?>
+            </div>
+            <?php endif; ?>
+            
+            <?php if ($discount->end_date): ?>
+            <div class="detail-row">
+                <strong>تاریخ انقضا:</strong> <?php echo $this->format_date($discount->end_date); ?>
+            </div>
+            <?php endif; ?>
+            
+            <div class="detail-row">
+                <strong>تاریخ ایجاد:</strong> <?php echo $this->format_date($discount->created_at); ?>
+            </div>
+        </div>
+        <?php
+    }
+
+    private function get_scope_text($scope) {
+        $scopes = [
+            'global' => 'عمومی',
+            'service' => 'مخصوص سرویس',
+            'coupon' => 'کد کوپن',
+            'user_based' => 'مبتنی بر کاربر'
+        ];
+        
+        return $scopes[$scope] ?? $scope;
+    }
+
+    private function format_date($date_string) {
+        return date_i18n('j F Y H:i', strtotime($date_string));
+    }
+}
+
+// مقداردهی اولیه سیستم
+function init_ai_assistant_discount_frontend_admin() {
+    AI_Assistant_Discount_Frontend_Admin::get_instance();
+}
+add_action('init', 'init_ai_assistant_discount_frontend_admin');

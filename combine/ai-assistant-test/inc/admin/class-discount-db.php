@@ -7,6 +7,16 @@ class AI_Assistant_Discount_DB {
     private $table_discount_services;
     private $table_discount_users;
     
+    // اضافه کردن این متد به کلاس AI_Assistant_Discount_DB در فایل class-discount-db.php
+    public function get_table_name() {
+        return $this->table_discounts;
+    }
+    
+    // همچنین برای دسترسی به جدول سرویس‌ها اگر نیاز باشد
+    public function get_services_table_name() {
+        return $this->table_discount_services;
+    }
+
     public static function get_instance() {
         if (!isset(self::$instance)) {
             self::$instance = new self();
@@ -184,6 +194,30 @@ class AI_Assistant_Discount_DB {
     /**
      * دریافت یک تخفیف
      */
+    // public function get_discount($discount_id) {
+    //     global $wpdb;
+        
+    //     $discount = $wpdb->get_row($wpdb->prepare(
+    //         "SELECT * FROM {$this->table_discounts} WHERE id = %d",
+    //         $discount_id
+    //     ));
+        
+    //     if (!$discount) {
+    //         return false;
+    //     }
+        
+    //     // دریافت سرویس‌های مرتبط
+    //     $discount->services = $this->get_discount_services($discount_id);
+        
+    //     // دریافت کاربران مرتبط
+    //     $discount->users = $this->get_discount_users($discount_id);
+        
+    //     return $discount;
+    // }
+    
+    /**
+     * دریافت یک تخفیف
+     */
     public function get_discount($discount_id) {
         global $wpdb;
         
@@ -199,11 +233,8 @@ class AI_Assistant_Discount_DB {
         // دریافت سرویس‌های مرتبط
         $discount->services = $this->get_discount_services($discount_id);
         
-        // دریافت کاربران مرتبط
-        $discount->users = $this->get_discount_users($discount_id);
-        
         return $discount;
-    }
+    }    
     
     /**
      * دریافت تمام تخفیف‌ها

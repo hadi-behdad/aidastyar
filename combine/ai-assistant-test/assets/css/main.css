@@ -561,6 +561,17 @@ margin: 0 auto;
         border-left: 4px solid #6b47dc;
     }
     
+    
+    .menu-active {
+     
+        border-left: 4px solid #6b47dc;
+        
+  background: #f0f0f0;
+  font-weight: bold;
+  border-radius: 8px;        
+    }
+    
+    
     .wallet-section {
         padding: 20px 25px;
         /*margin-top: 20px;*/
