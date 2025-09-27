@@ -58,6 +58,13 @@
                                 <a href="<?php echo home_url('/management-comments'); ?>" class="">
                                     مدیریت کامنت ها
                                 </a>
+                                
+                                
+                                <a href="<?php echo home_url('/management-discounts/'); ?>" class="">
+                                    مدیریت تخفیف ها
+                                </a>                                 
+                                
+                                
                             <?php endif; ?>                            
                             
                         <?php else: ?>

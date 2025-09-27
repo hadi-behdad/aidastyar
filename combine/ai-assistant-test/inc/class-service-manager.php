@@ -24,7 +24,7 @@ class AI_Assistant_Service_Manager {
             'name' => sanitize_text_field($data['name']),
             'price' => absint($data['price']),
             'description' => sanitize_textarea_field($data['description'] ?? ''),
-            'full_description' => sanitize_textarea_field($data['full_description'] ?? ''),
+            'full_description' => wp_filter_post_kses($data['full_description'] ?? ''),
             'system_prompt' => $this->sanitize_system_prompt($data['system_prompt'] ?? ''),
             'icon' => sanitize_text_field($data['icon']),
             'active' => isset($data['active']) ? (bool)$data['active'] : false,
