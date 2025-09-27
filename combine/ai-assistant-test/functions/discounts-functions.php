@@ -1,4 +1,5 @@
 <?php
+/* /home/aidastya/public_html/test/wp-content/themes/ai-assistant-test/functions/discounts-functions.php */
 if (!defined('ABSPATH')) exit;
 
 

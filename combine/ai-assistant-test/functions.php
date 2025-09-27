@@ -634,3 +634,22 @@ require_once get_template_directory() . '/templates/service-info-functions.php';
 require_once get_template_directory() . '/inc/class-comments-frontend-admin.php';
 
 require_once get_template_directory() . '/functions/discounts-functions.php';
+
+
+
+// ثبت کرون جاب برای مدیریت تخفیف‌های مناسبتی
+function ai_assistant_schedule_annual_discounts() {
+    if (!wp_next_scheduled('ai_assistant_handle_annual_occasions')) {
+        wp_schedule_event(time(), 'daily', 'ai_assistant_handle_annual_occasions');
+    }
+}
+add_action('wp', 'ai_assistant_schedule_annual_discounts');
+
+// هندلر کرون جاب
+function ai_assistant_handle_annual_occasions_callback() {
+    if (class_exists('AI_Assistant_Discount_DB')) {
+        $discount_db = AI_Assistant_Discount_DB::get_instance();
+        $discount_db->handle_annual_occasions();
+    }
+}
+add_action('ai_assistant_handle_annual_occasions', 'ai_assistant_handle_annual_occasions_callback');
