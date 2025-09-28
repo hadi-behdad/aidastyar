@@ -6,6 +6,322 @@ jQuery(document).ready(function($) {
         search: ''
     };
 
+    function toggleUserRestrictionSection() {
+        const userRestriction = $('#discount-user-restriction').val();
+        if (userRestriction === 'specific_users') {
+            $('#specific-users-section').show();
+            
+            // فقط اگر لیست کاربران خالی است، بارگذاری کن
+            if ($('#discount-specific-users option').length <= 1) {
+                loadUsersList();
+            }
+        } else {
+            $('#specific-users-section').hide();
+        }
+    }
+    
+    // توابع تبدیل اعداد
+    function toPersianNumbers(text) {
+        if (!text) return '';
+        const persianNumbers = ['۰', '۱', '۲', '۳', '۴', '۵', '۶', '۷', '۸', '۹'];
+        return text.toString().replace(/\d/g, function(match) {
+            return persianNumbers[parseInt(match)];
+        });
+    }
+    
+    function toEnglishNumbers(text) {
+        if (!text) return '';
+        const persianNumbers = ['۰', '۱', '۲', '۳', '۴', '۵', '۶', '۷', '۸', '۹'];
+        const arabicNumbers = ['٠', '١', '٢', '٣', '٤', '٥', '٦', '٧', '٨', '٩'];
+        
+        let result = text.toString();
+        
+        // تبدیل اعداد فارسی
+        persianNumbers.forEach((persianNum, index) => {
+            const regex = new RegExp(persianNum, 'g');
+            result = result.replace(regex, index.toString());
+        });
+        
+        // تبدیل اعداد عربی
+        arabicNumbers.forEach((arabicNum, index) => {
+            const regex = new RegExp(arabicNum, 'g');
+            result = result.replace(regex, index.toString());
+        });
+        
+        return result;
+    }
+    
+    // تابع برای نرمالایز کردن متن جستجو (تبدیل به انگلیسی و حذف فاصله)
+    function normalizeSearchText(text) {
+        if (!text) return '';
+        
+        // تبدیل به اعداد انگلیسی
+        let normalized = toEnglishNumbers(text);
+        
+        // حذف فاصله و کاراکترهای خاص
+        normalized = normalized.replace(/\s+/g, '');
+        normalized = normalized.replace(/[-\/\\^$*+?.()|[\]{}]/g, '');
+        
+        return normalized.toLowerCase();
+    }    
+    
+    function loadUsersList() {
+        return new Promise(function(resolve, reject) {
+            const usersListContainer = $('#users-checkbox-list');
+            const loadingElement = $('#users-loading');
+            
+            // نشان دادن حالت بارگذاری
+            loadingElement.show();
+            usersListContainer.html('<div class="no-users-message">در حال بارگذاری کاربران...</div>');
+    
+            $.ajax({
+                url: discountFrontendAdminVars.ajaxurl,
+                type: 'POST',
+                data: {
+                    action: 'get_users_list',
+                    nonce: discountFrontendAdminVars.nonce
+                },
+                success: function(response) {
+                    console.log('پاسخ لیست کاربران:', response);
+                    if (response.success) {
+                        renderUsersCheckboxList(response.data.users);
+                        bindUsersCheckboxEvents();
+                        updateSelectedUsersCount();
+                        resolve(response.data.users);
+                    } else {
+                        usersListContainer.html('<div class="no-users-message">خطا در بارگذاری کاربران</div>');
+                        reject('خطا در بارگذاری لیست کاربران: ' + response.data);
+                    }
+                },
+                error: function(xhr, status, error) {
+                    console.error('خطای AJAX در بارگذاری کاربران:', error);
+                    usersListContainer.html('<div class="no-users-message">خطا در ارتباط با سرور</div>');
+                    reject('خطا در ارتباط با سرور');
+                },
+                complete: function() {
+                    loadingElement.hide();
+                }
+            });
+        });
+    }
+    
+    // تابع برای رندر لیست چک‌باکس کاربران
+    function renderUsersCheckboxList(users) {
+        const usersListContainer = $('#users-checkbox-list');
+        
+        if (users.length === 0) {
+            usersListContainer.html('<div class="no-users-message">هیچ کاربری یافت نشد</div>');
+            return;
+        }
+        
+        let html = '';
+        users.forEach(function(user) {
+            // تبدیل اعداد به فارسی برای نمایش
+            const displayPhone = user.phone ? toPersianNumbers(user.phone) : 'بدون شماره';
+            const displayName = user.full_name || user.name;
+            
+            html += `
+                <div class="user-checkbox-item" data-user-id="${user.id}">
+                    <div class="user-info">
+                        <div class="user-name">${displayName}</div>
+                        <div class="user-details">
+                            <span class="user-phone">${displayPhone}</span>
+                            <span class="user-email">${user.email}</span>
+                        </div>
+                    </div>
+                    <input type="checkbox" name="specific_users[]" value="${user.id}" style="margin-left: 10px;">
+                </div>
+            `;
+        });
+        
+        usersListContainer.html(html);
+        
+        // به‌روزرسانی شمارنده پس از رندر
+        setTimeout(() => {
+            updateUsersCounters(users.length);
+        }, 100);
+    }
+    
+    // تابع برای بایند کردن ایونت‌های چک‌باکس‌ها - نسخه اصلاح شده
+    function bindUsersCheckboxEvents() {
+        // کلیک روی آیتم کاربر
+        $('.user-checkbox-item').on('click', function(e) {
+            if (!$(e.target).is('input[type="checkbox"]')) {
+                const checkbox = $(this).find('input[type="checkbox"]');
+                checkbox.prop('checked', !checkbox.prop('checked'));
+                $(this).toggleClass('selected', checkbox.prop('checked'));
+                updateUsersCounters();
+            }
+        });
+        
+        // تغییر وضعیت چک‌باکس
+        $('input[name="specific_users[]"]').on('change', function() {
+            $(this).closest('.user-checkbox-item').toggleClass('selected', $(this).prop('checked'));
+            updateUsersCounters();
+        });
+        
+        // جستجو در کاربران - نسخه نهایی
+        $('#users-search').on('keyup', function() {
+            const searchTerm = normalizeSearchText($(this).val());
+            let visibleCount = 0;
+            
+            $('.user-checkbox-item').each(function() {
+                const $item = $(this);
+                const userName = normalizeSearchText($item.find('.user-name').text());
+                const userPhone = normalizeSearchText($item.find('.user-phone').text());
+                const userEmail = normalizeSearchText($item.find('.user-email').text());
+                
+                // جستجو در تمام فیلدها
+                const isVisible = searchTerm === '' || 
+                                userName.includes(searchTerm) || 
+                                userPhone.includes(searchTerm) || 
+                                userEmail.includes(searchTerm);
+                
+                $item.toggle(isVisible);
+                
+                if (isVisible) {
+                    visibleCount++;
+                }
+            });
+            
+            // به‌روزرسانی شمارنده‌ها
+            updateUsersCounters(visibleCount);
+        });
+        
+        // انتخاب همه کاربران visible
+        $('#select-all-users').on('click', function() {
+            const searchTerm = $('#users-search').val();
+            let targetUsers;
+            
+            if (searchTerm && searchTerm.length > 0) {
+                // فقط کاربران visible را انتخاب کن
+                targetUsers = $('.user-checkbox-item:visible');
+            } else {
+                // همه کاربران را انتخاب کن
+                targetUsers = $('.user-checkbox-item');
+            }
+            
+            targetUsers.find('input[type="checkbox"]').prop('checked', true);
+            targetUsers.addClass('selected');
+            updateUsersCounters();
+        });
+        
+        // لغو انتخاب همه کاربران
+        $('#deselect-all-users').on('click', function() {
+            $('input[name="specific_users[]"]').prop('checked', false);
+            $('.user-checkbox-item').removeClass('selected');
+            updateUsersCounters();
+        });
+        
+        // پاک کردن جستجو
+        $('#users-search').on('search', function() {
+            if ($(this).val() === '') {
+                // نشان دادن همه کاربران وقتی جستجو پاک شد
+                $('.user-checkbox-item').show();
+                updateUsersCounters($('.user-checkbox-item').length);
+            }
+        });
+    }
+        
+    // تابع برای به‌روزرسانی تمام شمارنده‌ها - نسخه نهایی
+    function updateUsersCounters(visibleCount = null) {
+        const totalCount = $('.user-checkbox-item').length;
+        
+        // اگر visibleCount مشخص نشده، محاسبه کن
+        if (visibleCount === null) {
+            visibleCount = $('.user-checkbox-item:visible').length;
+        }
+        
+        const selectedCount = $('input[name="specific_users[]"]:checked').length;
+        
+        // مدیریت شمارنده visible
+        const $visibleCounter = $('#visible-users-count');
+        const searchTerm = $('#users-search').val();
+        
+        if (searchTerm && searchTerm.length > 0) {
+            if (visibleCount === 0) {
+                if ($visibleCounter.length === 0) {
+                    $('#selected-users-count').before(`<div id="visible-users-count" class="no-results">هیچ کاربری مطابقت ندارد</div>`);
+                } else {
+                    $visibleCounter.text('هیچ کاربری مطابقت ندارد').addClass('no-results');
+                }
+            } else {
+                if ($visibleCounter.length === 0) {
+                    $('#selected-users-count').before(`<div id="visible-users-count">${toPersianNumbers(visibleCount)} کاربر از ${toPersianNumbers(totalCount)} کاربر نمایش داده می‌شود</div>`);
+                } else {
+                    $visibleCounter.text(`${toPersianNumbers(visibleCount)} کاربر از ${toPersianNumbers(totalCount)} کاربر نمایش داده می‌شود`).removeClass('no-results');
+                }
+            }
+        } else {
+            // اگر جستجو خالی است، شمارنده visible را پاک کن
+            $visibleCounter.remove();
+        }
+        
+        // به‌روزرسانی شمارنده انتخاب‌ها
+        let countText = '';
+        if (visibleCount !== totalCount && searchTerm && searchTerm.length > 0) {
+            countText = `${toPersianNumbers(selectedCount)} کاربر انتخاب شده است (از ${toPersianNumbers(visibleCount)} کاربر نمایش داده شده)`;
+        } else {
+            countText = `${toPersianNumbers(selectedCount)} کاربر از ${toPersianNumbers(totalCount)} کاربر انتخاب شده است`;
+        }
+        
+        $('#selected-users-count').text(countText);
+    }
+
+    // تابع برای به‌روزرسانی تعداد کاربران visible
+    function updateVisibleUsersCount() {
+        const visibleCount = $('.user-checkbox-item:visible').length;
+        const totalCount = $('.user-checkbox-item').length;
+        
+        if (visibleCount !== totalCount) {
+            $('#selected-users-count').before(`<div id="visible-users-count" style="font-size: 11px; color: #718096; margin-bottom: 5px;">${visibleCount} کاربر از ${totalCount} کاربر نمایش داده می‌شود</div>`);
+        } else {
+            $('#visible-users-count').remove();
+        }
+    }
+    
+    // تابع برای به‌روزرسانی تعداد کاربران انتخاب شده
+    function updateSelectedUsersCount() {
+        const selectedCount = $('input[name="specific_users[]"]:checked').length;
+        const totalCount = $('input[name="specific_users[]"]').length;
+        const visibleCount = $('.user-checkbox-item:visible').length;
+        
+        let countText = `${toPersianNumbers(selectedCount)} کاربر از ${toPersianNumbers(totalCount)} کاربر انتخاب شده است`;
+        
+        // اگر جستجو فعال است، تعداد visible را هم نشان بده
+        if (visibleCount !== totalCount) {
+            countText = `${toPersianNumbers(selectedCount)} کاربر از ${toPersianNumbers(visibleCount)} کاربر نمایش داده شده انتخاب شده است (از ${toPersianNumbers(totalCount)} کاربر کل)`;
+        }
+        
+        $('#selected-users-count').text(countText);
+    }
+    
+    // اضافه کردن event listener برای تغییر محدودیت کاربر
+    $('#discount-user-restriction').on('change', function() {
+        toggleUserRestrictionSection();
+    });
+    
+    // در تابع toggleScopeSections، این خط را اضافه کنید:
+    function toggleScopeSections() {
+        const scope = $('#discount-scope').val();
+        
+        // مخفی کردن همه بخش‌ها
+        $('#services-section, #user-restriction-section, #occasional-section, #jalali-date-section').hide();
+        
+        // نمایش بخش‌های مربوطه
+        if (scope === 'service') {
+            $('#services-section').show();
+        } else if (scope === 'user_based') {
+            $('#user-restriction-section').show();
+        } else if (scope === 'occasional') {
+            $('#occasional-section').show();
+            toggleJalaliDateSection();
+        }
+        
+        // اضافه کردن این خط در انتها
+        toggleUserRestrictionSection();
+    }
+    
     // بارگذاری اولیه لیست تخفیف‌ها
     loadDiscounts();
 
@@ -195,6 +511,23 @@ jQuery(document).ready(function($) {
         $('#discount-jalali-month').val('');
         $('#discount-jalali-day').val('');
         toggleScopeSections();
+        
+        $('input[name="specific_users[]"]').prop('checked', false);
+        $('.user-checkbox-item').removeClass('selected');
+        $('#users-search').val('');
+        updateSelectedUsersCount();    
+        
+        // ریست کردن بخش کاربران
+        $('input[name="specific_users[]"]').prop('checked', false);
+        $('.user-checkbox-item').removeClass('selected');
+        $('#users-search').val('');
+        
+        // نشان دادن همه کاربران
+        $('.user-checkbox-item').show();
+        
+        // به‌روزرسانی شمارنده
+        const totalCount = $('.user-checkbox-item').length;
+        updateUsersCounters(totalCount);        
     }
 
     function saveDiscount() {
@@ -257,7 +590,8 @@ jQuery(document).ready(function($) {
     }
     
     function editDiscount(discountId) {
-        // دریافت اطلاعات تخفیف از سرور
+        console.log('شروع ویرایش تخفیف با ID:', discountId);
+        
         $.ajax({
             url: discountFrontendAdminVars.ajaxurl,
             type: 'POST',
@@ -265,9 +599,10 @@ jQuery(document).ready(function($) {
                 action: 'get_discount_details',
                 discount_id: discountId,
                 nonce: discountFrontendAdminVars.nonce,
-                for_edit: true // پرچم برای نشان دادن که برای ویرایش هست
+                for_edit: true
             },
             success: function(response) {
+                console.log('پاسخ سرور برای ویرایش:', response);
                 if (response.success) {
                     fillEditForm(response.data.discount);
                     $('#discount-modal-title').text('ویرایش کد تخفیف');
@@ -276,13 +611,16 @@ jQuery(document).ready(function($) {
                     showMessage(response.data, 'error');
                 }
             },
-            error: function() {
+            error: function(xhr, status, error) {
+                console.error('خطا در دریافت اطلاعات تخفیف:', error);
                 showMessage(discountFrontendAdminVars.i18n.error, 'error');
             }
         });
     }
     
     function fillEditForm(discount) {
+        console.log('پر کردن فرم با داده‌های تخفیف:', discount);
+        
         // پر کردن فرم با داده‌های تخفیف
         $('#discount-id').val(discount.id);
         $('#discount-name').val(discount.name);
@@ -303,7 +641,8 @@ jQuery(document).ready(function($) {
         
         // سرویس‌های مرتبط
         $('input[name="services[]"]').prop('checked', false);
-        if (discount.services && discount.services.length > 0) {
+        
+        if (discount.scope === 'service' && discount.services && discount.services.length > 0) {
             discount.services.forEach(function(serviceId) {
                 $('input[name="services[]"][value="' + serviceId + '"]').prop('checked', true);
             });
@@ -311,6 +650,36 @@ jQuery(document).ready(function($) {
         
         // نمایش بخش‌های مربوطه
         toggleScopeSections();
+        
+        if (discount.scope === 'user_based' && discount.user_restriction === 'specific_users') {
+            console.log('کاربران تخفیف:', discount.users);
+            
+            // ابتدا مطمئن شویم بخش کاربران نمایش داده شده است
+            $('#user-restriction-section').show();
+            $('#specific-users-section').show();
+            
+            // بارگذاری لیست کاربران و سپس انتخاب کاربران مرتبط
+            loadUsersList().then(function(users) {
+                if (discount.users && discount.users.length > 0) {
+                    // پاک کردن انتخاب‌های قبلی
+                    $('input[name="specific_users[]"]').prop('checked', false);
+                    $('.user-checkbox-item').removeClass('selected');
+                    
+                    // انتخاب کاربران
+                    discount.users.forEach(function(user) {
+                        // اگر user یک آبجکت است، از user.id استفاده کن، در غیر این صورت از خود user
+                        var userId = (typeof user === 'object' && user.id) ? user.id : user;
+                        $(`input[name="specific_users[]"][value="${userId}"]`).prop('checked', true);
+                        $(`input[name="specific_users[]"][value="${userId}"]`).closest('.user-checkbox-item').addClass('selected');
+                    });
+                    
+                    updateSelectedUsersCount();
+                    console.log('کاربران انتخاب شده:', discount.users.length);
+                }
+            }).catch(function(error) {
+                console.error('خطا در بارگذاری لیست کاربران:', error);
+            });
+        }
     }
 
     function toggleDiscountStatus(discountId) {

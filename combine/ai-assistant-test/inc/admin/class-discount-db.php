@@ -184,37 +184,85 @@ class AI_Assistant_Discount_DB {
     }
 
     /**
-     * افزودن تخفیف جدید
+     * افزودن تخفیف جدید - نسخه اصلاح شده
      */
     public function add_discount($data) {
         global $wpdb;
         
+        // فقط فیلدهایی که در جدول وجود دارند را نگه دارید
+        $table_columns = [
+            'name', 'code', 'type', 'amount', 'scope', 'usage_limit', 'usage_count',
+            'start_date', 'end_date', 'user_restriction', 'occasion_name', 
+            'is_annual', 'annual_month', 'annual_day', 'active'
+        ];
+        
+        $filtered_data = [];
+        foreach ($data as $key => $value) {
+            if (in_array($key, $table_columns)) {
+                $filtered_data[$key] = $value;
+            }
+        }
+        
+        error_log('داده‌های فیلتر شده برای INSERT: ' . print_r($filtered_data, true));
+        
         $result = $wpdb->insert(
             $this->table_discounts,
-            $data,
-            $this->get_discount_format($data)
+            $filtered_data,
+            $this->get_discount_format($filtered_data)
         );
         
         if (!$result) {
+            error_log('خطا در INSERT: ' . $wpdb->last_error);
             return false;
         }
         
         return $wpdb->insert_id;
     }
     
-    /**
-     * به‌روزرسانی تخفیف
-     */
     public function update_discount($discount_id, $data) {
         global $wpdb;
         
-        return $wpdb->update(
+        error_log('شروع آپدیت در دیتابیس برای ID: ' . $discount_id);
+        error_log('داده‌های دریافتی برای آپدیت: ' . print_r($data, true));
+        
+        // فقط فیلدهایی که در جدول وجود دارند را نگه دارید
+        $table_columns = [
+            'name', 'code', 'type', 'amount', 'scope', 'usage_limit', 'usage_count',
+            'start_date', 'end_date', 'user_restriction', 'occasion_name', 
+            'is_annual', 'annual_month', 'annual_day', 'active'
+        ];
+        
+        $filtered_data = [];
+        foreach ($data as $key => $value) {
+            if (in_array($key, $table_columns)) {
+                // اگر مقدار null است، آن را به صورت صریح تنظیم کنیم
+                if ($value === null) {
+                    $filtered_data[$key] = null;
+                } else {
+                    $filtered_data[$key] = $value;
+                }
+            }
+        }
+        
+        error_log('داده‌های فیلتر شده برای آپدیت: ' . print_r($filtered_data, true));
+        
+        if (empty($filtered_data)) {
+            error_log('خطا: هیچ داده‌ای برای آپدیت وجود ندارد');
+            return false;
+        }
+        
+        $result = $wpdb->update(
             $this->table_discounts,
-            $data,
+            $filtered_data,
             ['id' => $discount_id],
-            $this->get_discount_format($data),
+            $this->get_discount_format($filtered_data),
             ['%d']
         );
+        
+        error_log('نتیجه آپدیت دیتابیس: ' . ($result !== false ? 'موفق - تعداد ردیف‌های affected: ' . $result : 'ناموفق'));
+        error_log('خطای دیتابیس: ' . $wpdb->last_error);
+        
+        return $result;
     }
     
     /**
@@ -268,31 +316,7 @@ class AI_Assistant_Discount_DB {
     }
     
     /**
-     * دریافت یک تخفیف
-     */
-    // public function get_discount($discount_id) {
-    //     global $wpdb;
-        
-    //     $discount = $wpdb->get_row($wpdb->prepare(
-    //         "SELECT * FROM {$this->table_discounts} WHERE id = %d",
-    //         $discount_id
-    //     ));
-        
-    //     if (!$discount) {
-    //         return false;
-    //     }
-        
-    //     // دریافت سرویس‌های مرتبط
-    //     $discount->services = $this->get_discount_services($discount_id);
-        
-    //     // دریافت کاربران مرتبط
-    //     $discount->users = $this->get_discount_users($discount_id);
-        
-    //     return $discount;
-    // }
-    
-    /**
-     * دریافت یک تخفیف
+     * دریافت یک تخفیف با اطلاعات کامل کاربران
      */
     public function get_discount($discount_id) {
         global $wpdb;
@@ -309,8 +333,44 @@ class AI_Assistant_Discount_DB {
         // دریافت سرویس‌های مرتبط
         $discount->services = $this->get_discount_services($discount_id);
         
+        // دریافت کاربران مرتبط با اطلاعات کامل
+        $discount->users = $this->get_discount_users_with_details($discount_id);
+        
         return $discount;
-    }    
+    }
+    
+    /**
+     * دریافت کاربران تخفیف با اطلاعات کامل
+     */
+    public function get_discount_users_with_details($discount_id) {
+        global $wpdb;
+        
+        $user_ids = $wpdb->get_col($wpdb->prepare(
+            "SELECT user_id FROM {$this->table_discount_users} WHERE discount_id = %d",
+            $discount_id
+        ));
+        
+        $users_with_details = [];
+        foreach ($user_ids as $user_id) {
+            $user = get_userdata($user_id);
+            if ($user) {
+                $first_name = get_user_meta($user_id, 'first_name', true);
+                $last_name = get_user_meta($user_id, 'last_name', true);
+                $phone = get_user_meta($user_id, 'billing_phone', true);
+                
+                $users_with_details[] = [
+                    'id' => $user_id,
+                    'display_name' => $user->display_name,
+                    'email' => $user->user_email,
+                    'first_name' => $first_name,
+                    'last_name' => $last_name,
+                    'phone' => $phone
+                ];
+            }
+        }
+        
+        return $users_with_details;
+    }
     
     /**
      * دریافت تمام تخفیف‌ها
@@ -378,33 +438,38 @@ class AI_Assistant_Discount_DB {
     }
     
     /**
-     * فرمت داده‌های تخفیف
+     * فرمت داده‌های تخفیف - نسخه اصلاح شده
      */
     private function get_discount_format($data) {
-        $formats = [
+        $formats = [];
+        
+        // تعریف فرمت برای هر فیلد موجود در جدول
+        $field_formats = [
             'name' => '%s',
             'code' => '%s',
             'type' => '%s',
             'amount' => '%f',
-            'amount_type' => '%s',
-            'start_date' => '%s',
-            'end_date' => '%s',
+            'scope' => '%s',
             'usage_limit' => '%d',
             'usage_count' => '%d',
-            'min_order_amount' => '%f',
-            'scope' => '%s',
+            'start_date' => '%s',
+            'end_date' => '%s',
             'user_restriction' => '%s',
+            'occasion_name' => '%s',
+            'is_annual' => '%d',
+            'annual_month' => '%d',
+            'annual_day' => '%d',
             'active' => '%d'
         ];
         
-        $result = [];
+        // فقط برای فیلدهایی که در داده‌ها وجود دارند و در جدول نیز موجود هستند
         foreach ($data as $key => $value) {
-            if (isset($formats[$key])) {
-                $result[] = $formats[$key];
+            if (isset($field_formats[$key])) {
+                $formats[] = $field_formats[$key];
             }
         }
         
-        return $result;
+        return $formats;
     }
     
 

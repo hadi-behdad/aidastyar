@@ -26,6 +26,49 @@ class AI_Assistant_Discount_Frontend_Admin {
         $this->discount_db = AI_Assistant_Discount_DB::get_instance();
         $this->init_hooks();
     }
+        
+    /**
+     * دریافت لیست کاربران برای انتخاب با اطلاعات کامل
+     */
+    private function get_users_list() {
+        $users = get_users([
+            'role__not_in' => ['administrator'],
+            'number' => 100,
+            'orderby' => 'display_name',
+            'order' => 'ASC'
+        ]);
+        
+        $users_list = [];
+        foreach ($users as $user) {
+            // دریافت اطلاعات متا کاربر
+            $first_name = get_user_meta($user->ID, 'first_name', true);
+            $last_name = get_user_meta($user->ID, 'last_name', true);
+            $phone = get_user_meta($user->ID, 'billing_phone', true); // شماره موبایل از اطلاعات صورتحساب
+            
+            // ایجاد نام کامل
+            $full_name = trim($first_name . ' ' . $last_name);
+            if (empty($full_name)) {
+                $full_name = $user->display_name;
+            }
+            
+            // ایجاد متن نمایشی
+            $display_text = $full_name;
+            if (!empty($phone)) {
+                $display_text .= ' - ' . $phone;
+            }
+            // $display_text .= ' (' . $user->user_email . ')';
+            
+            $users_list[] = [
+                'id' => $user->ID,
+                'name' => $display_text,
+                'full_name' => $full_name,
+                'phone' => $phone,
+                'email' => $user->user_email
+            ];
+        }
+        
+        return $users_list;
+    }
 
     private function init_hooks() {
         // اضافه کردن shortcode برای نمایش پنل مدیریت
@@ -41,7 +84,19 @@ class AI_Assistant_Discount_Frontend_Admin {
         add_action('wp_ajax_toggle_discount_status', [$this, 'handle_toggle_status']);
         add_action('wp_ajax_get_discounts_list', [$this, 'handle_get_discounts']);
         add_action('wp_ajax_get_discount_details', [$this, 'handle_get_discount_details']);
+        
+        // اضافه کردن به init_hooks
+        add_action('wp_ajax_get_users_list', [$this, 'handle_get_users_list']);
     }
+    
+
+    // هندلر جدید
+    public function handle_get_users_list() {
+        $this->verify_nonce_and_permissions();
+        
+        $users = $this->get_users_list();
+        wp_send_json_success(['users' => $users]);
+    }  
 
     public function enqueue_assets() {
         // فقط در صفحاتی که پنل مدیریت نمایش داده می‌شود
@@ -165,7 +220,7 @@ class AI_Assistant_Discount_Frontend_Admin {
                             <div class="form-group">
                                 <label for="discount-code">کد تخفیف (اختیاری)</label>
                                 <div class="code-input-container">
-                                    <input type="text" id="discount-code" name="code">
+                                    <input type="text" id="discount-code" name="code" placeholder="در صورت خالی بودن، تخفیف بدون کد اعمال می‌شود">
                                     <button type="button" id="generate-code" class="discount-btn discount-btn-secondary">
                                         <i class="fas fa-sync-alt"></i> تولید کد
                                     </button>
@@ -279,6 +334,40 @@ class AI_Assistant_Discount_Frontend_Admin {
                                     <option value="specific_users">کاربران خاص</option>
                                 </select>
                             </div>
+                            
+                            <!-- بخش انتخاب کاربران (فقط وقتی specific_users انتخاب شود نمایش داده می‌شود) -->
+                            <div class="form-group full-width" id="specific-users-section" style="display: none;">
+                                <label for="discount-specific-users">انتخاب کاربران</label>
+                                <div id="users-loading" class="loading" style="display: none;">
+                                    <i class="fas fa-spinner fa-spin"></i> در حال بارگذاری کاربران...
+                                </div>
+                                
+                                <!-- جستجو در لیست کاربران -->
+                                <div class="users-search-container">
+                                    <input type="text" id="users-search" placeholder="جستجو در کاربران..." style="width: 100%; padding: 8px; margin-bottom: 10px; border: 1px solid #e2e8f0; border-radius: 4px;">
+                                </div>
+                                
+                                <!-- دکمه‌های انتخاب سریع -->
+                                <div class="users-quick-actions" style="margin-bottom: 10px; display: flex; gap: 10px;">
+                                    <button type="button" id="select-all-users" class="discount-btn discount-btn-secondary" style="padding: 5px 10px; font-size: 12px;">
+                                        انتخاب همه
+                                    </button>
+                                    <button type="button" id="deselect-all-users" class="discount-btn discount-btn-secondary" style="padding: 5px 10px; font-size: 12px;">
+                                        لغو انتخاب همه
+                                    </button>
+                                </div>
+                                
+                                <!-- لیست چک‌باکس کاربران -->
+                                <div id="users-checkbox-list" class="users-checkbox-list" style="max-height: 300px; overflow-y: auto; border: 1px solid #e2e8f0; border-radius: 6px; padding: 10px;">
+                                    <div class="no-users-message">در حال بارگذاری کاربران...</div>
+                                </div>
+                                
+                                <div id="selected-users-count" style="margin-top: 10px; font-size: 12px; color: #4a5568;">
+                                    هیچ کاربری انتخاب نشده است
+                                </div>
+                                
+                                <small class="form-help">می‌توانید کاربران مورد نظر خود را انتخاب کنید</small>
+                            </div>
                         </div>
 
                         <div class="form-row">
@@ -317,63 +406,151 @@ class AI_Assistant_Discount_Frontend_Admin {
         return ob_get_clean();
     }
 
-    // هندلرهای AJAX
     public function handle_create_discount() {
         $this->verify_nonce_and_permissions();
         
-        $data = $this->validate_discount_data($_POST);
-        if (is_wp_error($data)) {
-            wp_send_json_error($data->get_error_message());
-        }
-        
-        $discount_id = $this->discount_db->add_discount($data);
-        
-        if ($discount_id) {
-            // اضافه کردن سرویس‌های مرتبط
-            if (isset($_POST['services']) && is_array($_POST['services'])) {
-                foreach ($_POST['services'] as $service_id) {
-                    $this->discount_db->add_discount_service($discount_id, sanitize_text_field($service_id));
-                }
+        try {
+            $data = $this->validate_discount_data($_POST);
+            if (is_wp_error($data)) {
+                error_log('خطا در اعتبارسنجی داده‌ها: ' . $data->get_error_message());
+                wp_send_json_error($data->get_error_message());
             }
             
-            wp_send_json_success([
-                'message' => 'کد تخفیف با موفقیت ایجاد شد.',
-                'discount_id' => $discount_id
-            ]);
-        } else {
-            wp_send_json_error('خطا در ایجاد کد تخفیف.');
+            error_log('داده‌های معتبر شده: ' . print_r($data, true));
+            
+            $discount_id = $this->discount_db->add_discount($data);
+            
+            if ($discount_id) {
+                error_log('تخفیف با موفقیت ایجاد شد. ID: ' . $discount_id);
+                
+                // اضافه کردن سرویس‌های مرتبط
+                if (isset($_POST['services']) && is_array($_POST['services'])) {
+                    foreach ($_POST['services'] as $service_id) {
+                        $result = $this->discount_db->add_discount_service($discount_id, sanitize_text_field($service_id));
+                        error_log('افزودن سرویس ' . $service_id . ': ' . ($result ? 'موفق' : 'ناموفق'));
+                    }
+                }
+                
+                // اضافه کردن کاربران خاص
+                if ($data['scope'] === 'user_based' && 
+                    isset($data['user_restriction']) && 
+                    $data['user_restriction'] === 'specific_users' &&
+                    isset($_POST['specific_users']) && 
+                    is_array($_POST['specific_users'])) {
+                    
+                    foreach ($_POST['specific_users'] as $user_id) {
+                        $user_id = intval($user_id);
+                        if ($user_id > 0) {
+                            $result = $this->discount_db->add_discount_user($discount_id, $user_id);
+                            error_log('افزودن کاربر ' . $user_id . ': ' . ($result ? 'موفق' : 'ناموفق'));
+                        }
+                    }
+                }
+                
+                wp_send_json_success([
+                    'message' => 'کد تخفیف با موفقیت ایجاد شد.',
+                    'discount_id' => $discount_id
+                ]);
+            } else {
+                global $wpdb;
+                error_log('خطای دیتابیس: ' . $wpdb->last_error);
+                wp_send_json_error('خطا در ایجاد کد تخفیف در دیتابیس.');
+            }
+        } catch (Exception $e) {
+            error_log('خطای غیرمنتظره: ' . $e->getMessage());
+            wp_send_json_error('خطای غیرمنتظره در ایجاد کد تخفیف.');
         }
     }
 
     public function handle_update_discount() {
         $this->verify_nonce_and_permissions();
         
-        $discount_id = intval($_POST['discount_id']);
-        if (!$discount_id) {
-            wp_send_json_error('شناسه تخفیف معتبر نیست.');
-        }
-        
-        $data = $this->validate_discount_data($_POST);
-        if (is_wp_error($data)) {
-            wp_send_json_error($data->get_error_message());
-        }
-        
-        $result = $this->discount_db->update_discount($discount_id, $data);
-        
-        if ($result !== false) {
-            // به‌روزرسانی سرویس‌های مرتبط
-            $this->discount_db->delete_discount_services($discount_id);
-            if (isset($_POST['services']) && is_array($_POST['services'])) {
-                foreach ($_POST['services'] as $service_id) {
-                    $this->discount_db->add_discount_service($discount_id, sanitize_text_field($service_id));
-                }
+        try {
+            $discount_id = intval($_POST['discount_id']);
+            if (!$discount_id) {
+                error_log('خطا: شناسه تخفیف معتبر نیست');
+                wp_send_json_error('شناسه تخفیف معتبر نیست.');
             }
             
-            wp_send_json_success([
-                'message' => 'کد تخفیف با موفقیت به‌روزرسانی شد.' // اضافه کردن آرایه با کلید message
-            ]);
-        } else {
-            wp_send_json_error('خطا در به‌روزرسانی کد تخفیف.');
+            error_log('شروع آپدیت تخفیف با ID: ' . $discount_id);
+            error_log('داده‌های POST: ' . print_r($_POST, true));
+            
+            $data = $this->validate_discount_data($_POST);
+            if (is_wp_error($data)) {
+                error_log('خطا در اعتبارسنجی داده‌ها: ' . $data->get_error_message());
+                wp_send_json_error($data->get_error_message());
+            }
+            
+            error_log('داده‌های معتبر شده برای آپدیت: ' . print_r($data, true));
+            
+            // فقط فیلدهای اصلی را برای آپدیت بفرستیم
+            $update_data = [
+                'name' => $data['name'],
+                'code' => $data['code'],
+                'type' => $data['type'],
+                'amount' => $data['amount'],
+                'scope' => $data['scope'],
+                'usage_limit' => $data['usage_limit'],
+                'user_restriction' => $data['user_restriction'],
+                'active' => $data['active']
+            ];
+            
+            // اضافه کردن فیلدهای اختیاری اگر مقدار دارند
+            if (!empty($data['start_date'])) {
+                $update_data['start_date'] = $data['start_date'];
+            } else {
+                $update_data['start_date'] = null;
+            }
+            
+            if (!empty($data['end_date'])) {
+                $update_data['end_date'] = $data['end_date'];
+            } else {
+                $update_data['end_date'] = null;
+            }
+            
+            error_log('داده‌های نهایی برای آپدیت: ' . print_r($update_data, true));
+            
+            $result = $this->discount_db->update_discount($discount_id, $update_data);
+            
+            error_log('نتیجه آپدیت: ' . ($result !== false ? 'موفق' : 'ناموفق'));
+            
+            if ($result !== false) {
+                // به‌روزرسانی سرویس‌های مرتبط - فقط اگر scope = service باشد
+                $this->discount_db->delete_discount_services($discount_id);
+                if ($data['scope'] === 'service' && isset($_POST['services']) && is_array($_POST['services'])) {
+                    foreach ($_POST['services'] as $service_id) {
+                        $service_result = $this->discount_db->add_discount_service($discount_id, sanitize_text_field($service_id));
+                        error_log('افزودن سرویس ' . $service_id . ': ' . ($service_result ? 'موفق' : 'ناموفق'));
+                    }
+                }
+                
+                // به‌روزرسانی کاربران خاص - فقط اگر scope = user_based باشد
+                $this->discount_db->delete_discount_users($discount_id);
+                if ($data['scope'] === 'user_based' && 
+                    $data['user_restriction'] === 'specific_users' &&
+                    isset($_POST['specific_users']) && 
+                    is_array($_POST['specific_users'])) {
+                    
+                    foreach ($_POST['specific_users'] as $user_id) {
+                        $user_id = intval($user_id);
+                        if ($user_id > 0) {
+                            $user_result = $this->discount_db->add_discount_user($discount_id, $user_id);
+                            error_log('افزودن کاربر ' . $user_id . ': ' . ($user_result ? 'موفق' : 'ناموفق'));
+                        }
+                    }
+                }
+                
+                wp_send_json_success([
+                    'message' => 'کد تخفیف با موفقیت به‌روزرسانی شد.'
+                ]);
+            } else {
+                global $wpdb;
+                error_log('خطای دیتابیس در آپدیت: ' . $wpdb->last_error);
+                wp_send_json_error('خطا در به‌روزرسانی کد تخفیف.');
+            }
+        } catch (Exception $e) {
+            error_log('خطای غیرمنتظره در آپدیت: ' . $e->getMessage());
+            wp_send_json_error('خطای غیرمنتظره در به‌روزرسانی کد تخفیف.');
         }
     }
 
@@ -432,7 +609,7 @@ class AI_Assistant_Discount_Frontend_Admin {
             'stats' => $stats
         ]);
     }
-
+    
     public function handle_get_discount_details() {
         $this->verify_nonce_and_permissions();
         
@@ -445,6 +622,14 @@ class AI_Assistant_Discount_Frontend_Admin {
         
         // اگر برای ویرایش درخواست شده
         if (isset($_POST['for_edit']) && $_POST['for_edit'] === 'true') {
+            // دریافت کاربران مرتبط - فرمت صحیح
+            $discount_users = $this->discount_db->get_discount_users($discount_id);
+            $discount->users = [];
+            
+            foreach ($discount_users as $user_id) {
+                $discount->users[] = $user_id; // فقط ID کاربر را ذخیره کن
+            }
+            
             wp_send_json_success(['discount' => $discount]);
         }
         
@@ -475,14 +660,14 @@ class AI_Assistant_Discount_Frontend_Admin {
         
         $data = [
             'name' => sanitize_text_field($post_data['name']),
-            'code' => !empty($post_data['code']) ? sanitize_text_field($post_data['code']) : '', // اجازه خالی بودن
+            'code' => !empty($post_data['code']) ? sanitize_text_field($post_data['code']) : '',
             'type' => sanitize_text_field($post_data['type']),
             'amount' => floatval($post_data['amount']),
             'scope' => sanitize_text_field($post_data['scope']),
             'usage_limit' => intval($post_data['usage_limit'] ?? 0),
             'start_date' => !empty($post_data['start_date']) ? sanitize_text_field($post_data['start_date']) : null,
             'end_date' => !empty($post_data['end_date']) ? sanitize_text_field($post_data['end_date']) : null,
-            'user_restriction' => sanitize_text_field($post_data['user_restriction'] ?? null),
+            'user_restriction' => sanitize_text_field($post_data['user_restriction'] ?? ''),
             'occasion_name' => sanitize_text_field($post_data['occasion_name'] ?? ''),
             'is_annual' => intval($post_data['is_annual'] ?? 0),
             'active' => 1
@@ -523,6 +708,12 @@ class AI_Assistant_Discount_Frontend_Admin {
         if ($data['type'] === 'percentage' && $data['amount'] > 100) {
             return new WP_Error('invalid_percentage', 'تخفیف درصدی نمی‌تواند بیشتر از ۱۰۰٪ باشد.');
         }
+        
+        if ($data['scope'] === 'user_based' && $data['user_restriction'] === 'specific_users') {
+            if (isset($post_data['specific_users']) && is_array($post_data['specific_users'])) {
+                $data['specific_users'] = array_map('intval', $post_data['specific_users']);
+            }
+        }        
         
         return $data;
     }
@@ -596,7 +787,7 @@ class AI_Assistant_Discount_Frontend_Admin {
             $this->render_discount_item($discount);
         }
     }
-
+    
     private function render_discount_item($discount) {
         $status_class = $discount->active ? 'active' : 'inactive';
         $status_text = $discount->active ? 'فعال' : 'غیرفعال';
@@ -605,7 +796,32 @@ class AI_Assistant_Discount_Frontend_Admin {
         $has_code = !empty($discount->code);
         
         $services = $this->discount_db->get_discount_services($discount->id);
-        $services_text = empty($services) ? 'همه سرویس‌ها' : implode(', ', array_slice($services, 0, 3)) . (count($services) > 3 ? '...' : '');
+        
+        // تعیین متن مناسب بر اساس حوزه اعتبار
+        $scope_info = '';
+        switch ($discount->scope) {
+            case 'service':
+                $services_text = empty($services) ? 'همه سرویس‌ها' : implode(', ', array_slice($services, 0, 3)) . (count($services) > 3 ? '...' : '');
+                $scope_info = '<div class="discount-services"><strong>سرویس‌ها:</strong> ' . esc_html($services_text) . '</div>';
+                break;
+                
+            case 'user_based':
+                $restriction_text = ($discount->user_restriction === 'first_time') ? 'اولین خرید' : 'کاربران خاص';
+                $scope_info = '<div class="discount-users"><strong>محدودیت:</strong> ' . esc_html($restriction_text) . '</div>';
+                break;
+                
+            case 'global':
+                $scope_info = '<div class="discount-scope-info"><strong>حوزه:</strong> همه سرویس‌ها</div>';
+                break;
+                
+            case 'coupon':
+                $scope_info = '<div class="discount-scope-info"><strong>نوع:</strong> کد کوپن</div>';
+                break;
+                
+            case 'occasional':
+                $scope_info = '<div class="discount-scope-info"><strong>نوع:</strong> مناسبتی</div>';
+                break;
+        }
         ?>
         <div class="discount-item" data-discount-id="<?php echo $discount->id; ?>">
             <div class="discount-header">
@@ -639,9 +855,7 @@ class AI_Assistant_Discount_Frontend_Admin {
                 <div class="discount-scope">
                     <strong>حوزه:</strong> <?php echo $this->get_scope_text($discount->scope); ?>
                 </div>
-                <div class="discount-services">
-                    <strong>سرویس‌ها:</strong> <?php echo esc_html($services_text); ?>
-                </div>
+                <?php echo $scope_info; ?>
                 <div class="discount-dates">
                     <?php if ($discount->start_date): ?>
                         <span class="discount-date">شروع: <?php echo $this->format_date($discount->start_date); ?></span>
@@ -733,6 +947,59 @@ class AI_Assistant_Discount_Frontend_Admin {
             <?php endif; ?>
             <?php endif; ?>
         
+            <?php if ($discount->scope === 'service' && !empty($services)): ?>
+            <div class="detail-row">
+                <strong>سرویس‌های مرتبط:</strong>
+                <ul class="services-list">
+                    <?php foreach ($services as $service_id): 
+                        $service_manager = AI_Assistant_Service_Manager::get_instance();
+                        $services_list = $service_manager->get_active_services();
+                        $service_name = isset($services_list[$service_id]) ? $services_list[$service_id]['name'] : $service_id;
+                    ?>
+                        <li><?php echo esc_html($service_name); ?></li>
+                    <?php endforeach; ?>
+                </ul>
+            </div>
+            <?php endif; ?>
+                        
+            <?php if ($discount->scope === 'user_based' && $discount->user_restriction === 'specific_users'): ?>
+            <div class="detail-row">
+                <strong>کاربران خاص:</strong>
+                <?php 
+                $users = $this->discount_db->get_discount_users($discount->id);
+                if (!empty($users)): 
+                ?>
+                    <ul class="users-list">
+                        <?php foreach ($users as $user_id): 
+                            $user = get_userdata($user_id);
+                            if ($user):
+                                $first_name = get_user_meta($user_id, 'first_name', true);
+                                $last_name = get_user_meta($user_id, 'last_name', true);
+                                $phone = get_user_meta($user_id, 'billing_phone', true);
+                                
+                                $full_name = trim($first_name . ' ' . $last_name);
+                                if (empty($full_name)) {
+                                    $full_name = $user->display_name;
+                                }
+                        ?>
+                            <li>
+                                <strong><?php echo esc_html($full_name); ?></strong>
+                                <?php if (!empty($phone)): ?>
+                                    <div class="user-details">
+                                        <span>📱 <?php echo esc_html($phone); ?></span>
+                                    </div>
+                                <?php endif; ?>
+                            </li>
+                        <?php 
+                            endif;
+                        endforeach; ?>
+                    </ul>
+                <?php else: ?>
+                    <span style="color: #718096;">هیچ کاربری انتخاب نشده است.</span>
+                <?php endif; ?>
+            </div>
+            <?php endif; ?>
+        
             <?php if (!empty($services)): ?>
             <div class="detail-row">
                 <strong>سرویس‌های مرتبط:</strong>
@@ -767,23 +1034,24 @@ class AI_Assistant_Discount_Frontend_Admin {
         <?php
     }
 
-	// تابع کمکی برای نام ماه‌ها
-	private function get_persian_month_name($month) {
-	    $months = [
-	        1 => 'فروردین', 2 => 'اردیبهشت', 3 => 'خرداد',
-	        4 => 'تیر', 5 => 'مرداد', 6 => 'شهریور',
-	        7 => 'مهر', 8 => 'آبان', 9 => 'آذر',
-	        10 => 'دی', 11 => 'بهمن', 12 => 'اسفند'
-	    ];
-	    return $months[$month] ?? $month;
-	}
+// تابع کمکی برای نام ماه‌ها
+private function get_persian_month_name($month) {
+    $months = [
+        1 => 'فروردین', 2 => 'اردیبهشت', 3 => 'خرداد',
+        4 => 'تیر', 5 => 'مرداد', 6 => 'شهریور',
+        7 => 'مهر', 8 => 'آبان', 9 => 'آذر',
+        10 => 'دی', 11 => 'بهمن', 12 => 'اسفند'
+    ];
+    return $months[$month] ?? $month;
+}
 
     private function get_scope_text($scope) {
         $scopes = [
             'global' => 'عمومی',
             'service' => 'مخصوص سرویس',
             'coupon' => 'کد کوپن',
-            'user_based' => 'مبتنی بر کاربر'
+            'user_based' => 'مبتنی بر کاربر',
+            'occasional' => 'مناسبتی'
         ];
         
         return $scopes[$scope] ?? $scope;
