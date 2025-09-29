@@ -66,7 +66,7 @@ class AI_Assistant_Discount_DB {
                 created_at datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
                 updated_at datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
                 PRIMARY KEY (id),
-                UNIQUE KEY code (code),
+                INDEX code (code),
                 INDEX (scope),
                 INDEX (active),
                 INDEX (start_date),
