@@ -1,5 +1,18 @@
 // /home/aidastya/public_html/test/wp-content/themes/ai-assistant-test/assets/js/services/diet/form-events.js
 
+   
+// انتخاب گزینه‌های سرطان
+document.querySelectorAll('.cancer-option').forEach(option => {
+    option.addEventListener('click', function() {
+        this.classList.toggle('selected');
+    });
+});
+
+// نمایش/مخفی کردن جزئیات
+document.getElementById('cancer-history').addEventListener('change', function() {
+    document.getElementById('cancer-details').style.display = this.checked ? 'block' : 'none';
+});
+
 function setupScrollIndicator(containerId) {
     const container = document.getElementById(containerId);
     if (!container) return;
@@ -298,7 +311,9 @@ window.handleFormSubmit = function(event) {
         noSeafood: state.formData.foodRestrictions?.includes('no-seafood') || false,
     };
 
-    console.log('Form submitted:', formData);
+    if (aiAssistantVars.environment && aiAssistantVars.environment !== 'production') {
+        console.log('Form submitted:', formData);
+    }
     
     // غیرفعال کردن دکمه سابمیت
     document.getElementById('SubmitBtn').disabled = true;
@@ -469,6 +484,39 @@ window.showSummary = function() {
             <span class="summary-label">سابقه جراحی:</span>
             <span class="summary-value">${surgeryText.join('، ') || 'ثبت نشده'}</span>
         </div>  
+        `;
+        
+        // در تابع showSummary، بعد از بخش جراحی این کد را اضافه کنید:
+        if (surgery.includes('cancer')) {
+            const cancerTreatmentText = {
+                'chemo': 'شیمی درمانی',
+                'radio': 'پرتو درمانی', 
+                'surgery': 'اخیراً جراحی شده',
+                'finished': 'درمان تمام شده'
+            }[state.formData.cancerTreatment];
+        
+            const cancerTypeText = {
+                'breast': 'پستان',
+                'colon': 'روده',
+                'prostate': 'پروستات',
+                'lung': 'ریه',
+                'blood': 'خون',
+                'other': 'سایر'
+            }[state.formData.cancerType];
+        
+            summaryContainer.innerHTML += `
+                <div class="summary-item">
+                    <span class="summary-label">وضعیت درمان سرطان:</span>
+                    <span class="summary-value">${cancerTreatmentText || 'ثبت نشده'}</span>
+                </div>
+                <div class="summary-item">
+                    <span class="summary-label">نوع سرطان:</span>
+                    <span class="summary-value">${cancerTypeText || 'ثبت نشده'}</span>
+                </div>
+            `;
+        }   
+        
+        summaryContainer.innerHTML += `
         <div class="summary-item">
             <span class="summary-label">اختلالات هورمونی:</span>
             <span class="summary-value">${hormonalText.join('، ') || 'ثبت نشده'}</span>
@@ -506,6 +554,8 @@ window.showSummary = function() {
             <span class="summary-value">${foodPreferencesText.join('، ') || 'ثبت نشده'}</span>
         </div>
     `;
+    
+ 
 }
 
 // Initialize event listeners
