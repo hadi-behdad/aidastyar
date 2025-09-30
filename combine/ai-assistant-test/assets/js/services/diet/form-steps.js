@@ -253,6 +253,7 @@ window.setupStomachDiscomfortSelection = function(currentStep) {
             { key: 'pain', id: 'stomach-pain' },
             { key: 'heartburn', id: 'stomach-heartburn' },
             { key: 'nausea', id: 'stomach-nausea' },
+            { key: 'helicobacter', id: 'stomach-helicobacter' },
             { key: 'indigestion', id: 'stomach-indigestion' },
             { key: 'constipation', id: 'stomach-constipation' },
             { key: 'diarrhea', id: 'stomach-diarrhea' },

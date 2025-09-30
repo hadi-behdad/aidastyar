@@ -507,6 +507,13 @@ $theme_assets = get_stylesheet_directory_uri();
                     <span class="check-icon"></span>
                     <span class="label-text">سیری زودرس</span>
                 </label>
+            </div>        
+            <div class="checkbox-container">
+                <input type="checkbox" id="stomach-helicobacter" class="real-checkbox">
+                <label for="stomach-helicobacter" class="checkbox-label">
+                    <span class="check-icon"></span>
+                    <span class="label-text">عفونت هلیکوباکتر پیلوری (H. Pylori)</span>
+                </label>
             </div>            
             
             <!-- مشکلات هضم -->

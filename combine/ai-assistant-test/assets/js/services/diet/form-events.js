@@ -398,6 +398,7 @@ window.showSummary = function() {
     if (stomachDiscomfort.includes('pain')) stomachDiscomfortText.push('درد یا گرفتگی معده');
     if (stomachDiscomfort.includes('heartburn')) stomachDiscomfortText.push('سوزش سر دل');
     if (stomachDiscomfort.includes('nausea')) stomachDiscomfortText.push('حالت تهوع');
+    if (stomachDiscomfort.includes('helicobacter')) stomachDiscomfortText.push('عفونت هلیکوباکتر پیلوری');
     if (stomachDiscomfort.includes('indigestion')) stomachDiscomfortText.push('سوء هاضمه مزمن');
     if (stomachDiscomfort.includes('constipation')) stomachDiscomfortText.push('یبوست');
     if (stomachDiscomfort.includes('diarrhea')) stomachDiscomfortText.push('اسهال');
