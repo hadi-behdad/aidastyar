@@ -124,7 +124,10 @@ window.setupSurgerySelection = function(currentStep) {
             { key: 'kidney', id: 'surgery-kidney' },
             { key: 'liver', id: 'surgery-liver' },
             { key: 'heart', id: 'surgery-heart' },
-            { key: 'cancer', id: 'cancer-history' }
+            { key: 'cancer', id: 'cancer-history' },
+            { key: 'gallbladder-stones', id: 'gallbladder-stones' },
+            { key: 'gallbladder-inflammation', id: 'gallbladder-inflammation' },
+            { key: 'gallbladder-issues', id: 'gallbladder-issues' }            
         ]
     });
 
@@ -239,9 +242,12 @@ window.setupHormonalSelection = function(currentStep) {
             { key: 'pcos', id: 'hormonal-pcos' },
             { key: 'menopause', id: 'hormonal-menopause' },
             { key: 'cortisol', id: 'hormonal-cortisol' },
-            { key: 'growth', id: 'hormonal-growth' }
+            { key: 'growth', id: 'hormonal-growth' },
+            { key: 'hashimoto', id: 'hormonal-hashimoto' }
         ]
     });
+    
+    setupDiabetesDetails();
 };
 
 window.setupStomachDiscomfortSelection = function(currentStep) {
@@ -260,6 +266,8 @@ window.setupStomachDiscomfortSelection = function(currentStep) {
             { key: 'food-intolerance', id: 'stomach-food-intolerance' },
             { key: 'acid-reflux', id: 'stomach-acid-reflux' },
             { key: 'slow-digestion', id: 'stomach-slow-digestion' },
+            { key: 'ibd', id: 'stomach-ibd' },        
+            { key: 'gerd', id: 'stomach-gerd' },              
             { key: 'fullness', id: 'stomach-fullness' }
         ]
     });
@@ -276,7 +284,8 @@ window.setupAdditionalInfoSelection = function(currentStep) {
             { key: 'ibs', id: 'info-ibs' },
             { key: 'celiac', id: 'info-celiac' },
             { key: 'lactose', id: 'info-lactose' },
-            { key: 'food-allergy', id: 'info-food-allergy' }
+            { key: 'food-allergy', id: 'info-food-allergy' },
+            { key: 'fatty-liver', id: 'info-fatty-liver' }
         ]
     });
 };
