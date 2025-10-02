@@ -726,10 +726,9 @@ $theme_assets = get_stylesheet_directory_uri();
         </div>
     </div>
     
-    <!-- Step 12: Activity Level -->
     <div id="activity-selection-step" class="step">
         <h2>میزان فعالیت روزانه شما چقدر است؟</h2>
-        <p class="step-description">برای دریافت برنامه غذایی دقیق، لطفاً سطح فعالیت بدنی خود را انتخاب کنید</p>
+        <p class="step-description">لطفاً سطح فعالیت روزمره خود را بر اساس شغل و فعالیت‌های معمول روزانه انتخاب کنید</p>
         
         <div id="activity-selection">
             <div class="activity-option" data-activity="very-low">
@@ -737,9 +736,9 @@ $theme_assets = get_stylesheet_directory_uri();
                     <img src="<?php echo $theme_assets; ?>/assets/images/png/without-activity-min.png" alt="فعالیت خیلی کم">
                 </div>
                 <div class="activity-details">
-                    <h3>سبک</h3>
-                    <p>کمتر از 1 ساعت فعالیت در روز</p>
-                    <span class="activity-examples">(پشت میز نشینی، تحرک بسیار کم)</span>
+                    <h3>خیلی کم (بی‌تحرک)</h3>
+                    <p>بیشتر وقت پشت میز یا در خانه، تحرک بسیار کم</p>
+                    <span class="activity-examples">(پشت میز نشینی، کارمند اداری، خانه‌دار با تحرک کم)</span>
                 </div>
             </div>
             
@@ -748,9 +747,9 @@ $theme_assets = get_stylesheet_directory_uri();
                     <img src="<?php echo $theme_assets; ?>/assets/images/png/alittle-activity-min.png" alt="فعالیت کم">
                 </div>
                 <div class="activity-details">
-                    <h3>نیمه فعال</h3>
-                    <p>1 تا 2 ساعت فعالیت در روز</p>
-                    <span class="activity-examples">(پیاده روی روزانه، کارهای سبک خانه)</span>
+                    <h3>کم (فعالیت سبک)</h3>
+                    <p>کارهای سبک خانه، پیاده‌روی کوتاه، ایستادن متوسط</p>
+                    <span class="activity-examples">(معلم، منشی، فروشنده با تحرک محدود)</span>
                 </div>
             </div>
             
@@ -759,9 +758,9 @@ $theme_assets = get_stylesheet_directory_uri();
                     <img src="<?php echo $theme_assets; ?>/assets/images/png/middle-activity-min.png" alt="فعالیت متوسط">
                 </div>
                 <div class="activity-details">
-                    <h3>فعال</h3>
-                    <p>2 تا 4 ساعت فعالیت در روز</p>
-                    <span class="activity-examples">(ورزش منظم، کارهای فیزیکی متوسط)</span>
+                    <h3>متوسط (فعالیت متوسط)</h3>
+                    <p>کارهایی که نیاز به راه رفتن و حرکت مداوم دارد</p>
+                    <span class="activity-examples">(فروشندگی، پرستاری، راننده تاکسی، خدمات رسانی)</span>
                 </div>
             </div>
             
@@ -770,9 +769,71 @@ $theme_assets = get_stylesheet_directory_uri();
                     <img src="<?php echo $theme_assets; ?>/assets/images/png/alot-activity-min.png" alt="فعالیت زیاد">
                 </div>
                 <div class="activity-details">
-                    <h3>خیلی فعال</h3>
-                    <p>بیشتر از 4 ساعت فعالیت در روز</p>
-                    <span class="activity-examples">(تمرینات سنگین، کارهای فیزیکی سخت)</span>
+                    <h3>زیاد (فعالیت شدید)</h3>
+                    <p>کار فیزیکی سخت که بیشتر روز نیاز به فعالیت بدنی دارد</p>
+                    <span class="activity-examples">(کارگر ساختمانی، کشاورز، مکانیک، باربری)</span>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Step 13: Weekly Exercise Activity - نسخه با آیکون فونت -->
+    <div id="exercise-activity-step" class="step">
+        <h2>فعالیت ورزشی هفتگی شما چقدر است؟</h2>
+        <p class="step-description">لطفاً میزان و شدت فعالیت ورزشی منظم خود در هفته را انتخاب کنید</p>
+        
+        <div id="exercise-selection">
+            <div class="exercise-option" data-exercise="none">
+                <!--<div class="exercise-icon">-->
+                <!--    <span class="exercise-icon-text">🚫</span>-->
+                <!--</div>-->
+                <div class="exercise-details">
+                    <h3>هیچ ورزشی نمی‌کنم</h3>
+                    <p>بدون فعالیت ورزشی منظم در هفته</p>
+                </div>
+            </div>
+            
+            <div class="exercise-option" data-exercise="light">
+                <!--<div class="exercise-icon">-->
+                <!--    <span class="exercise-icon-text">🚶‍♂️</span>-->
+                <!--</div>-->
+                <div class="exercise-details">
+                    <h3>سبک</h3>
+                    <p>۱-۲ روز در هفته، کمتر از ۳۰ دقیقه</p>
+                    <span class="exercise-examples">(پیاده‌روی آرام، یوگا سبک، حرکات کششی)</span>
+                </div>
+            </div>
+            
+            <div class="exercise-option" data-exercise="medium">
+                <!--<div class="exercise-icon">-->
+                <!--    <span class="exercise-icon-text">🏃‍♂️</span>-->
+                <!--</div>-->
+                <div class="exercise-details">
+                    <h3>متوسط</h3>
+                    <p>۳-۴ روز در هفته، ۳۰-۶۰ دقیقه</p>
+                    <span class="exercise-examples">(دویدن سبک، شنا، بدنسازی متوسط، ورزش‌های هوازی)</span>
+                </div>
+            </div>
+            
+            <div class="exercise-option" data-exercise="high">
+                <!--<div class="exercise-icon">-->
+                <!--    <span class="exercise-icon-text">💪</span>-->
+                <!--</div>-->
+                <div class="exercise-details">
+                    <h3>زیاد</h3>
+                    <p>۵-۶ روز در هفته یا بیشتر، ۶۰+ دقیقه</p>
+                    <span class="exercise-examples">(تمرین سنگین، کراس فیت، ورزش‌های رقابتی)</span>
+                </div>
+            </div>
+            
+            <div class="exercise-option" data-exercise="professional">
+                <!--<div class="exercise-icon">-->
+                <!--    <span class="exercise-icon-text">🏆</span>-->
+                <!--</div>-->
+                <div class="exercise-details">
+                    <h3>ورزشکار حرفه‌ای</h3>
+                    <p>تمرین سنگین روزانه و برنامه‌ریزی شده</p>
+                    <span class="exercise-examples">(ورزشکاران حرفه‌ای، بدنسازان، ورزش‌های قهرمانی)</span>
                 </div>
             </div>
         </div>

@@ -475,28 +475,77 @@ window.setupConfirmationCheckbox = function(currentStep) {
     validateForm();
 }
 
+// در تابع setupExerciseSelection
+window.setupExerciseSelection = function(currentStep) {
+    if (currentStep !== STEPS.EXERCISE) return;
+
+    const exerciseOptions = document.querySelectorAll('.exercise-option');
+    
+    // اگر قبلاً ورزشی انتخاب شده بود، آن را highlight کن
+    if (state.formData.exercise) {
+        const selectedOption = document.querySelector(`.exercise-option[data-exercise="${state.formData.exercise}"]`);
+        if (selectedOption) {
+            selectedOption.classList.add('selected');
+            selectedOption.style.transform = "translateY(-3px)";
+            selectedOption.style.boxShadow = "0 10px 20px rgba(0, 133, 122, 0.2)";
+        }
+    }
+    
+    exerciseOptions.forEach(option => {
+        option.addEventListener('click', function() {
+            // حذف انتخاب از همه گزینه‌ها
+            exerciseOptions.forEach(opt => {
+                opt.classList.remove('selected');
+                opt.style.transform = "";
+                opt.style.boxShadow = "";
+            });
+            
+            // انتخاب گزینه کلیک شده
+            this.classList.add('selected');
+            this.classList.add('selected-with-effect');
+            
+            // افکت بصری
+            setTimeout(() => {
+                this.classList.remove('selected-with-effect');
+                this.style.transform = "translateY(-3px)";
+                this.style.boxShadow = "0 10px 20px rgba(0, 133, 122, 0.2)";
+                
+                // ذخیره داده
+                state.updateFormData('exercise', this.dataset.exercise);
+                
+                // رفتن به مرحله بعدی (MEALS) به صورت خودکار
+                setTimeout(() => {
+                    navigateToStep(STEPS.MEALS); // به جای state.currentStep + 1
+                }, 250);
+            }, 150);
+        });
+    });
+};
+
 window.showStep = function(step) {
+    // در تابع showStep، آرایه stepElements را اصلاح کنید
     const stepElements = [
-        "gender-selection-step",
-        "personal-info-step",
-        "goal-selection-step",
-        "age-input-step", 
-        "height-input-step",
-        "weight-input-step",
-        "target-weight-step",
-        "goal-weight-display",
-        "surgery-step",
-        "hormonal-disorders-step",
-        "stomach-discomfort-step",
-        "water-intake-step",
-        "activity-selection-step",
-        "meal-selection-step",
-        "additional-info-step",
-        "diet-style-step",       // مرحله 15 جدید
-        "food-limitations-step", // مرحله 16 جدید
-        "food-preferences-step", // مرحله 17 جدید
-        "terms-agreement-step",  // مرحله 18 جدید
-        "confirm-submit-step"    // مرحله 19 جدید
+        "gender-selection-step",        // 1
+        "personal-info-step",           // 2
+        "goal-selection-step",          // 3
+        "age-input-step",               // 4
+        "height-input-step",            // 5
+        "weight-input-step",            // 6
+        "target-weight-step",           // 7
+        "goal-weight-display",          // 8
+        "surgery-step",                 // 9
+        "hormonal-disorders-step",      // 10
+        "stomach-discomfort-step",      // 11
+        "water-intake-step",            // 12
+        "activity-selection-step",      // 13 - فعالیت روزمره
+        "exercise-activity-step",       // 14 - مرحله جدید: فعالیت ورزشی
+        "meal-selection-step",          // 15 - قبلاً 14 بود
+        "additional-info-step",         // 16 - قبلاً 15 بود
+        "diet-style-step",              // 17 - قبلاً 16 بود
+        "food-limitations-step",        // 18 - قبلاً 17 بود
+        "food-preferences-step",        // 19 - قبلاً 18 بود
+        "terms-agreement-step",         // 20 - قبلاً 19 بود
+        "confirm-submit-step"           // 21 - قبلاً 20 بود
     ];
     
     document.querySelectorAll(".step").forEach(el => {
@@ -569,6 +618,7 @@ window.showStep = function(step) {
             STEPS.GOAL,
             STEPS.WATER_INTAKE, // اضافه شده
             STEPS.ACTIVITY, 
+            STEPS.EXERCISE,
             STEPS.MEALS
         ].includes(step) ? "none" : "block";
     }
@@ -597,6 +647,12 @@ window.showStep = function(step) {
     else if (step === STEPS.SURGERY) {
         setupSurgerySelection(step);
     } 
+    else if (step === STEPS.EXERCISE) {
+        setupExerciseSelection(step);
+    }
+    else if (step === STEPS.MEALS) {
+        document.getElementById("next-button-container").style.display = "none";
+    }
     else if (step === STEPS.ADDITIONAL_INFO) {
         setupAdditionalInfoSelection(step);
     } 

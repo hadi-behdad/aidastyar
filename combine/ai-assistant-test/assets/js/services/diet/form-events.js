@@ -71,6 +71,7 @@ document.addEventListener('DOMContentLoaded', () => {
     setupScrollIndicator('food-restriction-selection');
     setupScrollIndicator('goal-selection');
     setupScrollIndicator('activity-selection');
+    setupScrollIndicator('exercise-selection'); // اضافه کردن این خط
     setupScrollIndicator('meal-selection');
     setupScrollIndicator('diet-style-selection');
     setupScrollIndicator('food-limitations-selection');
@@ -430,7 +431,7 @@ window.showSummary = function() {
         firstName,
         lastName,
         gender, age, height, weight, targetWeight, goal, 
-        activity, meals, waterIntake, surgery = [], hormonal = [],
+        activity, exercise, meals, waterIntake, surgery = [], hormonal = [],
         stomachDiscomfort = [], additionalInfo = [], dietStyle = [],
         foodLimitations = [], foodPreferences = []
     } = state.formData;
@@ -445,11 +446,12 @@ window.showSummary = function() {
         "fitness": "حفظ سلامت"
     }[goal];
     
+    // در تابع showSummary - بخش فعالیت
     const activityText = { 
-        "very-low": "خیلی کم (کمتر از 1 ساعت)", 
-        "low": "کم (1 تا 2 ساعت)", 
-        "medium": "متوسط (2 تا 4 ساعت)", 
-        "high": "زیاد (بیشتر از 4 ساعت)" 
+        "very-low": "خیلی کم (بی‌تحرک)", 
+        "low": "کم (فعالیت سبک)", 
+        "medium": "متوسط (فعالیت متوسط)", 
+        "high": "زیاد (فعالیت شدید)" 
     }[activity];
     
     const mealsText = { 
@@ -459,6 +461,15 @@ window.showSummary = function() {
         "5": "۵ وعده یا بیشتر",
         "irregular": "وعده‌های نامنظم" 
     }[meals];
+    
+    // اضافه کردن به تابع showSummary
+    const exerciseText = { 
+        "none": "هیچ ورزشی نمی‌کنم",
+        "light": "سبک (۱-۲ روز در هفته)", 
+        "medium": "متوسط (۳-۴ روز در هفته)", 
+        "high": "زیاد (۵-۶ روز در هفته)", 
+        "professional": "ورزشکار حرفه‌ای" 
+    }[exercise];
     
     const waterText = waterIntake === null ? 
         'مشخص نیست' : 
@@ -656,6 +667,10 @@ window.showSummary = function() {
             <span class="summary-label">فعالیت روزانه:</span>
             <span class="summary-value">${activityText}</span>
         </div>
+        <div class="summary-item">
+            <span class="summary-label">فعالیت ورزشی:</span>
+            <span class="summary-value">${exerciseText}</span>
+        </div>        
         <div class="summary-item">
             <span class="summary-label">تعداد وعده‌های غذایی:</span>
             <span class="summary-value">${mealsText}</span>

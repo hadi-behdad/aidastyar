@@ -110,6 +110,11 @@ window.state = {
                 const activityOption = document.querySelector(`.activity-option[data-activity="${this.formData.activity}"]`);
                 if (activityOption) activityOption.classList.add('selected');
             }
+                
+            if (this.formData.exercise) {
+                const exerciseOption = document.querySelector(`.exercise-option[data-exercise="${this.formData.exercise}"]`);
+                if (exerciseOption) exerciseOption.classList.add('selected');
+            }            
     
             // به روزرسانی وعده‌های غذایی
             if (this.formData.meals) {
@@ -243,14 +248,15 @@ window.STEPS = {
     HORMONAL: 10, 
     STOMACH: 11,
     WATER_INTAKE: 12,
-    ACTIVITY: 13,
-    MEALS: 14,
-    ADDITIONAL_INFO: 15,
-    DIET_STYLE: 16,
-    FOOD_LIMITATIONS: 17,
-    FOOD_PREFERENCES: 18,
-    TERMS_AGREEMENT: 19,
-    CONFIRMATION: 20
+    ACTIVITY: 13,     // فعالیت روزمره
+    EXERCISE: 14,     // مرحله جدید: فعالیت ورزشی
+    MEALS: 15,        // قبلاً 14 بود
+    ADDITIONAL_INFO: 16, // قبلاً 15 بود
+    DIET_STYLE: 17,   // قبلاً 16 بود
+    FOOD_LIMITATIONS: 18, // قبلاً 17 بود
+    FOOD_PREFERENCES: 19, // قبلاً 18 بود
+    TERMS_AGREEMENT: 20, // قبلاً 19 بود
+    CONFIRMATION: 21  // قبلاً 20 بود
 };
 
 window.totalSteps = Object.keys(STEPS).length;

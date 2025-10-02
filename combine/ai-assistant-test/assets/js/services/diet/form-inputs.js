@@ -326,6 +326,7 @@ document.addEventListener("DOMContentLoaded", () => {
     setupOptionSelection(".goal-option", "goal");
     setupOptionSelection(".activity-option", "activity");
     setupOptionSelection(".meal-option", "meals");
+    setupOptionSelection(".exercise-option", "exercise");
 
     document.getElementById("multi-step-form").addEventListener("keydown", function(event) {
         // فقط اجازه کار Enter در مراحل خاص
