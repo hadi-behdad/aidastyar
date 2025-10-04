@@ -1015,6 +1015,167 @@ $theme_assets = get_stylesheet_directory_uri();
         </div>
     </div>
     
+<!-- Step 16: Meal Pattern and Essential Questions -->
+<div id="meal-pattern-step" class="step">
+    <h2>الگوی غذایی و عادات غذایی</h2>
+    <p class="step-description">لطفاً تعداد وعده‌های غذایی و اطلاعات ضروری را تکمیل کنید</p>
+    
+    <div id="meal-pattern-main-container" class="scrollable-container">
+        <!-- بخش انتخاب تعداد وعده‌ها -->
+        <div class="section-container">
+            <h3>تعداد وعده‌های غذایی روزانه</h3>
+            <div id="meal-pattern-selection" class="card-selection-container">
+                <div class="card-option" data-meals="2">
+                    <div class="card-content">
+                        <div class="card-icon">🍽️</div>
+                        <h4>۲ وعده</h4>
+                        <p>صبحانه + شام</p>
+                    </div>
+                </div>
+                
+                <div class="card-option" data-meals="3">
+                    <div class="card-content">
+                        <div class="card-icon">🍽️</div>
+                        <h4>۳ وعده</h4>
+                        <p>صبحانه + ناهار + شام</p>
+                    </div>
+                </div>
+                
+                <div class="card-option" data-meals="4">
+                    <div class="card-content">
+                        <div class="card-icon">🍽️</div>
+                        <h4>۴ وعده</h4>
+                        <p>صبحانه + ناهار + عصرانه + شام</p>
+                    </div>
+                </div>
+                
+                <div class="card-option" data-meals="5">
+                    <div class="card-content">
+                        <div class="card-icon">🍽️</div>
+                        <h4>۵ وعده یا بیشتر</h4>
+                        <p>وعده‌های اصلی + میان‌وعده‌ها</p>
+                    </div>
+                </div>
+                
+                <div class="card-option" data-meals="irregular">
+                    <div class="card-content">
+                        <div class="card-icon">🕒</div>
+                        <h4>وعده‌های نامنظم</h4>
+                        <p>زمان‌بندی ثابتی ندارم</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- بخش سوالات ضروری -->
+        <div class="section-container">
+            <h3>عادات غذایی ضروری</h3>
+            <div class="essential-questions">
+                 
+                <div class="question">
+                    <h4>کدام وعده غذایی شما معمولاً بزرگتر است؟</h4>
+                    <div class="card-selection-container">
+                        <div class="card-option" data-value="breakfast">
+                            <div class="card-content">
+                                <div class="card-icon">🌅</div>
+                                <h5>صبحانه</h5>
+                                <p>وعده صبحگاهی اصلی‌ترین وعده من است</p>
+                            </div>
+                        </div>
+                        
+                        <div class="card-option" data-value="lunch">
+                            <div class="card-content">
+                                <div class="card-icon">☀️</div>
+                                <h5>ناهار</h5>
+                                <p>ناهار مهمترین وعده غذایی روز من است</p>
+                            </div>
+                        </div>
+                        
+                        <div class="card-option" data-value="dinner">
+                            <div class="card-content">
+                                <div class="card-icon">🌙</div>
+                                <h5>شام</h5>
+                                <p>شام بزرگترین و اصلی‌ترین وعده من است</p>
+                            </div>
+                        </div>
+                        
+                        <div class="card-option" data-value="equal">
+                            <div class="card-content">
+                                <div class="card-icon">⚖️</div>
+                                <h5>همه برابر</h5>
+                                <p>وعده‌های غذایی من تقریباً یکسان هستند</p>
+                            </div>
+                        </div>
+                        
+                        <!-- گزینه جدید برای حالت نامنظم -->
+                        <div class="card-option" data-value="variable">
+                            <div class="card-content">
+                                <div class="card-icon">🔀</div>
+                                <h5>متغیر است</h5>
+                                <p>بسته به روز متفاوت است</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- سوال دوم: زمان شام -->
+                <div class="question">
+                    <h4>معمولاً شام را چند ساعت قبل از خواب می‌خورید؟</h4>
+                    <div class="card-selection-container">
+                        <div class="card-option" data-value="1">
+                            <div class="card-content">
+                                <div class="card-icon">⏰</div>
+                                <h5>کمتر از ۱ ساعت</h5>
+                                <p>تقریباً بلافاصله قبل از خواب</p>
+                            </div>
+                        </div>
+                        
+                        <div class="card-option" data-value="2">
+                            <div class="card-content">
+                                <div class="card-icon">⏰</div>
+                                <h5>۱-۲ ساعت</h5>
+                                <p>مدت کوتاهی قبل از خواب</p>
+                            </div>
+                        </div>
+                        
+                        <div class="card-option" data-value="3">
+                            <div class="card-content">
+                                <div class="card-icon">⏰</div>
+                                <h5>۲-۳ ساعت</h5>
+                                <p>با فاصله مناسب از زمان خواب</p>
+                            </div>
+                        </div>
+                        
+                        <div class="card-option" data-value="4">
+                            <div class="card-content">
+                                <div class="card-icon">⏰</div>
+                                <h5>بیش از ۳ ساعت</h5>
+                                <p>با فاصله زیاد از زمان خواب</p>
+                            </div>
+                        </div>
+                        <div class="card-option" data-value="irregular">
+                            <div class="card-content">
+                                <div class="card-icon">🌙</div>
+                                <h5>زمان ثابتی ندارم</h5>
+                                <p>هر شب در زمان متفاوتی شام می‌خورم</p>
+                            </div>
+                        </div>
+                        
+                        <!-- گزینه جدید: شام نمی‌خورم -->
+                        <div class="card-option" data-value="no-dinner">
+                            <div class="card-content">
+                                <div class="card-icon">🚫</div>
+                                <h5>شام نمی‌خورم</h5>
+                                <p>معمولاً شام نمی‌خورم یا وعده شام ندارم</p>
+                            </div>
+                        </div>                        
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
     <!-- Step 16: Food Limitations -->
     <div id="food-limitations-step" class="step checkbox-step-container">
         <h2>چه محدودیت‌های غذایی دارید؟</h2>

@@ -1,4 +1,3 @@
- 
 // /home/aidastya/public_html/test/wp-content/themes/ai-assistant-test/assets/js/auto-fill.js
 
 document.addEventListener('DOMContentLoaded', function() {
@@ -25,6 +24,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 weight: 85,
                 targetWeight: 75,
                 activity: 'medium',
+                exercise: 'medium',
                 meals: '3',
                 waterIntake: 8,
                 surgery: ['none'],
@@ -33,7 +33,11 @@ document.addEventListener('DOMContentLoaded', function() {
                 additionalInfo: ['none'],
                 dietStyle: ['none'],
                 foodLimitations: ['none'],
-                foodPreferences: ['none']
+                foodPreferences: ['none'],
+                // داده‌های جدید برای مرحله الگوی غذایی
+                mealPattern: '3',
+                largestMeal: 'lunch',
+                dinnerBeforeSleep: '3'
             };
 
             // تابع جدید برای پر کردن مرحله اطلاعات شخصی
@@ -57,6 +61,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     clickNextButton(500);
                 }
             }
+
             // پر کردن مرحله جنسیت
             function fillGenderStep() {
                 if (state.currentStep === STEPS.GENDER) {
@@ -135,6 +140,17 @@ document.addEventListener('DOMContentLoaded', function() {
                     }
                 }
             }
+                        
+            // پر کردن مرحله فعالیت ورزشی هفتگی
+            function fillExerciseStep() {
+                if (state.currentStep === STEPS.EXERCISE) {
+                    const exerciseOption = document.querySelector(`.exercise-option[data-exercise="${testData.exercise}"]`);
+                    if (exerciseOption) {
+                        exerciseOption.click();
+                        clickNextButton(500);
+                    }
+                }
+            }     
 
             // پر کردن مرحله وعده‌های غذایی
             function fillMealsStep() {
@@ -155,6 +171,40 @@ document.addEventListener('DOMContentLoaded', function() {
                         waterCups[testData.waterIntake - 1].click();
                         clickNextButton(500);
                     }
+                }
+            }
+
+            // پر کردن مرحله الگوی غذایی و عادات غذایی
+            function fillMealPatternStep() {
+                if (state.currentStep === STEPS.MEAL_PATTERN) {
+                    // انتخاب تعداد وعده‌ها
+                    setTimeout(() => {
+                        const mealPatternOption = document.querySelector(`#meal-pattern-selection .card-option[data-meals="${testData.mealPattern}"]`);
+                        if (mealPatternOption) {
+                            mealPatternOption.click();
+                        }
+                    }, 300);
+
+                    // انتخاب بزرگترین وعده غذایی
+                    setTimeout(() => {
+                        const largestMealOption = document.querySelector(`.card-option[data-value="${testData.largestMeal}"]`);
+                        if (largestMealOption && largestMealOption.closest('.question').querySelector('h4').textContent.includes('بزرگتر')) {
+                            largestMealOption.click();
+                        }
+                    }, 600);
+
+                    // انتخاب فاصله شام تا خواب
+                    setTimeout(() => {
+                        const dinnerOption = document.querySelector(`.card-option[data-value="${testData.dinnerBeforeSleep}"]`);
+                        if (dinnerOption && dinnerOption.closest('.question').querySelector('h4').textContent.includes('شام')) {
+                            dinnerOption.click();
+                            
+                            // کلیک روی دکمه بعدی پس از پر کردن تمام بخش‌ها
+                            setTimeout(() => {
+                                clickNextButton(500);
+                            }, 300);
+                        }
+                    }, 900);
                 }
             }
 
@@ -215,7 +265,6 @@ document.addEventListener('DOMContentLoaded', function() {
             }
 
             // پر کردن مرحله تأیید نهایی
-            // در تابع fillConfirmationStep این تغییرات را اعمال کنید
             function fillConfirmationStep() {
                 if (state.currentStep === STEPS.CONFIRMATION) {
                     const confirmCheckbox = document.getElementById('confirm-info');
@@ -264,8 +313,10 @@ document.addEventListener('DOMContentLoaded', function() {
             fillGoalStep();
             fillNumberSteps();
             fillActivityStep();
+            fillExerciseStep();
             fillMealsStep();
             fillWaterStep();
+            fillMealPatternStep(); // اضافه شده
             fillCheckboxSteps();
             fillGoalDisplayStep();
             fillTermsStep();
@@ -317,7 +368,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     // حذف هندلر پس از تکمیل فرم
                     setTimeout(() => {
                         window.removeEventListener('stateUpdated', stateChangeHandler);
-                    }, 5000); // حداکثر 15 ثانیه
+                    }, 15000); // حداکثر 15 ثانیه
                 }, 500);
             });
 
@@ -327,4 +378,4 @@ document.addEventListener('DOMContentLoaded', function() {
         // ایجاد دکمه پس از لود کامل صفحه
         setTimeout(createAutoFillButton, 1000);
     }
-}); 
+});

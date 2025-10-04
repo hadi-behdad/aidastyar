@@ -76,6 +76,7 @@ document.addEventListener('DOMContentLoaded', () => {
     setupScrollIndicator('diet-style-selection');
     setupScrollIndicator('food-limitations-selection');
     setupScrollIndicator('food-preferences-selection');
+    setupScrollIndicator('meal-pattern-main-container');
 });
 
 window.handleNextStep = function() {
@@ -489,7 +490,7 @@ window.showSummary = function() {
     if (surgery.includes('kidney')) surgeryText.push('پیوند کلیه');
     if (surgery.includes('liver')) surgeryText.push('پیوند کبد');
     if (surgery.includes('heart')) surgeryText.push('جراحی قلب');
-    if (surgery.includes('none')) surgeryText.push('هیچکدام');
+    if (surgery.includes('none')) surgeryText.push('هیچگونه سابقه جراحی ندارم');
 
     // اطلاعات هورمونی
     const hormonalText = [];
@@ -520,7 +521,7 @@ window.showSummary = function() {
     if (hormonal.includes('cortisol')) hormonalText.push('مشکلات کورتیزول');
     if (hormonal.includes('growth')) hormonalText.push('اختلال هورمون رشد');
     if (hormonal.includes('hashimoto')) hormonalText.push('هاشیموتو');
-    if (hormonal.includes('none')) hormonalText.push('هیچکدام');
+    if (hormonal.includes('none')) hormonalText.push('ندارم');
 
     // مشکلات معده
     const stomachDiscomfortText = [];
@@ -538,7 +539,32 @@ window.showSummary = function() {
     if (stomachDiscomfort.includes('fullness')) stomachDiscomfortText.push('سیری زودرس');
     if (stomachDiscomfort.includes('ibd')) stomachDiscomfortText.push('بیماری التهابی روده');
     if (stomachDiscomfort.includes('gerd')) stomachDiscomfortText.push('ریفلاکس معده-مروی');
-    if (stomachDiscomfort.includes('none')) stomachDiscomfortText.push('هیچکدام');
+    if (stomachDiscomfort.includes('none')) stomachDiscomfortText.push('ندارم');
+
+    const mealPatternText = {
+        "2": "۲ وعده",
+        "3": "۳ وعده", 
+        "4": "۴ وعده",
+        "5": "۵ وعده یا بیشتر",
+        "irregular": "وعده‌های نامنظم"
+    }[state.formData.mealPattern];
+    
+    const largestMealText = {
+        "breakfast": "صبحانه",
+        "lunch": "ناهار",
+        "dinner": "شام", 
+        "equal": "همه برابر",
+        "variable": "متغیر است"
+    }[state.formData.largestMeal];
+    
+    const dinnerBeforeSleepText = {
+        "1": "کمتر از ۱ ساعت",
+        "2": "۱-۲ ساعت",
+        "3": "۲-۳ ساعت", 
+        "4": "بیش از ۳ ساعت",
+        "irregular": "زمان ثابتی ندارم",
+        "no-dinner": "شام نمی‌خورم"
+    }[state.formData.dinnerBeforeSleep];
 
     // اطلاعات تکمیلی سلامت
     const additionalInfoText = [];
@@ -550,14 +576,14 @@ window.showSummary = function() {
     if (additionalInfo.includes('lactose')) additionalInfoText.push('عدم تحمل لاکتوز');
     if (additionalInfo.includes('food-allergy')) additionalInfoText.push('حساسیت غذایی');
     if (additionalInfo.includes('fatty-liver')) additionalInfoText.push('کبد چرب');
-    if (additionalInfo.includes('none')) additionalInfoText.push('هیچکدام');
+    if (additionalInfo.includes('none')) additionalInfoText.push('سالم هستم');
 
     // سبک‌های غذایی
     const dietStyleText = [];
     if (dietStyle.includes('vegetarian')) dietStyleText.push('گیاهخواری');
     if (dietStyle.includes('vegan')) dietStyleText.push('وگان');
     if (dietStyle.includes('halal')) dietStyleText.push('حلال');
-    if (dietStyle.includes('none')) dietStyleText.push('هیچکدام');
+    if (dietStyle.includes('none')) dietStyleText.push('سبک غذایی خاصی ندارم');
 
     // محدودیت‌های غذایی
     const foodLimitationsText = [];
@@ -568,7 +594,7 @@ window.showSummary = function() {
     if (foodLimitations.includes('no-dairy')) foodLimitationsText.push('عدم مصرف لبنیات');
     if (foodLimitations.includes('no-eggs')) foodLimitationsText.push('عدم مصرف تخم‌مرغ');
     if (foodLimitations.includes('no-nuts')) foodLimitationsText.push('عدم مصرف آجیل و مغزها');
-    if (foodLimitations.includes('none')) foodLimitationsText.push('هیچکدام');
+    if (foodLimitations.includes('none')) foodLimitationsText.push('ندارم');
 
     // ترجیحات غذایی
     const foodPreferencesText = [];
@@ -576,7 +602,7 @@ window.showSummary = function() {
     if (foodPreferences.includes('low-fat')) foodPreferencesText.push('رژیم کم چربی');
     if (foodPreferences.includes('high-protein')) foodPreferencesText.push('رژیم پرپروتئین');
     if (foodPreferences.includes('organic')) foodPreferencesText.push('مواد غذایی ارگانیک');
-    if (foodPreferences.includes('none')) foodPreferencesText.push('هیچکدام');
+    if (foodPreferences.includes('none')) foodPreferencesText.push('ندارم');
 
     summaryContainer.innerHTML = `
         ${personalInfoText.length > 0 ? `
@@ -672,9 +698,17 @@ window.showSummary = function() {
             <span class="summary-value">${exerciseText}</span>
         </div>        
         <div class="summary-item">
-            <span class="summary-label">تعداد وعده‌های غذایی:</span>
-            <span class="summary-value">${mealsText}</span>
+            <span class="summary-label">الگوی وعده‌ها:</span>
+            <span class="summary-value">${mealPatternText}</span>
         </div>
+        <div class="summary-item">
+            <span class="summary-label">بزرگترین وعده:</span>
+            <span class="summary-value">${largestMealText}</span>
+        </div>
+        <div class="summary-item">
+            <span class="summary-label">فاصله شام تا خواب:</span>
+            <span class="summary-value">${dinnerBeforeSleepText}</span>
+        </div>        
         <div class="summary-item">
             <span class="summary-label">وضعیت سلامت:</span>
             <span class="summary-value">${additionalInfoText.join('، ') || 'ثبت نشده'}</span>
@@ -691,9 +725,7 @@ window.showSummary = function() {
             <span class="summary-label">ترجیحات غذایی:</span>
             <span class="summary-value">${foodPreferencesText.join('، ') || 'ثبت نشده'}</span>
         </div>
-    `;
-    
- 
+        `;
 }
 
 // Initialize event listeners

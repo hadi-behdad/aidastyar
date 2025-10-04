@@ -121,6 +121,36 @@ window.state = {
                 const mealOption = document.querySelector(`.meal-option[data-meals="${this.formData.meals}"]`);
                 if (mealOption) mealOption.classList.add('selected');
             }
+                    
+            // به روزرسانی meal pattern
+            if (this.formData.mealPattern) {
+                const mealPatternOption = document.querySelector(`.meal-pattern-option[data-meals="${this.formData.mealPattern}"]`);
+                if (mealPatternOption) {
+                    mealPatternOption.classList.add('selected');
+                    mealPatternOption.style.transform = "translateY(-3px)";
+                    mealPatternOption.style.boxShadow = "0 10px 20px rgba(0, 133, 122, 0.2)";
+                }
+            }
+            
+            // به روزرسانی largest meal
+            if (this.formData.largestMeal) {
+                const largestMealOption = document.querySelector(`.card-option[data-value="${this.formData.largestMeal}"]`);
+                if (largestMealOption) {
+                    largestMealOption.classList.add('selected');
+                    largestMealOption.style.transform = "translateY(-3px)";
+                    largestMealOption.style.boxShadow = "0 10px 20px rgba(0, 133, 122, 0.2)";
+                }
+            }
+            
+            // به روزرسانی dinner before sleep
+            if (this.formData.dinnerBeforeSleep) {
+                const dinnerOption = document.querySelector(`.card-option[data-value="${this.formData.dinnerBeforeSleep}"]`);
+                if (dinnerOption && dinnerOption.closest('.question').querySelector('h4').textContent.includes('شام')) {
+                    dinnerOption.classList.add('selected');
+                    dinnerOption.style.transform = "translateY(-3px)";
+                    dinnerOption.style.boxShadow = "0 10px 20px rgba(0, 133, 122, 0.2)";
+                }
+            }            
             
             // به روزرسانی مصرف آب
             if (this.formData.waterIntake !== undefined && this.formData.waterIntake !== null) {
@@ -248,15 +278,16 @@ window.STEPS = {
     HORMONAL: 10, 
     STOMACH: 11,
     WATER_INTAKE: 12,
-    ACTIVITY: 13,     // فعالیت روزمره
-    EXERCISE: 14,     // مرحله جدید: فعالیت ورزشی
-    MEALS: 15,        // قبلاً 14 بود
-    ADDITIONAL_INFO: 16, // قبلاً 15 بود
-    DIET_STYLE: 17,   // قبلاً 16 بود
-    FOOD_LIMITATIONS: 18, // قبلاً 17 بود
-    FOOD_PREFERENCES: 19, // قبلاً 18 بود
-    TERMS_AGREEMENT: 20, // قبلاً 19 بود
-    CONFIRMATION: 21  // قبلاً 20 بود
+    ACTIVITY: 13,
+    EXERCISE: 14,
+    MEALS: 15,
+    MEAL_PATTERN: 16,       // تغییر نام از CUSTOM_STEP به MEAL_PATTERN
+    ADDITIONAL_INFO: 17,
+    DIET_STYLE: 18,
+    FOOD_LIMITATIONS: 19,
+    FOOD_PREFERENCES: 20,
+    TERMS_AGREEMENT: 21,
+    CONFIRMATION: 22
 };
 
 window.totalSteps = Object.keys(STEPS).length;
