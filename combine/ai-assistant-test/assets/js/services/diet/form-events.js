@@ -72,11 +72,9 @@ document.addEventListener('DOMContentLoaded', () => {
     setupScrollIndicator('goal-selection');
     setupScrollIndicator('activity-selection');
     setupScrollIndicator('exercise-selection'); // اضافه کردن این خط
-    setupScrollIndicator('meal-selection');
     setupScrollIndicator('diet-style-selection');
     setupScrollIndicator('food-limitations-selection');
     setupScrollIndicator('food-preferences-selection');
-    setupScrollIndicator('meal-pattern-main-container');
 });
 
 window.handleNextStep = function() {
@@ -447,7 +445,6 @@ window.showSummary = function() {
         "fitness": "حفظ سلامت"
     }[goal];
     
-    // در تابع showSummary - بخش فعالیت
     const activityText = { 
         "very-low": "خیلی کم (بی‌تحرک)", 
         "low": "کم (فعالیت سبک)", 
@@ -540,31 +537,6 @@ window.showSummary = function() {
     if (stomachDiscomfort.includes('ibd')) stomachDiscomfortText.push('بیماری التهابی روده');
     if (stomachDiscomfort.includes('gerd')) stomachDiscomfortText.push('ریفلاکس معده-مروی');
     if (stomachDiscomfort.includes('none')) stomachDiscomfortText.push('ندارم');
-
-    const mealPatternText = {
-        "2": "۲ وعده",
-        "3": "۳ وعده", 
-        "4": "۴ وعده",
-        "5": "۵ وعده یا بیشتر",
-        "irregular": "وعده‌های نامنظم"
-    }[state.formData.mealPattern];
-    
-    const largestMealText = {
-        "breakfast": "صبحانه",
-        "lunch": "ناهار",
-        "dinner": "شام", 
-        "equal": "همه برابر",
-        "variable": "متغیر است"
-    }[state.formData.largestMeal];
-    
-    const dinnerBeforeSleepText = {
-        "1": "کمتر از ۱ ساعت",
-        "2": "۱-۲ ساعت",
-        "3": "۲-۳ ساعت", 
-        "4": "بیش از ۳ ساعت",
-        "irregular": "زمان ثابتی ندارم",
-        "no-dinner": "شام نمی‌خورم"
-    }[state.formData.dinnerBeforeSleep];
 
     // اطلاعات تکمیلی سلامت
     const additionalInfoText = [];
@@ -696,19 +668,7 @@ window.showSummary = function() {
         <div class="summary-item">
             <span class="summary-label">فعالیت ورزشی:</span>
             <span class="summary-value">${exerciseText}</span>
-        </div>        
-        <div class="summary-item">
-            <span class="summary-label">الگوی وعده‌ها:</span>
-            <span class="summary-value">${mealPatternText}</span>
-        </div>
-        <div class="summary-item">
-            <span class="summary-label">بزرگترین وعده:</span>
-            <span class="summary-value">${largestMealText}</span>
-        </div>
-        <div class="summary-item">
-            <span class="summary-label">فاصله شام تا خواب:</span>
-            <span class="summary-value">${dinnerBeforeSleepText}</span>
-        </div>        
+        </div>             
         <div class="summary-item">
             <span class="summary-label">وضعیت سلامت:</span>
             <span class="summary-value">${additionalInfoText.join('، ') || 'ثبت نشده'}</span>

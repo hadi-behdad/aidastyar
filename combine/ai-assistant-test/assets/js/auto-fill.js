@@ -33,11 +33,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 additionalInfo: ['none'],
                 dietStyle: ['none'],
                 foodLimitations: ['none'],
-                foodPreferences: ['none'],
-                // داده‌های جدید برای مرحله الگوی غذایی
-                mealPattern: '3',
-                largestMeal: 'lunch',
-                dinnerBeforeSleep: '3'
+                foodPreferences: ['none']
             };
 
             // تابع جدید برای پر کردن مرحله اطلاعات شخصی
@@ -152,17 +148,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
             }     
 
-            // پر کردن مرحله وعده‌های غذایی
-            function fillMealsStep() {
-                if (state.currentStep === STEPS.MEALS) {
-                    const mealOption = document.querySelector(`.meal-option[data-meals="${testData.meals}"]`);
-                    if (mealOption) {
-                        mealOption.click();
-                        clickNextButton(500);
-                    }
-                }
-            }
-
             // پر کردن مرحله مصرف آب
             function fillWaterStep() {
                 if (state.currentStep === STEPS.WATER_INTAKE) {
@@ -171,40 +156,6 @@ document.addEventListener('DOMContentLoaded', function() {
                         waterCups[testData.waterIntake - 1].click();
                         clickNextButton(500);
                     }
-                }
-            }
-
-            // پر کردن مرحله الگوی غذایی و عادات غذایی
-            function fillMealPatternStep() {
-                if (state.currentStep === STEPS.MEAL_PATTERN) {
-                    // انتخاب تعداد وعده‌ها
-                    setTimeout(() => {
-                        const mealPatternOption = document.querySelector(`#meal-pattern-selection .card-option[data-meals="${testData.mealPattern}"]`);
-                        if (mealPatternOption) {
-                            mealPatternOption.click();
-                        }
-                    }, 300);
-
-                    // انتخاب بزرگترین وعده غذایی
-                    setTimeout(() => {
-                        const largestMealOption = document.querySelector(`.card-option[data-value="${testData.largestMeal}"]`);
-                        if (largestMealOption && largestMealOption.closest('.question').querySelector('h4').textContent.includes('بزرگتر')) {
-                            largestMealOption.click();
-                        }
-                    }, 600);
-
-                    // انتخاب فاصله شام تا خواب
-                    setTimeout(() => {
-                        const dinnerOption = document.querySelector(`.card-option[data-value="${testData.dinnerBeforeSleep}"]`);
-                        if (dinnerOption && dinnerOption.closest('.question').querySelector('h4').textContent.includes('شام')) {
-                            dinnerOption.click();
-                            
-                            // کلیک روی دکمه بعدی پس از پر کردن تمام بخش‌ها
-                            setTimeout(() => {
-                                clickNextButton(500);
-                            }, 300);
-                        }
-                    }, 900);
                 }
             }
 
@@ -314,9 +265,7 @@ document.addEventListener('DOMContentLoaded', function() {
             fillNumberSteps();
             fillActivityStep();
             fillExerciseStep();
-            fillMealsStep();
             fillWaterStep();
-            fillMealPatternStep(); // اضافه شده
             fillCheckboxSteps();
             fillGoalDisplayStep();
             fillTermsStep();
@@ -368,7 +317,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     // حذف هندلر پس از تکمیل فرم
                     setTimeout(() => {
                         window.removeEventListener('stateUpdated', stateChangeHandler);
-                    }, 15000); // حداکثر 15 ثانیه
+                    }, 5000); // حداکثر 15 ثانیه
                 }, 500);
             });
 

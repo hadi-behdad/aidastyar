@@ -475,117 +475,6 @@ window.setupConfirmationCheckbox = function(currentStep) {
     validateForm();
 }
 
-window.setupMealPatternStep = function(currentStep) {
-    if (currentStep !== STEPS.MEAL_PATTERN) return;
-
-    // تنظیم انتخاب تعداد وعده‌ها
-    setupMealPatternSelection(currentStep);
-    
-    // تنظیم سوالات ضروری
-    setupEssentialQuestions();
-    
-    // فعال کردن دکمه بعدی
-    const nextButton = document.querySelector(".next-step");
-    if (nextButton) nextButton.disabled = true;
-    
-    // بررسی وضعیت فرم
-    validateMealPatternStep();
-}
-
-window.setupEssentialQuestions = function() {
-    const allCardOptions = document.querySelectorAll('#meal-pattern-step .card-option');
-    
-    allCardOptions.forEach(option => {
-        option.addEventListener('click', function() {
-            const parentContainer = this.closest('.card-selection-container');
-            const dataValue = this.dataset.value || this.dataset.meals;
-            const questionType = this.closest('.question') ? 
-                (this.closest('.question').querySelector('h4').textContent.includes('بزرگتر') ? 'largestMeal' : 'dinnerBeforeSleep') : 
-                'mealPattern';
-            
-            // اگر کاربر "شام نمی‌خورم" را انتخاب کرد
-            if (questionType === 'dinnerBeforeSleep' && dataValue === 'no-dinner') {
-                // غیرفعال کردن گزینه "شام" در سوال بزرگترین وعده
-                const dinnerOption = document.querySelector('.card-option[data-value="dinner"]');
-                if (dinnerOption) {
-                    dinnerOption.style.opacity = '0.5';
-                    dinnerOption.style.pointerEvents = 'none';
-                    
-                    // اگر قبلاً شام انتخاب شده بود، آن را پاک کن
-                    if (state.formData.largestMeal === 'dinner') {
-                        dinnerOption.classList.remove('selected');
-                        dinnerOption.style.transform = "";
-                        dinnerOption.style.boxShadow = "";
-                        state.updateFormData('largestMeal', '');
-                    }
-                }
-            } else if (questionType === 'dinnerBeforeSleep' && dataValue !== 'no-dinner') {
-                // فعال کردن مجدد گزینه "شام"
-                const dinnerOption = document.querySelector('.card-option[data-value="dinner"]');
-                if (dinnerOption) {
-                    dinnerOption.style.opacity = '1';
-                    dinnerOption.style.pointerEvents = 'auto';
-                }
-            }
-            
-            // بقیه کدها...
-            parentContainer.querySelectorAll('.card-option').forEach(opt => {
-                opt.classList.remove('selected');
-                opt.style.transform = "";
-                opt.style.boxShadow = "";
-            });
-            
-            this.classList.add('selected');
-            this.style.transform = "translateY(-3px)";
-            this.style.boxShadow = "0 10px 20px rgba(0, 133, 122, 0.2)";
-            
-            state.updateFormData(questionType, dataValue);
-            validateMealPatternStep();
-        });
-    });
-}
-
-window.validateMealPatternStep = function() {
-    const nextButton = document.querySelector(".next-step");
-    if (!nextButton) return;
-    
-    // بررسی اینکه آیا تمام سه بخش تکمیل شده‌اند
-    const hasMealPattern = state.formData.mealPattern !== undefined;
-    const hasLargestMeal = state.formData.largestMeal !== undefined;
-    const hasDinnerBeforeSleep = state.formData.dinnerBeforeSleep !== undefined;
-    
-    nextButton.disabled = !(hasMealPattern && hasLargestMeal && hasDinnerBeforeSleep);
-}
-
-window.setupMealPatternSelection = function(currentStep) {
-    if (currentStep !== STEPS.MEAL_PATTERN) return;
-
-    const patternOptions = document.querySelectorAll('#meal-pattern-selection .card-option');
-    const nextButton = document.querySelector(".next-step");
-    
-    patternOptions.forEach(option => {
-        option.addEventListener('click', function() {
-            // حذف انتخاب از همه گزینه‌ها
-            patternOptions.forEach(opt => {
-                opt.classList.remove('selected');
-                opt.style.transform = "";
-                opt.style.boxShadow = "";
-            });
-            
-            // انتخاب گزینه کلیک شده
-            this.classList.add('selected');
-            this.style.transform = "translateY(-3px)";
-            this.style.boxShadow = "0 10px 20px rgba(0, 133, 122, 0.2)";
-            
-            // ذخیره داده
-            state.updateFormData('mealPattern', this.dataset.meals);
-            
-            // بررسی وضعیت فرم
-            validateMealPatternStep();
-        });
-    });
-};
-
 // در تابع setupExerciseSelection
 window.setupExerciseSelection = function(currentStep) {
     if (currentStep !== STEPS.EXERCISE) return;
@@ -624,9 +513,8 @@ window.setupExerciseSelection = function(currentStep) {
                 // ذخیره داده
                 state.updateFormData('exercise', this.dataset.exercise);
                 
-                // رفتن به مرحله بعدی (MEALS) به صورت خودکار
                 setTimeout(() => {
-                    navigateToStep(STEPS.MEALS); // به جای state.currentStep + 1
+                    navigateToStep(STEPS.ADDITIONAL_INFO); 
                 }, 250);
             }, 150);
         });
@@ -634,7 +522,6 @@ window.setupExerciseSelection = function(currentStep) {
 };
 
 window.showStep = function(step) {
-    // در تابع showStep، آرایه stepElements را اصلاح کنید
     const stepElements = [
         "gender-selection-step",        // 1
         "personal-info-step",           // 2
@@ -650,14 +537,12 @@ window.showStep = function(step) {
         "water-intake-step",            // 12
         "activity-selection-step",      // 13
         "exercise-activity-step",       // 14
-        "meal-selection-step",          // 15
-        "meal-pattern-step",            // 16 - مرحله جدید (اصلاح شده)
-        "additional-info-step",         // 17
-        "diet-style-step",              // 18
-        "food-limitations-step",        // 19
-        "food-preferences-step",        // 20
-        "terms-agreement-step",         // 21
-        "confirm-submit-step"           // 22
+        "additional-info-step",         // 15 (قبلاً 16)
+        "diet-style-step",              // 16 (قبلاً 17)
+        "food-limitations-step",        // 17 (قبلاً 18)
+        "food-preferences-step",        // 18 (قبلاً 19)
+        "terms-agreement-step",         // 19 (قبلاً 20)
+        "confirm-submit-step"           // 20 (قبلاً 21)
     ];
     
     document.querySelectorAll(".step").forEach(el => {
@@ -730,8 +615,7 @@ window.showStep = function(step) {
             STEPS.GOAL,
             STEPS.WATER_INTAKE, // اضافه شده
             STEPS.ACTIVITY, 
-            STEPS.EXERCISE,
-            STEPS.MEALS
+            STEPS.EXERCISE
         ].includes(step) ? "none" : "block";
     }
 
@@ -761,13 +645,6 @@ window.showStep = function(step) {
     } 
     else if (step === STEPS.EXERCISE) {
         setupExerciseSelection(step);
-    }
-    else if (step === STEPS.MEALS) {
-        document.getElementById("next-button-container").style.display = "none";
-    }
-    else if (step === STEPS.MEAL_PATTERN) {
-        setupMealPatternStep(step);
-        document.getElementById("next-button-container").style.display = "block";
     }
     else if (step === STEPS.ADDITIONAL_INFO) {
         setupAdditionalInfoSelection(step);

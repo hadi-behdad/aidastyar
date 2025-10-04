@@ -1902,8 +1902,7 @@ body:not(.dark-mode) .theme-toggle svg.sun-icon {
 #goal-selection,
 #meal-selection,
 #exercise-selection,
-#activity-selection,
-#meal-pattern-main-container {
+#activity-selection {
     max-height: 55vh;
     min-height: 250px;
     overflow-y: auto;
@@ -1919,16 +1918,14 @@ body:not(.dark-mode) .theme-toggle svg.sun-icon {
 #goal-selection::-webkit-scrollbar,
 #meal-selection::-webkit-scrollbar,
 #exercise-selection::-webkit-scrollbar,
-#activity-selection::-webkit-scrollbar,
-#meal-pattern-main-container::-webkit-scrollbar{
+#activity-selection::-webkit-scrollbar{
     width: 6px;
 }
 
 #goal-selection::-webkit-scrollbar-track,
 #meal-selection::-webkit-scrollbar-track,
 #exercise-selection::-webkit-scrollbar-track,
-#activity-selection::-webkit-scrollbar-track,
-#meal-pattern-main-container::-webkit-scrollbar-track{
+#activity-selection::-webkit-scrollbar-track{
     background: var(--background-color);
     border-radius: 3px;
 }
@@ -1936,8 +1933,7 @@ body:not(.dark-mode) .theme-toggle svg.sun-icon {
 #goal-selection::-webkit-scrollbar-thumb,
 #meal-selection::-webkit-scrollbar-thumb,
 #exercise-selection::-webkit-scrollbar-thumb,
-#activity-selection::-webkit-scrollbar-thumb,
-#meal-pattern-main-container::-webkit-scrollbar-thumb{
+#activity-selection::-webkit-scrollbar-thumb{
     background-color: var(--primary-color);
     border-radius: 3px;
 }
@@ -1973,24 +1969,21 @@ body:not(.dark-mode) .theme-toggle svg.sun-icon {
 body.dark-mode #goal-selection,
 body.dark-mode #meal-selection,
 body.dark-mode #exercise-selection,
-body.dark-mode #activity-selection,
-body.dark-mode #meal-pattern-main-container{
+body.dark-mode #activity-selection{
     scrollbar-color: #4db6ac #1e1e1e;
 }
 
 body.dark-mode #goal-selection::-webkit-scrollbar-track,
 body.dark-mode #meal-selection::-webkit-scrollbar-track,
 body.dark-mode #exercise-selection::-webkit-scrollbar-track,
-body.dark-mode #activity-selection::-webkit-scrollbar-track,
-body.dark-mode #meal-pattern-main-container::-webkit-scrollbar-track{
+body.dark-mode #activity-selection::-webkit-scrollbar-track{
     background: #1e1e1e;
 }
 
 body.dark-mode #goal-selection::-webkit-scrollbar-thumb,
 body.dark-mode #meal-selection::-webkit-scrollbar-thumb,
 body.dark-mode #exercise-selection::-webkit-scrollbar-thumb,
-body.dark-mode #activity-selection::-webkit-scrollbar-thumb,
-body.dark-mode #meal-pattern-main-container::-webkit-scrollbar-thumb{
+body.dark-mode #activity-selection::-webkit-scrollbar-thumb{
     background-color: #4db6ac;
 }
 
@@ -2397,198 +2390,4 @@ body.dark-mode .floating-document {
     outline: none;
     border-color: #4CAF50;
     box-shadow: 0 0 0 2px rgba(76, 175, 80, 0.2);
-}
-
-
-#meal-pattern-main-container .section-container {
-    margin-bottom: 30px; /* فاصله بین دو بخش */
-}
-
-
-/* استایل‌های کارت برای مرحله الگوی غذایی - نسخه فشرده */
-.card-selection-container {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    gap: 12px;
-    margin: 15px 0;
-}
-
-.card-option {
-    background: var(--option-bg);
-    border: 2px solid var(--input-focus-bg);
-    border-radius: 10px;
-    padding: 15px 12px;
-    cursor: pointer;
-    transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-    text-align: center;
-    position: relative;
-    overflow: hidden;
-    min-height: 100px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.card-option::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    height: 2px;
-    background: linear-gradient(90deg, var(--primary-color), var(--secondary-color));
-    transform: scaleX(0);
-    transition: transform 0.3s ease;
-}
-
-.card-option:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 8px 20px rgba(0, 133, 122, 0.15);
-    border-color: var(--primary-color);
-}
-
-.card-option:hover::before {
-    transform: scaleX(1);
-}
-
-.card-option.selected {
-    background: var(--option-selected-bg);
-    border-color: var(--orange-color);
-    transform: translateY(-3px);
-    box-shadow: 0 10px 25px var(--orange-shadow);
-}
-
-.card-option.selected::before {
-    transform: scaleX(1);
-    background: linear-gradient(90deg, var(--orange-color), #ffb74d);
-}
-
-.card-content {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 8px;
-    width: 100%;
-}
-
-.card-icon {
-    font-size: 1.8em;
-    margin-bottom: 2px;
-}
-
-.card-option h4 {
-    font-size: 15px;
-    font-weight: bold;
-    color: var(--text-color);
-    margin: 0;
-    line-height: 1.3;
-}
-
-.card-option h5 {
-    font-size: 14px;
-    font-weight: bold;
-    color: var(--text-color);
-    margin: 0;
-    line-height: 1.3;
-}
-
-.card-option p {
-    font-size: 12px;
-    color: var(--light-text-color);
-    margin: 0;
-    line-height: 1.4;
-    text-align: center;
-}
-
-/* استایل‌های بخش‌بندی - فشرده */
-.section-container {
-    margin-bottom: 30px;
-    padding: 15px;
-    background: var(--white-color);
-    border-radius: 10px;
-    box-shadow: 0 2px 8px var(--shadow-color);
-}
-
-.section-container h3 {
-    font-size: 16px;
-    font-weight: bold;
-    color: var(--primary-color);
-    margin-bottom: 15px;
-    text-align: center;
-    border-bottom: 1px solid var(--input-focus-bg);
-    padding-bottom: 8px;
-}
-
-.question {
-    margin-bottom: 25px;
-}
-
-.question h4 {
-    font-size: 15px;
-    font-weight: 600;
-    color: var(--text-color);
-    margin-bottom: 12px;
-    text-align: right;
-}
-
-/* ریسپانسیو برای موبایل */
-@media (max-width: 768px) {
-    .card-selection-container {
-        grid-template-columns: 1fr;
-        gap: 10px;
-    }
-    
-    .card-option {
-        padding: 12px 10px;
-        min-height: 90px;
-    }
-    
-    .section-container {
-        padding: 12px;
-        margin-bottom: 25px;
-    }
-    
-    .card-icon {
-        font-size: 1.6em;
-    }
-    
-    .card-option h4 {
-        font-size: 14px;
-    }
-    
-    .card-option h5 {
-        font-size: 13px;
-    }
-    
-    .card-option p {
-        font-size: 11px;
-    }
-}
-
-@media (max-width: 480px) {
-    .card-selection-container {
-        grid-template-columns: 1fr;
-    }
-    
-    .card-option {
-        min-height: 85px;
-        padding: 10px 8px;
-    }
-}
-
-/* انیمیشن انتخاب */
-@keyframes cardSelect {
-    0% {
-        transform: translateY(-3px) scale(1);
-    }
-    50% {
-        transform: translateY(-5px) scale(1.02);
-    }
-    100% {
-        transform: translateY(-3px) scale(1);
-    }
-}
-
-.card-option.selected {
-    animation: cardSelect 0.3s ease;
 }
