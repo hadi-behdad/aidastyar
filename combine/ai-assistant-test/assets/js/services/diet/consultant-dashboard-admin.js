@@ -149,53 +149,34 @@ class ConsultantDashboardAdmin {
             this.showError('داده‌ها برای نمایش موجود نیست');
             return;
         }
-
-        const { original_data, consultation_data } = this.originalData;
-        
-        this.editorContainer.innerHTML = `
-            <div class="editor-tabs">
-                <div class="editor-tab active" data-tab="original">رژیم اصلی</div>
-                <div class="editor-tab" data-tab="edit">ویرایش</div>
-                <div class="editor-tab" data-tab="preview">پیش‌نمایش</div>
-            </div>
-
-            <div class="editor-content">
-                <div class="editor-pane active" id="original-pane">
-                    <h4><i class="fas fa-file-alt"></i> رژیم تولید شده توسط هوش مصنوعی</h4>
-                    <div class="original-content">
-                        <pre>${this.escapeHtml(original_data.ai_response)}</pre>
-                    </div>
-                </div>
-
-                <div class="editor-pane" id="edit-pane">
-                    <h4><i class="fas fa-edit"></i> ویرایش رژیم</h4>
-                    <div class="edit-controls">
-                        <button class="consultant-btn consultant-btn-primary" id="load-original-btn">
-                            <i class="fas fa-download"></i> بارگذاری از رژیم اصلی
-                        </button>
-                    </div>
-                    <textarea id="diet-editor" style="width: 100%; height: 300px; font-family: monospace;" placeholder="محتوای رژیم غذایی را اینجا ویرایش کنید...">${this.escapeHtml(consultation_data.final_diet_data || original_data.ai_response)}</textarea>
-                </div>
-
-                <div class="editor-pane" id="preview-pane">
-                    <h4><i class="fas fa-eye"></i> پیش‌نمایش رژیم نهایی</h4>
-                    <div id="diet-preview" style="border: 1px solid #ddd; padding: 15px; border-radius: 5px; min-height: 200px;">
-                        ${this.renderSimplePreview(consultation_data.final_diet_data || original_data.ai_response)}
-                    </div>
-                </div>
-            </div>
-
-            <div class="notes-section">
-                <label for="consultant-notes">
-                    <i class="fas fa-sticky-note"></i> یادداشت‌های مشاور:
-                </label>
-                <textarea id="consultant-notes" style="width: 100%; height: 100px;" placeholder="یادداشت‌ها و توضیحات خود را اینجا بنویسید...">${this.escapeHtml(consultation_data.consultant_notes || '')}</textarea>
-            </div>
-        `;
-
-        this.setupEditorTabs();
-        this.setupEditorEvents();
+    
+        // ایجاد ویرایشگر جدید
+        this.dietEditor = new ConsultantDietEditor('consultation-editor');
+        this.dietEditor.init(this.originalData, this.currentRequestId);
+    
+        // تنظیم رویدادهای دکمه‌های ذخیره
+        this.setupSaveButtons();
     }
+    
+    setupSaveButtons() {
+        // دکمه ذخیره پیش‌نویس
+        const saveDraftBtn = document.getElementById('save-draft-btn');
+        if (saveDraftBtn) {
+            saveDraftBtn.addEventListener('click', () => this.saveReview('save_draft'));
+        }
+    
+        // دکمه تایید نهایی
+        const approveBtn = document.getElementById('approve-btn');
+        if (approveBtn) {
+            approveBtn.addEventListener('click', () => this.saveReview('approve'));
+        }
+    
+        // دکمه رد درخواست
+        const rejectBtn = document.getElementById('reject-btn');
+        if (rejectBtn) {
+            rejectBtn.addEventListener('click', () => this.saveReview('reject'));
+        }
+    }    
 
     escapeHtml(unsafe) {
         if (!unsafe) return '';
@@ -265,17 +246,25 @@ class ConsultantDashboardAdmin {
     }
 
     async saveReview(action) {
-        const editor = document.getElementById('diet-editor');
-        const notes = document.getElementById('consultant-notes');
-
-        if (!editor || !notes) {
-            this.showError('عناصر فرم یافت نشد');
-            return;
+        let finalDietData;
+        const consultantNotes = document.getElementById('consultant-notes')?.value || '';
+    
+        // دریافت داده‌های ویرایش شده
+        if (this.dietEditor) {
+            const editedData = this.dietEditor.getEditedData();
+            finalDietData = JSON.stringify(editedData, null, 2);
+        } else {
+            // روش قدیمی - ویرایشگر JSON
+            const jsonEditor = document.getElementById('diet-json-editor');
+            if (jsonEditor) {
+                finalDietData = jsonEditor.value;
+            } else {
+                // روش قدیمی - ویرایشگر متن ساده
+                const textEditor = document.getElementById('diet-text-editor');
+                finalDietData = textEditor?.value || '';
+            }
         }
-
-        const finalDietData = editor.value;
-        const consultantNotes = notes.value;
-
+    
         try {
             const response = await fetch(consultant_ajax.ajax_url, {
                 method: 'POST',
@@ -291,9 +280,9 @@ class ConsultantDashboardAdmin {
                     nonce: consultant_ajax.nonce
                 })
             });
-
+    
             const result = await response.json();
-
+    
             if (result.success) {
                 this.showSuccess('تغییرات با موفقیت ذخیره شد.');
                 this.closeModal();
