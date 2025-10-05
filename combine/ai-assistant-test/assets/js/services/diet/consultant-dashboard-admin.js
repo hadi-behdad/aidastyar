@@ -319,18 +319,63 @@ async saveReview(action) {
     }
 
     async saveReview(action) {
-        const editor = document.getElementById('diet-editor');
-        const notes = document.getElementById('consultant-notes');
-
-        if (!editor || !notes) {
-            this.showError('عناصر فرم یافت نشد');
+        let finalDietData;
+        const consultantNotes = document.getElementById('consultant-notes')?.value || '';
+    
+        console.log('Starting save review process...', action);
+    
+        // روش اول: استفاده از ویرایشگر جدید
+        if (this.dietEditor && typeof this.dietEditor.getFinalDietData === 'function') {
+            console.log('Using diet editor for data');
+            finalDietData = this.dietEditor.getFinalDietData();
+        } 
+        // روش دوم: بررسی ویرایشگر JSON
+        else {
+            const jsonEditor = document.getElementById('diet-json-editor');
+            if (jsonEditor) {
+                console.log('Using JSON editor for data');
+                finalDietData = jsonEditor.value;
+            } 
+            // روش سوم: بررسی ویرایشگر متن ساده
+            else {
+                const textEditor = document.getElementById('diet-text-editor');
+                if (textEditor) {
+                    console.log('Using text editor for data');
+                    finalDietData = textEditor.value;
+                } else {
+                    console.error('No editor found for diet data');
+                    this.showError('امکان ذخیره‌سازی وجود ندارد. لطفاً صفحه را رفرش کنید.');
+                    return;
+                }
+            }
+        }
+    
+        console.log('Final diet data length:', finalDietData?.length);
+        console.log('Consultant notes:', consultantNotes);
+    
+        // اعتبارسنجی داده‌ها
+        if (!finalDietData || finalDietData.trim() === '') {
+            this.showError('داده‌های رژیم غذایی نمی‌تواند خالی باشد');
             return;
         }
-
-        const finalDietData = editor.value;
-        const consultantNotes = notes.value;
-
+    
+        // اعتبارسنجی JSON (اگر داده JSON است)
+        if (finalDietData.trim().startsWith('{') || finalDietData.trim().startsWith('[')) {
+            try {
+                JSON.parse(finalDietData);
+                console.log('JSON validation passed');
+            } catch (e) {
+                console.error('JSON validation failed:', e);
+                this.showError('فرمت JSON نامعتبر است: ' + e.message);
+                return;
+            }
+        }
+    
+        // نمایش وضعیت در حال ذخیره
+        this.showMessage('در حال ذخیره‌سازی...', 'info');
+    
         try {
+            console.log('Sending request to server...');
             const response = await fetch(consultant_ajax.ajax_url, {
                 method: 'POST',
                 headers: {
@@ -345,19 +390,29 @@ async saveReview(action) {
                     nonce: consultant_ajax.nonce
                 })
             });
-
+    
+            console.log('Response received:', response.status);
+    
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+    
             const result = await response.json();
-
+            console.log('Server response:', result);
+    
             if (result.success) {
                 this.showSuccess('تغییرات با موفقیت ذخیره شد.');
-                this.closeModal();
                 setTimeout(() => {
-                    location.reload();
-                }, 2000);
+                    this.closeModal();
+                    setTimeout(() => {
+                        location.reload();
+                    }, 1000);
+                }, 1500);
             } else {
                 this.showError(result.data || 'خطا در ذخیره تغییرات');
             }
         } catch (error) {
+            console.error('Save review error:', error);
             this.showError('خطا در ارتباط با سرور: ' + error.message);
         }
     }

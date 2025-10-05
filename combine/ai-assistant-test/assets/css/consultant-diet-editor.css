@@ -3,6 +3,7 @@
     display: flex;
     background: #f8f9fa;
     border-bottom: 1px solid #dee2e6;
+    margin-bottom: 10px;
 }
 
 .consultant-editor-tab {
@@ -28,16 +29,20 @@
     min-height: 500px;
 }
 
+
+
 .consultant-editor-pane {
     display: none;
     position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
+    top: 50%;
+    left: 50%;
+    width: 95%;
     height: 100%;
-    padding: 20px;
+    padding: 2px;
     overflow-y: auto;
+    transform: translate(-50%, -50%);
 }
+
 
 .consultant-editor-pane.active {
     display: block;
@@ -54,7 +59,7 @@
 .consultant-diet-preview {
     background: white;
     border-radius: 8px;
-    padding: 20px;
+    padding: 2px;
     box-shadow: 0 2px 10px rgba(0,0,0,0.1);
 }
 
@@ -233,6 +238,7 @@
 }
 
 .consultant-notes-section {
+    width: 90%;
     margin-top: 20px;
     padding: 20px;
     background: #f8f9fa;
@@ -249,7 +255,7 @@
 }
 
 .consultant-notes-section textarea {
-    width: 100%;
+    width: 90%;
     height: 100px;
     border: 1px solid #ddd;
     border-radius: 4px;
@@ -353,7 +359,7 @@
 @media (max-width: 768px) {
     .consultant-modal-content {
         margin: 1% auto;
-        width: 98%;
+        width: 90%;
         max-height: 98vh;
     }
     
@@ -434,4 +440,103 @@
     .consultant-btn:active {
         transform: scale(0.98);
     }
+}
+
+
+
+.consultant-edit-input {
+    border: 2px solid #4e54c8 !important;
+    border-radius: 6px !important;
+    padding: 8px 12px !important;
+    font-family: inherit !important;
+    font-size: inherit !important;
+    line-height: inherit !important;
+    background: #fff !important;
+    box-shadow: 0 4px 20px rgba(78, 84, 200, 0.4) !important;
+    outline: none !important;
+    z-index: 10000 !important;
+    transition: all 0.2s ease !important;
+    box-sizing: border-box !important;
+}
+
+.consultant-edit-input:focus {
+    border-color: #6c63ff !important;
+    box-shadow: 0 6px 25px rgba(108, 99, 255, 0.5) !important;
+    transform: translateY(-1px) !important;
+}
+
+/* استایل مخصوص textarea */
+.consultant-edit-input[type="textarea"],
+.consultant-edit-input.textarea {
+    resize: vertical !important;
+    min-height: 80px !important;
+    white-space: pre-wrap !important;
+    word-wrap: break-word !important;
+}
+
+/* استایل مخصوص input */
+.consultant-edit-input[type="text"],
+.consultant-edit-input.input {
+    resize: none !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+}
+
+/* استایل برای المنت‌های مختلف */
+.editable-text {
+    cursor: pointer;
+    padding: 4px 8px;
+    border-radius: 4px;
+    transition: all 0.2s;
+    border: 1px solid transparent;
+    display: inline-block;
+    min-height: 1.2em;
+    line-height: 1.4;
+}
+
+.editable-text:hover {
+    background: rgba(255, 243, 205, 0.6);
+    border: 1px dashed #ffc107;
+    box-shadow: 0 2px 8px rgba(255, 193, 7, 0.2);
+}
+
+/* استایل مخصوص جدول */
+.consultant-table .editable-text {
+    padding: 6px 8px;
+    margin: -6px -8px;
+    width: calc(100% + 16px);
+}
+
+.consultant-table th .editable-text {
+    background: rgba(248, 249, 250, 0.8);
+}
+
+.consultant-table td .editable-text {
+    background: rgba(255, 255, 255, 0.8);
+}
+
+/* استایل مخصوص لیست */
+.consultant-section-content li .editable-text {
+    display: block;
+    width: 100%;
+    margin: 2px 0;
+}
+
+/* استایل مخصوص تیترها */
+.consultant-section-header .editable-text {
+    font-size: inherit;
+    font-weight: inherit;
+    padding: 8px 12px;
+    margin: -8px -12px;
+}
+
+/* انیمیشن برای ویرایش */
+@keyframes editPulse {
+    0% { box-shadow: 0 0 0 0 rgba(78, 84, 200, 0.4); }
+    70% { box-shadow: 0 0 0 10px rgba(78, 84, 200, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(78, 84, 200, 0); }
+}
+
+.editable-text.editing {
+    animation: editPulse 2s infinite;
 }

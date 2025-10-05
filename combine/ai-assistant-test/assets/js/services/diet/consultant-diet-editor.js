@@ -86,7 +86,7 @@ class ConsultantDietEditor {
                 <label for="consultant-notes">
                     <i class="fas fa-sticky-note"></i> یادداشت‌های مشاور:
                 </label>
-                <textarea id="consultant-notes" style="width: 100%; height: 100px;" placeholder="یادداشت‌ها و توضیحات خود را اینجا بنویسید...">${this.escapeHtml(this.originalData.consultation_data?.consultant_notes || '')}</textarea>
+                <textarea id="consultant-notes" style="" placeholder="یادداشت‌ها و توضیحات خود را اینجا بنویسید...">${this.escapeHtml(this.originalData.consultation_data?.consultant_notes || '')}</textarea>
             </div>
         `;
     }
@@ -360,49 +360,170 @@ class ConsultantDietEditor {
     }
 
     startEditing(element) {
-        if (this.isEditing) {
-            this.finishEditing(); // اگر در حال ویرایش دیگری هست، اول آن را ذخیره کن
-        }
+        if (this.isEditing) return;
         
         this.isEditing = true;
         this.currentEditElement = element;
+        this.originalText = element.textContent;
+        this.currentPath = element.dataset.path;
         
-        const originalText = element.textContent;
-        const path = element.dataset.path;
+        // محاسبه موقعیت و اندازه دقیق المنت
+        const rect = element.getBoundingClientRect();
+        const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+        const scrollLeft = window.pageYOffset || document.documentElement.scrollLeft;
         
-        // ایجاد input
-        const input = document.createElement('input');
-        input.type = 'text';
-        input.value = originalText;
+        // ایجاد textarea برای پشتیبانی از متن‌های چندخطی
+        const isTableCell = element.closest('td, th');
+        const isListOrParagraph = element.closest('li, p, h1, h2, h3');
+        
+        let input;
+        
+        if (isTableCell || element.textContent.length < 50) {
+            // برای سلول‌های جدول یا متن‌های کوتاه از input استفاده کن
+            input = document.createElement('input');
+            input.type = 'text';
+        } else {
+            // برای متن‌های طولانی از textarea استفاده کن
+            input = document.createElement('textarea');
+            input.style.resize = 'vertical';
+            input.style.minHeight = rect.height + 'px';
+        }
+        
+        input.value = this.originalText;
         input.className = 'consultant-edit-input';
+        input.style.position = 'absolute';
+        input.style.left = (rect.left + scrollLeft) + 'px';
+        input.style.top = (rect.top + scrollTop) + 'px';
+        input.style.width = rect.width + 'px';
         
-        // ذخیره reference به المنت اصلی
-        input.dataset.originalElement = element.outerHTML;
-        input.dataset.path = path;
+        // برای input ارتفاع ثابت، برای textarea ارتفاع پویا
+        if (input.nodeName === 'INPUT') {
+            input.style.height = rect.height + 'px';
+        } else {
+            input.style.height = Math.max(rect.height, 80) + 'px'; // حداقل ارتفاع 80px
+        }
         
-        // جایگزینی element با input
-        element.style.display = 'none';
-        element.parentNode.insertBefore(input, element);
+        input.style.zIndex = '10000';
+        input.style.fontFamily = getComputedStyle(element).fontFamily;
+        input.style.fontSize = getComputedStyle(element).fontSize;
+        input.style.lineHeight = getComputedStyle(element).lineHeight;
+        input.style.padding = getComputedStyle(element).padding;
+        input.style.margin = getComputedStyle(element).margin;
+        input.style.border = '2px solid #4e54c8';
+        input.style.borderRadius = '4px';
+        input.style.boxShadow = '0 4px 12px rgba(78, 84, 200, 0.3)';
+        input.style.background = '#fff';
+        input.style.outline = 'none';
+        
+        // مخفی کردن المنت اصلی
+        element.style.visibility = 'hidden';
+        
+        document.body.appendChild(input);
+        this.currentInput = input;
         
         // فوکوس و انتخاب متن
         input.focus();
         input.select();
         
-        // مدیریت events با استفاده از arrow functions برای حفظ context
-        this.handleInputKeydown = (e) => {
-            if (e.key === 'Enter') {
-                this.saveEdit(input);
+        // مدیریت events
+        const handleKeydown = (e) => {
+            if (e.key === 'Enter' && e.ctrlKey) {
+                finishEdit(); // Ctrl+Enter برای ذخیره
+            } else if (e.key === 'Enter' && input.nodeName === 'TEXTAREA') {
+                // در textarea اجازه Enter بده
+                return;
+            } else if (e.key === 'Enter') {
+                finishEdit();
             } else if (e.key === 'Escape') {
-                this.cancelEditing();
+                cancelEdit();
             }
         };
         
-        this.handleInputBlur = () => {
-            this.saveEdit(input);
+        const handleBlur = () => {
+            finishEdit();
         };
         
-        input.addEventListener('keydown', this.handleInputKeydown);
-        input.addEventListener('blur', this.handleInputBlur);
+        const handleResize = () => {
+            // اگر پنجره تغییر اندازه داد، موقعیت input را آپدیت کن
+            if (this.currentEditElement && input.parentNode) {
+                const newRect = this.currentEditElement.getBoundingClientRect();
+                const newScrollTop = window.pageYOffset || document.documentElement.scrollTop;
+                const newScrollLeft = window.pageYOffset || document.documentElement.scrollLeft;
+                
+                input.style.left = (newRect.left + newScrollLeft) + 'px';
+                input.style.top = (newRect.top + newScrollTop) + 'px';
+            }
+        };
+        
+        const finishEdit = () => {
+            const newValue = input.value.trim();
+            
+            // بازگرداندن المنت اصلی
+            if (this.currentEditElement && this.currentEditElement.parentNode) {
+                this.currentEditElement.style.visibility = 'visible';
+                this.currentEditElement.textContent = newValue;
+            }
+            
+            // حذف input
+            if (input.parentNode) {
+                input.remove();
+            }
+            
+            // حذف event listeners
+            window.removeEventListener('resize', handleResize);
+            input.removeEventListener('keydown', handleKeydown);
+            input.removeEventListener('blur', handleBlur);
+            
+            // آپدیت داده‌ها
+            if (newValue !== this.originalText) {
+                this.updateData(this.currentPath, newValue);
+            }
+            
+            // پاک کردن
+            this.isEditing = false;
+            this.currentEditElement = null;
+            this.currentInput = null;
+        };
+        
+        const cancelEdit = () => {
+            // بازگرداندن مقدار اصلی
+            if (this.currentEditElement && this.currentEditElement.parentNode) {
+                this.currentEditElement.style.visibility = 'visible';
+            }
+            
+            // حذف input
+            if (input.parentNode) {
+                input.remove();
+            }
+            
+            // حذف event listeners
+            window.removeEventListener('resize', handleResize);
+            input.removeEventListener('keydown', handleKeydown);
+            input.removeEventListener('blur', handleBlur);
+            
+            // پاک کردن
+            this.isEditing = false;
+            this.currentEditElement = null;
+            this.currentInput = null;
+        };
+        
+        input.addEventListener('keydown', handleKeydown);
+        input.addEventListener('blur', handleBlur);
+        window.addEventListener('resize', handleResize);
+        
+        // برای textarea، ارتفاع را بر اساس محتوا تنظیم کن
+        if (input.nodeName === 'TEXTAREA') {
+            setTimeout(() => {
+                input.style.height = 'auto';
+                input.style.height = Math.max(input.scrollHeight, 80) + 'px';
+            }, 0);
+            
+            // هنگام تایپ، ارتفاع را تنظیم کن
+            input.addEventListener('input', function() {
+                this.style.height = 'auto';
+                this.style.height = Math.max(this.scrollHeight, 80) + 'px';
+            });
+        }
     }
 
     saveEdit(input) {
