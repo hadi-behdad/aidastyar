@@ -72,7 +72,6 @@ window.state = {
                 'surgery': { prefix: 'surgery', items: this.formData.surgery || [] },
                 'hormonal': { prefix: 'hormonal', items: this.formData.hormonal || [] },
                 'stomachDiscomfort': { prefix: 'stomach', items: this.formData.stomachDiscomfort || [] },
-                'additionalInfo': { prefix: 'info', items: this.formData.additionalInfo || [] },
                 'dietStyle': { prefix: 'diet-style', items: this.formData.dietStyle || [] },
                 'foodLimitations': { prefix: 'limitation', items: this.formData.foodLimitations || [] },
                 'foodPreferences': { prefix: 'preference', items: this.formData.foodPreferences || [] },

@@ -29,7 +29,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 surgery: ['none'],
                 hormonal: ['none'],
                 stomachDiscomfort: ['none'],
-                additionalInfo: ['none'],
                 dietStyle: ['none'],
                 foodLimitations: ['none'],
                 foodPreferences: ['none']
@@ -174,7 +173,6 @@ document.addEventListener('DOMContentLoaded', function() {
                     [STEPS.SURGERY]: {prefix: 'surgery', name: 'جراحی‌ها'},
                     [STEPS.HORMONAL]: {prefix: 'hormonal', name: 'مشکلات هورمونی'},
                     [STEPS.STOMACH]: {prefix: 'stomach', name: 'مشکلات معده'},
-                    [STEPS.ADDITIONAL_INFO]: {prefix: 'info', name: 'اطلاعات اضافه'},
                     [STEPS.DIET_STYLE]: {prefix: 'diet-style', name: 'سبک رژیم'},
                     [STEPS.FOOD_LIMITATIONS]: {prefix: 'limitations', name: 'محدودیت‌های غذایی'},
                     [STEPS.FOOD_PREFERENCES]: {prefix: 'preferences', name: 'ترجیحات غذایی'}

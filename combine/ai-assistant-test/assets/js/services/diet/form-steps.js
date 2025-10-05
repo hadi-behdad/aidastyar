@@ -677,9 +677,6 @@ window.showStep = function(step) {
     else if (step === STEPS.EXERCISE) {
         setupExerciseSelection(step);
     }
-    else if (step === STEPS.ADDITIONAL_INFO) {
-        setupAdditionalInfoSelection(step);
-    } 
     else if (step === STEPS.DIET_STYLE) {
         setupDietStyleSelection(step);
         document.getElementById("next-button-container").style.display = "block";

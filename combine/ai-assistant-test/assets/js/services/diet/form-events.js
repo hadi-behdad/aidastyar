@@ -440,7 +440,6 @@ function fetchUserBalance(servicePrice, formData) {
     });
 }
 
-// در تابع window.handleFormSubmit، تغییرات زیر را اعمال کنید:
 window.handleFormSubmit = function(event) {
     event.preventDefault();
     
@@ -455,20 +454,22 @@ window.handleFormSubmit = function(event) {
         targetWeight: state.formData.targetWeight,
         goal: state.formData.goal,
         activity: state.formData.activity,
+        exercise: state.formData.exercise,
         meals: state.formData.meals,
         waterIntake: state.formData.waterIntake,
         // اطلاعات پزشکی
         surgery: state.formData.surgery || [],
         hormonal: state.formData.hormonal || [],
         stomachDiscomfort: state.formData.stomachDiscomfort || [],
+        chronicConditions: state.formData.chronicConditions || [], // اضافه شده
+        dietStyle: state.formData.dietStyle || [],
+        foodLimitations: state.formData.foodLimitations || [],
+        foodPreferences: state.formData.foodPreferences || [],
         
-        // اطلاعات تکمیلی (به صورت جداگانه)
-        diabetes: state.formData.additionalInfo?.includes('diabetes') || false,
-        pressure: state.formData.additionalInfo?.includes('pressure') || false,
-        thyroid: state.formData.additionalInfo?.includes('thyroid') || false,
-        allergy: state.formData.additionalInfo?.includes('allergy') || false,
-        vegetarian: state.formData.foodRestrictions?.includes('vegetarian') || false,
-        noSeafood: state.formData.foodRestrictions?.includes('no-seafood') || false,
+        // اطلاعات تکمیلی بیماری‌های مزمن
+        chronicDiabetesType: state.formData.chronicDiabetesType || '',
+        chronicFastingBloodSugar: state.formData.chronicFastingBloodSugar || '',
+        chronicHba1c: state.formData.chronicHba1c || ''
     };
 
     if (aiAssistantVars.environment && aiAssistantVars.environment !== 'production') {
@@ -494,7 +495,7 @@ window.showSummary = function() {
         lastName,
         gender, age, height, weight, targetWeight, goal, 
         activity, exercise, meals, waterIntake, surgery = [], hormonal = [],
-        stomachDiscomfort = [], additionalInfo = [], dietStyle = [],
+        stomachDiscomfort = [], dietStyle = [],
         foodLimitations = [], foodPreferences = [],
         chronicConditions = [] // اضافه کردن بیماری‌های مزمن
     } = state.formData;
@@ -642,18 +643,6 @@ window.showSummary = function() {
     if (stomachDiscomfort.includes('gerd')) stomachDiscomfortText.push('ریفلاکس معده-مروی');
     if (stomachDiscomfort.includes('none')) stomachDiscomfortText.push('ندارم');
 
-    // اطلاعات تکمیلی سلامت
-    const additionalInfoText = [];
-    if (additionalInfo.includes('diabetes')) additionalInfoText.push('دیابت');
-    if (additionalInfo.includes('hypertension')) additionalInfoText.push('فشار خون بالا');
-    if (additionalInfo.includes('cholesterol')) additionalInfoText.push('کلسترول/تری گلیسیرید بالا');
-    if (additionalInfo.includes('ibs')) additionalInfoText.push('سندرم روده تحریک پذیر');
-    if (additionalInfo.includes('celiac')) additionalInfoText.push('بیماری سلیاک');
-    if (additionalInfo.includes('lactose')) additionalInfoText.push('عدم تحمل لاکتوز');
-    if (additionalInfo.includes('food-allergy')) additionalInfoText.push('حساسیت غذایی');
-    if (additionalInfo.includes('fatty-liver')) additionalInfoText.push('کبد چرب');
-    if (additionalInfo.includes('none')) additionalInfoText.push('سالم هستم');
-
     // سبک‌های غذایی
     const dietStyleText = [];
     if (dietStyle.includes('vegetarian')) dietStyleText.push('گیاهخواری');
@@ -723,11 +712,7 @@ window.showSummary = function() {
         <div class="summary-item">
             <span class="summary-label">سابقه جراحی:</span>
             <span class="summary-value">${surgeryText.join('، ') || 'ثبت نشده'}</span>
-        </div>  
-        <div class="summary-item">
-            <span class="summary-label">وضعیت سلامت:</span>
-            <span class="summary-value">${additionalInfoText.join('، ') || 'ثبت نشده'}</span>
-        </div>        
+        </div>       
         `;
         
         // در تابع showSummary، بعد از بخش جراحی این کد را اضافه کنید:
