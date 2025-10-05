@@ -70,6 +70,7 @@ document.addEventListener('DOMContentLoaded', () => {
     setupScrollIndicator('additional-info-selection');
     setupScrollIndicator('food-restriction-selection');
     setupScrollIndicator('goal-selection');
+    setupScrollIndicator('chronic-conditions-selection');
     setupScrollIndicator('activity-selection');
     setupScrollIndicator('exercise-selection'); // اضافه کردن این خط
     setupScrollIndicator('diet-style-selection');
@@ -271,6 +272,68 @@ function setupDiabetesDetails() {
     }
 }
 
+function setupChronicDiabetesDetails() {
+    const diabetesCheckbox = document.getElementById('chronic-diabetes');
+    const diabetesDetails = document.getElementById('chronic-diabetes-details');
+    const diabetesAdditional = document.getElementById('chronic-diabetes-additional');
+    
+    if (!diabetesCheckbox || !diabetesDetails) return;
+
+    diabetesCheckbox.addEventListener('change', function() {
+        diabetesDetails.style.display = this.checked ? 'block' : 'none';
+        
+        if (!this.checked) {
+            state.updateFormData('chronicDiabetesType', '');
+            state.updateFormData('chronicFastingBloodSugar', '');
+            state.updateFormData('chronicHba1c', '');
+            resetChronicDiabetesSelections();
+            diabetesAdditional.style.display = 'none';
+        }
+    });
+
+    const diabetesOptions = document.querySelectorAll('#chronic-diabetes-details .diabetes-option');
+    diabetesOptions.forEach(option => {
+        option.addEventListener('click', function() {
+            diabetesOptions.forEach(opt => {
+                opt.classList.remove('selected');
+                opt.style.backgroundColor = '';
+                opt.style.borderRadius = '4px';
+            });
+            
+            this.classList.add('selected');
+            this.style.backgroundColor = '#e8f5e8';
+            this.style.borderRadius = '4px';
+            this.style.padding = '8px';
+
+            const diabetesType = this.dataset.value;
+            state.updateFormData('chronicDiabetesType', diabetesType);
+            
+            if (diabetesType !== 'prediabetes') {
+                diabetesAdditional.style.display = 'block';
+            } else {
+                diabetesAdditional.style.display = 'none';
+            }
+            
+            validateChronicDiabetesStep();
+        });
+    });
+
+    const fastingInput = document.getElementById('chronic-fasting-blood-sugar');
+    const hba1cInput = document.getElementById('chronic-hba1c-level');
+    
+    if (fastingInput) {
+        fastingInput.addEventListener('input', function() {
+            state.updateFormData('chronicFastingBloodSugar', this.value);
+        });
+    }
+    
+    if (hba1cInput) {
+        hba1cInput.addEventListener('input', function() {
+            state.updateFormData('chronicHba1c', this.value);
+        });
+    }
+}
+
 // تابع اعتبارسنجی مرحله دیابت
 function validateDiabetesStep() {
     const nextButton = document.querySelector(".next-step");
@@ -432,7 +495,8 @@ window.showSummary = function() {
         gender, age, height, weight, targetWeight, goal, 
         activity, exercise, meals, waterIntake, surgery = [], hormonal = [],
         stomachDiscomfort = [], additionalInfo = [], dietStyle = [],
-        foodLimitations = [], foodPreferences = []
+        foodLimitations = [], foodPreferences = [],
+        chronicConditions = [] // اضافه کردن بیماری‌های مزمن
     } = state.formData;
 
     const personalInfoText = [];
@@ -459,6 +523,46 @@ window.showSummary = function() {
         "5": "۵ وعده یا بیشتر",
         "irregular": "وعده‌های نامنظم" 
     }[meals];
+    
+    const chronicConditionsText = [];
+    if (chronicConditions.includes('diabetes')) {
+        const diabetesTypeText = {
+            'type1': 'دیابت نوع 1',
+            'type2': 'دیابت نوع 2', 
+            'gestational': 'دیابت بارداری',
+            'prediabetes': 'پیش‌دیابت'
+        }[state.formData.chronicDiabetesType];
+        
+        chronicConditionsText.push(`دیابت (${diabetesTypeText || 'نوع مشخص نشده'})`);
+        
+        // اضافه کردن اطلاعات تکمیلی اگر موجود باشد
+        if (state.formData.chronicFastingBloodSugar) {
+            chronicConditionsText.push(`قند ناشتا: ${state.formData.chronicFastingBloodSugar}`);
+        }
+        if (state.formData.chronicHba1c) {
+            chronicConditionsText.push(`HbA1c: ${state.formData.chronicHba1c}%`);
+        }
+    }
+    if (chronicConditions.includes('hypertension')) chronicConditionsText.push('فشار خون بالا');
+    if (chronicConditions.includes('cholesterol')) chronicConditionsText.push('کلسترول/تری گلیسیرید بالا');
+    if (chronicConditions.includes('fattyLiver')) chronicConditionsText.push('کبد چرب');
+    if (chronicConditions.includes('insulinResistance')) chronicConditionsText.push('مقاومت به انسولین');
+    if (chronicConditions.includes('hypothyroidism')) chronicConditionsText.push('کم کاری تیروئید');
+    if (chronicConditions.includes('hyperthyroidism')) chronicConditionsText.push('پرکاری تیروئید');
+    if (chronicConditions.includes('hashimoto')) chronicConditionsText.push('هاشیموتو');
+    if (chronicConditions.includes('pcos')) chronicConditionsText.push('سندرم تخمدان پلی کیستیک');
+    if (chronicConditions.includes('menopause')) chronicConditionsText.push('یائسگی/پیش یائسگی');
+    if (chronicConditions.includes('cortisol')) chronicConditionsText.push('مشکلات کورتیزول');
+    if (chronicConditions.includes('growth')) chronicConditionsText.push('اختلال هورمون رشد');
+    if (chronicConditions.includes('celiac')) chronicConditionsText.push('بیماری سلیاک');
+    if (chronicConditions.includes('lactose')) chronicConditionsText.push('عدم تحمل لاکتوز');
+    if (chronicConditions.includes('foodAllergy')) chronicConditionsText.push('حساسیت غذایی');
+    if (chronicConditions.includes('ibs')) chronicConditionsText.push('سندرم روده تحریک پذیر');
+    if (chronicConditions.includes('kidney')) chronicConditionsText.push('بیماری کلیوی مزمن');
+    if (chronicConditions.includes('heart')) chronicConditionsText.push('بیماری قلبی عروقی');
+    if (chronicConditions.includes('autoimmune')) chronicConditionsText.push('بیماری خودایمنی');
+    if (chronicConditions.includes('none')) chronicConditionsText.push('ندارم');
+
     
     // اضافه کردن به تابع showSummary
     const exerciseText = { 
@@ -613,9 +717,17 @@ window.showSummary = function() {
             <span class="summary-value">${goalText}</span>
         </div>
         <div class="summary-item">
+            <span class="summary-label">بیماری‌های مزمن:</span>
+            <span class="summary-value">${chronicConditionsText.join('، ') || 'ثبت نشده'}</span>
+        </div>        
+        <div class="summary-item">
             <span class="summary-label">سابقه جراحی:</span>
             <span class="summary-value">${surgeryText.join('، ') || 'ثبت نشده'}</span>
         </div>  
+        <div class="summary-item">
+            <span class="summary-label">وضعیت سلامت:</span>
+            <span class="summary-value">${additionalInfoText.join('، ') || 'ثبت نشده'}</span>
+        </div>        
         `;
         
         // در تابع showSummary، بعد از بخش جراحی این کد را اضافه کنید:
@@ -669,10 +781,6 @@ window.showSummary = function() {
             <span class="summary-label">فعالیت ورزشی:</span>
             <span class="summary-value">${exerciseText}</span>
         </div>             
-        <div class="summary-item">
-            <span class="summary-label">وضعیت سلامت:</span>
-            <span class="summary-value">${additionalInfoText.join('، ') || 'ثبت نشده'}</span>
-        </div>
         <div class="summary-item">
             <span class="summary-label">سبک غذایی:</span>
             <span class="summary-value">${dietStyleText.join('، ') || 'ثبت نشده'}</span>

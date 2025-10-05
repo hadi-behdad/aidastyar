@@ -135,6 +135,37 @@ window.setupSurgerySelection = function(currentStep) {
     setupCancerDetails();
 };
 
+window.setupChronicConditionsSelection = function(currentStep) {
+    setupComplexCheckboxSelection(currentStep, {
+        noneCheckboxId: 'chronic-none',
+        dataKey: 'chronicConditions',
+        genderDependent: true,
+        options: [
+            { key: 'diabetes', id: 'chronic-diabetes' },
+            { key: 'hypertension', id: 'chronic-hypertension' },
+            { key: 'cholesterol', id: 'chronic-cholesterol' },
+            { key: 'fattyLiver', id: 'chronic-fatty-liver' },
+            { key: 'insulinResistance', id: 'chronic-insulin-resistance' },
+            { key: 'hypothyroidism', id: 'chronic-hypothyroidism' },
+            { key: 'hyperthyroidism', id: 'chronic-hyperthyroidism' },
+            { key: 'hashimoto', id: 'chronic-hashimoto' },
+            { key: 'pcos', id: 'chronic-pcos' },
+            { key: 'menopause', id: 'chronic-menopause' },
+            { key: 'cortisol', id: 'chronic-cortisol' },
+            { key: 'growth', id: 'chronic-growth' },
+            { key: 'celiac', id: 'chronic-celiac' },
+            { key: 'lactose', id: 'chronic-lactose' },
+            { key: 'foodAllergy', id: 'chronic-food-allergy' },
+            { key: 'ibs', id: 'chronic-ibs' },
+            { key: 'kidney', id: 'chronic-kidney' },
+            { key: 'heart', id: 'chronic-heart' },
+            { key: 'autoimmune', id: 'chronic-autoimmune' }
+        ]
+    });
+    
+    setupChronicDiabetesDetails();
+};
+
 window.setupCancerDetails = function() {
     const cancerCheckbox = document.getElementById('cancer-history');
     const cancerDetails = document.getElementById('cancer-details');
@@ -514,7 +545,7 @@ window.setupExerciseSelection = function(currentStep) {
                 state.updateFormData('exercise', this.dataset.exercise);
                 
                 setTimeout(() => {
-                    navigateToStep(STEPS.ADDITIONAL_INFO); 
+                    navigateToStep(STEPS.DIET_STYLE); 
                 }, 250);
             }, 150);
         });
@@ -531,18 +562,18 @@ window.showStep = function(step) {
         "weight-input-step",            // 6
         "target-weight-step",           // 7
         "goal-weight-display",          // 8
-        "surgery-step",                 // 9
-        "hormonal-disorders-step",      // 10
-        "stomach-discomfort-step",      // 11
-        "water-intake-step",            // 12
-        "activity-selection-step",      // 13
-        "exercise-activity-step",       // 14
-        "additional-info-step",         // 15 (قبلاً 16)
-        "diet-style-step",              // 16 (قبلاً 17)
-        "food-limitations-step",        // 17 (قبلاً 18)
-        "food-preferences-step",        // 18 (قبلاً 19)
-        "terms-agreement-step",         // 19 (قبلاً 20)
-        "confirm-submit-step"           // 20 (قبلاً 21)
+        "chronic-conditions-step",      // 9 - مرحله جدید اضافه شده
+        "surgery-step",                 // 10
+        "hormonal-disorders-step",      // 11
+        "stomach-discomfort-step",      // 12
+        "water-intake-step",            // 13
+        "activity-selection-step",      // 14
+        "exercise-activity-step",       // 15
+        "diet-style-step",              // 16
+        "food-limitations-step",        // 17
+        "food-preferences-step",        // 18
+        "terms-agreement-step",         // 19
+        "confirm-submit-step"           // 20
     ];
     
     document.querySelectorAll(".step").forEach(el => {
@@ -653,6 +684,9 @@ window.showStep = function(step) {
         setupDietStyleSelection(step);
         document.getElementById("next-button-container").style.display = "block";
     } 
+    else if (step === STEPS.CHRONIC_CONDITIONS) {
+        setupChronicConditionsSelection(step);
+    }
     else if (step === STEPS.FOOD_LIMITATIONS) {
         setupFoodLimitationsSelection(step);
         document.getElementById("next-button-container").style.display = "block";

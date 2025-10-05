@@ -25,7 +25,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 targetWeight: 75,
                 activity: 'medium',
                 exercise: 'medium',
-                meals: '3',
                 waterIntake: 8,
                 surgery: ['none'],
                 hormonal: ['none'],
@@ -147,7 +146,17 @@ document.addEventListener('DOMContentLoaded', function() {
                     }
                 }
             }     
-
+            
+            function fillChronicConditionsStep() {
+                if (state.currentStep === STEPS.CHRONIC_CONDITIONS) {
+                    const noneCheckbox = document.getElementById('chronic-none');
+                    if (noneCheckbox) {
+                        noneCheckbox.checked = true;
+                        noneCheckbox.dispatchEvent(new Event('change'));
+                        clickNextButton(500);
+                    }
+                }
+            }
             // پر کردن مرحله مصرف آب
             function fillWaterStep() {
                 if (state.currentStep === STEPS.WATER_INTAKE) {
@@ -268,6 +277,7 @@ document.addEventListener('DOMContentLoaded', function() {
             fillWaterStep();
             fillCheckboxSteps();
             fillGoalDisplayStep();
+            fillChronicConditionsStep();
             fillTermsStep();
             fillConfirmationStep();
         }

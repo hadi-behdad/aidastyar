@@ -75,7 +75,8 @@ window.state = {
                 'additionalInfo': { prefix: 'info', items: this.formData.additionalInfo || [] },
                 'dietStyle': { prefix: 'diet-style', items: this.formData.dietStyle || [] },
                 'foodLimitations': { prefix: 'limitation', items: this.formData.foodLimitations || [] },
-                'foodPreferences': { prefix: 'preference', items: this.formData.foodPreferences || [] }
+                'foodPreferences': { prefix: 'preference', items: this.formData.foodPreferences || [] },
+                'chronicConditions': { prefix: 'chronic', items: this.formData.chronicConditions || [] }
             };
     
             Object.entries(checkboxGroups).forEach(([groupKey, groupData]) => {
@@ -244,18 +245,18 @@ window.STEPS = {
     WEIGHT: 6,
     TARGET_WEIGHT: 7,
     GOAL_DISPLAY: 8,
-    SURGERY: 9,
-    HORMONAL: 10, 
-    STOMACH: 11,
-    WATER_INTAKE: 12,
-    ACTIVITY: 13,
-    EXERCISE: 14,
-    ADDITIONAL_INFO: 15,    // قبلاً 16
-    DIET_STYLE: 16,         // قبلاً 17
-    FOOD_LIMITATIONS: 17,   // قبلاً 18
-    FOOD_PREFERENCES: 18,   // قبلاً 19
-    TERMS_AGREEMENT: 19,    // قبلاً 20
-    CONFIRMATION: 20        // قبلاً 21
+    CHRONIC_CONDITIONS: 9,  // مرحله جدید
+    SURGERY: 10,
+    HORMONAL: 11,
+    STOMACH: 12,
+    WATER_INTAKE: 13,
+    ACTIVITY: 14,
+    EXERCISE: 15,
+    DIET_STYLE: 16,
+    FOOD_LIMITATIONS: 17,
+    FOOD_PREFERENCES: 18,
+    TERMS_AGREEMENT: 19,
+    CONFIRMATION: 20
 };
 
 window.totalSteps = Object.keys(STEPS).length;
