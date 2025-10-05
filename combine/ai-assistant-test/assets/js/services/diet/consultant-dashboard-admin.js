@@ -143,7 +143,8 @@ class ConsultantDashboardAdmin {
         this.currentRequestId = null;
         this.originalData = null;
     }
-
+    
+    // در متد renderEditor، جایگزین کردن کد قدیمی با ویرایشگر جدید
     renderEditor() {
         if (!this.originalData || !this.editorContainer) {
             this.showError('داده‌ها برای نمایش موجود نیست');
@@ -176,8 +177,80 @@ class ConsultantDashboardAdmin {
         if (rejectBtn) {
             rejectBtn.addEventListener('click', () => this.saveReview('reject'));
         }
-    }    
+    }
+    
+// در متد saveReview
+async saveReview(action) {
+    let finalDietData;
+    const consultantNotes = document.getElementById('consultant-notes')?.value || '';
 
+    // دریافت داده‌های ویرایش شده از ویرایشگر
+    if (this.dietEditor && typeof this.dietEditor.getFinalDietData === 'function') {
+        finalDietData = this.dietEditor.getFinalDietData();
+    } else {
+        // روش fallback - بررسی ویرایشگر JSON
+        const jsonEditor = document.getElementById('diet-json-editor');
+        if (jsonEditor) {
+            finalDietData = jsonEditor.value;
+        } else {
+            // روش fallback - بررسی ویرایشگر متن ساده
+            const textEditor = document.getElementById('diet-text-editor');
+            if (textEditor) {
+                finalDietData = textEditor.value;
+            } else {
+                this.showError('امکان ذخیره‌سازی وجود ندارد. لطفاً صفحه را رفرش کنید.');
+                return;
+            }
+        }
+    }
+
+    // اعتبارسنجی داده‌ها
+    if (!finalDietData || finalDietData.trim() === '') {
+        this.showError('داده‌های رژیم غذایی نمی‌تواند خالی باشد');
+        return;
+    }
+
+    try {
+        // اعتبارسنجی JSON
+        JSON.parse(finalDietData);
+    } catch (e) {
+        this.showError('فرمت JSON نامعتبر است: ' + e.message);
+        return;
+    }
+
+    try {
+        const response = await fetch(consultant_ajax.ajax_url, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+            },
+            body: new URLSearchParams({
+                action: 'submit_consultation_review',
+                request_id: this.currentRequestId,
+                action_type: action,
+                final_diet_data: finalDietData,
+                consultant_notes: consultantNotes,
+                nonce: consultant_ajax.nonce
+            })
+        });
+
+        const result = await response.json();
+
+        if (result.success) {
+            this.showSuccess('تغییرات با موفقیت ذخیره شد.');
+            setTimeout(() => {
+                this.closeModal();
+                setTimeout(() => {
+                    location.reload();
+                }, 1000);
+            }, 1500);
+        } else {
+            this.showError(result.data || 'خطا در ذخیره تغییرات');
+        }
+    } catch (error) {
+        this.showError('خطا در ارتباط با سرور: ' + error.message);
+    }
+}
     escapeHtml(unsafe) {
         if (!unsafe) return '';
         return unsafe
@@ -246,25 +319,17 @@ class ConsultantDashboardAdmin {
     }
 
     async saveReview(action) {
-        let finalDietData;
-        const consultantNotes = document.getElementById('consultant-notes')?.value || '';
-    
-        // دریافت داده‌های ویرایش شده
-        if (this.dietEditor) {
-            const editedData = this.dietEditor.getEditedData();
-            finalDietData = JSON.stringify(editedData, null, 2);
-        } else {
-            // روش قدیمی - ویرایشگر JSON
-            const jsonEditor = document.getElementById('diet-json-editor');
-            if (jsonEditor) {
-                finalDietData = jsonEditor.value;
-            } else {
-                // روش قدیمی - ویرایشگر متن ساده
-                const textEditor = document.getElementById('diet-text-editor');
-                finalDietData = textEditor?.value || '';
-            }
+        const editor = document.getElementById('diet-editor');
+        const notes = document.getElementById('consultant-notes');
+
+        if (!editor || !notes) {
+            this.showError('عناصر فرم یافت نشد');
+            return;
         }
-    
+
+        const finalDietData = editor.value;
+        const consultantNotes = notes.value;
+
         try {
             const response = await fetch(consultant_ajax.ajax_url, {
                 method: 'POST',
@@ -280,9 +345,9 @@ class ConsultantDashboardAdmin {
                     nonce: consultant_ajax.nonce
                 })
             });
-    
+
             const result = await response.json();
-    
+
             if (result.success) {
                 this.showSuccess('تغییرات با موفقیت ذخیره شد.');
                 this.closeModal();

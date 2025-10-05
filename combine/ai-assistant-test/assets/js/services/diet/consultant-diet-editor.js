@@ -5,6 +5,7 @@ class ConsultantDietEditor {
         this.originalData = null;
         this.isEditing = false;
         this.currentEditElement = null;
+        this.currentData = null; // داده‌های جاری
         
         if (!this.container) {
             console.error(`Container with ID '${containerId}' not found`);
@@ -15,28 +16,27 @@ class ConsultantDietEditor {
     init(data, requestId) {
         this.originalData = data;
         this.currentRequestId = requestId;
+        // استخراج داده‌های رژیم
+        const { original_data, consultation_data } = data;
+        const dietData = consultation_data?.final_diet_data || original_data?.ai_response;
+        
+        try {
+            this.currentData = typeof dietData === 'string' ? JSON.parse(dietData) : dietData;
+        } catch (e) {
+            console.error('Error parsing diet data:', e);
+            this.currentData = null;
+        }        
         this.render();
     }
 
     render() {
-        if (!this.originalData) {
+        if (!this.originalData || !this.currentData) {
             this.container.innerHTML = '<div class="consultant-loading">داده‌ها برای نمایش موجود نیست</div>';
             return;
         }
 
-        const { original_data, consultation_data } = this.originalData;
-        const dietData = consultation_data?.final_diet_data || original_data?.ai_response;
-        
-        let parsedData;
-        try {
-            parsedData = typeof dietData === 'string' ? JSON.parse(dietData) : dietData;
-        } catch (e) {
-            // اگر JSON نیست، نمایش متن ساده
-            this.container.innerHTML = this.renderSimpleTextEditor(dietData);
-            return;
-        }
 
-        this.container.innerHTML = this.renderStructuredEditor(parsedData);
+        this.container.innerHTML = this.renderStructuredEditor(this.currentData);
         this.setupEditEvents();
     }
 
@@ -69,10 +69,15 @@ class ConsultantDietEditor {
                 <div class="consultant-editor-pane" id="json-pane">
                     <div class="consultant-json-editor">
                         <h4><i class="fas fa-edit"></i> ویرایش مستقیم JSON</h4>
-                        <textarea id="diet-json-editor" style="width: 100%; height: 400px; font-family: monospace;">${JSON.stringify(data, null, 2)}</textarea>
-                        <button class="consultant-btn consultant-btn-primary" id="update-from-json-btn">
-                            <i class="fas fa-sync"></i> بروزرسانی از JSON
-                        </button>
+                        <textarea id="diet-json-editor" style="width: 100%; height: 400px; font-family: monospace;">${JSON.stringify(this.currentData, null, 2)}</textarea>
+                        <div class="consultant-json-actions">
+                            <button class="consultant-btn consultant-btn-primary" id="update-from-json-btn">
+                                <i class="fas fa-sync"></i> بروزرسانی پیش‌نمایش از JSON
+                            </button>
+                            <button class="consultant-btn consultant-btn-secondary" id="reset-json-btn">
+                                <i class="fas fa-undo"></i> بازنشانی به حالت اولیه
+                            </button>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -339,14 +344,14 @@ class ConsultantDietEditor {
             });
         });
 
-        // کلیک خارج از حالت ویرایش
-        document.addEventListener('click', (e) => {
-            if (this.isEditing && !e.target.closest('.editable-text')) {
+        // کلیک خارج از حالت ویرایش - با استفاده از event delegation
+        this.container.addEventListener('click', (e) => {
+            if (this.isEditing && !e.target.matches('.consultant-edit-input')) {
                 this.finishEditing();
             }
         });
 
-        // کلید Escape
+        // کلید Escape - روی document
         document.addEventListener('keydown', (e) => {
             if (this.isEditing && e.key === 'Escape') {
                 this.cancelEditing();
@@ -355,7 +360,9 @@ class ConsultantDietEditor {
     }
 
     startEditing(element) {
-        if (this.isEditing) return;
+        if (this.isEditing) {
+            this.finishEditing(); // اگر در حال ویرایش دیگری هست، اول آن را ذخیره کن
+        }
         
         this.isEditing = true;
         this.currentEditElement = element;
@@ -369,6 +376,10 @@ class ConsultantDietEditor {
         input.value = originalText;
         input.className = 'consultant-edit-input';
         
+        // ذخیره reference به المنت اصلی
+        input.dataset.originalElement = element.outerHTML;
+        input.dataset.path = path;
+        
         // جایگزینی element با input
         element.style.display = 'none';
         element.parentNode.insertBefore(input, element);
@@ -377,58 +388,263 @@ class ConsultantDietEditor {
         input.focus();
         input.select();
         
-        // ذخیره با Enter
-        input.addEventListener('keydown', (e) => {
+        // مدیریت events با استفاده از arrow functions برای حفظ context
+        this.handleInputKeydown = (e) => {
             if (e.key === 'Enter') {
-                this.saveEdit(input, element, path);
+                this.saveEdit(input);
+            } else if (e.key === 'Escape') {
+                this.cancelEditing();
             }
-        });
+        };
         
-        // از دست دادن فوکوس
-        input.addEventListener('blur', () => {
-            this.saveEdit(input, element, path);
-        });
+        this.handleInputBlur = () => {
+            this.saveEdit(input);
+        };
+        
+        input.addEventListener('keydown', this.handleInputKeydown);
+        input.addEventListener('blur', this.handleInputBlur);
     }
 
-    saveEdit(input, element, path) {
+    saveEdit(input) {
+        // حذف event listeners برای جلوگیری از اجرای تکراری
+        input.removeEventListener('keydown', this.handleInputKeydown);
+        input.removeEventListener('blur', this.handleInputBlur);
+        
         const newValue = input.value.trim();
-        element.textContent = newValue;
-        element.style.display = '';
-        input.remove();
+        const path = input.dataset.path;
+        const originalElement = this.currentEditElement;
+        
+        if (originalElement && originalElement.parentNode) {
+            // بازگرداندن المنت اصلی
+            originalElement.textContent = newValue;
+            originalElement.style.display = '';
+            
+            // حذف input
+            if (input.parentNode) {
+                input.remove();
+            }
+            
+            // آپدیت داده‌ها
+            this.updateData(path, newValue);
+        }
         
         this.isEditing = false;
         this.currentEditElement = null;
-        
-        // آپدیت داده‌ها
-        this.updateData(path, newValue);
+        this.handleInputKeydown = null;
+        this.handleInputBlur = null;
     }
 
     cancelEditing() {
         if (!this.isEditing || !this.currentEditElement) return;
         
         const input = this.container.querySelector('.consultant-edit-input');
-        if (input) {
+        if (input && this.currentEditElement && this.currentEditElement.parentNode) {
+            // حذف event listeners
+            input.removeEventListener('keydown', this.handleInputKeydown);
+            input.removeEventListener('blur', this.handleInputBlur);
+            
+            // بازگرداندن المنت اصلی
             this.currentEditElement.style.display = '';
-            input.remove();
+            
+            // حذف input
+            if (input.parentNode) {
+                input.remove();
+            }
         }
         
         this.isEditing = false;
         this.currentEditElement = null;
+        this.handleInputKeydown = null;
+        this.handleInputBlur = null;
     }
 
     finishEditing() {
         if (!this.isEditing) return;
         
         const input = this.container.querySelector('.consultant-edit-input');
-        if (input && this.currentEditElement) {
-            this.saveEdit(input, this.currentEditElement, this.currentEditElement.dataset.path);
+        if (input) {
+            this.saveEdit(input);
+        } else {
+            this.cancelEditing();
         }
     }
 
+    // متد کمکی برای پیدا کردن المنت اصلی
+    findOriginalElement(input) {
+        const path = input.dataset.path;
+        return this.container.querySelector(`[data-path="${path}"]`);
+    }
+    
+    
     updateData(path, value) {
-        // در اینجا می‌توانید داده‌ها را آپدیت کنید
-        console.log('Updating data:', path, 'to:', value);
-        // اینجا می‌توانید داده‌های اصلی را آپدیت کنید
+        console.log('Updating data path:', path, 'to:', value);
+        
+        // آپدیت داده‌ها بر اساس مسیر
+        this.updateNestedData(this.currentData, path, value);
+        
+        // آپدیت JSON editor
+        this.updateJsonEditor();
+        
+        // آپدیت پیش‌نمایش
+        this.updatePreview();
+    }
+
+    updateNestedData(obj, path, value) {
+        const keys = path.split('.');
+        let current = obj;
+        
+        for (let i = 0; i < keys.length - 1; i++) {
+            const key = keys[i];
+            // اگر کلید عددی است، به آرایه تبدیل کن
+            if (!isNaN(keys[i + 1])) {
+                if (!current[key] || !Array.isArray(current[key])) {
+                    current[key] = [];
+                }
+            } else {
+                if (!current[key] || typeof current[key] !== 'object') {
+                    current[key] = {};
+                }
+            }
+            current = current[key];
+        }
+        
+        const lastKey = keys[keys.length - 1];
+        
+        // اگر مقدار عددی است، به عدد تبدیل کن
+        if (!isNaN(value) && value.trim() !== '') {
+            current[lastKey] = Number(value);
+        } else {
+            current[lastKey] = value;
+        }
+    }
+
+    updateJsonEditor() {
+        const jsonEditor = document.getElementById('diet-json-editor');
+        if (jsonEditor) {
+            jsonEditor.value = JSON.stringify(this.currentData, null, 2);
+        }
+    }
+
+    updatePreview() {
+        const previewContainer = document.getElementById('consultant-diet-preview');
+        if (previewContainer) {
+            previewContainer.innerHTML = this.renderDietPlan(this.currentData);
+            this.setupDoubleClickEdit();
+            this.setupAccordions();
+        }
+    }
+
+    setupActionButtons() {
+        // باز کردن همه بخش‌ها
+        const expandBtn = document.getElementById('expand-all-btn');
+        if (expandBtn) {
+            expandBtn.addEventListener('click', () => {
+                this.expandAllSections();
+            });
+        }
+
+        // بستن همه بخش‌ها
+        const collapseBtn = document.getElementById('collapse-all-btn');
+        if (collapseBtn) {
+            collapseBtn.addEventListener('click', () => {
+                this.collapseAllSections();
+            });
+        }
+
+        // بروزرسانی از JSON
+        const updateJsonBtn = document.getElementById('update-from-json-btn');
+        if (updateJsonBtn) {
+            updateJsonBtn.addEventListener('click', () => {
+                this.updateFromJson();
+            });
+        }
+
+        // بازنشانی JSON
+        const resetJsonBtn = document.getElementById('reset-json-btn');
+        if (resetJsonBtn) {
+            resetJsonBtn.addEventListener('click', () => {
+                this.resetJson();
+            });
+        }
+    }
+
+    expandAllSections() {
+        const contents = this.container.querySelectorAll('.consultant-section-content');
+        const headers = this.container.querySelectorAll('.consultant-section-header');
+        
+        headers.forEach(header => header.classList.add('active'));
+        contents.forEach(content => {
+            content.style.maxHeight = content.scrollHeight + 'px';
+        });
+    }
+
+    collapseAllSections() {
+        const contents = this.container.querySelectorAll('.consultant-section-content');
+        const headers = this.container.querySelectorAll('.consultant-section-header');
+        
+        headers.forEach(header => header.classList.remove('active'));
+        contents.forEach(content => {
+            content.style.maxHeight = '0';
+        });
+    }
+
+    updateFromJson() {
+        const jsonEditor = document.getElementById('diet-json-editor');
+        if (jsonEditor) {
+            try {
+                const newData = JSON.parse(jsonEditor.value);
+                this.currentData = newData;
+                this.updatePreview();
+                this.showMessage('پیش‌نمایش با موفقیت بروزرسانی شد', 'success');
+            } catch (e) {
+                this.showMessage('خطا در پارس کردن JSON: ' + e.message, 'error');
+            }
+        }
+    }
+
+    resetJson() {
+        const { original_data, consultation_data } = this.originalData;
+        const dietData = consultation_data?.final_diet_data || original_data?.ai_response;
+        
+        try {
+            this.currentData = typeof dietData === 'string' ? JSON.parse(dietData) : dietData;
+            this.updateJsonEditor();
+            this.updatePreview();
+            this.showMessage('JSON به حالت اولیه بازنشانی شد', 'success');
+        } catch (e) {
+            this.showMessage('خطا در بازنشانی داده‌ها', 'error');
+        }
+    }
+
+    showMessage(message, type) {
+        // حذف پیام قبلی
+        const existingMessage = this.container.querySelector('.consultant-editor-message');
+        if (existingMessage) {
+            existingMessage.remove();
+        }
+
+        const messageDiv = document.createElement('div');
+        messageDiv.className = `consultant-editor-message ${type}`;
+        messageDiv.innerHTML = `
+            <i class="fas fa-${type === 'success' ? 'check' : 'exclamation-triangle'}"></i>
+            ${message}
+        `;
+
+        this.container.insertBefore(messageDiv, this.container.firstChild);
+
+        setTimeout(() => {
+            if (messageDiv.parentNode) {
+                messageDiv.remove();
+            }
+        }, 3000);
+    }
+
+    getEditedData() {
+        return this.currentData;
+    }
+
+    getFinalDietData() {
+        return JSON.stringify(this.currentData, null, 2);
     }
 
     updatePreviewFromJSON(newData) {
