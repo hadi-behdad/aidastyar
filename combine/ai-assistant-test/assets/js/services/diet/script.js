@@ -70,7 +70,6 @@ window.state = {
             // به روزرسانی چک‌باکس‌ها
             const checkboxGroups = {
                 'surgery': { prefix: 'surgery', items: this.formData.surgery || [] },
-                'hormonal': { prefix: 'hormonal', items: this.formData.hormonal || [] },
                 'stomachDiscomfort': { prefix: 'stomach', items: this.formData.stomachDiscomfort || [] },
                 'dietStyle': { prefix: 'diet-style', items: this.formData.dietStyle || [] },
                 'foodLimitations': { prefix: 'limitation', items: this.formData.foodLimitations || [] },
@@ -244,18 +243,17 @@ window.STEPS = {
     WEIGHT: 6,
     TARGET_WEIGHT: 7,
     GOAL_DISPLAY: 8,
-    CHRONIC_CONDITIONS: 9,  // مرحله جدید
+    CHRONIC_CONDITIONS: 9,
     SURGERY: 10,
-    HORMONAL: 11,
-    STOMACH: 12,
-    WATER_INTAKE: 13,
-    ACTIVITY: 14,
-    EXERCISE: 15,
-    DIET_STYLE: 16,
-    FOOD_LIMITATIONS: 17,
-    FOOD_PREFERENCES: 18,
-    TERMS_AGREEMENT: 19,
-    CONFIRMATION: 20
+    STOMACH: 11, // قبلاً 12 بود
+    WATER_INTAKE: 12, // قبلاً 13 بود
+    ACTIVITY: 13, // قبلاً 14 بود
+    EXERCISE: 14, // قبلاً 15 بود
+    DIET_STYLE: 15, // قبلاً 16 بود
+    FOOD_LIMITATIONS: 16, // قبلاً 17 بود
+    FOOD_PREFERENCES: 17, // قبلاً 18 بود
+    TERMS_AGREEMENT: 18, // قبلاً 19 بود
+    CONFIRMATION: 19 // قبلاً 20 بود
 };
 
 window.totalSteps = Object.keys(STEPS).length;

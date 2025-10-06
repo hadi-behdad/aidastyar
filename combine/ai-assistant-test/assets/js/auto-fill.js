@@ -17,7 +17,7 @@ document.addEventListener('DOMContentLoaded', function() {
             const testData = {
                 firstName: "تست",
                 lastName: "کاربر",
-                gender: 'male',
+                gender: 'female',
                 goal: 'weight-loss',
                 age: 30,
                 height: 175,
@@ -27,7 +27,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 exercise: 'medium',
                 waterIntake: 8,
                 surgery: ['none'],
-                hormonal: ['none'],
                 stomachDiscomfort: ['none'],
                 dietStyle: ['none'],
                 foodLimitations: ['none'],
@@ -171,7 +170,6 @@ document.addEventListener('DOMContentLoaded', function() {
             function fillCheckboxSteps() {
                 const stepMap = {
                     [STEPS.SURGERY]: {prefix: 'surgery', name: 'جراحی‌ها'},
-                    [STEPS.HORMONAL]: {prefix: 'hormonal', name: 'مشکلات هورمونی'},
                     [STEPS.STOMACH]: {prefix: 'stomach', name: 'مشکلات معده'},
                     [STEPS.DIET_STYLE]: {prefix: 'diet-style', name: 'سبک رژیم'},
                     [STEPS.FOOD_LIMITATIONS]: {prefix: 'limitations', name: 'محدودیت‌های غذایی'},

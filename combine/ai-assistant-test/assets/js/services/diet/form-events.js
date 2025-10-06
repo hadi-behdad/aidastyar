@@ -66,7 +66,6 @@ function setupScrollIndicator(containerId) {
 document.addEventListener('DOMContentLoaded', () => {
     setupScrollIndicator('surgery-selection');
     setupScrollIndicator('stomach-selection');
-    setupScrollIndicator('hormonal-selection');
     setupScrollIndicator('additional-info-selection');
     setupScrollIndicator('food-restriction-selection');
     setupScrollIndicator('goal-selection');
@@ -203,75 +202,6 @@ window.showPaymentConfirmation = function(formData) {
     });
 };
 
-// اضافه کردن این تابع برای مدیریت جزئیات دیابت
-function setupDiabetesDetails() {
-    const diabetesCheckbox = document.getElementById('hormonal-diabetes');
-    const diabetesDetails = document.getElementById('diabetes-details');
-    const diabetesAdditional = document.getElementById('diabetes-additional');
-    
-    if (!diabetesCheckbox || !diabetesDetails) return;
-
-    // مدیریت نمایش/مخفی کردن جزئیات دیابت
-    diabetesCheckbox.addEventListener('change', function() {
-        diabetesDetails.style.display = this.checked ? 'block' : 'none';
-        
-        if (!this.checked) {
-            // اگر دیابت انتخاب نشد، اطلاعات مربوطه را پاک کنید
-            state.updateFormData('diabetesType', '');
-            state.updateFormData('fastingBloodSugar', '');
-            state.updateFormData('hba1c', '');
-            resetDiabetesSelections();
-            diabetesAdditional.style.display = 'none';
-        }
-    });
-
-    // مدیریت انتخاب نوع دیابت
-    const diabetesOptions = document.querySelectorAll('.diabetes-option');
-    diabetesOptions.forEach(option => {
-        option.addEventListener('click', function() {
-            // فقط یک گزینه می‌تواند انتخاب شود
-            diabetesOptions.forEach(opt => {
-                opt.classList.remove('selected');
-                opt.style.backgroundColor = '';
-                opt.style.borderRadius = '4px';
-            });
-            
-            this.classList.add('selected');
-            this.style.backgroundColor = '#e8f5e8';
-            this.style.borderRadius = '4px';
-            this.style.padding = '8px';
-
-            const diabetesType = this.dataset.value;
-            state.updateFormData('diabetesType', diabetesType);
-            
-            // نمایش اطلاعات تکمیلی برای همه انواع دیابت به جز پیش‌دیابت
-            if (diabetesType !== 'prediabetes') {
-                diabetesAdditional.style.display = 'block';
-            } else {
-                diabetesAdditional.style.display = 'none';
-            }
-            
-            validateDiabetesStep();
-        });
-    });
-
-    // مدیریت ورودی‌های عددی
-    const fastingInput = document.getElementById('fasting-blood-sugar');
-    const hba1cInput = document.getElementById('hba1c-level');
-    
-    if (fastingInput) {
-        fastingInput.addEventListener('input', function() {
-            state.updateFormData('fastingBloodSugar', this.value);
-        });
-    }
-    
-    if (hba1cInput) {
-        hba1cInput.addEventListener('input', function() {
-            state.updateFormData('hba1c', this.value);
-        });
-    }
-}
-
 function setupChronicDiabetesDetails() {
     const diabetesCheckbox = document.getElementById('chronic-diabetes');
     const diabetesDetails = document.getElementById('chronic-diabetes-details');
@@ -335,11 +265,11 @@ function setupChronicDiabetesDetails() {
 }
 
 // تابع اعتبارسنجی مرحله دیابت
-function validateDiabetesStep() {
+function validateChronicDiabetesStep() {
     const nextButton = document.querySelector(".next-step");
     if (!nextButton) return;
 
-    const diabetesChecked = document.getElementById('hormonal-diabetes').checked;
+    const diabetesChecked = document.getElementById('chronic-diabetes').checked;
     
     if (diabetesChecked) {
         const hasDiabetesType = state.formData.diabetesType !== '';
@@ -348,7 +278,7 @@ function validateDiabetesStep() {
 }
 
 // تابع ریست انتخاب‌های دیابت
-function resetDiabetesSelections() {
+function resetChronicDiabetesSelections() {
     document.querySelectorAll('.diabetes-option.selected').forEach(opt => {
         opt.classList.remove('selected');
         opt.style.backgroundColor = '';
@@ -457,9 +387,7 @@ window.handleFormSubmit = function(event) {
         exercise: state.formData.exercise,
         meals: state.formData.meals,
         waterIntake: state.formData.waterIntake,
-        // اطلاعات پزشکی
         surgery: state.formData.surgery || [],
-        hormonal: state.formData.hormonal || [],
         stomachDiscomfort: state.formData.stomachDiscomfort || [],
         chronicConditions: state.formData.chronicConditions || [], // اضافه شده
         dietStyle: state.formData.dietStyle || [],
@@ -494,7 +422,7 @@ window.showSummary = function() {
         firstName,
         lastName,
         gender, age, height, weight, targetWeight, goal, 
-        activity, exercise, meals, waterIntake, surgery = [], hormonal = [],
+        activity, exercise, meals, waterIntake, surgery = [],
         stomachDiscomfort = [], dietStyle = [],
         foodLimitations = [], foodPreferences = [],
         chronicConditions = [] // اضافه کردن بیماری‌های مزمن
@@ -562,6 +490,9 @@ window.showSummary = function() {
     if (chronicConditions.includes('kidney')) chronicConditionsText.push('بیماری کلیوی مزمن');
     if (chronicConditions.includes('heart')) chronicConditionsText.push('بیماری قلبی عروقی');
     if (chronicConditions.includes('autoimmune')) chronicConditionsText.push('بیماری خودایمنی');
+    if (chronicConditions.includes('gallbladderStones')) chronicConditionsText.push('سنگ کیسه صفرا');
+    if (chronicConditions.includes('gallbladderInflammation')) chronicConditionsText.push('التهاب کیسه صفرا');
+    if (chronicConditions.includes('gallbladderIssues')) chronicConditionsText.push('سایر مشکلات کیسه صفرا');    
     if (chronicConditions.includes('none')) chronicConditionsText.push('ندارم');
 
     
@@ -578,69 +509,59 @@ window.showSummary = function() {
         'مشخص نیست' : 
         `${waterIntake} لیوان (≈${(waterIntake * 0.25).toFixed(1)} لیتر)`;
 
-    // اطلاعات جراحی
+    // در تابع showSummary - بخش surgeryText
     const surgeryText = [];
     if (surgery.includes('metabolic')) surgeryText.push('جراحی متابولیک');
     if (surgery.includes('gallbladder')) surgeryText.push('جراحی کیسه صفرا');
-    if (surgery.includes('gallbladder-stones')) surgeryText.push('سنگ کیسه صفرا');
-    if (surgery.includes('gallbladder-inflammation')) surgeryText.push('التهاب کیسه صفرا');
-    if (surgery.includes('gallbladder-issues')) surgeryText.push('سایر مشکلات کیسه صفرا');    
     if (surgery.includes('intestine')) surgeryText.push('جراحی روده');
     if (surgery.includes('thyroid')) surgeryText.push('جراحی تیروئید');
     if (surgery.includes('pancreas')) surgeryText.push('جراحی لوزالمعده');
-    if (surgery.includes('gynecology')) surgeryText.push('جراحی زنان');
+    if (surgery.includes('heart')) surgeryText.push('جراحی قلب');
     if (surgery.includes('kidney')) surgeryText.push('پیوند کلیه');
     if (surgery.includes('liver')) surgeryText.push('پیوند کبد');
-    if (surgery.includes('heart')) surgeryText.push('جراحی قلب');
+    if (surgery.includes('gynecology')) surgeryText.push('جراحی زنان');
+    if (surgery.includes('cancer')) surgeryText.push('سابقه سرطان');
     if (surgery.includes('none')) surgeryText.push('هیچگونه سابقه جراحی ندارم');
-
-    // اطلاعات هورمونی
-    const hormonalText = [];
-    if (hormonal.includes('diabetes')) {
-        const diabetesTypeText = {
-            'type1': 'دیابت نوع 1',
-            'type2': 'دیابت نوع 2', 
-            'gestational': 'دیابت بارداری',
-            'prediabetes': 'پیش‌دیابت'
-        }[state.formData.diabetesType];
-        
-        hormonalText.push(`دیابت (${diabetesTypeText || 'نوع مشخص نشده'})`);
-        
-        // اضافه کردن اطلاعات تکمیلی اگر موجود باشد
-        if (state.formData.fastingBloodSugar) {
-            hormonalText.push(`قند ناشتا: ${state.formData.fastingBloodSugar}`);
-        }
-        if (state.formData.hba1c) {
-            hormonalText.push(`HbA1c: ${state.formData.hba1c}%`);
-        }
+    
+    // اضافه کردن اطلاعات سرطان اگر انتخاب شده
+    if (surgery.includes('cancer')) {
+        const cancerTreatmentText = {
+            'chemo': 'شیمی درمانی',
+            'radio': 'پرتو درمانی', 
+            'surgery': 'اخیراً جراحی شده',
+            'finished': 'درمان تمام شده'
+        }[state.formData.cancerTreatment];
+    
+        const cancerTypeText = {
+            'breast': 'پستان',
+            'colon': 'روده',
+            'prostate': 'پروستات',
+            'lung': 'ریه',
+            'blood': 'خون',
+            'other': 'سایر'
+        }[state.formData.cancerType];
+    
+        if (cancerTreatmentText) surgeryText.push(`درمان: ${cancerTreatmentText}`);
+        if (cancerTypeText) surgeryText.push(`نوع: ${cancerTypeText}`);
     }
-    if (hormonal.includes('hypothyroidism')) hormonalText.push('کم کاری تیروئید');
-    if (hormonal.includes('hyperthyroidism')) hormonalText.push('پرکاری تیروئید');
-    // if (hormonal.includes('diabetes')) hormonalText.push('دیابت');
-    if (hormonal.includes('insulin-resistance')) hormonalText.push('مقاومت به انسولین');
-    if (hormonal.includes('pcos')) hormonalText.push('سندرم تخمدان پلی کیستیک');
-    if (hormonal.includes('menopause')) hormonalText.push('یائسگی/پیش یائسگی');
-    if (hormonal.includes('cortisol')) hormonalText.push('مشکلات کورتیزول');
-    if (hormonal.includes('growth')) hormonalText.push('اختلال هورمون رشد');
-    if (hormonal.includes('hashimoto')) hormonalText.push('هاشیموتو');
-    if (hormonal.includes('none')) hormonalText.push('ندارم');
 
-    // مشکلات معده
+    // در تابع showSummary، بخش مشکلات معده را به‌روزرسانی کنید
     const stomachDiscomfortText = [];
     if (stomachDiscomfort.includes('bloating')) stomachDiscomfortText.push('نفخ یا گاز معده');
     if (stomachDiscomfort.includes('pain')) stomachDiscomfortText.push('درد یا گرفتگی معده');
     if (stomachDiscomfort.includes('heartburn')) stomachDiscomfortText.push('سوزش سر دل');
-    if (stomachDiscomfort.includes('nausea')) stomachDiscomfortText.push('حالت تهوع');
-    if (stomachDiscomfort.includes('helicobacter')) stomachDiscomfortText.push('عفونت هلیکوباکتر پیلوری');
-    if (stomachDiscomfort.includes('indigestion')) stomachDiscomfortText.push('سوء هاضمه مزمن');
-    if (stomachDiscomfort.includes('constipation')) stomachDiscomfortText.push('یبوست');
-    if (stomachDiscomfort.includes('diarrhea')) stomachDiscomfortText.push('اسهال');
-    if (stomachDiscomfort.includes('food-intolerance')) stomachDiscomfortText.push('عدم تحمل غذایی');
-    if (stomachDiscomfort.includes('acid-reflux')) stomachDiscomfortText.push('رفلاکس اسید معده');
-    if (stomachDiscomfort.includes('slow-digestion')) stomachDiscomfortText.push('هضم کند غذا');
+    if (stomachDiscomfort.includes('constipation')) stomachDiscomfortText.push('یبوست مزمن');
+    if (stomachDiscomfort.includes('diarrhea')) stomachDiscomfortText.push('اسهال مزمن');
     if (stomachDiscomfort.includes('fullness')) stomachDiscomfortText.push('سیری زودرس');
+    if (stomachDiscomfort.includes('nausea')) stomachDiscomfortText.push('حالت تهوع');
+    if (stomachDiscomfort.includes('slow-digestion')) stomachDiscomfortText.push('هضم کند غذا');
+    if (stomachDiscomfort.includes('acid-reflux')) stomachDiscomfortText.push('ریفلاکس اسید معده');
+    if (stomachDiscomfort.includes('helicobacter')) stomachDiscomfortText.push('عفونت هلیکوباکتر پیلوری');
     if (stomachDiscomfort.includes('ibd')) stomachDiscomfortText.push('بیماری التهابی روده');
+    if (stomachDiscomfort.includes('ibs')) stomachDiscomfortText.push('سندرم روده تحریک پذیر');
     if (stomachDiscomfort.includes('gerd')) stomachDiscomfortText.push('ریفلاکس معده-مروی');
+    if (stomachDiscomfort.includes('indigestion')) stomachDiscomfortText.push('سوء هاضمه مزمن');
+    if (stomachDiscomfort.includes('food-intolerance')) stomachDiscomfortText.push('عدم تحمل غذایی');
     if (stomachDiscomfort.includes('none')) stomachDiscomfortText.push('ندارم');
 
     // سبک‌های غذایی
@@ -713,43 +634,6 @@ window.showSummary = function() {
             <span class="summary-label">سابقه جراحی:</span>
             <span class="summary-value">${surgeryText.join('، ') || 'ثبت نشده'}</span>
         </div>       
-        `;
-        
-        // در تابع showSummary، بعد از بخش جراحی این کد را اضافه کنید:
-        if (surgery.includes('cancer')) {
-            const cancerTreatmentText = {
-                'chemo': 'شیمی درمانی',
-                'radio': 'پرتو درمانی', 
-                'surgery': 'اخیراً جراحی شده',
-                'finished': 'درمان تمام شده'
-            }[state.formData.cancerTreatment];
-        
-            const cancerTypeText = {
-                'breast': 'پستان',
-                'colon': 'روده',
-                'prostate': 'پروستات',
-                'lung': 'ریه',
-                'blood': 'خون',
-                'other': 'سایر'
-            }[state.formData.cancerType];
-        
-            summaryContainer.innerHTML += `
-                <div class="summary-item">
-                    <span class="summary-label">وضعیت درمان سرطان:</span>
-                    <span class="summary-value">${cancerTreatmentText || 'ثبت نشده'}</span>
-                </div>
-                <div class="summary-item">
-                    <span class="summary-label">نوع سرطان:</span>
-                    <span class="summary-value">${cancerTypeText || 'ثبت نشده'}</span>
-                </div>
-            `;
-        }   
-        
-        summaryContainer.innerHTML += `
-        <div class="summary-item">
-            <span class="summary-label">اختلالات هورمونی:</span>
-            <span class="summary-value">${hormonalText.join('، ') || 'ثبت نشده'}</span>
-        </div>    
         <div class="summary-item">
             <span class="summary-label">علائم معده:</span>
             <span class="summary-value">${stomachDiscomfortText.join('، ') || 'ثبت نشده'}</span>
