@@ -70,9 +70,9 @@ window.state = {
             // به روزرسانی چک‌باکس‌ها
             const checkboxGroups = {
                 'surgery': { prefix: 'surgery', items: this.formData.surgery || [] },
-                'stomachDiscomfort': { prefix: 'stomach', items: this.formData.stomachDiscomfort || [] },
                 'dietStyle': { prefix: 'diet-style', items: this.formData.dietStyle || [] },
                 'foodLimitations': { prefix: 'limitation', items: this.formData.foodLimitations || [] },
+                'digestiveConditions': { prefix: 'digestive', items: this.formData.digestiveConditions || [] },
                 'chronicConditions': { prefix: 'chronic', items: this.formData.chronicConditions || [] }
             };
     
@@ -102,7 +102,7 @@ window.state = {
                     }
                 });
             });
-    
+            
             // به روزرسانی فعالیت
             if (this.formData.activity) {
                 const activityOption = document.querySelector(`.activity-option[data-activity="${this.formData.activity}"]`);
@@ -113,12 +113,6 @@ window.state = {
                 const exerciseOption = document.querySelector(`.exercise-option[data-exercise="${this.formData.exercise}"]`);
                 if (exerciseOption) exerciseOption.classList.add('selected');
             }            
-    
-            // به روزرسانی وعده‌های غذایی
-            if (this.formData.meals) {
-                const mealOption = document.querySelector(`.meal-option[data-meals="${this.formData.meals}"]`);
-                if (mealOption) mealOption.classList.add('selected');
-            }
             
             // به روزرسانی مصرف آب
             if (this.formData.waterIntake !== undefined && this.formData.waterIntake !== null) {
@@ -242,18 +236,16 @@ window.STEPS = {
     WEIGHT: 6,
     TARGET_WEIGHT: 7,
     GOAL_DISPLAY: 8,
-    CHRONIC_CONDITIONS: 9,
-    SURGERY: 10,
-    STOMACH: 11,
-    WATER_INTAKE: 12,
-    ACTIVITY: 13,
-    EXERCISE: 14,
-    DIET_STYLE: 15,
-    FOOD_LIMITATIONS: 16,
-    TERMS_AGREEMENT: 17, // قبلاً ۱۸ بود
-    CONFIRMATION: 18 // قبلاً ۱۹ بود
+    CHRONIC_CONDITIONS: 9,        // بیماری‌های مزمن اصلی
+    DIGESTIVE_CONDITIONS: 10,      // مرحله جدید - مشکلات گوارشی و عدم تحمل‌ها
+    SURGERY: 11,                   // جابجایی به بعد
+    WATER_INTAKE: 12,              // جابجایی به بعد
+    ACTIVITY: 13,                  // جابجایی به بعد
+    EXERCISE: 14,                  // جابجایی به بعد
+    DIET_STYLE: 15,                // جابجایی به بعد
+    FOOD_LIMITATIONS: 16,          // جابجایی به بعد
+    TERMS_AGREEMENT: 17,
+    CONFIRMATION: 18
 };
-
-window.totalSteps = Object.keys(STEPS).length; // اکنون ۱۸ است
 
 window.totalSteps = Object.keys(STEPS).length;

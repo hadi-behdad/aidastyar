@@ -222,7 +222,7 @@ $theme_assets = get_stylesheet_directory_uri();
         </div>
     </div>
 
-    <!-- Step 9: Chronic Conditions -->
+    <!-- Step 9: Chronic Conditions (بیماری‌های مزمن اصلی) -->
     <div id="chronic-conditions-step" class="step checkbox-step-container">
         <h2>بیماری‌های مزمن و زمینه‌ای</h2>
         
@@ -316,30 +316,6 @@ $theme_assets = get_stylesheet_directory_uri();
                 </label>
             </div>
     
-            <div class="checkbox-container">
-                <input type="checkbox" id="chronic-gallbladder-stones" class="real-checkbox">
-                <label for="chronic-gallbladder-stones" class="checkbox-label">
-                    <span class="check-icon"></span>
-                    <span class="label-text">سنگ کیسه صفرا (بدون جراحی)</span>
-                </label>
-            </div>
-            
-            <div class="checkbox-container">
-                <input type="checkbox" id="chronic-gallbladder-inflammation" class="real-checkbox">
-                <label for="chronic-gallbladder-inflammation" class="checkbox-label">
-                    <span class="check-icon"></span>
-                    <span class="label-text">التهاب کیسه صفرا</span>
-                </label>
-            </div>
-            
-            <div class="checkbox-container">
-                <input type="checkbox" id="chronic-gallbladder-issues" class="real-checkbox">
-                <label for="chronic-gallbladder-issues" class="checkbox-label">
-                    <span class="check-icon"></span>
-                    <span class="label-text">سایر مشکلات کیسه صفرا</span>
-                </label>
-            </div>    
-    
             <!-- اختلالات هورمونی -->
             <h3 class="diffrent-category-titles">اختلالات هورمونی</h3>
             <div class="checkbox-container">
@@ -398,42 +374,8 @@ $theme_assets = get_stylesheet_directory_uri();
                 </label>
             </div>
     
-            <!-- حساسیت‌ها و عدم تحمل‌ها -->
-            <h3 class="diffrent-category-titles">حساسیت‌ها و عدم تحمل‌ها</h3>
-            <div class="checkbox-container">
-                <input type="checkbox" id="chronic-celiac" class="real-checkbox">
-                <label for="chronic-celiac" class="checkbox-label">
-                    <span class="check-icon"></span>
-                    <span class="label-text">بیماری سلیاک (حساسیت به گلوتن)</span>
-                </label>
-            </div>
-            
-            <div class="checkbox-container">
-                <input type="checkbox" id="chronic-lactose" class="real-checkbox">
-                <label for="chronic-lactose" class="checkbox-label">
-                    <span class="check-icon"></span>
-                    <span class="label-text">عدم تحمل لاکتوز</span>
-                </label>
-            </div>
-            
-            <div class="checkbox-container">
-                <input type="checkbox" id="chronic-food-allergy" class="real-checkbox">
-                <label for="chronic-food-allergy" class="checkbox-label">
-                    <span class="check-icon"></span>
-                    <span class="label-text">حساسیت غذایی (آلرژی)</span>
-                </label>
-            </div>
-    
             <!-- سایر بیماری‌های مزمن -->
             <h3 class="diffrent-category-titles">سایر بیماری‌های مزمن</h3>
-            <div class="checkbox-container">
-                <input type="checkbox" id="chronic-ibs" class="real-checkbox">
-                <label for="chronic-ibs" class="checkbox-label">
-                    <span class="check-icon"></span>
-                    <span class="label-text">سندرم روده تحریک‌پذیر (IBS)</span>
-                </label>
-            </div>
-            
             <div class="checkbox-container">
                 <input type="checkbox" id="chronic-kidney" class="real-checkbox">
                 <label for="chronic-kidney" class="checkbox-label">
@@ -455,6 +397,160 @@ $theme_assets = get_stylesheet_directory_uri();
                 <label for="chronic-autoimmune" class="checkbox-label">
                     <span class="check-icon"></span>
                     <span class="label-text">بیماری خودایمنی</span>
+                </label>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Step 10: Digestive Conditions (مرحله جدید - ادغام مشکلات گوارشی و عدم تحمل‌ها) -->
+    <div id="digestive-conditions-step" class="step checkbox-step-container">
+        <h2>مشکلات گوارشی و عدم تحمل‌های غذایی</h2>
+        <p class="step-description">لطفاً مشکلات گوارشی و عدم تحمل‌های غذایی خود را انتخاب کنید</p>
+        
+        <div class="checkbox-container first-option stand-alone-none">
+            <input type="checkbox" id="digestive-none" class="real-checkbox">
+            <label for="digestive-none" class="checkbox-label">
+                <span class="check-icon"></span>
+                <span class="label-text">هیچگونه مشکل گوارشی یا عدم تحمل غذایی ندارم</span>
+            </label>
+        </div>
+        
+        <div class="separator"></div>
+        
+        <div id="digestive-conditions-selection" class="checkbox-selection-container checkbox-list-container scrollable-container">
+            <!-- بیماری‌های گوارشی ساختاری -->
+            <h3 class="diffrent-category-titles" style="margin-top: 0px;">🩺 بیماری‌های گوارشی ساختاری</h3>
+            <div class="checkbox-container">
+                <input type="checkbox" id="digestive-ibs" class="real-checkbox">
+                <label for="digestive-ibs" class="checkbox-label">
+                    <span class="check-icon"></span>
+                    <span class="label-text">سندرم روده تحریک‌پذیر (IBS)</span>
+                </label>
+            </div>
+            
+            <div class="checkbox-container">
+                <input type="checkbox" id="digestive-ibd" class="real-checkbox">
+                <label for="digestive-ibd" class="checkbox-label">
+                    <span class="check-icon"></span>
+                    <span class="label-text">بیماری التهابی روده (کرون یا کولیت اولسراتیو)</span>
+                </label>
+            </div>
+            
+            <div class="checkbox-container">
+                <input type="checkbox" id="digestive-gerd" class="real-checkbox">
+                <label for="digestive-gerd" class="checkbox-label">
+                    <span class="check-icon"></span>
+                    <span class="label-text">ریفلاکس معده-مروی (GERD)</span>
+                </label>
+            </div>
+    
+            <!-- علائم و مشکلات عملکردی -->
+            <h3 class="diffrent-category-titles">🌀 علائم و مشکلات عملکردی</h3>
+            <div class="checkbox-container">
+                <input type="checkbox" id="digestive-bloating" class="real-checkbox">
+                <label for="digestive-bloating" class="checkbox-label">
+                    <span class="check-icon"></span>
+                    <span class="label-text">نفخ یا گاز معده</span>
+                </label>
+            </div>
+            
+            <div class="checkbox-container">
+                <input type="checkbox" id="digestive-pain" class="real-checkbox">
+                <label for="digestive-pain" class="checkbox-label">
+                    <span class="check-icon"></span>
+                    <span class="label-text">درد یا گرفتگی معده</span>
+                </label>
+            </div>
+            
+            <div class="checkbox-container">
+                <input type="checkbox" id="digestive-heartburn" class="real-checkbox">
+                <label for="digestive-heartburn" class="checkbox-label">
+                    <span class="check-icon"></span>
+                    <span class="label-text">سوزش سر دل یا ترش کردن</span>
+                </label>
+            </div>
+            
+            <div class="checkbox-container">
+                <input type="checkbox" id="digestive-constipation" class="real-checkbox">
+                <label for="digestive-constipation" class="checkbox-label">
+                    <span class="check-icon"></span>
+                    <span class="label-text">یبوست مزمن</span>
+                </label>
+            </div>
+            
+            <div class="checkbox-container">
+                <input type="checkbox" id="digestive-diarrhea" class="real-checkbox">
+                <label for="digestive-diarrhea" class="checkbox-label">
+                    <span class="check-icon"></span>
+                    <span class="label-text">اسهال مزمن</span>
+                </label>
+            </div>
+    
+            <div class="checkbox-container">
+                <input type="checkbox" id="digestive-fullness" class="real-checkbox">
+                <label for="digestive-fullness" class="checkbox-label">
+                    <span class="check-icon"></span>
+                    <span class="label-text">سیری زودرس</span>
+                </label>
+            </div>
+            
+            <div class="checkbox-container">
+                <input type="checkbox" id="digestive-nausea" class="real-checkbox">
+                <label for="digestive-nausea" class="checkbox-label">
+                    <span class="check-icon"></span>
+                    <span class="label-text">حالت تهوع</span>
+                </label>
+            </div>
+            
+            <div class="checkbox-container">
+                <input type="checkbox" id="digestive-slow-digestion" class="real-checkbox">
+                <label for="digestive-slow-digestion" class="checkbox-label">
+                    <span class="check-icon"></span>
+                    <span class="label-text">هضم کند غذا</span>
+                </label>
+            </div>
+            
+            <div class="checkbox-container">
+                <input type="checkbox" id="digestive-indigestion" class="real-checkbox">
+                <label for="digestive-indigestion" class="checkbox-label">
+                    <span class="check-icon"></span>
+                    <span class="label-text">سوء هاضمه مزمن</span>
+                </label>
+            </div>
+    
+            <!-- عفونت‌ها و مشکلات خاص -->
+            <h3 class="diffrent-category-titles">🦠 عفونت‌ها و مشکلات خاص</h3>
+            <div class="checkbox-container">
+                <input type="checkbox" id="digestive-helicobacter" class="real-checkbox">
+                <label for="digestive-helicobacter" class="checkbox-label">
+                    <span class="check-icon"></span>
+                    <span class="label-text">عفونت هلیکوباکتر پیلوری (H. Pylori)</span>
+                </label>
+            </div>
+    
+            <!-- عدم تحمل‌های غذایی -->
+            <h3 class="diffrent-category-titles">🚫 عدم تحمل‌های غذایی</h3>
+            <div class="checkbox-container">
+                <input type="checkbox" id="digestive-celiac" class="real-checkbox">
+                <label for="digestive-celiac" class="checkbox-label">
+                    <span class="check-icon"></span>
+                    <span class="label-text">بیماری سلیاک (حساسیت به گلوتن)</span>
+                </label>
+            </div>
+            
+            <div class="checkbox-container">
+                <input type="checkbox" id="digestive-lactose" class="real-checkbox">
+                <label for="digestive-lactose" class="checkbox-label">
+                    <span class="check-icon"></span>
+                    <span class="label-text">عدم تحمل لاکتوز</span>
+                </label>
+            </div>
+            
+            <div class="checkbox-container">
+                <input type="checkbox" id="digestive-food-allergy" class="real-checkbox">
+                <label for="digestive-food-allergy" class="checkbox-label">
+                    <span class="check-icon"></span>
+                    <span class="label-text">حساسیت غذایی (آلرژی)</span>
                 </label>
             </div>
         </div>
@@ -607,150 +703,6 @@ $theme_assets = get_stylesheet_directory_uri();
                 <label for="surgery-gynecology" class="checkbox-label">
                     <span class="check-icon"></span>
                     <span class="label-text">جراحی‌های زنان</span>
-                </label>
-            </div>
-        </div>
-    </div>
-
-    <!-- Step 12: Stomach Discomfort - مرحله ۳: علائم و مشکلات فعلی -->
-    <div id="stomach-discomfort-step" class="step checkbox-step-container">
-        <h2>علائم و مشکلات گوارشی فعلی</h2>
-        <p class="step-description">لطفاً مشکلات و علائم فعلی خود در سیستم گوارشی را انتخاب کنید</p>
-        
-        <div class="checkbox-container first-option stand-alone-none">
-            <input type="checkbox" id="stomach-none" class="real-checkbox">
-            <label for="stomach-none" class="checkbox-label">
-                <span class="check-icon"></span>
-                <span class="label-text">هیچگونه مشکل گوارشی ندارم</span>
-            </label>
-        </div>
-        
-        <div class="separator"></div>
-        
-        <div id="stomach-selection" class="checkbox-selection-container checkbox-list-container scrollable-container">
-            <!-- 🌀 مشکلات گوارشی -->
-            <h3 class="diffrent-category-titles" style="margin-top: 0px;">🌀 مشکلات گوارشی</h3>
-            <div class="checkbox-container">
-                <input type="checkbox" id="stomach-bloating" class="real-checkbox">
-                <label for="stomach-bloating" class="checkbox-label">
-                    <span class="check-icon"></span>
-                    <span class="label-text">نفخ یا گاز معده</span>
-                </label>
-            </div>
-            
-            <div class="checkbox-container">
-                <input type="checkbox" id="stomach-pain" class="real-checkbox">
-                <label for="stomach-pain" class="checkbox-label">
-                    <span class="check-icon"></span>
-                    <span class="label-text">درد یا گرفتگی معده</span>
-                </label>
-            </div>
-            
-            <div class="checkbox-container">
-                <input type="checkbox" id="stomach-heartburn" class="real-checkbox">
-                <label for="stomach-heartburn" class="checkbox-label">
-                    <span class="check-icon"></span>
-                    <span class="label-text">سوزش سر دل یا ترش کردن</span>
-                </label>
-            </div>
-            
-            <div class="checkbox-container">
-                <input type="checkbox" id="stomach-constipation" class="real-checkbox">
-                <label for="stomach-constipation" class="checkbox-label">
-                    <span class="check-icon"></span>
-                    <span class="label-text">یبوست مزمن</span>
-                </label>
-            </div>
-            
-            <div class="checkbox-container">
-                <input type="checkbox" id="stomach-diarrhea" class="real-checkbox">
-                <label for="stomach-diarrhea" class="checkbox-label">
-                    <span class="check-icon"></span>
-                    <span class="label-text">اسهال مزمن</span>
-                </label>
-            </div>
-    
-            <!-- ⚡ علائم عملکردی -->
-            <h3 class="diffrent-category-titles">⚡ علائم عملکردی</h3>
-            <div class="checkbox-container">
-                <input type="checkbox" id="stomach-fullness" class="real-checkbox">
-                <label for="stomach-fullness" class="checkbox-label">
-                    <span class="check-icon"></span>
-                    <span class="label-text">سیری زودرس</span>
-                </label>
-            </div>
-            
-            <div class="checkbox-container">
-                <input type="checkbox" id="stomach-nausea" class="real-checkbox">
-                <label for="stomach-nausea" class="checkbox-label">
-                    <span class="check-icon"></span>
-                    <span class="label-text">حالت تهوع</span>
-                </label>
-            </div>
-            
-            <div class="checkbox-container">
-                <input type="checkbox" id="stomach-slow-digestion" class="real-checkbox">
-                <label for="stomach-slow-digestion" class="checkbox-label">
-                    <span class="check-icon"></span>
-                    <span class="label-text">هضم کند غذا</span>
-                </label>
-            </div>
-            
-            <div class="checkbox-container">
-                <input type="checkbox" id="stomach-acid-reflux" class="real-checkbox">
-                <label for="stomach-acid-reflux" class="checkbox-label">
-                    <span class="check-icon"></span>
-                    <span class="label-text">ریفلاکس اسید معده</span>
-                </label>
-            </div>
-    
-            <!-- 🦠 مشکلات خاص -->
-            <h3 class="diffrent-category-titles">🦠 مشکلات خاص</h3>
-            <div class="checkbox-container">
-                <input type="checkbox" id="stomach-helicobacter" class="real-checkbox">
-                <label for="stomach-helicobacter" class="checkbox-label">
-                    <span class="check-icon"></span>
-                    <span class="label-text">عفونت هلیکوباکتر پیلوری (H. Pylori)</span>
-                </label>
-            </div>
-            
-            <div class="checkbox-container">
-                <input type="checkbox" id="stomach-ibd" class="real-checkbox">
-                <label for="stomach-ibd" class="checkbox-label">
-                    <span class="check-icon"></span>
-                    <span class="label-text">بیماری التهابی روده (کرون یا کولیت اولسراتیو)</span>
-                </label>
-            </div>
-            
-            <div class="checkbox-container">
-                <input type="checkbox" id="stomach-ibs" class="real-checkbox">
-                <label for="stomach-ibs" class="checkbox-label">
-                    <span class="check-icon"></span>
-                    <span class="label-text">سندرم روده تحریک‌پذیر (IBS)</span>
-                </label>
-            </div>
-            
-            <div class="checkbox-container">
-                <input type="checkbox" id="stomach-gerd" class="real-checkbox">
-                <label for="stomach-gerd" class="checkbox-label">
-                    <span class="check-icon"></span>
-                    <span class="label-text">ریفلاکس معده-مروی (GERD)</span>
-                </label>
-            </div>
-            
-            <div class="checkbox-container">
-                <input type="checkbox" id="stomach-indigestion" class="real-checkbox">
-                <label for="stomach-indigestion" class="checkbox-label">
-                    <span class="check-icon"></span>
-                    <span class="label-text">سوء هاضمه مزمن</span>
-                </label>
-            </div>
-            
-            <div class="checkbox-container">
-                <input type="checkbox" id="stomach-food-intolerance" class="real-checkbox">
-                <label for="stomach-food-intolerance" class="checkbox-label">
-                    <span class="check-icon"></span>
-                    <span class="label-text">عدم تحمل غذایی (لبنیات، گلوتن و...)</span>
                 </label>
             </div>
         </div>
