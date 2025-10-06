@@ -150,9 +150,6 @@ window.setupChronicConditionsSelection = function(currentStep) {
             { key: 'menopause', id: 'chronic-menopause' },
             { key: 'cortisol', id: 'chronic-cortisol' },
             { key: 'growth', id: 'chronic-growth' },
-            { key: 'celiac', id: 'chronic-celiac' },
-            { key: 'lactose', id: 'chronic-lactose' },
-            { key: 'foodAllergy', id: 'chronic-food-allergy' },
             { key: 'ibs', id: 'chronic-ibs' },
             { key: 'kidney', id: 'chronic-kidney' },
             { key: 'heart', id: 'chronic-heart' },
@@ -300,11 +297,6 @@ window.setupDigestiveConditionsSelection = function(currentStep) {
             
             // عفونت‌ها و مشکلات خاص
             { key: 'helicobacter', id: 'digestive-helicobacter' },
-            
-            // عدم تحمل‌ها
-            { key: 'celiac', id: 'digestive-celiac' },
-            { key: 'lactose', id: 'digestive-lactose' },
-            { key: 'food-allergy', id: 'digestive-food-allergy' }
         ]
     });
 };
@@ -315,8 +307,7 @@ window.setupDietStyleSelection = function(currentStep) {
         dataKey: 'dietStyle',
         options: [
             { key: 'vegetarian', id: 'diet-style-vegetarian' },
-            { key: 'vegan', id: 'diet-style-vegan' },
-            { key: 'halal', id: 'diet-style-halal' }
+            { key: 'vegan', id: 'diet-style-vegan' }
         ]
     });
 };
@@ -326,13 +317,17 @@ window.setupFoodLimitationsSelection = function(currentStep) {
         noneCheckboxId: 'limitations-none',
         dataKey: 'foodLimitations',
         options: [
+            // محدودیت‌های پزشکی
+            { key: 'celiac', id: 'limitation-celiac' },
+            { key: 'lactose', id: 'limitation-lactose' },
+            { key: 'seafood-allergy', id: 'limitation-seafood-allergy' },
+            { key: 'eggs-allergy', id: 'limitation-eggs-allergy' },
+            { key: 'nuts-allergy', id: 'limitation-nuts-allergy' },
+            
+            // ترجیحات شخصی
             { key: 'no-seafood', id: 'limitation-no-seafood' },
             { key: 'no-redmeat', id: 'limitation-no-redmeat' },
-            { key: 'no-pork', id: 'limitation-no-pork' },
-            { key: 'no-gluten', id: 'limitation-no-gluten' },
-            { key: 'no-dairy', id: 'limitation-no-dairy' },
-            { key: 'no-eggs', id: 'limitation-no-eggs' },
-            { key: 'no-nuts', id: 'limitation-no-nuts' }
+            { key: 'no-dairy', id: 'limitation-no-dairy' }
         ]
     });
 };

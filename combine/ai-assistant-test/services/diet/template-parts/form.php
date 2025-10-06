@@ -527,32 +527,6 @@ $theme_assets = get_stylesheet_directory_uri();
                     <span class="label-text">عفونت هلیکوباکتر پیلوری (H. Pylori)</span>
                 </label>
             </div>
-    
-            <!-- عدم تحمل‌های غذایی -->
-            <h3 class="diffrent-category-titles">🚫 عدم تحمل‌های غذایی</h3>
-            <div class="checkbox-container">
-                <input type="checkbox" id="digestive-celiac" class="real-checkbox">
-                <label for="digestive-celiac" class="checkbox-label">
-                    <span class="check-icon"></span>
-                    <span class="label-text">بیماری سلیاک (حساسیت به گلوتن)</span>
-                </label>
-            </div>
-            
-            <div class="checkbox-container">
-                <input type="checkbox" id="digestive-lactose" class="real-checkbox">
-                <label for="digestive-lactose" class="checkbox-label">
-                    <span class="check-icon"></span>
-                    <span class="label-text">عدم تحمل لاکتوز</span>
-                </label>
-            </div>
-            
-            <div class="checkbox-container">
-                <input type="checkbox" id="digestive-food-allergy" class="real-checkbox">
-                <label for="digestive-food-allergy" class="checkbox-label">
-                    <span class="check-icon"></span>
-                    <span class="label-text">حساسیت غذایی (آلرژی)</span>
-                </label>
-            </div>
         </div>
     </div>
 
@@ -925,20 +899,12 @@ $theme_assets = get_stylesheet_directory_uri();
                     <span class="label-text">وگان (Vegan - بدون هیچ محصول حیوانی)</span>
                 </label>
             </div>
-            
-            <div class="checkbox-container">
-                <input type="checkbox" id="diet-style-halal" class="real-checkbox">
-                <label for="diet-style-halal" class="checkbox-label">
-                    <span class="check-icon"></span>
-                    <span class="label-text">حلال (Halal)</span>
-                </label>
-            </div>
         </div>
     </div>
 
-    <!-- Step 16: Food Limitations -->
     <div id="food-limitations-step" class="step checkbox-step-container">
         <h2>چه محدودیت‌های غذایی دارید؟</h2>
+        <p class="step-description">شامل محدودیت‌های پزشکی (حساسیت، عدم تحمل) و ترجیحات شخصی</p>
         
         <div class="checkbox-container first-option stand-alone-none">
             <input type="checkbox" id="limitations-none" class="real-checkbox">
@@ -951,6 +917,50 @@ $theme_assets = get_stylesheet_directory_uri();
         <div class="separator"></div>
         
         <div id="food-limitations-selection" class="checkbox-selection-container checkbox-list-container scrollable-container">
+            <!-- محدودیت‌های پزشکی -->
+            <h3 class="diffrent-category-titles" style="margin-top: 0px;">🩺 محدودیت‌های پزشکی</h3>
+            <div class="checkbox-container">
+                <input type="checkbox" id="limitation-celiac" class="real-checkbox">
+                <label for="limitation-celiac" class="checkbox-label">
+                    <span class="check-icon"></span>
+                    <span class="label-text">بیماری سلیاک (حساسیت به گلوتن)</span>
+                </label>
+            </div>
+            
+            <div class="checkbox-container">
+                <input type="checkbox" id="limitation-lactose" class="real-checkbox">
+                <label for="limitation-lactose" class="checkbox-label">
+                    <span class="check-icon"></span>
+                    <span class="label-text">عدم تحمل لاکتوز</span>
+                </label>
+            </div>
+            
+            <div class="checkbox-container">
+                <input type="checkbox" id="limitation-seafood-allergy" class="real-checkbox">
+                <label for="limitation-seafood-allergy" class="checkbox-label">
+                    <span class="check-icon"></span>
+                    <span class="label-text">حساسیت به غذاهای دریایی</span>
+                </label>
+            </div>
+            
+            <div class="checkbox-container">
+                <input type="checkbox" id="limitation-eggs-allergy" class="real-checkbox">
+                <label for="limitation-eggs-allergy" class="checkbox-label">
+                    <span class="check-icon"></span>
+                    <span class="label-text">حساسیت به تخم‌مرغ</span>
+                </label>
+            </div>
+            
+            <div class="checkbox-container">
+                <input type="checkbox" id="limitation-nuts-allergy" class="real-checkbox">
+                <label for="limitation-nuts-allergy" class="checkbox-label">
+                    <span class="check-icon"></span>
+                    <span class="label-text">حساسیت به آجیل و مغزها</span>
+                </label>
+            </div>
+    
+            <!-- ترجیحات شخصی -->
+            <h3 class="diffrent-category-titles">🌱 ترجیحات شخصی</h3>
             <div class="checkbox-container">
                 <input type="checkbox" id="limitation-no-seafood" class="real-checkbox">
                 <label for="limitation-no-seafood" class="checkbox-label">
@@ -968,42 +978,10 @@ $theme_assets = get_stylesheet_directory_uri();
             </div>
             
             <div class="checkbox-container">
-                <input type="checkbox" id="limitation-no-pork" class="real-checkbox">
-                <label for="limitation-no-pork" class="checkbox-label">
-                    <span class="check-icon"></span>
-                    <span class="label-text">عدم مصرف گوشت خوک و مشتقات آن</span>
-                </label>
-            </div>
-            
-            <div class="checkbox-container">
-                <input type="checkbox" id="limitation-no-gluten" class="real-checkbox">
-                <label for="limitation-no-gluten" class="checkbox-label">
-                    <span class="check-icon"></span>
-                    <span class="label-text">عدم مصرف گلوتن</span>
-                </label>
-            </div>
-            
-            <div class="checkbox-container">
                 <input type="checkbox" id="limitation-no-dairy" class="real-checkbox">
                 <label for="limitation-no-dairy" class="checkbox-label">
                     <span class="check-icon"></span>
                     <span class="label-text">عدم مصرف لبنیات</span>
-                </label>
-            </div>
-            
-            <div class="checkbox-container">
-                <input type="checkbox" id="limitation-no-eggs" class="real-checkbox">
-                <label for="limitation-no-eggs" class="checkbox-label">
-                    <span class="check-icon"></span>
-                    <span class="label-text">عدم مصرف تخم‌مرغ</span>
-                </label>
-            </div>
-            
-            <div class="checkbox-container">
-                <input type="checkbox" id="limitation-no-nuts" class="real-checkbox">
-                <label for="limitation-no-nuts" class="checkbox-label">
-                    <span class="check-icon"></span>
-                    <span class="label-text">عدم مصرف آجیل و مغزها</span>
                 </label>
             </div>
         </div>

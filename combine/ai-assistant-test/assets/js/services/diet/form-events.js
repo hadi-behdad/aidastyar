@@ -501,16 +501,9 @@ window.showSummary = function() {
     if (chronicConditions.includes('menopause')) chronicConditionsText.push('یائسگی/پیش یائسگی');
     if (chronicConditions.includes('cortisol')) chronicConditionsText.push('مشکلات کورتیزول');
     if (chronicConditions.includes('growth')) chronicConditionsText.push('اختلال هورمون رشد');
-    if (chronicConditions.includes('celiac')) chronicConditionsText.push('بیماری سلیاک');
-    if (chronicConditions.includes('lactose')) chronicConditionsText.push('عدم تحمل لاکتوز');
-    if (chronicConditions.includes('foodAllergy')) chronicConditionsText.push('حساسیت غذایی');
-    if (chronicConditions.includes('ibs')) chronicConditionsText.push('سندرم روده تحریک پذیر');
     if (chronicConditions.includes('kidney')) chronicConditionsText.push('بیماری کلیوی مزمن');
     if (chronicConditions.includes('heart')) chronicConditionsText.push('بیماری قلبی عروقی');
     if (chronicConditions.includes('autoimmune')) chronicConditionsText.push('بیماری خودایمنی');
-    if (chronicConditions.includes('gallbladderStones')) chronicConditionsText.push('سنگ کیسه صفرا');
-    if (chronicConditions.includes('gallbladderInflammation')) chronicConditionsText.push('التهاب کیسه صفرا');
-    if (chronicConditions.includes('gallbladderIssues')) chronicConditionsText.push('سایر مشکلات کیسه صفرا');    
     if (chronicConditions.includes('none')) chronicConditionsText.push('ندارم');
 
     
@@ -577,27 +570,27 @@ window.showSummary = function() {
     if (digestiveConditions.includes('slow-digestion')) digestiveConditionsText.push('هضم کند غذا');
     if (digestiveConditions.includes('indigestion')) digestiveConditionsText.push('سوء هاضمه مزمن');
     if (digestiveConditions.includes('helicobacter')) digestiveConditionsText.push('عفونت هلیکوباکتر پیلوری');
-    if (digestiveConditions.includes('celiac')) digestiveConditionsText.push('بیماری سلیاک');
-    if (digestiveConditions.includes('lactose')) digestiveConditionsText.push('عدم تحمل لاکتوز');
-    if (digestiveConditions.includes('food-allergy')) digestiveConditionsText.push('حساسیت غذایی');
     if (digestiveConditions.includes('none')) digestiveConditionsText.push('ندارم');
 
     // سبک‌های غذایی
     const dietStyleText = [];
     if (dietStyle.includes('vegetarian')) dietStyleText.push('گیاهخواری');
     if (dietStyle.includes('vegan')) dietStyleText.push('وگان');
-    if (dietStyle.includes('halal')) dietStyleText.push('حلال');
     if (dietStyle.includes('none')) dietStyleText.push('سبک غذایی خاصی ندارم');
 
     // محدودیت‌های غذایی
     const foodLimitationsText = [];
+    // محدودیت‌های پزشکی
+    if (foodLimitations.includes('celiac')) foodLimitationsText.push('بیماری سلیاک');
+    if (foodLimitations.includes('lactose')) foodLimitationsText.push('عدم تحمل لاکتوز');
+    if (foodLimitations.includes('seafood-allergy')) foodLimitationsText.push('حساسیت به غذای دریایی');
+    if (foodLimitations.includes('eggs-allergy')) foodLimitationsText.push('حساسیت به تخم‌مرغ');
+    if (foodLimitations.includes('nuts-allergy')) foodLimitationsText.push('حساسیت به آجیل');
+    // ترجیحات شخصی
     if (foodLimitations.includes('no-seafood')) foodLimitationsText.push('عدم مصرف غذای دریایی');
     if (foodLimitations.includes('no-redmeat')) foodLimitationsText.push('عدم مصرف گوشت قرمز');
-    if (foodLimitations.includes('no-pork')) foodLimitationsText.push('عدم مصرف گوشت خوک');
-    if (foodLimitations.includes('no-gluten')) foodLimitationsText.push('عدم مصرف گلوتن');
     if (foodLimitations.includes('no-dairy')) foodLimitationsText.push('عدم مصرف لبنیات');
-    if (foodLimitations.includes('no-eggs')) foodLimitationsText.push('عدم مصرف تخم‌مرغ');
-    if (foodLimitations.includes('no-nuts')) foodLimitationsText.push('عدم مصرف آجیل و مغزها');
+    
     if (foodLimitations.includes('none')) foodLimitationsText.push('ندارم');
 
     summaryContainer.innerHTML = `
