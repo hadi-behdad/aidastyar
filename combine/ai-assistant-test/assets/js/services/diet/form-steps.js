@@ -329,19 +329,6 @@ window.setupFoodLimitationsSelection = function(currentStep) {
     });
 };
 
-window.setupFoodPreferencesSelection = function(currentStep) {
-    setupComplexCheckboxSelection(currentStep, {
-        noneCheckboxId: 'preferences-none',
-        dataKey: 'foodPreferences',
-        options: [
-            { key: 'low-carb', id: 'preference-lowcarb' },
-            { key: 'low-fat', id: 'preference-lowfat' },
-            { key: 'high-protein', id: 'preference-highprotein' },
-            { key: 'organic', id: 'preference-organic' }
-        ]
-    });
-};
-
 window.setupWaterIntakeSelection = function(currentStep) {
     if (currentStep !== STEPS.WATER_INTAKE) return;
 
@@ -550,7 +537,6 @@ window.showStep = function(step) {
         "exercise-activity-step",       // 14 (قبلاً 15)
         "diet-style-step",              // 15 (قبلاً 16)
         "food-limitations-step",        // 16 (قبلاً 17)
-        "food-preferences-step",        // 17 (قبلاً 18)
         "terms-agreement-step",         // 18 (قبلاً 19)
         "confirm-submit-step"           // 19 (قبلاً 20)
     ];
@@ -662,10 +648,6 @@ window.showStep = function(step) {
     }
     else if (step === STEPS.FOOD_LIMITATIONS) {
         setupFoodLimitationsSelection(step);
-        document.getElementById("next-button-container").style.display = "block";
-    } 
-    else if (step === STEPS.FOOD_PREFERENCES) {
-        setupFoodPreferencesSelection(step);
         document.getElementById("next-button-container").style.display = "block";
     } 
     else if (step === STEPS.TERMS_AGREEMENT) {

@@ -73,7 +73,6 @@ window.state = {
                 'stomachDiscomfort': { prefix: 'stomach', items: this.formData.stomachDiscomfort || [] },
                 'dietStyle': { prefix: 'diet-style', items: this.formData.dietStyle || [] },
                 'foodLimitations': { prefix: 'limitation', items: this.formData.foodLimitations || [] },
-                'foodPreferences': { prefix: 'preference', items: this.formData.foodPreferences || [] },
                 'chronicConditions': { prefix: 'chronic', items: this.formData.chronicConditions || [] }
             };
     
@@ -245,15 +244,16 @@ window.STEPS = {
     GOAL_DISPLAY: 8,
     CHRONIC_CONDITIONS: 9,
     SURGERY: 10,
-    STOMACH: 11, // قبلاً 12 بود
-    WATER_INTAKE: 12, // قبلاً 13 بود
-    ACTIVITY: 13, // قبلاً 14 بود
-    EXERCISE: 14, // قبلاً 15 بود
-    DIET_STYLE: 15, // قبلاً 16 بود
-    FOOD_LIMITATIONS: 16, // قبلاً 17 بود
-    FOOD_PREFERENCES: 17, // قبلاً 18 بود
-    TERMS_AGREEMENT: 18, // قبلاً 19 بود
-    CONFIRMATION: 19 // قبلاً 20 بود
+    STOMACH: 11,
+    WATER_INTAKE: 12,
+    ACTIVITY: 13,
+    EXERCISE: 14,
+    DIET_STYLE: 15,
+    FOOD_LIMITATIONS: 16,
+    TERMS_AGREEMENT: 17, // قبلاً ۱۸ بود
+    CONFIRMATION: 18 // قبلاً ۱۹ بود
 };
+
+window.totalSteps = Object.keys(STEPS).length; // اکنون ۱۸ است
 
 window.totalSteps = Object.keys(STEPS).length;

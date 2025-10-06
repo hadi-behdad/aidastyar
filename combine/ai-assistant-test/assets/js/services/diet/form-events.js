@@ -74,7 +74,6 @@ document.addEventListener('DOMContentLoaded', () => {
     setupScrollIndicator('exercise-selection'); // اضافه کردن این خط
     setupScrollIndicator('diet-style-selection');
     setupScrollIndicator('food-limitations-selection');
-    setupScrollIndicator('food-preferences-selection');
 });
 
 window.handleNextStep = function() {
@@ -392,9 +391,6 @@ window.handleFormSubmit = function(event) {
         chronicConditions: state.formData.chronicConditions || [], // اضافه شده
         dietStyle: state.formData.dietStyle || [],
         foodLimitations: state.formData.foodLimitations || [],
-        foodPreferences: state.formData.foodPreferences || [],
-        
-        // اطلاعات تکمیلی بیماری‌های مزمن
         chronicDiabetesType: state.formData.chronicDiabetesType || '',
         chronicFastingBloodSugar: state.formData.chronicFastingBloodSugar || '',
         chronicHba1c: state.formData.chronicHba1c || ''
@@ -424,7 +420,7 @@ window.showSummary = function() {
         gender, age, height, weight, targetWeight, goal, 
         activity, exercise, meals, waterIntake, surgery = [],
         stomachDiscomfort = [], dietStyle = [],
-        foodLimitations = [], foodPreferences = [],
+        foodLimitations = [],
         chronicConditions = [] // اضافه کردن بیماری‌های مزمن
     } = state.formData;
 
@@ -582,14 +578,6 @@ window.showSummary = function() {
     if (foodLimitations.includes('no-nuts')) foodLimitationsText.push('عدم مصرف آجیل و مغزها');
     if (foodLimitations.includes('none')) foodLimitationsText.push('ندارم');
 
-    // ترجیحات غذایی
-    const foodPreferencesText = [];
-    if (foodPreferences.includes('low-carb')) foodPreferencesText.push('رژیم کم کربوهیدرات');
-    if (foodPreferences.includes('low-fat')) foodPreferencesText.push('رژیم کم چربی');
-    if (foodPreferences.includes('high-protein')) foodPreferencesText.push('رژیم پرپروتئین');
-    if (foodPreferences.includes('organic')) foodPreferencesText.push('مواد غذایی ارگانیک');
-    if (foodPreferences.includes('none')) foodPreferencesText.push('ندارم');
-
     summaryContainer.innerHTML = `
         ${personalInfoText.length > 0 ? `
         <div class="summary-section">
@@ -657,10 +645,6 @@ window.showSummary = function() {
         <div class="summary-item">
             <span class="summary-label">محدودیت‌های غذایی:</span>
             <span class="summary-value">${foodLimitationsText.join('، ') || 'ثبت نشده'}</span>
-        </div>
-        <div class="summary-item">
-            <span class="summary-label">ترجیحات غذایی:</span>
-            <span class="summary-value">${foodPreferencesText.join('، ') || 'ثبت نشده'}</span>
         </div>
         `;
 }

@@ -29,8 +29,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 surgery: ['none'],
                 stomachDiscomfort: ['none'],
                 dietStyle: ['none'],
-                foodLimitations: ['none'],
-                foodPreferences: ['none']
+                foodLimitations: ['none']
             };
 
             // تابع جدید برای پر کردن مرحله اطلاعات شخصی

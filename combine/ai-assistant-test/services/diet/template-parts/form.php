@@ -1057,55 +1057,6 @@ $theme_assets = get_stylesheet_directory_uri();
         </div>
     </div>
     
-    <!-- Step 17: Food Preferences -->
-    <div id="food-preferences-step" class="step checkbox-step-container">
-        <h2>چه ترجیحات غذایی دارید؟</h2>
-        
-        <div class="checkbox-container first-option stand-alone-none">
-            <input type="checkbox" id="preferences-none" class="real-checkbox">
-            <label for="preferences-none" class="checkbox-label">
-                <span class="check-icon"></span>
-                <span class="label-text">ترجیح غذایی خاصی ندارم</span>
-            </label>
-        </div>
-        
-        <div class="separator"></div>
-        
-        <div id="food-preferences-selection" class="checkbox-selection-container checkbox-list-container scrollable-container">
-            <div class="checkbox-container">
-                <input type="checkbox" id="preference-lowcarb" class="real-checkbox">
-                <label for="preference-lowcarb" class="checkbox-label">
-                    <span class="check-icon"></span>
-                    <span class="label-text">رژیم کم کربوهیدرات</span>
-                </label>
-            </div>
-            
-            <div class="checkbox-container">
-                <input type="checkbox" id="preference-lowfat" class="real-checkbox">
-                <label for="preference-lowfat" class="checkbox-label">
-                    <span class="check-icon"></span>
-                    <span class="label-text">رژیم کم چربی</span>
-                </label>
-            </div>
-            
-            <div class="checkbox-container">
-                <input type="checkbox" id="preference-highprotein" class="real-checkbox">
-                <label for="preference-highprotein" class="checkbox-label">
-                    <span class="check-icon"></span>
-                    <span class="label-text">رژیم پرپروتئین</span>
-                </label>
-            </div>
-            
-            <div class="checkbox-container">
-                <input type="checkbox" id="preference-organic" class="real-checkbox">
-                <label for="preference-organic" class="checkbox-label">
-                    <span class="check-icon"></span>
-                    <span class="label-text">ترجیح مواد غذایی ارگانیک</span>
-                </label>
-            </div>
-        </div>
-    </div>
-
     <!-- Step 18: Terms Agreement -->
     <div id="terms-agreement-step" class="step">
         <h2>توافق‌نامه استفاده از خدمات Aidastyar</h2>
