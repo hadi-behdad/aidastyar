@@ -244,9 +244,10 @@ window.STEPS = {
     EXERCISE: 14,
     DIET_STYLE: 15,
     FOOD_LIMITATIONS: 16,
-    FAVORITE_FOODS: 17,  // مرحله جدید
-    TERMS_AGREEMENT: 18,  // جابجا شده
-    CONFIRMATION: 19      // جابجا شده
+    FAVORITE_FOODS: 17,
+    TERMS_AGREEMENT: 18,  // این مرحله از شمارش خارج می‌شود
+    CONFIRMATION: 19       // این مرحله از شمارش خارج می‌شود
 };
 
-window.totalSteps = Object.keys(STEPS).length;
+// تعداد مراحل اصلی (بدون احتساب دو مرحله آخر)
+window.totalSteps = Object.keys(STEPS).length - 2; // 17 مرحله اصلی

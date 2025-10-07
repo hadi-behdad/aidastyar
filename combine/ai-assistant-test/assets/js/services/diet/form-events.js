@@ -72,6 +72,7 @@ document.addEventListener('DOMContentLoaded', () => {
     setupScrollIndicator('exercise-selection'); // اضافه کردن این خط
     setupScrollIndicator('diet-style-selection');
     setupScrollIndicator('food-limitations-selection');
+    setupScrollIndicator('favorite-foods-selection');
 });
 
 window.handleNextStep = function() {

@@ -208,12 +208,13 @@ document.addEventListener('DOMContentLoaded', function() {
             }
 
             function fillFavoriteFoodsStep() {
-                if (state.currentStep === STEPS.FAVORITE_FOODS) {
+                if (state.currentStep === STEPS.FAVORITE_FOODS) { // مرحله 17
                     const noneCheckbox = document.getElementById('foods-none');
                     if (noneCheckbox) {
                         noneCheckbox.checked = true;
                         noneCheckbox.dispatchEvent(new Event('change'));
-                        clickNextButton(500);
+                        // رفتن به مرحله توافق‌نامه (18)
+                        setTimeout(() => navigateToStep(STEPS.TERMS_AGREEMENT), 500);
                     }
                 }
             }

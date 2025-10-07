@@ -608,17 +608,33 @@ window.showStep = function(step) {
         `;
     }
     
+    // مدیریت نمایش دکمه بعدی
     const nextButtonContainer = document.getElementById("next-button-container");
     if (nextButtonContainer) {
-        nextButtonContainer.style.display = [
+        // مخفی کردن دکمه "گام بعد" در مراحل خاص
+        const hideNextButtonSteps = [
             STEPS.GENDER, 
             STEPS.GOAL,
-            STEPS.WATER_INTAKE, // اضافه شده
+            STEPS.WATER_INTAKE,
             STEPS.ACTIVITY, 
             STEPS.EXERCISE
-        ].includes(step) ? "none" : "block";
+        ];
+        
+        nextButtonContainer.style.display = hideNextButtonSteps.includes(step) ? "none" : "block";
+        
+        // مخفی کردن دکمه در مرحله آخر اصلی
+        if (step === totalSteps) { // مرحله 17 (FAVORITE_FOODS)
+            nextButtonContainer.style.display = "none";
+        }
     }
 
+    // مدیریت نمایش دکمه ارسال
+    const submitButtonContainer = document.getElementById("submit-button-container");
+    if (submitButtonContainer) {
+        // نمایش دکمه ارسال فقط در مرحله تأیید نهایی
+        submitButtonContainer.style.display = (step === STEPS.CONFIRMATION) ? "block" : "none";
+    }
+    
     if ([STEPS.PERSONAL_INFO, STEPS.AGE, STEPS.HEIGHT, STEPS.WEIGHT, STEPS.TARGET_WEIGHT].includes(step)) {
         const inputId = `${["first-name", "last-name", "age", "height", "weight", "target-weight"][step - 2]}-input`;
         const inputElement = document.getElementById(inputId);
@@ -725,24 +741,61 @@ window.setupFavoriteFoodsSelection = function(currentStep) {
 }
 
 window.updateStepCounter = function(step) {
-    document.getElementById("current-step").textContent = step;
-    document.getElementById("total-steps").textContent = totalSteps;
+    // نمایش شماره مرحله فقط برای مراحل اصلی (1-17)
+    if (step <= totalSteps) {
+        document.getElementById("current-step").textContent = step;
+        document.getElementById("total-steps").textContent = totalSteps;
+    }
+    // برای مراحل 18 و 19، شمارنده را مخفی یا ثابت نگه دار
+    else {
+        document.getElementById("current-step").textContent = totalSteps;
+        document.getElementById("total-steps").textContent = totalSteps;
+    }
 }
 
 window.updateProgressBar = function(step) {
-    const progress = ((step - 1) / (totalSteps - 1)) * 100;
+    let progress;
+    
+    // اگر در مراحل اصلی هستیم (1-17)
+    if (step <= totalSteps) {
+        progress = ((step - 1) / (totalSteps - 1)) * 100;
+    }
+    // اگر در مراحل پایانی هستیم (18-19)، نوار پیشرفت کامل شود
+    else {
+        progress = 100;
+    }
+    
     document.getElementById("progress-bar").style.width = `${progress}%`;
 }
 
 window.navigateToStep = function(step) {
-    if (step >= 1 && step <= totalSteps) {
+    // محدود کردن مراحل به 17 مرحله اصلی
+    const maxMainStep = totalSteps; // 17
+    
+    if (step >= 1 && step <= maxMainStep) {
+        state.updateStep(step);
+        history.pushState({ step: state.currentStep }, "", `#step-${state.currentStep}`);
+    }
+    // اجازه رفتن به مراحل 18 و 19 فقط از طریق منطق خاص
+    else if (step > maxMainStep && step <= Object.keys(STEPS).length) {
         state.updateStep(step);
         history.pushState({ step: state.currentStep }, "", `#step-${state.currentStep}`);
     }
 }
 
 window.handleNextStep = function() {
-    if (state.currentStep < totalSteps) navigateToStep(state.currentStep + 1);
+    // اگر در مرحله آخر اصلی هستیم (17)، به مرحله توافق‌نامه برو
+    if (state.currentStep === totalSteps) { // 17
+        navigateToStep(STEPS.TERMS_AGREEMENT); // 18
+    }
+    // اگر در مرحله توافق‌نامه هستیم، به مرحله تأیید نهایی برو
+    else if (state.currentStep === STEPS.TERMS_AGREEMENT) {
+        navigateToStep(STEPS.CONFIRMATION); // 19
+    }
+    // در غیر این صورت به مرحله بعدی اصلی برو
+    else if (state.currentStep < totalSteps) {
+        navigateToStep(state.currentStep + 1);
+    }
 }
 
 window.handleBackStep = function() {
