@@ -451,7 +451,7 @@ window.showSummary = function() {
         activity, exercise, waterIntake, surgery = [],
         digestiveConditions = [], dietStyle = [],
         foodLimitations = [],
-        chronicConditions = [] 
+        chronicConditions, favoriteFoods = [] 
     } = state.formData;
 
     const personalInfoText = [];
@@ -578,9 +578,42 @@ window.showSummary = function() {
     if (dietStyle.includes('vegan')) dietStyleText.push('وگان');
     if (dietStyle.includes('none')) dietStyleText.push('سبک غذایی خاصی ندارم');
 
-    // محدودیت‌های غذایی
+
+    // غذاهای مورد علاقه
+    const favoriteFoodsText = [];
+    if (favoriteFoods.includes('gheymeh')) favoriteFoodsText.push('قرمه سبزی');
+    if (favoriteFoods.includes('ghormeh')) favoriteFoodsText.push('قیمه');
+    if (favoriteFoods.includes('kabab-koobideh')) favoriteFoodsText.push('کباب کوبیده');
+    if (favoriteFoods.includes('joojeh-kabab')) favoriteFoodsText.push('جوجه کباب');
+    if (favoriteFoods.includes('kabab-barg')) favoriteFoodsText.push('کباب برگ');
+    if (favoriteFoods.includes('fesenjan')) favoriteFoodsText.push('فسنجان');
+    if (favoriteFoods.includes('bademjan')) favoriteFoodsText.push('خورشت بادمجان');
+    if (favoriteFoods.includes('karafs')) favoriteFoodsText.push('خورشت کرفس');
+    if (favoriteFoods.includes('aloo-esfenaj')) favoriteFoodsText.push('خورشت آلواسفناج');
+    if (favoriteFoods.includes('abgoosht')) favoriteFoodsText.push('آبگوشت');
+    if (favoriteFoods.includes('chelo')) favoriteFoodsText.push('چلوی ساده');
+    if (favoriteFoods.includes('sabzi-polo')) favoriteFoodsText.push('سبزی پلو');
+    if (favoriteFoods.includes('adas-polo')) favoriteFoodsText.push('عدس پلو');
+    if (favoriteFoods.includes('lobya-polo')) favoriteFoodsText.push('لوبیا پلو');
+    if (favoriteFoods.includes('shevid-polo')) favoriteFoodsText.push('شوید پلو');
+    if (favoriteFoods.includes('salad-shirazi')) favoriteFoodsText.push('سالاد شیرازی');
+    if (favoriteFoods.includes('mast-o-khiar')) favoriteFoodsText.push('ماست و خیار');
+    if (favoriteFoods.includes('borani-esfenaj')) favoriteFoodsText.push('بورانی اسفناج');
+    if (favoriteFoods.includes('borani-bademjan')) favoriteFoodsText.push('بورانی بادمجان');
+    if (favoriteFoods.includes('nokhod-kishmesh')) favoriteFoodsText.push('نخود و کشمش');
+    if (favoriteFoods.includes('ash-reshteh')) favoriteFoodsText.push('آش رشته');
+    if (favoriteFoods.includes('ash-jow')) favoriteFoodsText.push('آش جو');
+    if (favoriteFoods.includes('halim')) favoriteFoodsText.push('حلیم');
+    if (favoriteFoods.includes('adas')) favoriteFoodsText.push('عدسی');
+    if (favoriteFoods.includes('lobya')) favoriteFoodsText.push('خوراک لوبیا');
+    if (favoriteFoods.includes('omelet')) favoriteFoodsText.push('املت');
+    if (favoriteFoods.includes('nimroo')) favoriteFoodsText.push('نیمرو');
+    if (favoriteFoods.includes('egg-tomato')) favoriteFoodsText.push('خوراک تخم مرغ');
+    if (favoriteFoods.includes('kookoo-sabzi')) favoriteFoodsText.push('کوکو سبزی');
+    if (favoriteFoods.includes('kookoo-sibzamini')) favoriteFoodsText.push('کوکو سیب زمینی');
+    if (favoriteFoods.includes('none')) favoriteFoodsText.push('برنامه بر اساس نیازهای غذایی');
+    
     const foodLimitationsText = [];
-    // محدودیت‌های پزشکی
     if (foodLimitations.includes('celiac')) foodLimitationsText.push('بیماری سلیاک');
     if (foodLimitations.includes('lactose')) foodLimitationsText.push('عدم تحمل لاکتوز');
     if (foodLimitations.includes('seafood-allergy')) foodLimitationsText.push('حساسیت به غذای دریایی');
@@ -661,6 +694,10 @@ window.showSummary = function() {
             <span class="summary-label">محدودیت‌های غذایی:</span>
             <span class="summary-value">${foodLimitationsText.join('، ') || 'ثبت نشده'}</span>
         </div>
+        <div class="summary-item">
+            <span class="summary-label">غذاهای مورد علاقه:</span>
+            <span class="summary-value">${favoriteFoodsText.join('، ') || 'ثبت نشده'}</span>
+        </div>        
         `;
 }
 

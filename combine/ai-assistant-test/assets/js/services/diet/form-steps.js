@@ -532,16 +532,17 @@ window.showStep = function(step) {
         "weight-input-step",            // 6
         "target-weight-step",           // 7
         "goal-weight-display",          // 8
-        "chronic-conditions-step",      // 9 - بیماری‌های مزمن اصلی
-        "digestive-conditions-step",    // 10 - مرحله جدید
-        "surgery-step",                 // 11 - جابجایی
-        "water-intake-step",            // 12 - جابجایی
-        "activity-selection-step",      // 13 - جابجایی
-        "exercise-activity-step",       // 14 - جابجایی
-        "diet-style-step",              // 15 - جابجایی
-        "food-limitations-step",        // 16 - جابجایی
-        "terms-agreement-step",         // 17
-        "confirm-submit-step"           // 18
+        "chronic-conditions-step",      // 9
+        "digestive-conditions-step",    // 10
+        "surgery-step",                 // 11
+        "water-intake-step",            // 12
+        "activity-selection-step",      // 13
+        "exercise-activity-step",       // 14
+        "diet-style-step",              // 15
+        "food-limitations-step",        // 16
+        "favorite-foods-step",          // 17 - مرحله جدید
+        "terms-agreement-step",         // 18
+        "confirm-submit-step"           // 19
     ];
     
     document.querySelectorAll(".step").forEach(el => {
@@ -653,6 +654,10 @@ window.showStep = function(step) {
         setupFoodLimitationsSelection(step);
         document.getElementById("next-button-container").style.display = "block";
     } 
+    else if (step === STEPS.FAVORITE_FOODS) {
+        setupFavoriteFoodsSelection(step);
+        document.getElementById("next-button-container").style.display = "block";
+    }    
     else if (step === STEPS.TERMS_AGREEMENT) {
         setupTermsAgreement(step);
         document.getElementById("next-button-container").style.display = "block";
@@ -669,6 +674,54 @@ window.showStep = function(step) {
             submitButton.disabled = !confirmCheckbox.checked;
         }
     }
+}
+
+window.setupFavoriteFoodsSelection = function(currentStep) {
+    setupComplexCheckboxSelection(currentStep, {
+        noneCheckboxId: 'foods-none',
+        dataKey: 'favoriteFoods',
+        options: [
+            // غذاهای اصلی ایرانی
+            { key: 'gheymeh', id: 'food-gheymeh' },
+            { key: 'ghormeh', id: 'food-ghormeh' },
+            { key: 'kabab-koobideh', id: 'food-kabab-koobideh' },
+            { key: 'joojeh-kabab', id: 'food-joojeh-kabab' },
+            { key: 'kabab-barg', id: 'food-kabab-barg' },
+            { key: 'fesenjan', id: 'food-fesenjan' },
+            { key: 'bademjan', id: 'food-bademjan' },
+            { key: 'karafs', id: 'food-karafs' },
+            { key: 'aloo-esfenaj', id: 'food-aloo-esfenaj' },
+            { key: 'abgoosht', id: 'food-abgoosht' },
+            
+            // برنج‌های سالم
+            { key: 'chelo', id: 'food-chelo' },
+            { key: 'sabzi-polo', id: 'food-sabzi-polo' },
+            { key: 'adas-polo', id: 'food-adas-polo' },
+            { key: 'lobya-polo', id: 'food-lobya-polo' },
+            { key: 'shevid-polo', id: 'food-shevid-polo' },
+            
+            // پیش‌غذاها و مخلفات
+            { key: 'salad-shirazi', id: 'food-salad-shirazi' },
+            { key: 'mast-o-khiar', id: 'food-mast-o-khiar' },
+            { key: 'borani-esfenaj', id: 'food-borani-esfenaj' },
+            { key: 'borani-bademjan', id: 'food-borani-bademjan' },
+            { key: 'nokhod-kishmesh', id: 'food-nokhod-kishmesh' },
+            
+            // غذاهای سنتی
+            { key: 'ash-reshteh', id: 'food-ash-reshteh' },
+            { key: 'ash-jow', id: 'food-ash-jow' },
+            { key: 'halim', id: 'food-halim' },
+            { key: 'adas', id: 'food-adas' },
+            { key: 'lobya', id: 'food-lobya' },
+            
+            // غذاهای ساده
+            { key: 'omelet', id: 'food-omelet' },
+            { key: 'nimroo', id: 'food-nimroo' },
+            { key: 'egg-tomato', id: 'food-egg-tomato' },
+            { key: 'kookoo-sabzi', id: 'food-kookoo-sabzi' },
+            { key: 'kookoo-sibzamini', id: 'food-kookoo-sibzamini' }
+        ]
+    });
 }
 
 window.updateStepCounter = function(step) {

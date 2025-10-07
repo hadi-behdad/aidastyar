@@ -236,16 +236,17 @@ window.STEPS = {
     WEIGHT: 6,
     TARGET_WEIGHT: 7,
     GOAL_DISPLAY: 8,
-    CHRONIC_CONDITIONS: 9,        // بیماری‌های مزمن اصلی
-    DIGESTIVE_CONDITIONS: 10,      // مرحله جدید - مشکلات گوارشی و عدم تحمل‌ها
-    SURGERY: 11,                   // جابجایی به بعد
-    WATER_INTAKE: 12,              // جابجایی به بعد
-    ACTIVITY: 13,                  // جابجایی به بعد
-    EXERCISE: 14,                  // جابجایی به بعد
-    DIET_STYLE: 15,                // جابجایی به بعد
-    FOOD_LIMITATIONS: 16,          // جابجایی به بعد
-    TERMS_AGREEMENT: 17,
-    CONFIRMATION: 18
+    CHRONIC_CONDITIONS: 9,
+    DIGESTIVE_CONDITIONS: 10,
+    SURGERY: 11,
+    WATER_INTAKE: 12,
+    ACTIVITY: 13,
+    EXERCISE: 14,
+    DIET_STYLE: 15,
+    FOOD_LIMITATIONS: 16,
+    FAVORITE_FOODS: 17,  // مرحله جدید
+    TERMS_AGREEMENT: 18,  // جابجا شده
+    CONFIRMATION: 19      // جابجا شده
 };
 
 window.totalSteps = Object.keys(STEPS).length;

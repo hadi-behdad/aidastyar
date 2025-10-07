@@ -207,6 +207,17 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
             }
 
+            function fillFavoriteFoodsStep() {
+                if (state.currentStep === STEPS.FAVORITE_FOODS) {
+                    const noneCheckbox = document.getElementById('foods-none');
+                    if (noneCheckbox) {
+                        noneCheckbox.checked = true;
+                        noneCheckbox.dispatchEvent(new Event('change'));
+                        clickNextButton(500);
+                    }
+                }
+            }
+
             function fillTermsStep() {
                 if (state.currentStep === STEPS.TERMS_AGREEMENT) {
                     const agreeCheckbox = document.getElementById('agree-terms');
@@ -268,6 +279,7 @@ document.addEventListener('DOMContentLoaded', function() {
             fillActivityStep();               // مرحله 13
             fillExerciseStep();               // مرحله 14
             fillGoalDisplayStep();
+            fillFavoriteFoodsStep(); 
             fillTermsStep();
             fillConfirmationStep();
         }
