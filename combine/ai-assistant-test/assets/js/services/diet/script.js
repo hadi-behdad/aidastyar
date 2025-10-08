@@ -237,17 +237,18 @@ window.STEPS = {
     TARGET_WEIGHT: 7,
     GOAL_DISPLAY: 8,
     CHRONIC_CONDITIONS: 9,
-    DIGESTIVE_CONDITIONS: 10,
-    SURGERY: 11,
-    WATER_INTAKE: 12,
-    ACTIVITY: 13,
-    EXERCISE: 14,
-    DIET_STYLE: 15,
-    FOOD_LIMITATIONS: 16,
-    FAVORITE_FOODS: 17,
-    TERMS_AGREEMENT: 18,  // این مرحله از شمارش خارج می‌شود
-    CONFIRMATION: 19       // این مرحله از شمارش خارج می‌شود
+    MEDICATIONS: 10,  // مرحله جدید
+    DIGESTIVE_CONDITIONS: 11,
+    SURGERY: 12,
+    WATER_INTAKE: 13,
+    ACTIVITY: 14,
+    EXERCISE: 15,
+    DIET_STYLE: 16,
+    FOOD_LIMITATIONS: 17,
+    FAVORITE_FOODS: 18,
+    TERMS_AGREEMENT: 19,
+    CONFIRMATION: 20
 };
 
 // تعداد مراحل اصلی (بدون احتساب دو مرحله آخر)
-window.totalSteps = Object.keys(STEPS).length - 2; // 17 مرحله اصلی
+window.totalSteps = Object.keys(STEPS).length - 2; // 18 مرحله اصلی

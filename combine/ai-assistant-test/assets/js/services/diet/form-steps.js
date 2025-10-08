@@ -132,6 +132,25 @@ window.setupSurgerySelection = function(currentStep) {
     setupCancerDetails();
 };
 
+window.setupMedicationsSelection = function(currentStep) {
+    setupComplexCheckboxSelection(currentStep, {
+        noneCheckboxId: 'medications-none',
+        dataKey: 'medications',
+        options: [
+            { key: 'diabetes', id: 'medication-diabetes' },
+            { key: 'thyroid', id: 'medication-thyroid' },
+            { key: 'corticosteroids', id: 'medication-corticosteroids' },
+            { key: 'anticoagulants', id: 'medication-anticoagulants' },
+            { key: 'hypertension', id: 'medication-hypertension' },
+            { key: 'psychiatric', id: 'medication-psychiatric' },
+            { key: 'hormonal', id: 'medication-hormonal' },
+            { key: 'cardiac', id: 'medication-cardiac' },
+            { key: 'gastrointestinal', id: 'medication-gastrointestinal' },
+            { key: 'supplements', id: 'medication-supplements' }
+        ]
+    });
+};
+
 window.setupChronicConditionsSelection = function(currentStep) {
     setupComplexCheckboxSelection(currentStep, {
         noneCheckboxId: 'chronic-none',
@@ -514,9 +533,6 @@ window.setupExerciseSelection = function(currentStep) {
                 // ذخیره داده
                 state.updateFormData('exercise', this.dataset.exercise);
                 
-                setTimeout(() => {
-                    navigateToStep(STEPS.DIET_STYLE); 
-                }, 250);
             }, 150);
         });
     });
@@ -533,16 +549,17 @@ window.showStep = function(step) {
         "target-weight-step",           // 7
         "goal-weight-display",          // 8
         "chronic-conditions-step",      // 9
-        "digestive-conditions-step",    // 10
-        "surgery-step",                 // 11
-        "water-intake-step",            // 12
-        "activity-selection-step",      // 13
-        "exercise-activity-step",       // 14
-        "diet-style-step",              // 15
-        "food-limitations-step",        // 16
-        "favorite-foods-step",          // 17 - مرحله جدید
-        "terms-agreement-step",         // 18
-        "confirm-submit-step"           // 19
+        "medications-step",             // 10 - مرحله جدید
+        "digestive-conditions-step",    // 11
+        "surgery-step",                 // 12
+        "water-intake-step",            // 13
+        "activity-selection-step",      // 14
+        "exercise-activity-step",       // 15
+        "diet-style-step",              // 16
+        "food-limitations-step",        // 17
+        "favorite-foods-step",          // 18
+        "terms-agreement-step",         // 19
+        "confirm-submit-step"           // 20
     ];
     
     document.querySelectorAll(".step").forEach(el => {
@@ -623,7 +640,7 @@ window.showStep = function(step) {
         nextButtonContainer.style.display = hideNextButtonSteps.includes(step) ? "none" : "block";
         
         // مخفی کردن دکمه در مرحله آخر اصلی
-        if (step === totalSteps) { // مرحله 17 (FAVORITE_FOODS)
+        if (step === totalSteps) { 
             nextButtonContainer.style.display = "none";
         }
     }
@@ -655,7 +672,7 @@ window.showStep = function(step) {
     }
     else if (step === STEPS.SURGERY) {
         setupSurgerySelection(step);
-    } 
+    }
     else if (step === STEPS.EXERCISE) {
         setupExerciseSelection(step);
     }
@@ -665,7 +682,10 @@ window.showStep = function(step) {
     } 
     else if (step === STEPS.CHRONIC_CONDITIONS) {
         setupChronicConditionsSelection(step);
-    }
+    } 
+    else if (step === STEPS.MEDICATIONS) {
+        setupMedicationsSelection(step);
+    }    
     else if (step === STEPS.FOOD_LIMITATIONS) {
         setupFoodLimitationsSelection(step);
         document.getElementById("next-button-container").style.display = "block";
@@ -709,6 +729,13 @@ window.setupFavoriteFoodsSelection = function(currentStep) {
             { key: 'aloo-esfenaj', id: 'food-aloo-esfenaj' },
             { key: 'abgoosht', id: 'food-abgoosht' },
             
+            // غذاهای بین‌المللی جدید
+            { key: 'pizza', id: 'food-pizza' },
+            { key: 'burger', id: 'food-burger' },
+            { key: 'pasta', id: 'food-pasta' },
+            { key: 'sandwich', id: 'food-sandwich' },
+            { key: 'salad', id: 'food-salad' },      
+            
             // برنج‌های سالم
             { key: 'chelo', id: 'food-chelo' },
             { key: 'sabzi-polo', id: 'food-sabzi-polo' },
@@ -741,12 +768,10 @@ window.setupFavoriteFoodsSelection = function(currentStep) {
 }
 
 window.updateStepCounter = function(step) {
-    // نمایش شماره مرحله فقط برای مراحل اصلی (1-17)
     if (step <= totalSteps) {
         document.getElementById("current-step").textContent = step;
         document.getElementById("total-steps").textContent = totalSteps;
     }
-    // برای مراحل 18 و 19، شمارنده را مخفی یا ثابت نگه دار
     else {
         document.getElementById("current-step").textContent = totalSteps;
         document.getElementById("total-steps").textContent = totalSteps;
@@ -756,11 +781,9 @@ window.updateStepCounter = function(step) {
 window.updateProgressBar = function(step) {
     let progress;
     
-    // اگر در مراحل اصلی هستیم (1-17)
     if (step <= totalSteps) {
         progress = ((step - 1) / (totalSteps - 1)) * 100;
     }
-    // اگر در مراحل پایانی هستیم (18-19)، نوار پیشرفت کامل شود
     else {
         progress = 100;
     }
@@ -769,14 +792,14 @@ window.updateProgressBar = function(step) {
 }
 
 window.navigateToStep = function(step) {
-    // محدود کردن مراحل به 17 مرحله اصلی
-    const maxMainStep = totalSteps; // 17
+
+    const maxMainStep = totalSteps;
     
     if (step >= 1 && step <= maxMainStep) {
         state.updateStep(step);
         history.pushState({ step: state.currentStep }, "", `#step-${state.currentStep}`);
     }
-    // اجازه رفتن به مراحل 18 و 19 فقط از طریق منطق خاص
+    
     else if (step > maxMainStep && step <= Object.keys(STEPS).length) {
         state.updateStep(step);
         history.pushState({ step: state.currentStep }, "", `#step-${state.currentStep}`);
@@ -784,13 +807,12 @@ window.navigateToStep = function(step) {
 }
 
 window.handleNextStep = function() {
-    // اگر در مرحله آخر اصلی هستیم (17)، به مرحله توافق‌نامه برو
-    if (state.currentStep === totalSteps) { // 17
-        navigateToStep(STEPS.TERMS_AGREEMENT); // 18
+    if (state.currentStep === totalSteps) { 
+        navigateToStep(STEPS.TERMS_AGREEMENT); 
     }
     // اگر در مرحله توافق‌نامه هستیم، به مرحله تأیید نهایی برو
     else if (state.currentStep === STEPS.TERMS_AGREEMENT) {
-        navigateToStep(STEPS.CONFIRMATION); // 19
+        navigateToStep(STEPS.CONFIRMATION); 
     }
     // در غیر این صورت به مرحله بعدی اصلی برو
     else if (state.currentStep < totalSteps) {

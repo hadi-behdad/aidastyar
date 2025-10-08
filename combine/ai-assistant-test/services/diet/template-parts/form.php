@@ -409,6 +409,104 @@ $theme_assets = get_stylesheet_directory_uri();
         </div>
     </div>
     
+    <!-- Step 10: Medications Selection -->
+    <div id="medications-step" class="step checkbox-step-container">
+        <h2>داروهای مصرفی</h2>
+        <p class="step-description">لطفاً داروهایی که به طور منظم مصرف می‌کنید را انتخاب کنید</p>
+        
+        <div class="checkbox-container first-option stand-alone-none">
+            <input type="checkbox" id="medications-none" class="real-checkbox">
+            <label for="medications-none" class="checkbox-label">
+                <span class="check-icon"></span>
+                <span class="label-text">هیچ داروی خاصی مصرف نمی‌کنم</span>
+            </label>
+        </div>
+        
+        <div class="separator"></div>
+        
+        <div id="medications-selection" class="checkbox-selection-container checkbox-list-container scrollable-container">
+            <div class="checkbox-container">
+                <input type="checkbox" id="medication-diabetes" class="real-checkbox">
+                <label for="medication-diabetes" class="checkbox-label">
+                    <span class="check-icon"></span>
+                    <span class="label-text">داروهای دیابت (متفورمین، انسولین و...)</span>
+                </label>
+            </div>
+            
+            <div class="checkbox-container">
+                <input type="checkbox" id="medication-thyroid" class="real-checkbox">
+                <label for="medication-thyroid" class="checkbox-label">
+                    <span class="check-icon"></span>
+                    <span class="label-text">داروهای تیروئید (لووتیروکسین و...)</span>
+                </label>
+            </div>
+            
+            <div class="checkbox-container">
+                <input type="checkbox" id="medication-corticosteroids" class="real-checkbox">
+                <label for="medication-corticosteroids" class="checkbox-label">
+                    <span class="check-icon"></span>
+                    <span class="label-text">کورتون‌ها (پردنیزولون و...)</span>
+                </label>
+            </div>
+            
+            <div class="checkbox-container">
+                <input type="checkbox" id="medication-anticoagulants" class="real-checkbox">
+                <label for="medication-anticoagulants" class="checkbox-label">
+                    <span class="check-icon"></span>
+                    <span class="label-text">داروهای ضد انعقاد (وارفارین و ...)</span>
+                </label>
+            </div>
+            
+            <div class="checkbox-container">
+                <input type="checkbox" id="medication-hypertension" class="real-checkbox">
+                <label for="medication-hypertension" class="checkbox-label">
+                    <span class="check-icon"></span>
+                    <span class="label-text">داروهای فشار خون</span>
+                </label>
+            </div>
+            
+            <div class="checkbox-container">
+                <input type="checkbox" id="medication-psychiatric" class="real-checkbox">
+                <label for="medication-psychiatric" class="checkbox-label">
+                    <span class="check-icon"></span>
+                    <span class="label-text">داروهای اعصاب و روان</span>
+                </label>
+            </div>
+            
+            <div class="checkbox-container">
+                <input type="checkbox" id="medication-hormonal" class="real-checkbox">
+                <label for="medication-hormonal" class="checkbox-label">
+                    <span class="check-icon"></span>
+                    <span class="label-text">داروهای هورمونی (قرص ضد بارداری، هورمون درمانی)</span>
+                </label>
+            </div>
+            
+            <div class="checkbox-container">
+                <input type="checkbox" id="medication-cardiac" class="real-checkbox">
+                <label for="medication-cardiac" class="checkbox-label">
+                    <span class="check-icon"></span>
+                    <span class="label-text">داروهای قلبی و عروقی</span>
+                </label>
+            </div>
+            
+            <div class="checkbox-container">
+                <input type="checkbox" id="medication-gastrointestinal" class="real-checkbox">
+                <label for="medication-gastrointestinal" class="checkbox-label">
+                    <span class="check-icon"></span>
+                    <span class="label-text">داروهای گوارشی</span>
+                </label>
+            </div>
+            
+            <div class="checkbox-container">
+                <input type="checkbox" id="medication-supplements" class="real-checkbox">
+                <label for="medication-supplements" class="checkbox-label">
+                    <span class="check-icon"></span>
+                    <span class="label-text">مکمل‌ها، ویتامین‌ها و محصولات ورزشی</span>
+                </label>
+            </div>
+        </div>
+    </div>
+
     <!-- Step 10: Digestive Conditions (مرحله جدید - ادغام مشکلات گوارشی و عدم تحمل‌ها) -->
     <div id="digestive-conditions-step" class="step checkbox-step-container">
         <h2>مشکلات گوارشی و عدم تحمل‌های غذایی</h2>
@@ -1089,6 +1187,48 @@ $theme_assets = get_stylesheet_directory_uri();
                 <label for="food-abgoosht" class="checkbox-label">
                     <span class="check-icon"></span>
                     <span class="label-text">آبگوشت (کم‌چربی)</span>
+                </label>
+            </div>
+            
+            <!-- 🍕 غذاهای بین‌المللی -->
+            <h3 class="diffrent-category-titles" style="grid-column: 1 / span 2;">🍕 غذاهای بین‌المللی</h3>
+            <div class="checkbox-container">
+                <input type="checkbox" id="food-pizza" class="real-checkbox">
+                <label for="food-pizza" class="checkbox-label">
+                    <span class="check-icon"></span>
+                    <span class="label-text">پیتزا (نسخه سالم)</span>
+                </label>
+            </div>
+            
+            <div class="checkbox-container">
+                <input type="checkbox" id="food-burger" class="real-checkbox">
+                <label for="food-burger" class="checkbox-label">
+                    <span class="check-icon"></span>
+                    <span class="label-text">همبرگر (نسخه سالم)</span>
+                </label>
+            </div>
+            
+            <div class="checkbox-container">
+                <input type="checkbox" id="food-pasta" class="real-checkbox">
+                <label for="food-pasta" class="checkbox-label">
+                    <span class="check-icon"></span>
+                    <span class="label-text">پاستا (غلات کامل)</span>
+                </label>
+            </div>
+            
+            <div class="checkbox-container">
+                <input type="checkbox" id="food-sandwich" class="real-checkbox">
+                <label for="food-sandwich" class="checkbox-label">
+                    <span class="check-icon"></span>
+                    <span class="label-text">ساندویچ مرغ گریل</span>
+                </label>
+            </div>
+            
+            <div class="checkbox-container">
+                <input type="checkbox" id="food-salad" class="real-checkbox">
+                <label for="food-salad" class="checkbox-label">
+                    <span class="check-icon"></span>
+                    <span class="label-text">سالاد سزار سالم</span>
                 </label>
             </div>
     
