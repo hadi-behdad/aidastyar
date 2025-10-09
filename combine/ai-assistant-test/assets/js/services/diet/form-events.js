@@ -164,24 +164,6 @@ window.showPaymentConfirmation = function(formData) {
             // دریافت موجودی کاربر
             fetchUserBalance(servicePrice, formData);
             
-            // مدیریت رویدادهای دکمه‌ها
-/*            document.getElementById('confirm-payment').addEventListener('click', function() {
-                const btn = this;
-                const btnText = btn.querySelector('.btn-text');
-                const btnLoading = btn.querySelector('.btn-loading');
-                
-                btn.disabled = true;
-                btnText.style.display = 'none';
-                btnLoading.style.display = 'inline-block';
-                
-                // ارسال فرم پس از تأیید
-                setTimeout(() => {
-                    window.dispatchEvent(new CustomEvent('formSubmitted', {
-                        detail: { formData }
-                    }));
-                }, 500);
-            });*/
-            
             document.getElementById('cancel-payment').addEventListener('click', function() {
                 document.body.removeChild(popup);
                 // فعال کردن مجدد دکمه سابمیت
@@ -409,6 +391,8 @@ window.handleFormSubmit = function(event) {
     const formData = {
         ...state.formData,
         // اطلاعات پایه
+        firstName: state.formData.firstName,
+        lastName: state.formData.lastName,
         gender: state.formData.gender,
         age: state.formData.age,
         height: state.formData.height,
@@ -419,24 +403,29 @@ window.handleFormSubmit = function(event) {
         exercise: state.formData.exercise,
         waterIntake: state.formData.waterIntake,
         surgery: state.formData.surgery || [],
-        chronicConditions: state.formData.chronicConditions || [], // اضافه شده
+        chronicConditions: state.formData.chronicConditions || [],
         digestiveConditions: state.formData.digestiveConditions || [],
         dietStyle: state.formData.dietStyle || [],
         foodLimitations: state.formData.foodLimitations || [],
         chronicDiabetesType: state.formData.chronicDiabetesType || '',
         chronicFastingBloodSugar: state.formData.chronicFastingBloodSugar || '',
-        chronicHba1c: state.formData.chronicHba1c || ''
+        chronicHba1c: state.formData.chronicHba1c || '',
+        favoriteFoods: state.formData.favoriteFoods || [],
+        medications: state.formData.medications || []        
     };
 
+    const completePersianData = window.convertToCompletePersianData(formData);
+    
     if (aiAssistantVars.environment && aiAssistantVars.environment !== 'production') {
-        console.log('Form submitted:', formData);
+        console.log('Form submitted (English):', formData);
+        console.log('Form submitted (Persian - Complete):', completePersianData);
     }
     
     // غیرفعال کردن دکمه سابمیت
     document.getElementById('SubmitBtn').disabled = true;
     
     // نمایش پاپ‌آپ تأیید پرداخت
-    window.showPaymentConfirmation(formData);
+    window.showPaymentConfirmation(completePersianData);
 };
 
 window.showSummary = function() {

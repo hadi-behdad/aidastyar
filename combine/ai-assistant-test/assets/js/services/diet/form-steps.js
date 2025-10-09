@@ -106,6 +106,45 @@ window.setupComplexCheckboxSelection = function(step, config) {
     validateForm();
 };
 
+window.setupActivitySelection = function(currentStep) {
+    if (currentStep !== STEPS.ACTIVITY) return;
+
+    const activityOptions = document.querySelectorAll('.activity-option');
+    
+    activityOptions.forEach(option => {
+        option.addEventListener('click', function() {
+            // حذف انتخاب از همه گزینه‌ها
+            activityOptions.forEach(opt => {
+                opt.classList.remove('selected');
+                opt.style.transform = "";
+                opt.style.boxShadow = "";
+            });
+            
+            // انتخاب گزینه کلیک شده
+            this.classList.add('selected');
+            this.style.transform = "translateY(-3px)";
+            this.style.boxShadow = "0 10px 20px rgba(0, 133, 122, 0.2)";
+            
+            // ذخیره داده در state
+            state.updateFormData('activity', this.dataset.activity);
+            
+            // فعال کردن دکمه بعدی
+            const nextButton = document.querySelector(".next-step");
+            if (nextButton) nextButton.disabled = false;
+        });
+    });
+    
+    // اگر قبلاً activity انتخاب شده بود، آن را highlight کن
+    if (state.formData.activity) {
+        const selectedOption = document.querySelector(`.activity-option[data-activity="${state.formData.activity}"]`);
+        if (selectedOption) {
+            selectedOption.classList.add('selected');
+            selectedOption.style.transform = "translateY(-3px)";
+            selectedOption.style.boxShadow = "0 10px 20px rgba(0, 133, 122, 0.2)";
+        }
+    }
+};
+
 window.setupSurgerySelection = function(currentStep) {
     if (state.currentStep !== currentStep) return;
 
@@ -523,7 +562,7 @@ window.setupExerciseSelection = function(currentStep) {
             // انتخاب گزینه کلیک شده
             this.classList.add('selected');
             this.classList.add('selected-with-effect');
-            
+            state.updateFormData('exercise', this.dataset.exercise);
             // افکت بصری
             setTimeout(() => {
                 this.classList.remove('selected-with-effect');
@@ -531,7 +570,7 @@ window.setupExerciseSelection = function(currentStep) {
                 this.style.boxShadow = "0 10px 20px rgba(0, 133, 122, 0.2)";
                 
                 // ذخیره داده
-                state.updateFormData('exercise', this.dataset.exercise);
+                // state.updateFormData('exercise', this.dataset.exercise);
                 
             }, 150);
         });
@@ -685,6 +724,10 @@ window.showStep = function(step) {
     } 
     else if (step === STEPS.MEDICATIONS) {
         setupMedicationsSelection(step);
+    } 
+    else if (step === STEPS.ACTIVITY) {
+        setupActivitySelection(step);
+        document.getElementById("next-button-container").style.display = "none";
     }    
     else if (step === STEPS.FOOD_LIMITATIONS) {
         setupFoodLimitationsSelection(step);

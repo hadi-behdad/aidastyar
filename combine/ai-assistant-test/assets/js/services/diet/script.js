@@ -1,4 +1,5 @@
 // /home/aidastya/public_html/test/wp-content/themes/ai-assistant-test/assets/js/services/diet/script.js
+
 window.state = {
     currentStep: 1,
     formData: {},
@@ -251,4 +252,306 @@ window.STEPS = {
 };
 
 // تعداد مراحل اصلی (بدون احتساب دو مرحله آخر)
-window.totalSteps = Object.keys(STEPS).length - 2; // 18 مرحله اصلی
+window.totalSteps = Object.keys(STEPS).length - 2; 
+
+window.VALUE_MAPPING = {
+    // جنسیت
+    gender: {
+        'male': 'مرد',
+        'female': 'زن'
+    },
+    
+    // هدف
+    goal: {
+        'weight-loss': 'کاهش وزن - برنامه‌ای برای رسیدن به وزن ایده‌آل و سالم',
+        'weight-gain': 'افزایش وزن سالم - برنامه‌ای برای افزایش وزن اصولی و عضله‌سازی', 
+        'fitness': 'حفظ سلامت و تناسب - برنامه‌ای برای حفظ وزن فعلی و بهبود سلامت عمومی'
+    },
+    
+    // فعالیت روزانه
+    activity: {
+        'very-low': 'خیلی کم (بی‌تحرک) - بیشتر وقت پشت میز یا در خانه، تحرک بسیار کم',
+        'low': 'کم (فعالیت سبک) - کارهای سبک خانه، پیاده‌روی کوتاه، ایستادن متوسط',
+        'medium': 'متوسط (فعالیت متوسط) - کارهایی که نیاز به راه رفتن و حرکت مداوم دارد',
+        'high': 'زیاد (فعالیت شدید) - کار فیزیکی سخت که بیشتر روز نیاز به فعالیت بدنی دارد'
+    },
+    
+    // فعالیت ورزشی
+    exercise: {
+        'none': 'هیچ ورزشی نمی‌کنم',
+        'light': 'سبک (۱-۲ روز در هفته، کمتر از ۳۰ دقیقه)',
+        'medium': 'متوسط (۳-۴ روز در هفته، ۳۰-۶۰ دقیقه)',
+        'high': 'زیاد (۵-۶ روز در هفته یا بیشتر، ۶۰+ دقیقه)',
+        'professional': 'ورزشکار حرفه‌ای (تمرین سنگین روزانه و برنامه‌ریزی شده)'
+    },
+    
+    // بیماری‌های مزمن
+    chronicConditions: {
+        'diabetes': 'دیابت',
+        'hypertension': 'فشار خون بالا',
+        'cholesterol': 'کلسترول یا تری گلیسیرید بالا',
+        'fattyLiver': 'کبد چرب',
+        'insulinResistance': 'مقاومت به انسولین',
+        'hypothyroidism': 'کم کاری تیروئید (هیپوتیروئیدی)',
+        'hyperthyroidism': 'پرکاری تیروئید (هیپرتیروئیدی)',
+        'hashimoto': 'هاشیموتو (التهاب خودایمنی تیروئید)',
+        'pcos': 'سندرم تخمدان پلی کیستیک (PCOS)',
+        'menopause': 'یائسگی یا پیش یائسگی',
+        'cortisol': 'مشکلات کورتیزول (استرس مزمن)',
+        'growth': 'اختلال هورمون رشد',
+        'kidney': 'بیماری کلیوی مزمن',
+        'heart': 'بیماری قلبی عروقی',
+        'autoimmune': 'بیماری خودایمنی',
+        'none': 'هیچگونه بیماری مزمن یا زمینه‌ای ندارم'
+    },
+    
+    // داروها
+    medications: {
+        'diabetes': 'داروهای دیابت (متفورمین، انسولین و...)',
+        'thyroid': 'داروهای تیروئید (لووتیروکسین و...)',
+        'corticosteroids': 'کورتون‌ها (پردنیزولون و...)',
+        'anticoagulants': 'داروهای ضد انعقاد (وارفارین و ...)',
+        'hypertension': 'داروهای فشار خون',
+        'psychiatric': 'داروهای اعصاب و روان',
+        'hormonal': 'داروهای هورمونی (قرص ضد بارداری، هورمون درمانی)',
+        'cardiac': 'داروهای قلبی و عروقی',
+        'gastrointestinal': 'داروهای گوارشی',
+        'supplements': 'مکمل‌ها، ویتامین‌ها و محصولات ورزشی',
+        'none': 'هیچ داروی خاصی مصرف نمی‌کنم'
+    },
+    
+    // مشکلات گوارشی
+    digestiveConditions: {
+        'ibs': 'سندرم روده تحریک‌پذیر (IBS)',
+        'ibd': 'بیماری التهابی روده (کرون یا کولیت اولسراتیو)',
+        'gerd': 'ریفلاکس معده-مروی (GERD)',
+        'bloating': 'نفخ یا گاز معده',
+        'pain': 'درد یا گرفتگی معده',
+        'heartburn': 'سوزش سر دل یا ترش کردن',
+        'constipation': 'یبوست مزمن',
+        'diarrhea': 'اسهال مزمن',
+        'fullness': 'سیری زودرس',
+        'nausea': 'حالت تهوع',
+        'slow-digestion': 'هضم کند غذا',
+        'indigestion': 'سوء هاضمه مزمن',
+        'helicobacter': 'عفونت هلیکوباکتر پیلوری (H. Pylori)',
+        'none': 'هیچگونه مشکل گوارشی یا عدم تحمل غذایی ندارم'
+    },
+    
+    // جراحی‌ها
+    surgery: {
+        'metabolic': 'جراحی متابولیک (بایپس معده، اسلیو)',
+        'gallbladder': 'جراحی کیسه صفرا',
+        'intestine': 'جراحی روده',
+        'thyroid': 'جراحی تیروئید/پاراتیروئید',
+        'pancreas': 'جراحی لوزالمعده (پانکراس)',
+        'heart': 'جراحی قلب',
+        'kidney': 'پیوند کلیه',
+        'liver': 'پیوند کبد',
+        'gynecology': 'جراحی‌های زنان',
+        'cancer': 'سابقه سرطان (همراه جزئیات نوع و درمان)',
+        'none': 'هیچگونه سابقه جراحی ندارم'
+    },
+    
+    // سبک غذایی
+    dietStyle: {
+        'vegetarian': 'گیاهخواری (Vegetarian)',
+        'vegan': 'وگان (Vegan - بدون هیچ محصول حیوانی)',
+        'none': 'سبک غذایی خاصی ندارم'
+    },
+    
+    // محدودیت‌های غذایی
+    foodLimitations: {
+        'celiac': 'بیماری سلیاک (حساسیت به گلوتن)',
+        'lactose': 'عدم تحمل لاکتوز',
+        'seafood-allergy': 'حساسیت به غذاهای دریایی',
+        'eggs-allergy': 'حساسیت به تخم‌مرغ',
+        'nuts-allergy': 'حساسیت به آجیل و مغزها',
+        'no-seafood': 'عدم مصرف غذاهای دریایی',
+        'no-redmeat': 'عدم مصرف گوشت قرمز',
+        'no-dairy': 'عدم مصرف لبنیات',
+        'none': 'هیچ محدودیت غذایی ندارم'
+    },
+    
+    // نوع دیابت
+    chronicDiabetesType: {
+        'type1': 'دیابت نوع 1',
+        'type2': 'دیابت نوع 2',
+        'gestational': 'دیابت بارداری',
+        'prediabetes': 'پیش‌دیابت'
+    },
+    
+    // درمان سرطان
+    cancerTreatment: {
+        'chemo': 'شیمی درمانی',
+        'radio': 'پرتو درمانی',
+        'surgery': 'اخیراً جراحی شده‌ام',
+        'finished': 'درمانم تمام شده'
+    },
+    
+    // نوع سرطان
+    cancerType: {
+        'breast': 'پستان',
+        'colon': 'روده',
+        'prostate': 'پروستات',
+        'lung': 'ریه',
+        'blood': 'خون',
+        'other': 'سایر'
+    },
+    
+    favoriteFoods: {
+        'gheymeh': 'قیمه (کم‌روغن)',
+        'ghormeh': 'قرمه سبزی (کم‌چرب)',
+        'kabab-koobideh': 'کباب کوبیده (کم‌چرب)',
+        'joojeh-kabab': 'جوجه کباب',
+        'kabab-barg': 'کباب برگ',
+        'fesenjan': 'فسنجان (کم‌شیرینی)',
+        'bademjan': 'خورشت بادمجان (کم‌روغن)',
+        'karafs': 'خورشت کرفس',
+        'aloo-esfenaj': 'خورشت آلواسفناج',
+        'abgoosht': 'آبگوشت (کم‌چربی)',
+        'pizza': 'پیتزا (نسخه سالم)',
+        'burger': 'همبرگر (نسخه سالم)',
+        'pasta': 'پاستا (غلات کامل)',
+        'sandwich': 'ساندویچ مرغ گریل',
+        'salad': 'سالاد سزار سالم',
+        'chelo': 'چلوی ساده',
+        'sabzi-polo': 'سبزی پلو',
+        'adas-polo': 'عدس پلو',
+        'lobya-polo': 'لوبیا پلو',
+        'shevid-polo': 'شوید پلو',
+        'salad-shirazi': 'سالاد شیرازی',
+        'mast-o-khiar': 'ماست و خیار',
+        'borani-esfenaj': 'بورانی اسفناج',
+        'borani-bademjan': 'بورانی بادمجان',
+        'nokhod-kishmesh': 'نخود و کشمش (متعادل)',
+        'ash-reshteh': 'آش رشته (کم‌روغن)',
+        'ash-jow': 'آش جو',
+        'halim': 'حلیم گندم (کم‌شیرینی)',
+        'adas': 'عدسی',
+        'lobya': 'خوراک لوبیا (کم‌روغن)',
+        'omelet': 'املت (کم‌روغن)',
+        'nimroo': 'نیمرو (کم‌روغن)',
+        'egg-tomato': 'خوراک تخم مرغ و گوجه',
+        'kookoo-sabzi': 'کوکو سبزی (فر یا گریل)',
+        'kookoo-sibzamini': 'کوکو سیب زمینی (فر یا گریل)',
+        'none': 'ترجیح می‌دهم برنامه بر اساس نیازهای غذایی من تنظیم شود'
+    }    
+};
+
+// اضافه کردن این بخش به script.js بعد از VALUE_MAPPING
+window.KEY_MAPPING = {
+    // اطلاعات شخصی
+    'firstName': 'نام',
+    'lastName': 'نام خانوادگی',
+    'gender': 'جنسیت',
+    'age': 'سن',
+    'height': 'قد',
+    'weight': 'وزن فعلی',
+    'targetWeight': 'وزن هدف',
+    
+    // اطلاعات هدف و فعالیت
+    'goal': 'هدف از دریافت رژیم',
+    'activity': 'سطح فعالیت روزانه',
+    'exercise': 'فعالیت ورزشی هفتگی',
+    'waterIntake': 'مصرف آب روزانه',
+    
+    // اطلاعات پزشکی
+    'chronicConditions': 'بیماری‌های مزمن و زمینه‌ای',
+    'chronicDiabetesType': 'نوع دیابت',
+    'chronicFastingBloodSugar': 'قند خون ناشتا',
+    'chronicHba1c': 'سطح HbA1c',
+    'medications': 'داروهای مصرفی',
+    'digestiveConditions': 'مشکلات گوارشی',
+    'surgery': 'سابقه جراحی',
+    'cancerTreatment': 'نوع درمان سرطان',
+    'cancerType': 'نوع سرطان',
+    
+    // اطلاعات غذایی
+    'dietStyle': 'سبک غذایی',
+    'foodLimitations': 'محدودیت‌های غذایی',
+    'favoriteFoods': 'غذاهای مورد علاقه'
+};
+
+// تابع برای تبدیل کلیدهای آبجکت به فارسی
+window.convertKeysToPersian = function(obj) {
+    const persianObj = {};
+    
+    for (const [key, value] of Object.entries(obj)) {
+        const persianKey = KEY_MAPPING[key] || key;
+        persianObj[persianKey] = value;
+    }
+    
+    return persianObj;
+};
+
+// تابع برای تبدیل داده‌ها به فارسی
+window.convertToPersianData = function(formData) {
+    const persianData = {...formData};
+    
+    // تبدیل مقادیر ساده
+    if (persianData.gender && VALUE_MAPPING.gender[persianData.gender]) {
+        persianData.gender = VALUE_MAPPING.gender[persianData.gender];
+    }
+    
+    if (persianData.goal && VALUE_MAPPING.goal[persianData.goal]) {
+        persianData.goal = VALUE_MAPPING.goal[persianData.goal];
+    }
+    
+    if (persianData.activity && VALUE_MAPPING.activity[persianData.activity]) {
+        persianData.activity = VALUE_MAPPING.activity[persianData.activity];
+    }
+    
+    if (persianData.exercise && VALUE_MAPPING.exercise[persianData.exercise]) {
+        persianData.exercise = VALUE_MAPPING.exercise[persianData.exercise];
+    }
+    
+    if (persianData.chronicDiabetesType && VALUE_MAPPING.chronicDiabetesType[persianData.chronicDiabetesType]) {
+        persianData.chronicDiabetesType = VALUE_MAPPING.chronicDiabetesType[persianData.chronicDiabetesType];
+    }
+    
+    if (persianData.cancerTreatment && VALUE_MAPPING.cancerTreatment[persianData.cancerTreatment]) {
+        persianData.cancerTreatment = VALUE_MAPPING.cancerTreatment[persianData.cancerTreatment];
+    }
+    
+    if (persianData.cancerType && VALUE_MAPPING.cancerType[persianData.cancerType]) {
+        persianData.cancerType = VALUE_MAPPING.cancerType[persianData.cancerType];
+    }
+    
+    if (persianData.waterIntake !== null && persianData.waterIntake !== undefined) {
+        persianData.waterIntake = `${persianData.waterIntake} لیوان (≈${(persianData.waterIntake * 0.25).toFixed(1)} لیتر)`;
+    }
+
+    if (persianData.waterIntake === null) {
+        persianData.waterIntake = 'مشخص نیست';
+    }    
+    
+    // تبدیل آرایه‌ها
+    const arrayFields = [
+        'chronicConditions', 'medications', 'digestiveConditions', 
+        'surgery', 'dietStyle', 'foodLimitations', 'favoriteFoods'
+    ];
+    
+    arrayFields.forEach(field => {
+        if (persianData[field] && Array.isArray(persianData[field])) {
+            persianData[field] = persianData[field].map(item => {
+                return VALUE_MAPPING[field] && VALUE_MAPPING[field][item] 
+                    ? VALUE_MAPPING[field][item] 
+                    : item;
+            });
+        }
+    });
+    
+    return persianData;
+};
+
+
+// تابع کامل برای تبدیل تمام داده‌ها به فارسی
+window.convertToCompletePersianData = function(formData) {
+    // اول مقادیر را به فارسی تبدیل کنیم
+    const persianValues = window.convertToPersianData(formData);
+    // سپس کلیدها را به فارسی تبدیل کنیم
+    const completePersianData = window.convertKeysToPersian(persianValues);
+    
+    return completePersianData;
+};
