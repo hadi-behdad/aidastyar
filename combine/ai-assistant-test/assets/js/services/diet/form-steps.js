@@ -588,7 +588,7 @@ window.showStep = function(step) {
         "target-weight-step",           // 7
         "goal-weight-display",          // 8
         "chronic-conditions-step",      // 9
-        "medications-step",             // 10 - مرحله جدید
+        "medications-step",             // 10
         "digestive-conditions-step",    // 11
         "surgery-step",                 // 12
         "water-intake-step",            // 13
@@ -597,8 +597,9 @@ window.showStep = function(step) {
         "diet-style-step",              // 16
         "food-limitations-step",        // 17
         "favorite-foods-step",          // 18
-        "terms-agreement-step",         // 19
-        "confirm-submit-step"           // 20
+        "diet-type-selection-step",     // 19
+        "terms-agreement-step",         // 20
+        "confirm-submit-step"           // 21
     ];
     
     document.querySelectorAll(".step").forEach(el => {
@@ -736,7 +737,11 @@ window.showStep = function(step) {
     else if (step === STEPS.FAVORITE_FOODS) {
         setupFavoriteFoodsSelection(step);
         document.getElementById("next-button-container").style.display = "block";
-    }    
+    }  
+    else if (step === STEPS.DIET_TYPE_SELECTION) {
+        setupDietTypeSelection(step);
+        document.getElementById("next-button-container").style.display = "block";
+    } 
     else if (step === STEPS.TERMS_AGREEMENT) {
         setupTermsAgreement(step);
         document.getElementById("next-button-container").style.display = "block";
@@ -851,9 +856,11 @@ window.navigateToStep = function(step) {
 
 window.handleNextStep = function() {
     if (state.currentStep === totalSteps) { 
+        navigateToStep(STEPS.DIET_TYPE_SELECTION); 
+    }
+    else if (state.currentStep === STEPS.DIET_TYPE_SELECTION) {
         navigateToStep(STEPS.TERMS_AGREEMENT); 
     }
-    // اگر در مرحله توافق‌نامه هستیم، به مرحله تأیید نهایی برو
     else if (state.currentStep === STEPS.TERMS_AGREEMENT) {
         navigateToStep(STEPS.CONFIRMATION); 
     }
@@ -901,3 +908,196 @@ window.handleEnterKey = function(event) {
         event.preventDefault();
     }
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+// در تابع setupDietTypeSelection، بعد از انتخاب یک کارت
+window.setupDietTypeSelection = function(currentStep) {
+    if (currentStep !== STEPS.DIET_TYPE_SELECTION) return;
+
+    const dietTypeCards = document.querySelectorAll('.diet-type-card');
+    const nextButton = document.querySelector(".next-step");
+    
+    nextButton.disabled = true;
+
+    // اعمال استایل اولیه بر روی همه کارت‌ها
+    dietTypeCards.forEach(card => {
+        card.classList.remove('selected');
+        updateCardAppearance(card);
+    });
+
+    dietTypeCards.forEach(card => {
+        card.addEventListener('click', function() {
+            // حذف انتخاب از همه کارت‌ها
+            dietTypeCards.forEach(c => {
+                c.classList.remove('selected');
+                updateCardAppearance(c);
+            });
+            
+            // انتخاب کارت کلیک شده
+            this.classList.add('selected');
+            updateCardAppearance(this);
+            
+            const dietType = this.dataset.dietType;
+            state.updateFormData('dietType', dietType);
+            
+            if (dietType === 'ai-only') {
+                nextButton.disabled = false;
+            } else if (dietType === 'with-specialist') {
+                openSpecialistPopup();
+            }
+        });
+    });
+    
+    // تابع برای به‌روزرسانی ظاهر کارت
+    function updateCardAppearance(card) {
+        if (card.classList.contains('selected')) {
+            card.style.transform = "translateY(-5px)";
+            card.style.opacity = "1";
+            card.style.filter = "grayscale(0)";
+        } else {
+            card.style.transform = "scale(0.95)";
+            card.style.opacity = "0.7";
+            card.style.filter = "grayscale(0.3)";
+        }
+    }
+    
+    // اگر قبلاً نوع رژیم انتخاب شده بود، آن را highlight کن
+    if (state.formData.dietType) {
+        const selectedCard = document.querySelector(`.diet-type-card[data-diet-type="${state.formData.dietType}"]`);
+        if (selectedCard) {
+            selectedCard.classList.add('selected');
+            updateCardAppearance(selectedCard);
+        }
+    }
+};
+
+// توابع جدید برای مدیریت پاپ‌آپ مشاور
+window.openSpecialistPopup = function() {
+    const popup = document.getElementById('specialist-popup');
+    popup.style.display = 'flex';
+    loadNutritionConsultantsPopup();
+};
+
+window.closeSpecialistPopup = function() {
+    const popup = document.getElementById('specialist-popup');
+    popup.style.display = 'none';
+    // حذف انتخاب مشاور در صورت انصراف
+    state.updateFormData('selectedSpecialist', null);
+    
+    // غیرفعال کردن دکمه مرحله بعد
+    const nextButton = document.querySelector(".next-step");
+    nextButton.disabled = true;
+};
+
+window.confirmSpecialistSelection = function() {
+    if (state.formData.selectedSpecialist) {
+        closeSpecialistPopup();
+        // فعال کردن دکمه مرحله بعد
+        const nextButton = document.querySelector(".next-step");
+        nextButton.disabled = false;
+    }
+};
+
+// بارگذاری مشاورین در پاپ‌آپ
+function loadNutritionConsultantsPopup() {
+    const specialistSelection = document.getElementById('specialist-selection-popup');
+    specialistSelection.innerHTML = `
+        <div class="loading-specialists">
+            <div class="loading-spinner"></div>
+            <p>در حال بارگذاری لیست متخصصین...</p>
+        </div>
+    `;
+    
+    fetch(aiAssistantVars.ajaxurl, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: new URLSearchParams({
+            'action': 'get_nutrition_consultants',
+            'security': aiAssistantVars.nonce
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            specialistSelection.innerHTML = '';
+            
+            if (data.data.consultants && data.data.consultants.length > 0) {
+                data.data.consultants.forEach(consultant => {
+                    const specialistCard = document.createElement('div');
+                    specialistCard.className = 'specialist-card-popup';
+                    specialistCard.dataset.specialistId = consultant.id;
+                    specialistCard.innerHTML = `
+                        <div class="specialist-info-popup">
+                            <div class="specialist-name-popup">${consultant.name}</div>
+                            <div class="specialist-specialty-popup">${consultant.specialty}</div>
+                            <div class="specialist-price-popup">+25,000 تومان</div>
+                        </div>
+                        <button type="button" class="select-specialist-btn-popup" onclick="selectSpecialistInPopup(${consultant.id}, '${consultant.name.replace(/'/g, "\\'")}', '${consultant.specialty.replace(/'/g, "\\'")}')">
+                            انتخاب
+                        </button>
+                    `;
+                    specialistSelection.appendChild(specialistCard);
+                });
+            } else {
+                specialistSelection.innerHTML = '<div style="text-align: center; padding: 20px; color: #666;">هیچ متخصص فعالی یافت نشد</div>';
+            }
+        } else {
+            specialistSelection.innerHTML = '<div style="text-align: center; padding: 20px; color: #f44336;">خطا در بارگذاری لیست متخصصین</div>';
+        }
+    })
+    .catch(error => {
+        console.error('Error loading consultants:', error);
+        specialistSelection.innerHTML = '<div style="text-align: center; padding: 20px; color: #f44336;">خطا در ارتباط با سرور</div>';
+    });
+}
+
+// انتخاب مشاور در پاپ‌آپ
+window.selectSpecialistInPopup = function(specialistId, specialistName, specialty) {
+    // حذف انتخاب از همه کارت‌ها
+    document.querySelectorAll('.specialist-card-popup').forEach(card => {
+        card.classList.remove('selected');
+    });
+    
+    // انتخاب کارت فعلی
+    const selectedCard = document.querySelector(`.specialist-card-popup[data-specialist-id="${specialistId}"]`);
+    if (selectedCard) {
+        selectedCard.classList.add('selected');
+    }
+    
+    // ذخیره در state
+    state.updateFormData('selectedSpecialist', {
+        id: specialistId,
+        name: specialistName,
+        specialty: specialty
+    });
+    
+    // نمایش اطلاعات مشاور انتخاب شده
+    const specialistInfo = document.getElementById('selected-specialist-info');
+    const specialistDetails = document.getElementById('specialist-details');
+    
+    specialistDetails.innerHTML = `
+        <div><strong>${specialistName}</strong></div>
+        <div style="color: #666; font-size: 0.9em; margin: 5px 0;">${specialty}</div>
+        <div style="color: #4CAF50; font-weight: bold; font-size: 0.9em;">
+            +25,000 تومان هزینه تأیید متخصص
+        </div>
+    `;
+    specialistInfo.style.display = 'block';
+    
+    // فعال کردن دکمه تأیید در پاپ‌آپ
+    const confirmBtn = document.querySelector('.popup-confirm-btn');
+    confirmBtn.disabled = false;
+};

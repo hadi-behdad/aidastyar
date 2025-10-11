@@ -442,7 +442,7 @@ window.showSummary = function() {
         activity, exercise, waterIntake, surgery = [],
         digestiveConditions = [], dietStyle = [],
         foodLimitations = [],
-        chronicConditions, favoriteFoods, medications = [] 
+        chronicConditions, favoriteFoods, medications, dietType = [] 
     } = state.formData;
 
     const personalInfoText = [];
@@ -635,6 +635,13 @@ window.showSummary = function() {
     
     if (foodLimitations.includes('none')) foodLimitationsText.push('ندارم');
 
+    let dietTypeText = '';
+    if (dietType === 'ai-only') {
+        dietTypeText = 'رژیم هوش مصنوعی (50,000 تومان)';
+    } else if (dietType === 'with-specialist' && selectedSpecialist) {
+        dietTypeText = `رژیم با تأیید متخصص (75,000 تومان) - ${selectedSpecialist.name}`;
+    }
+    
     summaryContainer.innerHTML = `
         ${personalInfoText.length > 0 ? `
         <div class="summary-section">
@@ -710,6 +717,10 @@ window.showSummary = function() {
         <div class="summary-item">
             <span class="summary-label">غذاهای مورد علاقه:</span>
             <span class="summary-value">${favoriteFoodsText.join('، ') || 'ثبت نشده'}</span>
+        </div>        
+        <div class="summary-item">
+            <span class="summary-label">نوع رژیم:</span>
+            <span class="summary-value">${dietTypeText}</span>
         </div>        
         `;
 }

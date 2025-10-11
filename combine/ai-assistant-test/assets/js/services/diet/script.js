@@ -238,7 +238,7 @@ window.STEPS = {
     TARGET_WEIGHT: 7,
     GOAL_DISPLAY: 8,
     CHRONIC_CONDITIONS: 9,
-    MEDICATIONS: 10,  // مرحله جدید
+    MEDICATIONS: 10,
     DIGESTIVE_CONDITIONS: 11,
     SURGERY: 12,
     WATER_INTAKE: 13,
@@ -247,12 +247,14 @@ window.STEPS = {
     DIET_STYLE: 16,
     FOOD_LIMITATIONS: 17,
     FAVORITE_FOODS: 18,
-    TERMS_AGREEMENT: 19,
-    CONFIRMATION: 20
+    // مرحله جدید اضافه شده
+    DIET_TYPE_SELECTION: 19,
+    TERMS_AGREEMENT: 20,
+    CONFIRMATION: 21
 };
 
 // تعداد مراحل اصلی (بدون احتساب دو مرحله آخر)
-window.totalSteps = Object.keys(STEPS).length - 2; 
+window.totalSteps = Object.keys(STEPS).length - 3; 
 
 window.VALUE_MAPPING = {
     // جنسیت
@@ -436,6 +438,11 @@ window.VALUE_MAPPING = {
         'kookoo-sabzi': 'کوکو سبزی (فر یا گریل)',
         'kookoo-sibzamini': 'کوکو سیب زمینی (فر یا گریل)',
         'none': 'ترجیح می‌دهم برنامه بر اساس نیازهای غذایی من تنظیم شود'
+    },
+    // نوع رژیم
+    dietType: {
+        'ai-only': 'رژیم هوش مصنوعی (بدون تأیید دکتر)',
+        'with-specialist': 'رژیم با تأیید متخصص تغذیه'
     }    
 };
 
