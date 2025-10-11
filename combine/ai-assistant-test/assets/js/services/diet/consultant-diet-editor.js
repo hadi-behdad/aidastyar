@@ -74,9 +74,9 @@ class ConsultantDietEditor {
     renderStructuredEditor() {
         return `
             <div class="consultant-editor-tabs">
-                <div class="consultant-editor-tab active" data-tab="preview">
-                    <i class="fas fa-eye"></i> پیش‌نمایش رژیم
-                </div>
+                <!--<div class="consultant-editor-tab active" data-tab="preview"> -->
+                <!--    <i class="fas fa-eye"></i> پیش‌نمایش رژیم  -->
+                <!--</div>-->
                 <!--<div class="consultant-editor-tab" data-tab="json">-->
                 <!--    <i class="fas fa-code"></i> ویرایش JSON-->
                 <!--</div>-->
@@ -257,11 +257,12 @@ class ConsultantDietEditor {
             if (typeof item === 'object' && (!item.label || !item.value || item.label.trim() === '' || item.value.trim() === '')) return;
     
             if (typeof item === 'string') {
-                html += `
-                    <li class="editable-text" data-path="${basePath}.items.${itemIndex}">
-                        ${this.escapeHtml(item.trim())}
-                    </li>`;
-            } else if (item.label && item.value) {
+                const trimmed = item.trim();
+                if (trimmed !== '') {
+                    html += `<li class="editable-text" data-path="${basePath}.items.${itemIndex}">${this.escapeHtml(trimmed)}</li>`;
+                }
+            }
+            else if (item.label && item.value) {
                 const label = this.escapeHtml(item.label.trim());
                 const value = this.escapeHtml(item.value.trim());
                 
