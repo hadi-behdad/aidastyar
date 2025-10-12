@@ -209,12 +209,12 @@ $theme_assets = get_stylesheet_directory_uri();
             </div>
             <div class="weight-display-container">
                 <div class="weight-display-box current-weight">
-                    <div class="weight-value">${state.formData.weight || 0}</div>
+                    <div class="weight-value">${state.formData.userInfo.weight || 0}</div>
                     <div class="weight-unit">کیلوگرم</div>
                     <div class="weight-label">وزن فعلی شما</div>
                 </div>
                 <div class="weight-display-box target-weight">
-                    <div class="weight-value">${state.formData.targetWeight || 0}</div>
+                    <div class="weight-value">${state.formData.userInfo.targetWeight || 0}</div>
                     <div class="weight-unit">کیلوگرم</div>
                     <div class="weight-label">وزن هدف شما</div>
                 </div>
@@ -1712,7 +1712,8 @@ $theme_assets = get_stylesheet_directory_uri();
 function saveFormAndRedirect() {
   // ذخیره داده‌های فرم
   sessionStorage.setItem('diet_form_data', JSON.stringify({
-    ...window.state.formData,
+    userInfo: state.formData.userInfo,
+    serviceSelection: state.formData.serviceSelection,
     _timestamp: Date.now(),
     _currentStep: window.state.currentStep
   }));
@@ -1761,8 +1762,8 @@ window.addEventListener('load', function() {
         const savedStep = savedData._currentStep || 1;
         
         if (savedData) {
-            const {_timestamp, _currentStep, ...formData} = savedData;
-            Object.assign(window.state.formData, formData);
+            state.formData.userInfo = formData.userInfo || {};
+            state.formData.serviceSelection = formData.serviceSelection || {};
             
             window.navigateToStep(STEPS.TERMS_AGREEMENT);
             

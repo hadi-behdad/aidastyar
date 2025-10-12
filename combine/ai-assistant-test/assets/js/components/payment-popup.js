@@ -1,3 +1,4 @@
+// /home/aidastya/public_html/test/wp-content/themes/ai-assistant-test/assets/js/components/payment-popup.js
 class PaymentPopup {
     constructor(options = {}) {
         this.options = {

@@ -124,9 +124,9 @@ function setupChronicDiabetesDetails() {
         diabetesDetails.style.display = this.checked ? 'block' : 'none';
         
         if (!this.checked) {
-            state.updateFormData('chronicDiabetesType', '');
-            state.updateFormData('chronicFastingBloodSugar', '');
-            state.updateFormData('chronicHba1c', '');
+            state.updateFormData('userInfo.chronicDiabetesType', '');
+            state.updateFormData('userInfo.chronicFastingBloodSugar', '');
+            state.updateFormData('userInfo.chronicHba1c', '');
             resetChronicDiabetesSelections();
             diabetesAdditional.style.display = 'none';
         }
@@ -147,7 +147,7 @@ function setupChronicDiabetesDetails() {
             this.style.padding = '8px';
 
             const diabetesType = this.dataset.value;
-            state.updateFormData('chronicDiabetesType', diabetesType);
+            state.updateFormData('userInfo.chronicDiabetesType', diabetesType);
             
             if (diabetesType !== 'prediabetes') {
                 diabetesAdditional.style.display = 'block';
@@ -164,13 +164,13 @@ function setupChronicDiabetesDetails() {
     
     if (fastingInput) {
         fastingInput.addEventListener('input', function() {
-            state.updateFormData('chronicFastingBloodSugar', this.value);
+            state.updateFormData('userInfo.chronicFastingBloodSugar', this.value);
         });
     }
     
     if (hba1cInput) {
         hba1cInput.addEventListener('input', function() {
-            state.updateFormData('chronicHba1c', this.value);
+            state.updateFormData('userInfo.chronicHba1c', this.value);
         });
     }
 }
@@ -319,29 +319,8 @@ window.handleFormSubmit = function(event) {
     
     // 1. جمع‌آوری ساختارمند تمام داده‌ها
     const formData = {
-        ...state.formData,
-        // اطلاعات پایه
-        firstName: state.formData.firstName,
-        lastName: state.formData.lastName,
-        gender: state.formData.gender,
-        age: state.formData.age,
-        height: state.formData.height,
-        weight: state.formData.weight,
-        targetWeight: state.formData.targetWeight,
-        goal: state.formData.goal,
-        activity: state.formData.activity,
-        exercise: state.formData.exercise,
-        waterIntake: state.formData.waterIntake,
-        surgery: state.formData.surgery || [],
-        chronicConditions: state.formData.chronicConditions || [],
-        digestiveConditions: state.formData.digestiveConditions || [],
-        dietStyle: state.formData.dietStyle || [],
-        foodLimitations: state.formData.foodLimitations || [],
-        chronicDiabetesType: state.formData.chronicDiabetesType || '',
-        chronicFastingBloodSugar: state.formData.chronicFastingBloodSugar || '',
-        chronicHba1c: state.formData.chronicHba1c || '',
-        favoriteFoods: state.formData.favoriteFoods || [],
-        medications: state.formData.medications || []        
+        userInfo: { ...state.formData.userInfo },
+        serviceSelection: { ...state.formData.serviceSelection }
     };
 
     const completePersianData = window.convertToCompletePersianData(formData);
@@ -366,14 +345,20 @@ window.showSummary = function() {
     nextButton.disabled = true;
     
     const { 
-        firstName,
-        lastName,
-        gender, age, height, weight, targetWeight, goal, 
+        userInfo,
+        serviceSelection
+    } = state.formData;
+
+    const {
+        firstName, lastName, gender, age, height, weight, targetWeight, goal,
         activity, exercise, waterIntake, surgery = [],
         digestiveConditions = [], dietStyle = [],
-        foodLimitations = [],
-        chronicConditions, favoriteFoods, medications, dietType = [] 
-    } = state.formData;
+        foodLimitations = [], chronicConditions, favoriteFoods, medications,
+        chronicDiabetesType, chronicFastingBloodSugar, chronicHba1c,
+        cancerTreatment, cancerType
+    } = userInfo;
+
+    const { dietType, selectedSpecialist } = serviceSelection;
 
     const personalInfoText = [];
     if (firstName) personalInfoText.push(`نام: ${firstName}`);
@@ -570,6 +555,8 @@ window.showSummary = function() {
         dietTypeText = 'رژیم هوش مصنوعی (50,000 تومان)';
     } else if (dietType === 'with-specialist' && selectedSpecialist) {
         dietTypeText = `رژیم با تأیید متخصص (75,000 تومان) - ${selectedSpecialist.name}`;
+    } else if (dietType === 'with-specialist') {
+        dietTypeText = 'رژیم با تأیید متخصص (75,000 تومان) - متخصص انتخاب نشده';
     }
     
     summaryContainer.innerHTML = `
