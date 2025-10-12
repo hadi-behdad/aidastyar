@@ -1697,6 +1697,8 @@ $theme_assets = get_stylesheet_directory_uri();
     </script>  
 </form>
 
+<link rel="stylesheet" href="<?php echo $theme_assets; ?>/assets/css/components/payment-popup.css">
+<script src="<?php echo $theme_assets; ?>/assets/js/components/payment-popup.js"></script>
 <script src="<?php echo $theme_assets; ?>/assets/js/services/<?php echo esc_attr($service_id); ?>/chart.js"></script>
 <script src="<?php echo $theme_assets; ?>/assets/js/services/<?php echo esc_attr($service_id); ?>/script.js"></script>
 <script src="<?php echo $theme_assets; ?>/assets/js/services/<?php echo esc_attr($service_id); ?>/diet.js"></script>

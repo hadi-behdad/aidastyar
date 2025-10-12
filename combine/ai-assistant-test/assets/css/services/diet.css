@@ -2142,59 +2142,6 @@ body.dark-mode .floating-document {
   51%, 100% { opacity: 0; }
 }
 
-/* پاپ‌آپ تأیید پرداخت */
-.payment-confirmation-popup {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(0, 0, 0, 0.7);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    z-index: 10000;
-    backdrop-filter: blur(5px);
-}
-
-.payment-confirmation-content {
-    background: white;
-    border-radius: 16px;
-    padding: 30px;
-    width: 90%;
-    max-width: 450px;
-    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
-    text-align: center;
-    margin: 0 10px;
-}
-
-.payment-details > div > span:nth-child(1) {
-    text-align: right;
-}
-
-.payment-details > div > span:nth-child(2) {
-    text-align: left;
-}
-
-.payment-header h3 {
-    color: #00857a;
-    margin-bottom: 20px;
-    font-size: 1.4rem;
-}
-
-.payment-details {
-    margin-bottom: 25px;
-}
-
-.wallet-balance-popup, .payment-cost {
-    display: flex;
-    justify-content: space-between;
-    margin-bottom: 15px;
-    padding: 10px;
-    background: #f8f9fa;
-    border-radius: 8px;
-}
-
 .balance-amount-popup, .cost-amount {
     font-weight: bold;
     color: #00857a;
@@ -2202,18 +2149,6 @@ body.dark-mode .floating-document {
 
 .balance-amount-popup[style*="color: #e53935"] {
     color: #e53935 !important;
-}
-
-.payment-warning {
-    color: #6c757d;
-    font-size: 0.9rem;
-    margin-top: 15px;
-}
-
-.payment-buttons {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
 }
 
 .confirm-btn {
@@ -2273,18 +2208,6 @@ body.dark-mode .floating-document {
     0% { transform: rotate(0deg); }
     100% { transform: rotate(360deg); }
 }
-
-.payment-confirmation-popup {
-    font-family: Vazir, Tahoma, Arial, sans-serif !important;
-}
-
-.payment-confirmation-content h3,
-.payment-confirmation-content span,
-.payment-confirmation-content p,
-.payment-confirmation-content button {
-    font-family: Vazir, Tahoma, Arial, sans-serif !important;
-}
-
 
 .cancer-options {
     display: grid;

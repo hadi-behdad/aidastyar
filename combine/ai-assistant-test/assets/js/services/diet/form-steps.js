@@ -909,18 +909,6 @@ window.handleEnterKey = function(event) {
     }
 }
 
-
-
-
-
-
-
-
-
-
-
-
-
 // در تابع setupDietTypeSelection، بعد از انتخاب یک کارت
 window.setupDietTypeSelection = function(currentStep) {
     if (currentStep !== STEPS.DIET_TYPE_SELECTION) return;
