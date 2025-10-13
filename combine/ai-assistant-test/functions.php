@@ -417,17 +417,23 @@ function enqueue_aidastyar_loader() {
 add_action('wp_enqueue_scripts', 'enqueue_aidastyar_loader');
 
 
-// بارگذاری تمپلیت بر اساس پارامتر URL
-function ai_assistant_load_result_template_simple($template) {
-    if (isset($_GET['ai_diet_result']) && $_GET['ai_diet_result'] === '1') {
-        $template_path = get_template_directory() . '/services/diet/template-parts/page-diet-plan.php';
-        if (file_exists($template_path)) {
-            return $template_path;
+// حذف تابع قدیمی و جایگزینی با این کد ساده:
+function ai_assistant_handle_diet_result_redirect() {
+    if (isset($_GET['ai_diet_result']) && $_GET['ai_diet_result'] === '1' && is_user_logged_in()) {
+        $user_id = get_current_user_id();
+        $history_manager = AI_Assistant_History_Manager::get_instance();
+        $history = $history_manager->get_user_history($user_id, 1);
+        
+        if (!empty($history)) {
+            wp_redirect(home_url('/service-output/' . $history[0]->ID . '/'));
+            exit;
         }
+        
+        wp_redirect(home_url('/page-user-history/'));
+        exit;
     }
-    return $template;
 }
-add_filter('template_include', 'ai_assistant_load_result_template_simple');
+add_action('template_redirect', 'ai_assistant_handle_diet_result_redirect');
 
 
 // اضافه کردن فایل هوک‌های ووکامرس

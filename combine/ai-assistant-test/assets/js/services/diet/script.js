@@ -502,7 +502,6 @@ window.VALUE_MAPPING = {
     }    
 };
 
-// اضافه کردن این بخش به script.js بعد از VALUE_MAPPING
 window.KEY_MAPPING = {
     // اطلاعات شخصی
     'firstName': 'نام',
@@ -534,6 +533,9 @@ window.KEY_MAPPING = {
     'dietStyle': 'سبک غذایی',
     'foodLimitations': 'محدودیت‌های غذایی',
     'favoriteFoods': 'غذاهای مورد علاقه'
+    
+    // نیازی به اضافه کردن serviceSelection اینجا نیست
+    // چون به صورت جداگانه مدیریت می‌شود
 };
 
 // تابع برای تبدیل کلیدهای آبجکت به فارسی
@@ -634,8 +636,8 @@ window.convertToCompletePersianData = function(formData) {
         
         // تبدیل کلیدهای serviceSelection به فارسی
         const serviceKeyMapping = {
-            'dietType': 'نوع رژیم',
-            'selectedSpecialist': 'متخصص انتخاب شده'
+            'dietType': 'dietType',
+            'selectedSpecialist': 'selectedSpecialist'
         };
         
         for (const [key, value] of Object.entries(serviceData)) {

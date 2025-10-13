@@ -39,11 +39,7 @@ jQuery(document).ready(function($) {
                     
                     loader.hide();
                     
-                    // ذخیره نتیجه در sessionStorage
-                    sessionStorage.setItem('diet_form_result', JSON.stringify(response.data));
-                    
-                    // هدایت به صفحه نتیجه با پارامتر
-                    window.location.href = '/?ai_diet_result=1';
+                    window.location.href = '/?ai_diet_result=1&t=' + Date.now();
                 } else {
                     // مخفی کردن لودینگ دکمه
                     const confirmBtn = document.querySelector('#confirm-payment');
