@@ -1712,8 +1712,7 @@ $theme_assets = get_stylesheet_directory_uri();
 function saveFormAndRedirect() {
   // ذخیره داده‌های فرم
   sessionStorage.setItem('diet_form_data', JSON.stringify({
-    userInfo: state.formData.userInfo,
-    serviceSelection: state.formData.serviceSelection,
+    ...window.state.formData,
     _timestamp: Date.now(),
     _currentStep: window.state.currentStep
   }));
@@ -1762,8 +1761,8 @@ window.addEventListener('load', function() {
         const savedStep = savedData._currentStep || 1;
         
         if (savedData) {
-            state.formData.userInfo = formData.userInfo || {};
-            state.formData.serviceSelection = formData.serviceSelection || {};
+            const {_timestamp, _currentStep, ...formData} = savedData;
+            Object.assign(window.state.formData, formData);
             
             window.navigateToStep(STEPS.TERMS_AGREEMENT);
             

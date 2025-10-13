@@ -609,12 +609,40 @@ window.convertToPersianData = function(formData) {
 };
 
 
-// تابع کامل برای تبدیل تمام داده‌ها به فارسی
+// تابع کامل برای تبدیل تمام داده‌ها به فارسی با ساختار جدید
 window.convertToCompletePersianData = function(formData) {
-    // اول مقادیر را به فارسی تبدیل کنیم
-    const persianValues = window.convertToPersianData(formData);
-    // سپس کلیدها را به فارسی تبدیل کنیم
-    const completePersianData = window.convertKeysToPersian(persianValues);
+    // ایجاد یک کپی از داده‌ها
+    const convertedData = {
+        userInfo: {},
+        serviceSelection: {}
+    };
     
-    return completePersianData;
+    // تبدیل userInfo
+    if (formData.userInfo) {
+        const persianValues = window.convertToPersianData(formData.userInfo);
+        convertedData.userInfo = window.convertKeysToPersian(persianValues);
+    }
+    
+    // تبدیل serviceSelection
+    if (formData.serviceSelection) {
+        // تبدیل مقادیر serviceSelection به فارسی
+        const serviceData = {...formData.serviceSelection};
+        
+        if (serviceData.dietType && VALUE_MAPPING.dietType[serviceData.dietType]) {
+            serviceData.dietType = VALUE_MAPPING.dietType[serviceData.dietType];
+        }
+        
+        // تبدیل کلیدهای serviceSelection به فارسی
+        const serviceKeyMapping = {
+            'dietType': 'نوع رژیم',
+            'selectedSpecialist': 'متخصص انتخاب شده'
+        };
+        
+        for (const [key, value] of Object.entries(serviceData)) {
+            const persianKey = serviceKeyMapping[key] || key;
+            convertedData.serviceSelection[persianKey] = value;
+        }
+    }
+    
+    return convertedData;
 };
