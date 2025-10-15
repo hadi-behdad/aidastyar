@@ -41,7 +41,7 @@ class AI_Assistant_Discount_DB {
         
         $charset_collate = $wpdb->get_charset_collate();
         
-        // جدول تخفیف‌ها (اضافه کردن فیلدهای جدید)
+        // جدول تخفیف‌ها (اصلاح شده)
         if ($wpdb->get_var("SHOW TABLES LIKE '{$this->table_discounts}'") != $this->table_discounts) {
             $sql = "CREATE TABLE {$this->table_discounts} (
                 id bigint(20) NOT NULL AUTO_INCREMENT,
@@ -57,10 +57,6 @@ class AI_Assistant_Discount_DB {
                 min_order_amount decimal(15,0) DEFAULT 0,
                 scope varchar(20) NOT NULL DEFAULT 'global',
                 user_restriction varchar(20) DEFAULT NULL,
-                occasion_name varchar(255) DEFAULT NULL, -- فیلد جدید: نام مناسبت
-                is_annual tinyint(1) DEFAULT 0, -- فیلد جدید: آیا سالانه است
-                annual_month int(2) DEFAULT NULL, -- فیلد جدید: ماه مناسبت
-                annual_day int(2) DEFAULT NULL, -- فیلد جدید: روز مناسبت
                 priority INT DEFAULT 10,
                 active tinyint(1) NOT NULL DEFAULT 1,
                 created_at datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -71,10 +67,7 @@ class AI_Assistant_Discount_DB {
                 INDEX (active),
                 INDEX (start_date),
                 INDEX (end_date),
-                INDEX (priority),
-                INDEX (is_annual), -- ایندکس جدید
-                INDEX (annual_month), -- ایندکس جدید
-                INDEX (annual_day) -- ایندکس جدید
+                INDEX (priority)
             ) {$charset_collate};";
             
             require_once(ABSPATH . 'wp-admin/includes/upgrade.php');
@@ -116,73 +109,6 @@ class AI_Assistant_Discount_DB {
         }
     }
     
-    public function handle_annual_occasions() {
-        global $wpdb;
-        
-        $date_helper = AI_Assistant_Persian_Date_Helper::get_instance();
-        $today_jalali = $date_helper->get_current_jalali();
-        $current_time = current_time('mysql');
-        
-        // 1. فعال کردن تخفیف‌های مربوط به امروز
-        $annual_discounts = $wpdb->get_results($wpdb->prepare(
-            "SELECT * FROM {$this->table_discounts} 
-            WHERE is_annual = 1 
-            AND annual_month = %d 
-            AND annual_day = %d 
-            AND active = 0", // فقط تخفیف‌های غیرفعال
-            $today_jalali['month'],
-            $today_jalali['day']
-        ));
-        
-        foreach ($annual_discounts as $discount) {
-            // تاریخ پایان: فردای امروز (24 ساعت بعد)
-            $end_date = date('Y-m-d H:i:s', strtotime($current_time . ' +1 day'));
-            
-            $this->update_discount($discount->id, [
-                'active' => 1,
-                'start_date' => $current_time,
-                'end_date' => $end_date, // فردای امروز منقضی می‌شود
-                'usage_count' => 0 // ریست کردن تعداد استفاده
-            ]);
-            
-            error_log("تخفیف مناسبتی '{$discount->name}' برای امروز فعال شد (تا فردا منقضی می‌شود)");
-        }
-        
-        // 2. غیرفعال کردن تخفیف‌هایی که تاریخ انقضایشان گذشته
-        $expired_discounts = $wpdb->get_results(
-            "SELECT * FROM {$this->table_discounts} 
-            WHERE is_annual = 1 
-            AND active = 1 
-            AND end_date IS NOT NULL 
-            AND end_date < '{$current_time}'"
-        );
-        
-        foreach ($expired_discounts as $discount) {
-            $this->update_discount($discount->id, [
-                'active' => 0
-            ]);
-            error_log("تخفیف مناسبتی '{$discount->name}' منقضی شد و غیرفعال گردید");
-        }
-        
-        // 3. غیرفعال کردن تخفیف‌های فعالی که مربوط به امروز نیستند (ایمنی اضافه)
-        $active_annual_discounts = $wpdb->get_results(
-            "SELECT * FROM {$this->table_discounts} 
-            WHERE is_annual = 1 
-            AND active = 1"
-        );
-        
-        foreach ($active_annual_discounts as $discount) {
-            // اگر تاریخ مناسبت امروز نیست و تاریخ انقضا هم مشخص نیست، غیرفعال کن
-            if (!$date_helper->is_occasion_today($discount->annual_month, $discount->annual_day) && 
-                (empty($discount->end_date) || $discount->end_date < $current_time)) {
-                $this->update_discount($discount->id, [
-                    'active' => 0
-                ]);
-                error_log("تخفیف مناسبتی '{$discount->name}' غیرفعال شد");
-            }
-        }
-    }
-
     /**
      * افزودن تخفیف جدید - نسخه اصلاح شده
      */
@@ -192,8 +118,7 @@ class AI_Assistant_Discount_DB {
         // فقط فیلدهایی که در جدول وجود دارند را نگه دارید
         $table_columns = [
             'name', 'code', 'type', 'amount', 'scope', 'usage_limit', 'usage_count',
-            'start_date', 'end_date', 'user_restriction', 'occasion_name', 
-            'is_annual', 'annual_month', 'annual_day', 'active'
+            'start_date', 'end_date', 'user_restriction', 'active'
         ];
         
         $filtered_data = [];
@@ -228,8 +153,7 @@ class AI_Assistant_Discount_DB {
         // فقط فیلدهایی که در جدول وجود دارند را نگه دارید
         $table_columns = [
             'name', 'code', 'type', 'amount', 'scope', 'usage_limit', 'usage_count',
-            'start_date', 'end_date', 'user_restriction', 'occasion_name', 
-            'is_annual', 'annual_month', 'annual_day', 'active'
+            'start_date', 'end_date', 'user_restriction', 'active'
         ];
         
         $filtered_data = [];
@@ -455,10 +379,6 @@ class AI_Assistant_Discount_DB {
             'start_date' => '%s',
             'end_date' => '%s',
             'user_restriction' => '%s',
-            'occasion_name' => '%s',
-            'is_annual' => '%d',
-            'annual_month' => '%d',
-            'annual_day' => '%d',
             'active' => '%d'
         ];
         

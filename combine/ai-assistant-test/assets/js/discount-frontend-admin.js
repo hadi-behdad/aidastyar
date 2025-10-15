@@ -306,16 +306,13 @@ jQuery(document).ready(function($) {
         const scope = $('#discount-scope').val();
         
         // مخفی کردن همه بخش‌ها
-        $('#services-section, #user-restriction-section, #occasional-section, #jalali-date-section').hide();
+        $('#services-section, #user-restriction-section').hide();
         
         // نمایش بخش‌های مربوطه
         if (scope === 'service') {
             $('#services-section').show();
         } else if (scope === 'user_based') {
             $('#user-restriction-section').show();
-        } else if (scope === 'occasional') {
-            $('#occasional-section').show();
-            toggleJalaliDateSection();
         }
         
         // اضافه کردن این خط در انتها
@@ -473,43 +470,21 @@ jQuery(document).ready(function($) {
         const scope = $('#discount-scope').val();
         
         // مخفی کردن همه بخش‌ها
-        $('#services-section, #user-restriction-section, #occasional-section, #jalali-date-section').hide();
+        $('#services-section, #user-restriction-section').hide();
         
         // نمایش بخش‌های مربوطه
         if (scope === 'service') {
             $('#services-section').show();
         } else if (scope === 'user_based') {
             $('#user-restriction-section').show();
-        } else if (scope === 'occasional') {
-            $('#occasional-section').show();
-            toggleJalaliDateSection();
         }
     }
-    
-    // نمایش/مخفی کردن بخش تاریخ شمسی
-    function toggleJalaliDateSection() {
-        const isAnnual = $('#discount-is-annual').val() === '1';
-        if (isAnnual) {
-            $('#jalali-date-section').show();
-        } else {
-            $('#jalali-date-section').hide();
-        }
-    }
-    
-    // اضافه کردن event listener برای تغییر وضعیت سالانه
-    $('#discount-is-annual').on('change', function() {
-        toggleJalaliDateSection();
-    });
     
     // در تابع resetDiscountForm بخش تاریخ شمسی را نیز ریست کنید
     function resetDiscountForm() {
         $('#discount-form')[0].reset();
         $('#discount-id').val('');
         $('input[name="services[]"]').prop('checked', false);
-        $('#discount-occasion-name').val('');
-        $('#discount-is-annual').val('0');
-        $('#discount-jalali-month').val('');
-        $('#discount-jalali-day').val('');
         toggleScopeSections();
         
         $('input[name="specific_users[]"]').prop('checked', false);
