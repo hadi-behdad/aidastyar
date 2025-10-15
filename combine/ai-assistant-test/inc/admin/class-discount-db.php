@@ -47,27 +47,24 @@ class AI_Assistant_Discount_DB {
                 id bigint(20) NOT NULL AUTO_INCREMENT,
                 name varchar(255) NOT NULL,
                 code varchar(100) DEFAULT NULL,
-                type varchar(20) NOT NULL,
-                amount decimal(10,0) NOT NULL,
-                amount_type varchar(20) NOT NULL DEFAULT 'fixed',
-                start_date datetime DEFAULT NULL,
-                end_date datetime DEFAULT NULL,
+                type enum('percentage', 'fixed') NOT NULL DEFAULT 'fixed',
+                amount decimal(10,2) NOT NULL,
+                scope enum('global', 'service', 'coupon', 'user_based') NOT NULL DEFAULT 'global',
                 usage_limit int(11) DEFAULT 0,
                 usage_count int(11) DEFAULT 0,
-                min_order_amount decimal(15,0) DEFAULT 0,
-                scope varchar(20) NOT NULL DEFAULT 'global',
-                user_restriction varchar(20) DEFAULT NULL,
-                priority INT DEFAULT 10,
+                user_restriction enum('first_time', 'specific_users') DEFAULT NULL,
+                start_date datetime DEFAULT NULL,
+                end_date datetime DEFAULT NULL,
                 active tinyint(1) NOT NULL DEFAULT 1,
                 created_at datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
                 updated_at datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+                
                 PRIMARY KEY (id),
-                INDEX code (code),
-                INDEX (scope),
-                INDEX (active),
-                INDEX (start_date),
-                INDEX (end_date),
-                INDEX (priority)
+                UNIQUE KEY unique_code (code),
+                INDEX idx_scope_active (scope, active),
+                INDEX idx_dates (start_date, end_date),
+                INDEX idx_usage (usage_limit, usage_count),
+                INDEX idx_code_active (code, active)
             ) {$charset_collate};";
             
             require_once(ABSPATH . 'wp-admin/includes/upgrade.php');
@@ -376,16 +373,21 @@ class AI_Assistant_Discount_DB {
             'scope' => '%s',
             'usage_limit' => '%d',
             'usage_count' => '%d',
+            'user_restriction' => '%s',
             'start_date' => '%s',
             'end_date' => '%s',
-            'user_restriction' => '%s',
             'active' => '%d'
         ];
         
         // فقط برای فیلدهایی که در داده‌ها وجود دارند و در جدول نیز موجود هستند
         foreach ($data as $key => $value) {
             if (isset($field_formats[$key])) {
-                $formats[] = $field_formats[$key];
+                // اگر مقدار null است، فرمت مناسب را تنظیم کن
+                if ($value === null) {
+                    $formats[] = $field_formats[$key];
+                } else {
+                    $formats[] = $field_formats[$key];
+                }
             }
         }
         

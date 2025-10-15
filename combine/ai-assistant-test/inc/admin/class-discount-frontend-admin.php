@@ -213,10 +213,37 @@ class AI_Assistant_Discount_Frontend_Admin {
                         
                         <div class="form-row">
                             <div class="form-group">
+                                <label for="discount-scope">حوزه اعتبار *</label>
+                                <select id="discount-scope" name="scope" required>
+                                    <option value="coupon">کد کوپن</option>
+                                    <option value="global">عمومی (همه سرویس‌ها)</option>
+                                    <option value="service">مخصوص سرویس</option>
+                                    <option value="user_based">مبتنی بر کاربر</option>
+                                </select>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="discount-type">نوع تخفیف *</label>
+                                <select id="discount-type" name="type" required>
+                                    <option value="percentage">درصدی</option>
+                                    <option value="fixed">مبلغی (تومان)</option>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <div class="form-row">
+                            <div class="form-group">
                                 <label for="discount-name">نام تخفیف *</label>
                                 <input type="text" id="discount-name" name="name" required>
                             </div>
                             
+                            <div class="form-group">
+                                <label for="discount-amount">مقدار تخفیف *</label>
+                                <input type="number" id="discount-amount" name="amount" min="1" required>
+                            </div>
+                        </div>
+                        
+                        <div class="form-row">
                             <div class="form-group">
                                 <label for="discount-code">کد تخفیف (اختیاری)</label>
                                 <div class="code-input-container">
@@ -226,34 +253,6 @@ class AI_Assistant_Discount_Frontend_Admin {
                                     </button>
                                 </div>
                                 <small class="form-help">اگر این فیلد خالی باشد، تخفیف به صورت خودکار برای کاربران اعمال می‌شود</small>
-                            </div>
-                        </div>
-
-                        <div class="form-row">
-                            <div class="form-group">
-                                <label for="discount-type">نوع تخفیف *</label>
-                                <select id="discount-type" name="type" required>
-                                    <option value="percentage">درصدی</option>
-                                    <option value="fixed">مبلغی (تومان)</option>
-                                </select>
-                            </div>
-                            
-                            <div class="form-group">
-                                <label for="discount-amount">مقدار تخفیف *</label>
-                                <input type="number" id="discount-amount" name="amount" min="1" required>
-                            </div>
-                        </div>
-
-                        
-                        <div class="form-row">
-                            <div class="form-group">
-                                <label for="discount-scope">حوزه اعتبار *</label>
-                                <select id="discount-scope" name="scope" required>
-                                    <option value="global">عمومی (همه سرویس‌ها)</option>
-                                    <option value="service">مخصوص سرویس</option>
-                                    <option value="coupon">کد کوپن</option>
-                                    <option value="user_based">مبتنی بر کاربر</option>
-                                </select>
                             </div>
                             
                             <div class="form-group">
@@ -375,17 +374,16 @@ class AI_Assistant_Discount_Frontend_Admin {
             if ($discount_id) {
                 error_log('تخفیف با موفقیت ایجاد شد. ID: ' . $discount_id);
                 
-                // اضافه کردن سرویس‌های مرتبط
-                if (isset($_POST['services']) && is_array($_POST['services'])) {
+                // اضافه کردن سرویس‌های مرتبط (فقط برای scope=service)
+                if ($data['scope'] === 'service' && isset($_POST['services']) && is_array($_POST['services'])) {
                     foreach ($_POST['services'] as $service_id) {
                         $result = $this->discount_db->add_discount_service($discount_id, sanitize_text_field($service_id));
                         error_log('افزودن سرویس ' . $service_id . ': ' . ($result ? 'موفق' : 'ناموفق'));
                     }
                 }
                 
-                // اضافه کردن کاربران خاص
+                // اضافه کردن کاربران خاص (فقط برای scope=user_based و user_restriction=specific_users)
                 if ($data['scope'] === 'user_based' && 
-                    isset($data['user_restriction']) && 
                     $data['user_restriction'] === 'specific_users' &&
                     isset($_POST['specific_users']) && 
                     is_array($_POST['specific_users'])) {
@@ -617,9 +615,9 @@ class AI_Assistant_Discount_Frontend_Admin {
             'amount' => floatval($post_data['amount']),
             'scope' => sanitize_text_field($post_data['scope']),
             'usage_limit' => intval($post_data['usage_limit'] ?? 0),
+            'user_restriction' => !empty($post_data['user_restriction']) ? sanitize_text_field($post_data['user_restriction']) : null,
             'start_date' => !empty($post_data['start_date']) ? sanitize_text_field($post_data['start_date']) : null,
             'end_date' => !empty($post_data['end_date']) ? sanitize_text_field($post_data['end_date']) : null,
-            'user_restriction' => sanitize_text_field($post_data['user_restriction'] ?? ''),
             'active' => 1
         ];
         
@@ -632,8 +630,10 @@ class AI_Assistant_Discount_Frontend_Admin {
             return new WP_Error('invalid_percentage', 'تخفیف درصدی نمی‌تواند بیشتر از ۱۰۰٪ باشد.');
         }
         
-        // مقدار پیش‌فرض برای amount_type
-        $data['amount_type'] = $data['type']; // percentage یا fixed
+        // اگر scope برابر user_based است، user_restriction باید تنظیم شود
+        if ($data['scope'] === 'user_based' && empty($data['user_restriction'])) {
+            return new WP_Error('missing_user_restriction', 'برای تخفیف مبتنی بر کاربر، نوع محدودیت کاربر باید مشخص شود.');
+        }
         
         return $data;
     }
