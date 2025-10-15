@@ -1034,16 +1034,16 @@ class AI_Assistant_Discount_Frontend_Admin {
         <?php
     }
 
-// تابع کمکی برای نام ماه‌ها
-private function get_persian_month_name($month) {
-    $months = [
-        1 => 'فروردین', 2 => 'اردیبهشت', 3 => 'خرداد',
-        4 => 'تیر', 5 => 'مرداد', 6 => 'شهریور',
-        7 => 'مهر', 8 => 'آبان', 9 => 'آذر',
-        10 => 'دی', 11 => 'بهمن', 12 => 'اسفند'
-    ];
-    return $months[$month] ?? $month;
-}
+// // تابع کمکی برای نام ماه‌ها
+// private function get_persian_month_name($month) {
+//     $months = [
+//         1 => 'فروردین', 2 => 'اردیبهشت', 3 => 'خرداد',
+//         4 => 'تیر', 5 => 'مرداد', 6 => 'شهریور',
+//         7 => 'مهر', 8 => 'آبان', 9 => 'آذر',
+//         10 => 'دی', 11 => 'بهمن', 12 => 'اسفند'
+//     ];
+//     return $months[$month] ?? $month;
+// }
 
     private function get_scope_text($scope) {
         $scopes = [

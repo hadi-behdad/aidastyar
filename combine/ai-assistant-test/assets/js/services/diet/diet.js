@@ -31,6 +31,7 @@ jQuery(document).ready(function($) {
             },
             success: function(response) {
                 if (response.success) {
+                   //  console.log('response:', response);
                     // مخفی کردن پاپ‌آپ پرداخت اگر باز است
                     const paymentPopup = document.querySelector('.payment-confirmation-popup');
                     if (paymentPopup) {
