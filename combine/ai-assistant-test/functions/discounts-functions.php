@@ -35,3 +35,40 @@ function create_discount_admin_page() {
 // اجرای ایجاد صفحه هنگام فعال سازی تم
 add_action('after_switch_theme', 'create_discount_admin_page');
 add_action('init', 'create_discount_admin_page');
+
+
+// هندلر اعتبارسنجی کد تخفیف
+add_action('wp_ajax_validate_discount_code', 'handle_validate_discount_code');
+add_action('wp_ajax_nopriv_validate_discount_code', 'handle_validate_discount_code');
+
+function handle_validate_discount_code() {
+    check_ajax_referer('discount_frontend_admin_nonce', 'nonce');
+    
+    $discount_code = sanitize_text_field($_POST['discount_code']);
+    $service_id = sanitize_text_field($_POST['service_id']);
+    $user_id = get_current_user_id();
+    
+    $result = AI_Assistant_Discount_Manager::validate_discount($discount_code, $service_id, $user_id);
+    
+    if ($result['valid']) {
+        // دریافت قیمت سرویس از Service Manager موجود
+        $service_manager = AI_Assistant_Service_Manager::get_instance();
+        $original_price = $service_manager->get_service_price($service_id);
+        
+        $final_price = AI_Assistant_Discount_Manager::calculate_discounted_price(
+            $original_price, 
+            $result['discount']
+        );
+        
+        wp_send_json_success([
+            'message' => $result['message'],
+            'original_price' => $original_price,
+            'discount_amount' => $original_price - $final_price,
+            'final_price' => $final_price,
+            'discount_type' => $result['discount']->type,
+            'discount_value' => $result['discount']->amount
+        ]);
+    } else {
+        wp_send_json_error(['message' => $result['message']]);
+    }
+}
