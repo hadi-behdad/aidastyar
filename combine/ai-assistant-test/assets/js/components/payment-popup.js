@@ -201,8 +201,18 @@ class PaymentPopup {
         if (window.AiDastyarLoader) {
             const loader = new AiDastyarLoader({
                 message: message,
-                type: 'error',
-                duration: 3000
+                theme: 'light',
+                size: 'medium',
+                position: 'center',
+                closable: false,
+                overlay: true,
+                autoHide: 3000,
+                persistent: false, 
+                redirectUrl: null,
+                redirectDelay: null, 
+                onShow: null,
+                onHide: null,
+                onRedirect: null    
             });
             loader.show();
         } else {
