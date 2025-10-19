@@ -99,10 +99,11 @@ window.preloadImages = function() {
 window.showPaymentConfirmation = function(formData) {
     const paymentPopup = new PaymentPopup({
         serviceType: 'رژیم غذایی',
+        serviceId: 'diet',
         ajaxAction: 'get_diet_service_price', // مشخص کردن action
-        onConfirm: (price) => {
+        onConfirm: (finalPrice) => {
             window.dispatchEvent(new CustomEvent('formSubmitted', {
-                detail: { formData, price }
+                detail: { formData, finalPrice }
             }));
         },
         onCancel: () => {

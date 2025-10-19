@@ -134,6 +134,7 @@ function ai_assistant_scripts() {
         'ajaxurl' => admin_url('admin-ajax.php'),
         'themeUrl' => get_template_directory_uri(),
         'nonce' => wp_create_nonce('ai_assistant_nonce'),
+        'user_id' => get_current_user_id(),
         'i18n' => [
             'error' => __('خطا', 'ai-assistant'),
             'loading' => __('در حال پردازش...', 'ai-assistant')
@@ -372,7 +373,9 @@ function ai_assistant_load_test_scripts() {
             // اضافه کردن متغیرهای مورد نیاز برای diet.js
             wp_localize_script('ai-assistant-auto-fill', 'aiAssistantVars', [
                 'ajaxurl' => admin_url('admin-ajax.php'),
+                'themeUrl' => get_template_directory_uri(),
                 'nonce' => wp_create_nonce('ai_assistant_nonce'),
+                'user_id' => get_current_user_id(),
                 'i18n' => [
                     'error' => __('خطا', 'ai-assistant'),
                     'loading' => __('در حال پردازش...', 'ai-assistant')
@@ -660,3 +663,26 @@ function add_consultant_cap_to_admin() {
     }
 }
 add_action('init', 'add_consultant_cap_to_admin');
+
+
+
+
+// در فایل functions.php اضافه کنید
+add_action('wp_ajax_check_user_auth', 'handle_check_user_auth');
+add_action('wp_ajax_nopriv_check_user_auth', 'handle_check_user_auth_no_priv');
+
+function handle_check_user_auth() {
+    check_ajax_referer('ai_assistant_nonce', 'nonce');
+    
+    wp_send_json_success([
+        'is_logged_in' => is_user_logged_in(),
+        'user_id' => get_current_user_id()
+    ]);
+}
+
+function handle_check_user_auth_no_priv() {
+    wp_send_json_success([
+        'is_logged_in' => false,
+        'user_id' => 0
+    ]);
+}

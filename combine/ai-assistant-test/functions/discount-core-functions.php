@@ -59,12 +59,17 @@ class AI_Assistant_Discount_Manager {
                 return true;
         }
     }
-    
+        
     public static function calculate_discounted_price($original_price, $discount) {
+        error_log("Calculating discount - Original: " . $original_price . ", Type: " . $discount->type . ", Amount: " . $discount->amount);
+        
         if ($discount->type === 'percentage') {
-            return $original_price - ($original_price * ($discount->amount / 100));
+            $discounted = $original_price - ($original_price * ($discount->amount / 100));
         } else {
-            return max(0, $original_price - $discount->amount);
+            $discounted = max(0, $original_price - $discount->amount);
         }
+        
+        error_log("Calculated discounted price: " . $discounted);
+        return $discounted;
     }
-}
+} 
