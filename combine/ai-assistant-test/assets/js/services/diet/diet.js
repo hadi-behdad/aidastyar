@@ -19,7 +19,7 @@ jQuery(document).ready(function($) {
             overlay: true,
             autoHide: null,
             persistent: true, 
-            redirectUrl: '/wallet-charge/',
+            redirectUrl: null,
             redirectDelay: null, 
             onShow: null,
             onHide: null,

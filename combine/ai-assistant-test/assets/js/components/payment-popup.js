@@ -305,7 +305,7 @@ class PaymentPopup {
     }
 
     handleDiscountSuccess(data) {
-        console.log('Discount success data:', data); // برای دیباگ
+        console.log('Discount success data:', data);
         
         // تبدیل مقادیر به عدد برای اطمینان
         this.finalPrice = parseFloat(data.final_price) || 0;
@@ -313,6 +313,20 @@ class PaymentPopup {
         this.originalPrice = parseFloat(data.original_price) || this.originalPrice;
         
         this.discountApplied = true;
+        
+        // ذخیره اطلاعات تخفیف در state به صورت مستقیم
+        if (window.state && window.state.formData) {
+            window.state.formData.discountInfo = {
+                discountCode: document.getElementById('discount-code-input').value.trim(),
+                discountApplied: true,
+                discountAmount: this.discountAmount,
+                originalPrice: this.originalPrice,
+                finalPrice: this.finalPrice,
+                discountData: data
+            };
+            
+            console.log('Discount info saved to state:', window.state.formData.discountInfo);
+        }
         
         // به روزرسانی نمایش قیمت
         this.updatePriceDisplay();
@@ -375,6 +389,18 @@ class PaymentPopup {
         this.discountAmount = 0;
         this.discountApplied = false;
         
+        // حذف اطلاعات تخفیف از state
+        if (window.state && window.state.formData) {
+            window.state.formData.discountInfo = {
+                discountCode: '',
+                discountApplied: false,
+                discountAmount: 0,
+                originalPrice: this.originalPrice,
+                finalPrice: this.finalPrice,
+                discountData: null
+            };
+        }
+        
         this.updatePriceDisplay();
         
         const discountDisplay = document.getElementById('discount-display');
@@ -431,11 +457,26 @@ class PaymentPopup {
                 window.location.href = `${baseUrl}/wallet-charge/`;
             };
         } else {
+            // حالت اول: موجودی کافی است
             confirmBtn.textContent = 'تأیید پرداخت';
+            // ✅ راه حل: استفاده از arrow function برای حفظ this
             confirmBtn.onclick = () => {
                 if (this.options.onConfirm) {
-                    // ارسال اطلاعات تخفیف به تابع onConfirm
-                    this.options.onConfirm(this.finalPrice, {
+                    // 1. دریافت داده‌های کامل از state
+                    const completeFormData = {
+                        userInfo: { ...window.state.formData.userInfo },
+                        serviceSelection: { ...window.state.formData.serviceSelection },
+                        discountInfo: window.state.formData.discountInfo ? { ...window.state.formData.discountInfo } : {}
+                    };
+                    
+                    // 2. اضافه کردن کد تخفیف از input اگر وجود دارد
+                    const discountCodeInput = document.getElementById('discount-code-input');
+                    if (discountCodeInput && discountCodeInput.value.trim() && completeFormData.discountInfo) {
+                        completeFormData.discountInfo.discountCode = discountCodeInput.value.trim();
+                    }
+                    
+                    // 3. ارسال داده‌های کامل
+                    this.options.onConfirm(completeFormData, this.finalPrice, {
                         discountApplied: this.discountApplied,
                         finalPrice: this.finalPrice,
                         originalPrice: this.originalPrice

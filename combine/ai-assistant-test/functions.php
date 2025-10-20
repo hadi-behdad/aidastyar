@@ -665,9 +665,6 @@ function add_consultant_cap_to_admin() {
 add_action('init', 'add_consultant_cap_to_admin');
 
 
-
-
-// در فایل functions.php اضافه کنید
 add_action('wp_ajax_check_user_auth', 'handle_check_user_auth');
 add_action('wp_ajax_nopriv_check_user_auth', 'handle_check_user_auth_no_priv');
 

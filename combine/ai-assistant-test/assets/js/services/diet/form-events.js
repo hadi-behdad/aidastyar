@@ -96,22 +96,43 @@ window.preloadImages = function() {
     });
 }
 
-window.showPaymentConfirmation = function(formData) {
-    const paymentPopup = new PaymentPopup({
-        serviceType: 'رژیم غذایی',
-        serviceId: 'diet',
-        ajaxAction: 'get_diet_service_price', // مشخص کردن action
-        onConfirm: (finalPrice) => {
-            window.dispatchEvent(new CustomEvent('formSubmitted', {
-                detail: { formData, finalPrice }
-            }));
-        },
-        onCancel: () => {
-            document.getElementById('SubmitBtn').disabled = false;
-        }
-    });
-    
-    paymentPopup.show();
+window.showPaymentConfirmation = function(formData, finalPrice) {
+    console.log('showPaymentConfirmation called with price:', finalPrice);
+    try {
+        const paymentPopup = new PaymentPopup({
+            serviceType: 'رژیم غذایی',
+            serviceId: 'diet',
+            customPrice: finalPrice,
+            ajaxAction: 'get_diet_service_price',
+            onConfirm: (completeFormData, confirmedFinalPrice, discountDetails) => {
+                const completePersianData = window.convertToCompletePersianData(completeFormData);
+                
+                // 1. به‌روزرسانی state با اطلاعات نهایی تخفیف
+                // if (window.state && window.state.formData) {
+                //     window.state.formData.discountInfo = {
+                //         ...completeFormData.discountInfo,
+                //         ...discountDetails
+                //     };
+                // }
+                
+                // 2. ارسال ایونت با داده‌های کامل
+                window.dispatchEvent(new CustomEvent('formSubmitted', {
+                    detail: { 
+                        formData: completePersianData,
+                        finalPrice: confirmedFinalPrice 
+                    }
+                }));
+            },
+            onCancel: () => {
+                document.getElementById('SubmitBtn').disabled = false;
+            }
+        });
+        
+        paymentPopup.show();
+    } catch (error) {
+        console.error('Error showing payment popup:', error);
+        alert('خطا در نمایش پرداخت. لطفاً صفحه را رفرش کنید.');
+    }    
 };
 
 function setupChronicDiabetesDetails() {
@@ -321,21 +342,31 @@ window.handleFormSubmit = function(event) {
     // 1. جمع‌آوری ساختارمند تمام داده‌ها
     const formData = {
         userInfo: { ...state.formData.userInfo },
-        serviceSelection: { ...state.formData.serviceSelection }
+        serviceSelection: { ...state.formData.serviceSelection },
+        discountInfo: { ...state.formData.discountInfo }
     };
-
-    const completePersianData = window.convertToCompletePersianData(formData);
     
-    if (aiAssistantVars.environment && aiAssistantVars.environment !== 'production') {
-        console.log('Form submitted (English):', formData);
-        console.log('Form submitted (Persian - Complete):', completePersianData);
+    const discountCodeInput = document.getElementById('discount-code-input');
+    if (discountCodeInput && discountCodeInput.value.trim()) {
+        formData.discountInfo = {
+            ...formData.discountInfo,
+            discountCode: discountCodeInput.value.trim(),
+            discountApplied: true,
+            discountAmount: state.formData.discountInfo?.discountAmount || 0,
+            originalPrice: state.formData.discountInfo?.originalPrice || 0,
+            finalPrice: state.formData.discountInfo?.finalPrice || 0
+        };
     }
+    
+    const finalPrice = formData.discountInfo.finalPrice || formData.discountInfo.originalPrice;
     
     // غیرفعال کردن دکمه سابمیت
     document.getElementById('SubmitBtn').disabled = true;
     
     // نمایش پاپ‌آپ تأیید پرداخت
-    window.showPaymentConfirmation(completePersianData);
+    window.showPaymentConfirmation(formData, finalPrice);
+    
+    return false;
 };
 
 window.showSummary = function() {
