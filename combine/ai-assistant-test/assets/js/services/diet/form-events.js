@@ -98,6 +98,7 @@ window.preloadImages = function() {
 
 window.showPaymentConfirmation = function(formData, finalPrice) {
     console.log('showPaymentConfirmation called with price:', finalPrice);
+    console.log('FormData:', formData);
     try {
         const paymentPopup = new PaymentPopup({
             serviceType: 'رژیم غذایی',
@@ -105,29 +106,54 @@ window.showPaymentConfirmation = function(formData, finalPrice) {
             customPrice: finalPrice,
             ajaxAction: 'get_diet_service_price',
             onConfirm: (completeFormData, confirmedFinalPrice, discountDetails) => {
+                console.log('✅ Payment confirmed!');
+                console.log('Complete form data:', completeFormData);
+                
                 const completePersianData = window.convertToCompletePersianData(completeFormData);
                 
-                // 1. به‌روزرسانی state با اطلاعات نهایی تخفیف
-                // if (window.state && window.state.formData) {
-                //     window.state.formData.discountInfo = {
-                //         ...completeFormData.discountInfo,
-                //         ...discountDetails
-                //     };
-                // }
+                // نمایش پیام مناسب بر اساس نوع رژیم
+                let message = '';
+                if (completeFormData.serviceSelection && completeFormData.serviceSelection.dietType === 'ai-only') {
+                    message = 'روند ساخت رژیم هوش مصنوعی ممکن است تا ۱۵ دقیقه طول بکشد. می‌توانید بعد از ۱۵ دقیقه مجدداً سر بزنید.';
+                } else {
+                    message = 'درخواست شما با موفقیت ثبت شد. نتیجه پس از تأیید متخصص در تاریخچه سرویس‌ها قابل مشاهده خواهد بود.';
+                }
                 
-                // 2. ارسال ایونت با داده‌های کامل
+                console.log('Creating AiDastyarLoader with message:', message);
+                
+                const loader = new AiDastyarLoader({
+                    message: message,
+                    theme: 'light',
+                    size: 'large',
+                    position: 'center',
+                    closable: true,
+                    overlay: true,
+                    persistent: false,
+                    autoHide: 100000,
+                    redirectOnClose: window.location.origin + '/'
+                });
+                
+                console.log('✅ Dispatching formSubmitted event');
+                // ابتدا سرویس اصلی را بلافاصله اجرا کن
                 window.dispatchEvent(new CustomEvent('formSubmitted', {
                     detail: { 
                         formData: completePersianData,
                         finalPrice: confirmedFinalPrice 
                     }
                 }));
+                
+                console.log('✅ Showing loader');
+                // سپس پاپ‌آپ اطلاع‌رسانی را نمایش بده
+                loader.show();
+                
             },
             onCancel: () => {
+                console.log('❌ Payment cancelled');
                 document.getElementById('SubmitBtn').disabled = false;
             }
         });
         
+        console.log('✅ Showing payment popup');
         paymentPopup.show();
     } catch (error) {
         console.error('Error showing payment popup:', error);

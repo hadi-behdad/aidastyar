@@ -5,10 +5,14 @@ jQuery(document).ready(function($) {
     const responseContent = resultDiv.find('.ai-response-content');
     const submitBtn = form.find('.final-submit');    
 
+    // در بخش formSubmitted event listener
     window.addEventListener('formSubmitted', function(event) {
+        console.log('✅ formSubmitted event received!');
+        console.log('Event detail:', event.detail);
+        
         const receivedUserData = event.detail.formData;
-        console.log('Form data received:', receivedUserData);
-
+        console.log('Received user data:', receivedUserData);
+    
         // نمایش loader با امکان بستن
         const loader = new AiDastyarLoader({
             message: 'در حال پردازش درخواست...',
@@ -17,16 +21,16 @@ jQuery(document).ready(function($) {
             position: 'center',
             closable: true,
             overlay: true,
-            autoHide: null,
-            persistent: true, 
-            redirectUrl: null,
-            redirectDelay: null, 
-            onShow: null,
-            onHide: null,
-            onRedirect: null     
+            onShow: function() {
+                console.log('✅ AJAX Loader shown');
+            },
+            onHide: function() {
+                console.log('✅ AJAX Loader hidden');
+            }
         });
+        console.log('✅ Showing AJAX loader');
         loader.show();
-
+    
         $.ajax({
             url: aiAssistantVars.ajaxurl,
             type: 'POST',
@@ -39,8 +43,8 @@ jQuery(document).ready(function($) {
                 price: 10000000
             },
             success: function(response) {
+                console.log('✅ AJAX success:', response);
                 if (response.success) {
-                   //  console.log('response:', response);
                     // مخفی کردن پاپ‌آپ پرداخت اگر باز است
                     const paymentPopup = document.querySelector('.payment-confirmation-popup');
                     if (paymentPopup) {
@@ -49,34 +53,31 @@ jQuery(document).ready(function($) {
                     
                     loader.hide();
                     
-                    window.location.href = '/?ai_diet_result=1&t=' + Date.now();
+                    // نمایش پاپ‌آپ موفقیت برای همه حالت‌ها
+                    console.log('✅ Showing success loader');
+                    const successLoader = new AiDastyarLoader({
+                        message: 'درخواست شما با موفقیت ثبت شد. نتیجه پس از پردازش در تاریخچه سرویس‌ها قابل مشاهده خواهد بود.',
+                        theme: 'light',
+                        size: 'medium',
+                        position: 'center',
+                        closable: true,
+                        overlay: true,
+                        autoHide: 8000,
+                        redirectOnClose: window.location.origin + '/',
+                        onShow: function() {
+                            console.log('✅ Success loader shown');
+                        }
+                    });
+                    successLoader.show();
+                    
                 } else {
-                    // مخفی کردن لودینگ دکمه
-                    const confirmBtn = document.querySelector('#confirm-payment');
-                    if (confirmBtn) {
-                        confirmBtn.disabled = false;
-                        confirmBtn.querySelector('.btn-text').style.display = 'inline-block';
-                        confirmBtn.querySelector('.btn-loading').style.display = 'none';
-                    }
-                    
-                    // نمایش خطا
-                    if (response.data && response.data.includes('اعتبار')) {
-                        loader.update(response.data);
-                    } else {
-                        loader.update('خطا در پردازش درخواست. لطفاً مجدداً تلاش کنید.');
-                    }
-                    
-                    // تغییر دکمه بستن برای ریدایرکت به صفحه شارژ
-                    const closeBtn = document.querySelector('#aidastyar-loading-overlay .close-loader');
-                    if (closeBtn) {
-                        closeBtn.onclick = function() {
-                            loader.hide();
-                            window.location.href = home_url('/wallet-charge/');
-                        };
-                    }
+                    console.log('❌ AJAX error:', response);
+                    loader.update('خطا در پردازش درخواست. لطفاً مجدداً تلاش کنید.');
+                    loader.setRedirectOnClose(window.location.href);
                 }
             },
             error: function(xhr) {
+                console.log('❌ AJAX request failed:', xhr);
                 let errorMsg = 'خطا در ارتباط با سرور';
                 if (xhr.responseText) {
                     try {
