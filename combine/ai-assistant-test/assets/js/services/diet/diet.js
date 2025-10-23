@@ -15,7 +15,7 @@ jQuery(document).ready(function($) {
             theme: 'light',
             size: 'medium',
             position: 'center',
-            closable: true,
+            closable: false,
             overlay: true,
             onShow: function() {
                 console.log('✅ AJAX Loader shown');
@@ -40,14 +40,14 @@ jQuery(document).ready(function($) {
             },
             success: function(response) {
                 
+                loader.hide();
+                
                 if (response.success) {
                     // مخفی کردن پاپ‌آپ پرداخت اگر باز است
                     const paymentPopup = document.querySelector('.payment-confirmation-popup');
                     if (paymentPopup) {
                         document.body.removeChild(paymentPopup);
                     }
-                    
-                    loader.hide();
                     
                     const successLoader = new AiDastyarLoader({
                         message: `
@@ -72,6 +72,8 @@ jQuery(document).ready(function($) {
                 }
             },
             error: function(xhr) {
+                loader.hide();
+                
                 let errorMsg = 'خطا در ارتباط با سرور';
                 if (xhr.responseText) {
                     try {

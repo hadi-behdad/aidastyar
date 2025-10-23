@@ -67,6 +67,12 @@ get_header();
                         <label>تاریخ عضویت:</label>
                         <span><?php echo date_i18n('j F Y', strtotime($current_user->user_registered)); ?></span>
                     </div>
+                    <div class="prof-profile-actions">
+                        <a href="<?php echo home_url('/account'); ?>" class="prof-edit-profile-btn">
+                            <span class="dashicons dashicons-edit"></span>
+                            ویرایش اطلاعات شخصی
+                        </a>
+                    </div>           
                 </div>
             </div>
         </div>
@@ -142,7 +148,7 @@ get_header();
 }
 
 .prof-profile-content {
-    padding: 0 25px 25px 25px;
+    padding: 25px;
 }
 
 .prof-profile-section {
@@ -219,8 +225,7 @@ get_header();
     }
     
     .prof-profile-content {
-        padding: 0 20px 20px 20px;
-        margin-top: 20px;
+        padding: 20px;
     }
     
     .prof-profile-section {
@@ -261,6 +266,39 @@ get_header();
 
 .prof-profile-section:nth-child(3) {
     animation-delay: 0.4s;
+}
+
+.prof-profile-actions {
+    margin-top: 25px;
+    text-align: center;
+}
+
+.prof-edit-profile-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: linear-gradient(135deg, #00857a 0%, #00c9b7 100%);
+    color: white;
+    padding: 12px 25px;
+    border-radius: 25px;
+    text-decoration: none;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(0, 133, 122, 0.3);
+    border: none;
+    cursor: pointer;
+}
+
+.prof-edit-profile-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(0, 133, 122, 0.4);
+    color: white;
+}
+
+.prof-edit-profile-btn .dashicons {
+    font-size: 16px;
+    width: 16px;
+    height: 16px;
 }
 </style>
 

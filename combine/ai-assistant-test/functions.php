@@ -26,6 +26,11 @@ function ai_assistant_setup() {
 add_action('after_setup_theme', 'ai_assistant_setup');
 
 // 2. بارگذاری فایل‌های جانبی
+
+// بارگذاری AI Assistant API
+require_once get_template_directory() . '/inc/ai-assistant-api/ai-assistant-api.php';
+
+
 require_once get_template_directory() . '/inc/class-service-db.php';
 require_once get_template_directory() . '/inc/class-service-manager.php';
 require_once get_template_directory() . '/inc/class-payment-handler.php';
@@ -33,9 +38,15 @@ require_once get_template_directory() . '/inc/class-payment-handler.php';
 
 require_once get_template_directory() . '/inc/class-history-manager.php';
 // سپس کلاس‌های جدید مشاور
+require_once get_template_directory() . '/inc/class-email-template.php';
 require_once get_template_directory() . '/inc/class-notification-manager.php';
 require_once get_template_directory() . '/inc/class-diet-consultation-db.php';
 require_once get_template_directory() . '/inc/class-nutrition-consultant-manager.php';
+
+
+
+
+
 
 
 function ai_assistant_load_css() {
@@ -194,6 +205,22 @@ function ai_wallet_payment_complete($order_id) {
 }
 
 //------------------------------------
+
+add_action('phpmailer_init', function($phpmailer) {
+    $phpmailer->isSMTP();
+    $phpmailer->Host       = 'mail.aidastyar.com';
+    $phpmailer->SMTPAuth   = true;
+    $phpmailer->Port       = 465;
+    $phpmailer->Username   = 'info@aidastyar.com';
+    $phpmailer->Password   = '373565@Hatef';
+    $phpmailer->SMTPSecure = 'ssl';
+    $phpmailer->From       = 'info@aidastyar.com';
+    $phpmailer->FromName   = 'Aidastyar';
+});
+
+
+
+
 
 // اضافه کردن endpoint جدید برای دریافت قیمت سرویس
 add_action('wp_ajax_get_diet_service_price', 'get_diet_service_price_callback');
@@ -618,6 +645,7 @@ function number_fa($number) {
 
 require_once get_template_directory() . '/templates/profile-functions.php';
 
+require_once get_template_directory() . '/templates/account-functions.php';
 
 require_once get_template_directory() . '/templates/wallet-functions.php';
 
