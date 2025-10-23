@@ -54,7 +54,7 @@ class AI_Assistant_Nutrition_Consultant_Manager {
                 'consultant_id' => $consultant_id,
                 'service_history_id' => $service_history_id,
                 'consultation_price' => $consultation_price,
-                'deadline' => date('Y-m-d H:i:s', strtotime('+3 days'))
+                'deadline' => date('Y-m-d H:i:s', strtotime('+1 days'))
             ]);
 
         // ثبت درخواست
@@ -63,7 +63,7 @@ class AI_Assistant_Nutrition_Consultant_Manager {
             'consultant_id' => $consultant_id,
             'service_history_id' => $service_history_id,
             'consultation_price' => $consultation_price,
-            'deadline' => date('Y-m-d H:i:s', strtotime('+3 days'))
+            'deadline' => date('Y-m-d H:i:s', strtotime('+1 days'))
         ];
 
         $request_id = $this->consultation_db->add_consultation_request($request_data);
@@ -150,6 +150,7 @@ class AI_Assistant_Nutrition_Consultant_Manager {
             // اگر تایید شد، اطلاع‌رسانی به کاربر
             if ($action === 'approve') {
                 $this->notification_manager->send_consultation_result($request->user_id, $request_id);
+ 
             }
             
             wp_send_json_success('تغییرات با موفقیت ذخیره شد.');

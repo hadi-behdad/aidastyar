@@ -12,7 +12,7 @@ class PaymentPopup {
         };
         
         if (!this.options.serviceId) {
-            console.error('PaymentPopup: serviceId is required');
+            newConsole.error('PaymentPopup: serviceId is required');
         }        
         this.popup = null;
         this.isOpen = false;
@@ -37,7 +37,7 @@ class PaymentPopup {
             
             this.isOpen = true;
         } catch (error) {
-            console.error('Error showing payment popup:', error);
+            newConsole.error('Error showing payment popup:', error);
             alert('خطا در نمایش پرداخت: ' + error.message);
         }
     }
@@ -45,8 +45,6 @@ class PaymentPopup {
     // در تابع getServicePrice در payment-popup.js
     async getServicePrice() {
         try {
-            console.log('Getting service price for:', this.options.serviceId);
-            
             const response = await fetch(aiAssistantVars.ajaxurl, {
                 method: 'POST',
                 headers: {
@@ -59,15 +57,14 @@ class PaymentPopup {
             });
     
             const data = await response.json();
-            console.log('Service price response:', data);
-    
+            
             if (data.success) {
                 return data.data.price;
             } else {
                 throw new Error(data.data?.message || 'خطا در دریافت قیمت');
             }
         } catch (error) {
-            console.error('Error getting service price:', error);
+            newConsole.error('Error getting service price:', error);
             throw error;
         }
     }
@@ -197,6 +194,8 @@ class PaymentPopup {
         });
 
         cancelBtn.addEventListener('click', () => {
+            // this.resetDiscount();
+            
             if (this.options.onCancel) {
                 this.options.onCancel();
             }
@@ -205,13 +204,16 @@ class PaymentPopup {
 
         this.popup.addEventListener('click', (e) => {
             if (e.target === this.popup) {
-                this.hide();
+                e.stopPropagation();
+                return;
             }
         });
 
         document.addEventListener('keydown', (e) => {
             if (e.key === 'Escape' && this.isOpen) {
-                this.hide();
+                e.preventDefault();
+                e.stopPropagation();;
+                return false;                
             }
         });
     }
@@ -242,12 +244,6 @@ class PaymentPopup {
                 throw new Error('خطا در تأیید هویت');
             }
     
-            console.log('Sending discount request:', {
-                discountCode,
-                serviceId: this.options.serviceId,
-                nonce
-            });
-    
             const response = await fetch(aiAssistantVars.ajaxurl, {
                 method: 'POST',
                 headers: {
@@ -262,17 +258,14 @@ class PaymentPopup {
             });
     
             const responseText = await response.text();
-            console.log('Raw response:', responseText);
     
             let data;
             try {
                 data = JSON.parse(responseText);
             } catch (parseError) {
-                console.error('JSON parse error:', parseError);
+                newConsole.error('JSON parse error:', parseError);
                 throw new Error('پاسخ سرور نامعتبر است');
             }
-    
-            console.log('Parsed response:', data);
     
             if (data.success) {
                 this.handleDiscountSuccess(data.data);
@@ -280,7 +273,7 @@ class PaymentPopup {
                 this.handleDiscountError(data.data?.message || 'کد تخفیف معتبر نیست');
             }
         } catch (error) {
-            console.error('Error applying discount:', error);
+            newConsole.error('Error applying discount:', error);
             this.handleDiscountError(error.message || 'خطا در ارتباط با سرور');
         } finally {
             applyBtn.disabled = false;
@@ -305,8 +298,6 @@ class PaymentPopup {
     }
 
     handleDiscountSuccess(data) {
-        console.log('Discount success data:', data);
-        
         // تبدیل مقادیر به عدد برای اطمینان
         this.finalPrice = parseFloat(data.final_price) || 0;
         this.discountAmount = parseFloat(data.discount_amount) || 0;
@@ -324,8 +315,6 @@ class PaymentPopup {
                 finalPrice: this.finalPrice,
                 discountData: data
             };
-            
-            console.log('Discount info saved to state:', window.state.formData.discountInfo);
         }
         
         // به روزرسانی نمایش قیمت
@@ -365,7 +354,6 @@ class PaymentPopup {
         const formattedPrice = new Intl.NumberFormat('fa-IR').format(this.finalPrice);
         finalPriceElement.textContent = formattedPrice + ' تومان';
         
-        console.log('Final price updated:', this.finalPrice); // برای دیباگ
     }
 
     showDiscountDetails(data) {
@@ -376,12 +364,6 @@ class PaymentPopup {
         discountAmountElement.textContent = formattedDiscount + ' تومان';
         
         discountDisplay.style.display = 'block';
-        
-        console.log('Discount details:', {
-            discountAmount: this.discountAmount,
-            originalPrice: this.originalPrice,
-            finalPrice: this.finalPrice
-        }); // برای دیباگ
     }
 
     resetDiscount() {
@@ -436,7 +418,7 @@ class PaymentPopup {
                 throw new Error(data.data?.message || 'خطا در دریافت موجودی');
             }
         } catch (error) {
-            console.error('Error fetching balance:', error);
+            newConsole.error('Error fetching balance:', error);
             document.getElementById('current-balance').textContent = 'خطا در دریافت موجودی';
             document.getElementById('confirm-payment').disabled = false;
         }
@@ -490,12 +472,50 @@ class PaymentPopup {
     }
 
     hide() {
+        this.resetDiscount();
+        
         if (this.popup) {
             document.body.removeChild(this.popup);
             this.popup = null;
             this.isOpen = false;
         }
     }
+    
+    resetDiscount() {
+        this.finalPrice = this.originalPrice;
+        this.discountAmount = 0;
+        this.discountApplied = false;
+        
+        // حذف اطلاعات تخفیف از state اصلی
+        if (window.state && window.state.formData) {
+            window.state.formData.discountInfo = {
+                discountCode: '',
+                discountApplied: false,
+                discountAmount: 0,
+                originalPrice: this.originalPrice,
+                finalPrice: this.originalPrice, // مهم: برگشت به قیمت اصلی
+                discountData: null
+            };
+        }
+        
+        this.updatePriceDisplay();
+        
+        const discountDisplay = document.getElementById('discount-display');
+        if (discountDisplay) {
+            discountDisplay.style.display = 'none';
+        }
+        
+        const discountInput = document.getElementById('discount-code-input');
+        if (discountInput) {
+            discountInput.value = '';
+        }
+        
+        if (this.open) {
+            this.fetchUserBalance(this.originalPrice);
+        }
+        
+        this.showDiscountMessage('', 'info');
+    }    
 }
 
 window.PaymentPopup = PaymentPopup;

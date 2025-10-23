@@ -13,11 +13,11 @@ document.addEventListener('DOMContentLoaded', function() {
         
         // تابع اصلی برای پر کردن خودکار فرم
         function autoFillForm() {
-            newConsole.info('Current Step:', state.currentStep);
+            newConsole.trace('Current Step:', state.currentStep);
             
             // بررسی وجود فرم
             if (!document.getElementById('multi-step-form')) {
-                newConsole.log('⚠️ فرم مورد نظر یافت نشد');
+                console.error('⚠️ فرم مورد نظر یافت نشد');
                 return;
             }
             
@@ -51,7 +51,7 @@ document.addEventListener('DOMContentLoaded', function() {
             };
             
             function handleStateChange() {
-                newConsole.log('State Changed - New Step:', state.currentStep);
+                newConsole.trace('State Changed - New Step:', state.currentStep);
                 fillStepBasedOnCurrentState();
             }
             
@@ -124,7 +124,7 @@ document.addEventListener('DOMContentLoaded', function() {
                                 if (!errorElement || errorElement.classList.contains('valid')) {
                                     clickNextButton(SHORT_DELAY);
                                 } else {
-                                    newConsole.log('⚠️ خطا در اعتبارسنجی وزن هدف');
+                                    newConsole.warn('⚠️ خطا در اعتبارسنجی وزن هدف');
                                 }
                             }, NEXT_BUTTON_DELAY);
                         } else {
@@ -337,7 +337,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         fillConfirmationStep();
                         break;
                     default:
-                        newConsole.log('مرحله ناشناخته:', state.currentStep);
+                        newConsole.warn('مرحله ناشناخته:', state.currentStep);
                 }
             }
             

@@ -79,6 +79,8 @@ class AiDastyarLoader {
     show() {
         if (this.isShowing) return;
 
+        console.error('show');
+        
         this.loader.classList.add('active');
         this.isShowing = true;
 
@@ -106,6 +108,8 @@ class AiDastyarLoader {
     hide() {
         if (!this.isShowing) return;
 
+        console.error('hide');
+        
         const redirectOnClose = this.options.redirectOnClose;
         const onCloseCallback = this.options.onClose;
 
