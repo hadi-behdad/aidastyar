@@ -12,7 +12,7 @@ class PaymentPopup {
         };
         
         if (!this.options.serviceId) {
-            newConsole.error('PaymentPopup: serviceId is required');
+            console.error('PaymentPopup: serviceId is required');
         }        
         this.popup = null;
         this.isOpen = false;
@@ -37,7 +37,7 @@ class PaymentPopup {
             
             this.isOpen = true;
         } catch (error) {
-            newConsole.error('Error showing payment popup:', error);
+            console.error('Error showing payment popup:', error);
             alert('خطا در نمایش پرداخت: ' + error.message);
         }
     }
@@ -64,7 +64,7 @@ class PaymentPopup {
                 throw new Error(data.data?.message || 'خطا در دریافت قیمت');
             }
         } catch (error) {
-            newConsole.error('Error getting service price:', error);
+            console.error('Error getting service price:', error);
             throw error;
         }
     }
@@ -263,7 +263,7 @@ class PaymentPopup {
             try {
                 data = JSON.parse(responseText);
             } catch (parseError) {
-                newConsole.error('JSON parse error:', parseError);
+                console.error('JSON parse error:', parseError);
                 throw new Error('پاسخ سرور نامعتبر است');
             }
     
@@ -273,7 +273,7 @@ class PaymentPopup {
                 this.handleDiscountError(data.data?.message || 'کد تخفیف معتبر نیست');
             }
         } catch (error) {
-            newConsole.error('Error applying discount:', error);
+            console.error('Error applying discount:', error);
             this.handleDiscountError(error.message || 'خطا در ارتباط با سرور');
         } finally {
             applyBtn.disabled = false;
@@ -418,7 +418,7 @@ class PaymentPopup {
                 throw new Error(data.data?.message || 'خطا در دریافت موجودی');
             }
         } catch (error) {
-            newConsole.error('Error fetching balance:', error);
+            console.error('Error fetching balance:', error);
             document.getElementById('current-balance').textContent = 'خطا در دریافت موجودی';
             document.getElementById('confirm-payment').disabled = false;
         }

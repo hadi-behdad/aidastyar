@@ -7,11 +7,7 @@ jQuery(document).ready(function($) {
 
     // در بخش formSubmitted event listener
     window.addEventListener('formSubmitted', function(event) {
-        console.log('✅ formSubmitted event received!');
-        console.log('Event detail:', event.detail);
-        
         const receivedUserData = event.detail.formData;
-        console.log('Received user data:', receivedUserData);
     
         // نمایش loader با امکان بستن
         const loader = new AiDastyarLoader({
@@ -28,7 +24,7 @@ jQuery(document).ready(function($) {
                 console.log('✅ AJAX Loader hidden');
             }
         });
-        console.log('✅ Showing AJAX loader');
+        
         loader.show();
     
         $.ajax({
@@ -43,7 +39,7 @@ jQuery(document).ready(function($) {
                 price: 10000000
             },
             success: function(response) {
-                console.log('✅ AJAX success:', response);
+                
                 if (response.success) {
                     // مخفی کردن پاپ‌آپ پرداخت اگر باز است
                     const paymentPopup = document.querySelector('.payment-confirmation-popup');
@@ -53,10 +49,10 @@ jQuery(document).ready(function($) {
                     
                     loader.hide();
                     
-                    // نمایش پاپ‌آپ موفقیت برای همه حالت‌ها
-                    console.log('✅ Showing success loader');
                     const successLoader = new AiDastyarLoader({
-                        message: 'درخواست شما با موفقیت ثبت شد. نتیجه پس از پردازش در تاریخچه سرویس‌ها قابل مشاهده خواهد بود.',
+                        message: `
+                            عملیات با موفقیت آغاز شد. نتیجه حداکثر تا ۱۵ دقیقه دیگر در تاریخچه سرویس‌ها قابل مشاهده خواهد بود.
+                        `,
                         theme: 'light',
                         size: 'medium',
                         position: 'center',
@@ -71,13 +67,11 @@ jQuery(document).ready(function($) {
                     successLoader.show();
                     
                 } else {
-                    console.log('❌ AJAX error:', response);
                     loader.update('خطا در پردازش درخواست. لطفاً مجدداً تلاش کنید.');
                     loader.setRedirectOnClose(window.location.href);
                 }
             },
             error: function(xhr) {
-                console.log('❌ AJAX request failed:', xhr);
                 let errorMsg = 'خطا در ارتباط با سرور';
                 if (xhr.responseText) {
                     try {
