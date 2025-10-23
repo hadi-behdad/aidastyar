@@ -12,15 +12,11 @@ if (!is_user_logged_in()) {
     exit;
 }
 
+// جلوگیری از کش شدن صفحه
+nocache_headers();
+
 $current_user = wp_get_current_user();
 $user_id = $current_user->ID;
-
-// دریافت اطلاعات کاربر
-$first_name = get_user_meta($user_id, 'first_name', true);
-$last_name = get_user_meta($user_id, 'last_name', true);
-$user_phone = get_user_meta($user_id, 'billing_phone', true);
-$user_email = $current_user->user_email;
-$display_name = $current_user->display_name;
 
 // پردازش فرم ارسال شده
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_profile'])) {
@@ -45,17 +41,30 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_profile'])) {
             ]);
         }
         
-        $success_message = 'اطلاعات با موفقیت به روزرسانی شد.';
+        // پاکسازی کامل کش
+        clean_user_cache($user_id);
+        wp_cache_delete($user_id, 'users');
+        wp_cache_flush();
         
-        // رفرش اطلاعات
-        $first_name = $new_first_name;
-        $last_name = $new_last_name;
-        $user_phone = $new_phone;
-        $display_name = $new_display_name ?? $display_name;
+        // ریدایرکت به پروفایل با پارامتر موفقیت
+        $redirect_url = add_query_arg([
+            'updated' => 'success',
+            't' => time() // پارامتر زمان برای شکستن کش
+        ], home_url('/profile'));
+        wp_redirect($redirect_url);
+        exit;
+        
     } else {
         $error_message = 'خطای امنیتی! لطفا دوباره تلاش کنید.';
     }
 }
+
+// همیشه اطلاعات تازه از دیتابیس بخون
+$first_name = get_user_meta($user_id, 'first_name', true);
+$last_name = get_user_meta($user_id, 'last_name', true);
+$user_phone = get_user_meta($user_id, 'billing_phone', true);
+$user_email = $current_user->user_email;
+$display_name = $current_user->display_name;
 
 get_header();
 ?>
@@ -427,7 +436,7 @@ get_header();
     }
     
     .acc-form-input {
-        padding: 14px 16px;
+        /*padding: 14px 16px;*/
         font-size: 16px; /* جلوگیری از زوم در iOS */
     }
 }
