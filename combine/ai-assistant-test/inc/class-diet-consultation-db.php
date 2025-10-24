@@ -554,8 +554,52 @@ class AI_Assistant_Diet_Consultation_DB {
             ", $consultant_id, $now, $now)
         );
     }
-
     // ========== متدهای جدید برای مدیریت کمیسیون‌ها ==========
+    
+    
+    
+    
+    /* ============================================================
+       🔸  کمیسیون مشاور
+    ============================================================ */
+    public function calculate_commission($request_id) {
+        global $wpdb;
+        $plan = $this->get_consultation_request($request_id);
+        if (! $plan || $plan->status !== 'approved') return false;
+
+        $contract = $this->get_active_contract($plan->consultant_id);
+        
+        if (! $contract) return false;
+
+        $delay_hours = $this->calculate_delay_hours($plan->created_at, $plan->reviewed_at);
+        $penalty_multiplier = $this->calculate_penalty($delay_hours, $contract->full_payment_hours, $contract->delay_penalty_factor);
+
+        $base_commission = ($contract->commission_type === 'percent')
+            ? $plan->consultation_price * ($contract->commission_value / 100)
+            : $contract->commission_value;
+
+        $final_commission = $base_commission * $penalty_multiplier;
+
+        $wpdb->insert($this->commissions_table, [
+            'request_id' => $request_id,
+            'consultant_id' => $plan->consultant_id,
+            'base_amount' => $plan->consultation_price,
+            'commission_type' => $contract->commission_type,
+            'commission_value' => $contract->commission_value,
+            'delay_hours' => $delay_hours,
+            'penalty_multiplier' => $penalty_multiplier,
+            'final_commission' => $final_commission,
+            'status' => 'pending',
+            'generated_at' => $plan->created_at,
+            'approved_at' => $plan->reviewed_at,
+            'created_at' => current_time('mysql')
+        ]);
+
+        return $final_commission;
+    }
+    
+    
+    
 
     /**
      * افزودن رکورد کمیسیون
@@ -728,4 +772,19 @@ class AI_Assistant_Diet_Consultation_DB {
         
         return $result !== false;
     }
+    
+    
+    /* ============================================================
+       🔸  توابع کمکی
+    ============================================================ */
+    private function calculate_delay_hours($generated_at, $approved_at) {
+        $diff = strtotime($approved_at) - strtotime($generated_at);
+        return round($diff / 3600, 2);
+    }
+
+    private function calculate_penalty($delay_hours, $full_payment_hours, $factor) {
+        if ($delay_hours <= $full_payment_hours) return 1;
+        $extra = $delay_hours - $full_payment_hours;
+        return pow($factor, $extra);
+    }    
 }

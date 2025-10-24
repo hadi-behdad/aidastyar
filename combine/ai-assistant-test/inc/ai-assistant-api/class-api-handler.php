@@ -267,6 +267,22 @@ class AI_Assistant_Api_Handler {
                     throw new Exception('Failed to save history');
                 }
                 
+                // ✅ افزایش usage_count برای تخفیف‌های کوپن
+                if ($discount_applied && 
+                    isset($validation_result['discount']) && 
+                    $validation_result['discount']->scope === 'coupon') {
+                    
+                    $discount_db = AI_Assistant_Discount_DB::get_instance();
+                    $discount_db->increment_usage($validation_result['discount']->id);
+                    
+                    $this->logger->log('Discount usage incremented:', [
+                        'discount_id' => $validation_result['discount']->id,
+                        'discount_code' => $discountInfo_discount_code,
+                        'user_id' => $user_id,
+                        'service_id' => $service_id,
+                        'final_price' => $final_price
+                    ]);
+                }                
     
                 // 7. در صورت نیاز، ثبت درخواست مشاوره
                 $Consultant_Rec = null;

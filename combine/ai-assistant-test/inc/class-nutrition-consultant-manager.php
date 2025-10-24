@@ -103,6 +103,8 @@ class AI_Assistant_Nutrition_Consultant_Manager {
      * مدیریت ارسال بازبینی مشاور (AJAX)
      */
     public function handle_consultation_review() {
+        
+                error_log('[Diet Consultation] $contract $contract :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::');
         // بررسی nonce و دسترسی
         if (!wp_verify_nonce($_POST['nonce'], 'consultation_review_nonce') || 
             !current_user_can('nutrition_consultant')) {
@@ -149,6 +151,8 @@ class AI_Assistant_Nutrition_Consultant_Manager {
         if ($result) {
             // اگر تایید شد، اطلاع‌رسانی به کاربر
             if ($action === 'approve') {
+                
+                $commission = $this->consultation_db->calculate_commission($request_id);
                 $this->notification_manager->send_consultation_result($request->user_id, $request_id);
  
             }
