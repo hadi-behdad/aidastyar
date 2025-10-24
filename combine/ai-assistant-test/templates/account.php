@@ -131,11 +131,16 @@ get_header();
                     </div>
                     
                     <div class="acc-form-group">
-                        <label for="email">ایمیل (غیرقابل تغییر)</label>
+                        <label for="email">آدرس ایمیل</label>
                         <input type="email" id="email" 
                                value="<?php echo esc_attr($user_email); ?>" 
                                class="acc-form-input" disabled>
-                        <small class="acc-form-help">برای تغییر ایمیل با پشتیبانی تماس بگیرید</small>
+                        <small class="acc-form-help">
+                            🔒 ایمیل شما به دلایل امنیتی غیرقابل تغییر است. 
+                            برای به‌روزرسانی با 
+                                پشتیبانی
+                            تماس بگیرید.
+                        </small>
                     </div>
                     
                     <div class="acc-form-group">
