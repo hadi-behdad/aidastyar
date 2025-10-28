@@ -65,8 +65,11 @@ class AI_Assistant_History_Manager {
     public function save_history($user_id, $service_id, $service_name, $user_data , $response) {
         global $wpdb;
         
-        error_log('[AI History] USER DATA: ' . $user_data);
-        
+      //  error_log('[AI History] USER DATA: ' . $user_data);
+      error_log('🔄 [sleep] STARTED at: ' . current_time('mysql'));
+      //  sleep(5);
+      error_log('🔄 [sleep] ENDED at: ' . current_time('mysql'));    
+        error_log('⏱️ [JOB] scalled ave_history ' );
         // بررسی و ایجاد جدول اگر وجود نداشته باشد
         $this->maybe_create_table();
         

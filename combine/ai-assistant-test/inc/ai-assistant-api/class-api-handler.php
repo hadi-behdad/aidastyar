@@ -159,7 +159,16 @@ class AI_Assistant_Api_Handler {
                 error_log('Service not found or system_prompt not set');
             }
             
-            $prompt = $system_prompt . "\n\n" . $userInfo;
+          //  $prompt = $system_prompt . "\n\n" . $userInfo;
+            $prompt = $system_prompt . "\n\n" . json_encode($userInfo, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT);
+
+            
+            // ثبت لاگ
+            $this->logger->log('$prompt LOG:::::::::::::::::::::::::::::$prompt LOG:', [
+                '$prompt:' => $prompt
+            ]);            
+            
+            
             $payment_handler = AI_Assistant_Payment_Handler::get_instance();
             
             
@@ -221,121 +230,27 @@ class AI_Assistant_Api_Handler {
         
 
 
-            global $wpdb;
-    
-            try {
-                // 1. اعتبارسنجی اولیه (اطمینان از اینکه درخواست درست است، اعتبار کاربر و ...)
-                $this->validate_request($prompt, $service_id, $user_id, $final_price, $payment_handler);
-    
-                // 2. فراخوانی سرویس خارجی (DeepSeek یا هر API‌ای)
-                $response = $this->call_deepseek_api($prompt);
-                
-                // if (OTP_ENV === 'production') {
-                //     $response = $this->call_deepseek_api($prompt);
-                // } else {
-                //  //   $response  = $json_string ;
-                //     $response = $this->call_deepseek_api($prompt);
-                // }                
-    
-                // 3. بررسی موفقیت پاسخ API
-                if (!$response || (is_array($response) && isset($response['error']))) {
-                    // اگر API پاسخ معتبری برنگردانده، خطا بده
-                    $err = is_array($response) && isset($response['error']) ? $response['error'] : 'Empty or invalid API response';
-                    throw new Exception("API call failed: " . $err);
-                }
-                
-                
-                $cleaned_response = $this->clean_api_response($response);
+            $queue = AI_Job_Queue::get_instance();
+            $queue->enqueue_job($user_id, $service_id, $prompt, $final_price, $userData);
+             $queue->enqueue_job($user_id, $service_id, $prompt, $final_price, $userData);
+              $queue->enqueue_job($user_id, $service_id, $prompt, $final_price, $userData);
+               $queue->enqueue_job($user_id, $service_id, $prompt, $final_price, $userData);
+                $queue->enqueue_job($user_id, $service_id, $prompt, $final_price, $userData);
+                 $queue->enqueue_job($user_id, $service_id, $prompt, $final_price, $userData);
 
-    
-                // 4. شروع تراکنش دیتابیس
-                $wpdb->query('START TRANSACTION');
-    
-                // 5. کسر اعتبار از کاربر
-                $deductResult = $payment_handler->deduct_credit($user_id, $final_price, $service_name);
-                if ($deductResult === false || (is_array($deductResult) && isset($deductResult['error']))) {
-                    $err = is_array($deductResult) && isset($deductResult['error']) ? $deductResult['error'] : 'Deduct credit failed';
-                    throw new Exception("Payment deduction failed: " . $err);
-                }
-                
-    
-                // 6. ذخیره در تاریخچه
-                $history_manager = AI_Assistant_History_Manager::get_instance();
-                $saved = $history_manager->save_history($user_id, $service_id, $service_name, $userData, $cleaned_response);
-                if ($saved === false || empty($saved)) {
-                    // save_history باید شناسه رکورد یا true برگرداند؛ اگر false یا خالی بود، خطا می‌دهیم
-                    throw new Exception('Failed to save history');
-                }
-                
-                // ✅ افزایش usage_count برای تخفیف‌های کوپن
-                if ($discount_applied && 
-                    isset($validation_result['discount']) && 
-                    $validation_result['discount']->scope === 'coupon') {
-                    
-                    $discount_db = AI_Assistant_Discount_DB::get_instance();
-                    $discount_db->increment_usage($validation_result['discount']->id);
-                    
-                    $this->logger->log('Discount usage incremented:', [
-                        'discount_id' => $validation_result['discount']->id,
-                        'discount_code' => $discountInfo_discount_code,
-                        'user_id' => $user_id,
-                        'service_id' => $service_id,
-                        'final_price' => $final_price
-                    ]);
-                }                
-    
-                // 7. در صورت نیاز، ثبت درخواست مشاوره
-                $Consultant_Rec = null;
-                if ($service_id === 'diet' && $serviceSelectionDietType === 'with-specialist') {
-                    $Nutrition_Consultant_Manager = AI_Assistant_Nutrition_Consultant_Manager::get_instance();
-                    $Consultant_Rec = $Nutrition_Consultant_Manager->submit_consultation_request($saved, 6000);
-    
-                    if ($Consultant_Rec === false || (is_array($Consultant_Rec) && isset($Consultant_Rec['error']))) {
-                        $err = is_array($Consultant_Rec) && isset($Consultant_Rec['error']) ? $Consultant_Rec['error'] : 'submit_consultation_request failed';
-                        throw new Exception("Consultation request failed: " . $err);
-                    }
-                }
-                
-                
-                // 8. همه چی موفق بود -> commit
-                $wpdb->query('COMMIT');
-    
-    
-            } catch (Exception $e) {
-                // هر خطایی رخ داد، rollback و لاگ
-                try {
-                    $wpdb->query('ROLLBACK');
-                } catch (Exception $rollbackEx) {
-                    // اگر rollback هم خطا داد، لاگش کن
-                    error_log('Rollback failed: ' . $rollbackEx->getMessage());
-                }
-    
-                // لاگ خطا برای دیباگ در سرور
-                error_log('process_request_and_charge error: ' . $e->getMessage());
-    
-                // برگردوندن خطا به فراخواننده — (می‌تونی این شیوه را سفارشی کنی)
-                return [
-                    'success' => false,
-                    'message' => 'Processing failed: ' . $e->getMessage(),
-                    'exception' => $e->getMessage(),
-                ];
-            }
+            
+            // return [
+            //   'success' => true,
+            //   'message' => 'درخواست شما ثبت شد و در صف پردازش قرار گرفت.'
+            // ];
 
-            // ثبت لاگ
-            $this->logger->log('LOG::::::::::::LOG:', [
-                '$prompt:' => $prompt,
-                'userData:' => $userData ,
-                '$userInfo' => $userInfo
-            ]);
-            //-----------------------------------------------------------------
 
-            $json_string = ' test tstring ';     
 
             header('Content-Type: application/json; charset=utf-8');
 
             wp_send_json_success([
-                'response' => $response,
-                'remaining_credit' => $payment_handler->get_user_credit($user_id)
+                
+                'response' => true 
             ]);
 
         } catch (Exception $e) {
@@ -349,93 +264,9 @@ class AI_Assistant_Api_Handler {
     
     
 
-    private function validate_request($prompt, $service_id, $user_id, $final_price, $payment_handler) {
-        if (!is_user_logged_in()) {
-            throw new Exception('برای استفاده از این سرویس باید وارد حساب کاربری خود شوید');
-        }
-        
-        
-        if (empty($prompt) || empty($service_id)) {
-            throw new Exception('پارامترهای ورودی نامعتبر هستند');
-        }
 
-        if (!$payment_handler->has_enough_credit($user_id, $final_price)) {
-            throw new Exception('.موجودی حساب شما کافی نیست');
-        } 
-    }
 
-    private function call_deepseek_api($prompt) {
-        
-      //  sleep(240); // توقف به مدت 3 ثانیه جهت تست
-        $prompt = ' یک جمله خیلی کوتاه بگو';
-         
-        $api_url = 'https://api.deepseek.com/v1/chat/completions';
 
-        $args = [
-            'headers' => [
-                'Content-Type' => 'application/json',
-                'Authorization' => 'Bearer ' . $this->api_key,
-                'Accept' => 'application/json'
-            ],
-            'body' => json_encode([
-                'model' => 'deepseek-chat',
-                'messages' => [
-                    ['role' => 'system', 'content' => 'You are a helpful assistant.'],
-                    ['role' => 'user', 'content' => $prompt]
-                ],
-                'temperature' => 0.2,
-                'max_tokens' => 8000
-            ]),
-            'timeout' => 180 ,
-            'httpversion' => '1.1' // 📡 اطمینان از نسخه HTTP سازگار
-        ];
-
-        // ارسال درخواست به api دیپ سیک
-        $response = wp_remote_post($api_url, $args);
-
-        if (is_wp_error($response)) {
-            $this->logger->log_error('DeepSeek API connection error', [
-                'error' => $response->get_error_message(),
-                'prompt' => $prompt
-            ]);
-            throw new Exception('خطا در ارتباط با سرور DeepSeek: ' . $response->get_error_message());
-        }
-
-        $response_code = wp_remote_retrieve_response_code($response);
-        $body = wp_remote_retrieve_body($response);
-
-        $this->logger->log('DeepSeek API response', [
-            'status_code' => $response_code,
-            'response' => $body
-        ]);
-
-        if ($response_code !== 200) {
-            $add_credit_description='برگشت وجه بدلیل خطا ';
-           // $payment_handler->add_credit($user_id, $price, $add_credit_description);
-            $this->logger->log_error('DeepSeek API returned error status', [
-                'status_code' => $response_code,
-                'response' => $body
-            ]);
-            throw new Exception('خطا از سمت DeepSeek API. کد وضعیت: ' . $response_code);
-        }
-
-        $decoded_body = json_decode($body, true);
-
-        if (empty($decoded_body['choices'][0]['message']['content'])) {
-            $this->logger->log_error('Invalid API response structure', [
-                'response_body' => $decoded_body
-            ]);
-            throw new Exception('پاسخ نامعتبر از API دریافت شد. ساختار پاسخ: ' . json_encode($decoded_body));
-        }
-
-        // تولیدی با فیلتر کدهای html
-        // return sanitize_textarea_field($decoded_body['choices'][0]['message']['content']);
-      
-        // مستقیماً HTML تولیدی را بدون فیلتر بازگردان
-        return $decoded_body['choices'][0]['message']['content'];
-       
-     
-    }
 
     public function handle_unauthorized() {
         wp_send_json_error([
@@ -445,23 +276,5 @@ class AI_Assistant_Api_Handler {
     }
     
     
-    private function clean_api_response($response_content) {
-        // حذف markdown code blocks
-        $patterns = [
-            '/^```json\s*/', // ابتدای json block
-            '/\s*```$/', // انتهای json block  
-            '/^```\s*/', // سایر code blocks
-            '/\s*```$/',
-        ];
-        
-        $cleaned_response = preg_replace($patterns, '', $response_content);
-        
-        // حذف فضاهای خالی اضافی
-        $cleaned_response = trim($cleaned_response);
-        
-        // حذف کاراکترهای غیر قابل چاپ
-        $cleaned_response = preg_replace('/[\x00-\x1F\x7F]/u', '', $cleaned_response);
-        
-        return $cleaned_response;
-    }     
+     
 }

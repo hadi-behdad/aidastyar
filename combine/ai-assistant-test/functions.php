@@ -8,6 +8,15 @@ if (!defined('ABSPATH')) {
     exit; // Exit if accessed directly
 }
 
+if (!defined('DEEPSEEK_API_KEY')) {
+   define('DEEPSEEK_API_KEY', 'sk-658cb47fedcb4f178c402a088da40ba7');
+}
+
+   
+
+define('DISABLE_WP_CRON', true);
+
+
 // 1. تنظیمات پایه قالب
 function ai_assistant_setup() {
     load_theme_textdomain('ai-assistant', get_template_directory() . '/languages');
@@ -27,9 +36,12 @@ add_action('after_setup_theme', 'ai_assistant_setup');
 
 // 2. بارگذاری فایل‌های جانبی
 
-// بارگذاری AI Assistant API
+
+
 require_once get_template_directory() . '/inc/ai-assistant-api/ai-assistant-api.php';
 
+require_once get_template_directory() . '/inc/jobs/class-ai-job-queue.php';
+AI_Job_Queue::get_instance();
 
 require_once get_template_directory() . '/inc/class-service-db.php';
 require_once get_template_directory() . '/inc/class-service-manager.php';
@@ -42,10 +54,6 @@ require_once get_template_directory() . '/inc/class-email-template.php';
 require_once get_template_directory() . '/inc/class-notification-manager.php';
 require_once get_template_directory() . '/inc/class-diet-consultation-db.php';
 require_once get_template_directory() . '/inc/class-nutrition-consultant-manager.php';
-
-
-
-
 
 
 
