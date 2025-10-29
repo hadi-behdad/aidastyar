@@ -45,33 +45,49 @@ class AI_Job_Queue {
         $table_exists = $wpdb->get_var($wpdb->prepare("SHOW TABLES LIKE %s", $this->table_name));
         if ($table_exists === $this->table_name) return;
 
-        $charset_collate = $wpdb->get_charset_collate();
-        $sql = "CREATE TABLE {$this->table_name} (
-            id BIGINT(20) UNSIGNED NOT NULL AUTO_INCREMENT,
-            user_id BIGINT(20) UNSIGNED NOT NULL,
-            service_id VARCHAR(50) NOT NULL,
-            prompt LONGTEXT NOT NULL,
-            final_price DECIMAL(10,2) DEFAULT 0,
-            user_data LONGTEXT NULL,
-            status ENUM('pending','processing','done','error') DEFAULT 'pending',
-            error_message TEXT NULL,
-            started_at DATETIME NULL,
-            created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-            updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-            retry_count INT DEFAULT 0,
-            last_attempt DATETIME NULL,
-            processing_log LONGTEXT NULL,
-            PRIMARY KEY (id),
-            INDEX (status),
-            INDEX (started_at),
-            INDEX (service_id),
-            INDEX (created_at)
-        ) $charset_collate;";
-
-        require_once(ABSPATH . 'wp-admin/includes/upgrade.php');
-        dbDelta($sql);
+        // استفاده از file lock
+        $lock_file = WP_CONTENT_DIR . '/ai_job_queue_table.lock';
+        $lock_handle = fopen($lock_file, 'w');
         
-        error_log('🗃️ [AI_QUEUE] Job table created/verified');
+        if (!flock($lock_handle, LOCK_EX | LOCK_NB)) {
+            fclose($lock_handle);
+            return;
+        }
+
+        try {
+            
+            $charset_collate = $wpdb->get_charset_collate();
+            $sql = "CREATE TABLE {$this->table_name} (
+                id BIGINT(20) UNSIGNED NOT NULL AUTO_INCREMENT,
+                user_id BIGINT(20) UNSIGNED NOT NULL,
+                service_id VARCHAR(50) NOT NULL,
+                prompt LONGTEXT NOT NULL,
+                final_price DECIMAL(10,2) DEFAULT 0,
+                user_data LONGTEXT NULL,
+                status ENUM('pending','processing','done','error') DEFAULT 'pending',
+                error_message TEXT NULL,
+                started_at DATETIME NULL,
+                created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+                retry_count INT DEFAULT 0,
+                last_attempt DATETIME NULL,
+                processing_log LONGTEXT NULL,
+                PRIMARY KEY (id),
+                INDEX (status),
+                INDEX (started_at),
+                INDEX (service_id),
+                INDEX (created_at)
+            ) $charset_collate;";
+    
+            require_once(ABSPATH . 'wp-admin/includes/upgrade.php');
+            dbDelta($sql);
+            
+            error_log('🗃️ [AI_QUEUE] Job table created/verified');
+            
+        } finally {
+            flock($lock_handle, LOCK_UN);
+            fclose($lock_handle);
+        }            
     }
 
     public function add_cron_intervals($schedules) {
@@ -298,8 +314,13 @@ class AI_Job_Queue {
             error_log('📡 [CHILD] Calling DeepSeek API for job #' . $job->id);
             $start_api = microtime(true);
           //  $response = $this->call_deepseek_api($job->prompt);
-             $response = 'test';
+           
+           sleep(2);
+           
+            
             $api_time = round(microtime(true) - $start_api, 2);
+            
+            $response = 'test' . $api_time;
             
             error_log('⏱️ [CHILD] API call completed in ' . $api_time . 's for job #' . $job->id);
             
@@ -356,6 +377,7 @@ class AI_Job_Queue {
 
     /** 📡 فراخوانی REAL API */
     private function call_deepseek_api($prompt) {
+        $prompt = 'جمله عاشقانه در حد یک خط بگو با عدد:' . rand(10, 300);
         $api_key = DEEPSEEK_API_KEY;   
         $api_url = 'https://api.deepseek.com/v1/chat/completions';
 
@@ -425,7 +447,6 @@ class AI_Job_Queue {
         } 
     }
 
-    // ... (بقیه توابع) ...
 }
 
 // ثبت hookهای AJAX

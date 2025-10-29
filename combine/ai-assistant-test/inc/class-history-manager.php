@@ -30,34 +30,50 @@ class AI_Assistant_History_Manager {
 
         global $wpdb;
         
-        // بررسی وجود جدول
-        if ($wpdb->get_var("SHOW TABLES LIKE '{$this->table_name}'") != $this->table_name) {
-            $charset_collate = $wpdb->get_charset_collate();
-            
-            $sql = "CREATE TABLE {$this->table_name} (
-                id bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT,
-                user_id bigint(20) UNSIGNED NOT NULL,
-                service_id varchar(100) NOT NULL,
-                service_name varchar(255) NOT NULL,
-                response longtext NOT NULL,
-                user_data longtext NULL,
-                created_at datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
-                PRIMARY KEY (id),
-                KEY user_id (user_id),
-                KEY service_id (service_id),
-                KEY created_at (created_at)
-            ) {$charset_collate};";
-            
-            require_once(ABSPATH . 'wp-admin/includes/upgrade.php');
-            dbDelta($sql);
-            
-            // لاگ برای اشکالزدایی
-            error_log('[AI History] Table created: ' . $this->table_name);
-        }
+        // استفاده از file lock
+        $lock_file = WP_CONTENT_DIR . '/ai_history_table.lock';
+        $lock_handle = fopen($lock_file, 'w');
         
-        $this->table_created = true;
-        return true;
-    }
+        if (!flock($lock_handle, LOCK_EX | LOCK_NB)) {
+            fclose($lock_handle);
+            return true;
+        }
+
+        try {        
+            // بررسی وجود جدول
+            if ($wpdb->get_var("SHOW TABLES LIKE '{$this->table_name}'") != $this->table_name) {
+                $charset_collate = $wpdb->get_charset_collate();
+                
+                $sql = "CREATE TABLE {$this->table_name} (
+                    id bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT,
+                    user_id bigint(20) UNSIGNED NOT NULL,
+                    service_id varchar(100) NOT NULL,
+                    service_name varchar(255) NOT NULL,
+                    response longtext NOT NULL,
+                    user_data longtext NULL,
+                    created_at datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                    PRIMARY KEY (id),
+                    KEY user_id (user_id),
+                    KEY service_id (service_id),
+                    KEY created_at (created_at)
+                ) {$charset_collate};";
+                
+                require_once(ABSPATH . 'wp-admin/includes/upgrade.php');
+                dbDelta($sql);
+                
+                // لاگ برای اشکالزدایی
+                error_log('[AI History] Table created: ' . $this->table_name);
+            }
+        
+            $this->table_created = true;
+            return true;
+        
+            
+        } finally {
+            flock($lock_handle, LOCK_UN);
+            fclose($lock_handle);
+        }        
+    } 
 
     /**
      * ذخیره یک آیتم در تاریخچه
@@ -65,16 +81,12 @@ class AI_Assistant_History_Manager {
     public function save_history($user_id, $service_id, $service_name, $user_data , $response) {
         global $wpdb;
         
-      //  error_log('[AI History] USER DATA: ' . $user_data);
-      error_log('🔄 [sleep] STARTED at: ' . current_time('mysql'));
-      //  sleep(5);
-      error_log('🔄 [sleep] ENDED at: ' . current_time('mysql'));    
-        error_log('⏱️ [JOB] scalled ave_history ' );
         // بررسی و ایجاد جدول اگر وجود نداشته باشد
         $this->maybe_create_table();
         
+        // بررسی وجود کاربر
         if (!get_user_by('ID', $user_id)) {
-            error_log('[AI History] Invalid user ID: ' . $user_id);
+            error_log('❌ [HISTORY] Invalid user ID: ' . $user_id);
             return false;
         }
         
@@ -92,7 +104,7 @@ class AI_Assistant_History_Manager {
         );
         
         if ($result === false) {
-            error_log('[AI History] Database error: ' . $wpdb->last_error);
+            error_log('❌ [HISTORY] Database error: ' . $wpdb->last_error);
             return false;
         }
         
