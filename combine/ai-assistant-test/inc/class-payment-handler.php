@@ -12,6 +12,36 @@ class AI_Assistant_Payment_Handler {
         return self::$instance;
     }
     
+    // اگر فایل پرداخت جداگانه دارید، این تابع را اضافه کنید
+    /**
+     * اعمال تخفیف در مرحله پرداخت نهایی
+     */
+    public function apply_final_discount($user_id, $service_id, $amount) {
+        // دریافت آخرین تخفیف اعمال شده از متادیتای کاربر
+        $last_discount = get_user_meta($user_id, "last_discount_applied_{$service_id}", true);
+        
+        if ($last_discount && is_array($last_discount)) {
+            $final_amount = floatval($last_discount['final_price']);
+            $discount_amount = floatval($last_discount['discount_amount']);
+            
+            error_log("✅ تخفیف اعمال شده در پرداخت: {$discount_amount} - قیمت نهایی: {$final_amount}");
+            
+            return [
+                'success' => true,
+                'final_amount' => $final_amount,
+                'discount_applied' => true,
+                'discount_data' => $last_discount
+            ];
+        }
+        
+        // اگر تخفیفی وجود نداشت، مقدار اصلی برگردانده شود
+        return [
+            'success' => true,
+            'final_amount' => $amount,
+            'discount_applied' => false
+        ];
+    }
+
     private function __construct() {
         global $wpdb;
         $this->table_name = $wpdb->prefix . 'wallet_balance';

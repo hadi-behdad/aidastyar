@@ -168,6 +168,50 @@ class AI_Assistant_Discount_Manager {
         ];
     }
     
+    // بعد از تابع calculate_final_price این تابع را اضافه کنید
+    /**
+     * اعمال تخفیف بر اساس داده‌های دریافتی از کلاینت
+     */
+    public static function apply_discount_from_client($service_id, $user_id, $discount_data) {
+        $original_price = 0;
+        
+        // دریافت قیمت اصلی سرویس
+        if (!class_exists('AI_Assistant_Service_Manager')) {
+            error_log("❌ خطا: کلاس Service Manager موجود نیست");
+            return false;
+        }
+        
+        $service_manager = AI_Assistant_Service_Manager::get_instance();
+        $original_price = $service_manager->get_service_price($service_id);
+        
+        if ($original_price === false) {
+            error_log("❌ خطا: قیمت سرویس {$service_id} یافت نشد");
+            return false;
+        }
+        
+        // اگر تخفیف از سمت کلاینت اعمال شده
+        if ($discount_data['discountApplied'] && isset($discount_data['discountData'])) {
+            $discount = $discount_data['discountData'];
+            $final_price = $discount_data['finalPrice'];
+            $discount_amount = $discount_data['discountAmount'];
+            
+            error_log("✅ تخفیف از کلاینت اعمال شد: {$discount->name} - مقدار: {$discount_amount}");
+            
+            return [
+                'original_price' => floatval($original_price),
+                'final_price' => floatval($final_price),
+                'discount_amount' => floatval($discount_amount),
+                'discount' => $discount,
+                'has_discount' => true,
+                'discount_source' => 'client'
+            ];
+        }
+        
+        // اگر تخفیف اعمال نشده، محاسبه تخفیف خودکار
+        error_log("ℹ️ هیچ تخفیفی از کلاینت دریافت نشد - محاسبه تخفیف خودکار");
+        return self::calculate_final_price($service_id, $user_id, $discount_data['discountCode'] ?? '');
+    }    
+    
     private static function is_discount_valid($discount, $now) {
         if ($discount->start_date && $discount->start_date > $now) return false;
         if ($discount->end_date && $discount->end_date < $now) return false;
@@ -188,3 +232,43 @@ class AI_Assistant_Discount_Manager {
         return $discounted;
     }
 }  
+
+// اضافه کردن این کد به فایل functions.php
+add_action('wp_ajax_get_service_price_with_discount', 'handle_get_service_price_with_discount');
+add_action('wp_ajax_nopriv_get_service_price_with_discount', 'handle_get_service_price_with_discount');
+
+function handle_get_service_price_with_discount() {
+    // بررسی nonce
+    if (!check_ajax_referer('ai_assistant_nonce', 'nonce', false)) {
+        wp_send_json_error(['message' => 'Nonce verification failed']);
+        return;
+    }
+    
+    $service_id = sanitize_text_field($_POST['service_id'] ?? '');
+    $user_id = get_current_user_id();
+    
+    if (empty($service_id)) {
+        wp_send_json_error(['message' => 'سرویس مشخص نشده است']);
+        return;
+    }
+    
+    // بررسی وجود کلاس‌های لازم
+    if (!class_exists('AI_Assistant_Discount_Manager') || !class_exists('AI_Assistant_Service_Manager')) {
+        error_log("❌ سیستم تخفیف در دسترس نیست");
+        wp_send_json_error(['message' => 'سیستم تخفیف در دسترس نیست']);
+        return;
+    }
+    
+    try {
+        // محاسبه قیمت نهایی با اعمال تخفیف‌های خودکار
+        $price_data = AI_Assistant_Discount_Manager::calculate_final_price($service_id, $user_id);
+        
+        error_log("✅ قیمت با تخفیف محاسبه شد - سرویس: {$service_id}, کاربر: {$user_id}");
+        
+        wp_send_json_success($price_data);
+        
+    } catch (Exception $e) {
+        error_log("❌ خطا در محاسبه قیمت با تخفیف: " . $e->getMessage());
+        wp_send_json_error(['message' => 'خطا در محاسبه قیمت']);
+    }
+}

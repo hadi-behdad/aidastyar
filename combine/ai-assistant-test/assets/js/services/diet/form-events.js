@@ -104,46 +104,25 @@ window.showPaymentConfirmation = function(formData, finalPrice) {
             serviceId: 'diet',
             customPrice: finalPrice,
             ajaxAction: 'get_diet_service_price',
+            // در تابع showPaymentConfirmation، بخش onConfirm را به این صورت به روز کنید
             onConfirm: (completeFormData, confirmedFinalPrice, discountDetails) => {
                 
+                // 🔥 اطمینان از ارسال اطلاعات تخفیف به سرور
                 const completePersianData = window.convertToCompletePersianData(completeFormData);
                 
-                // نمایش پیام مناسب بر اساس نوع رژیم
-                /*let message = '';
-                if (completeFormData.serviceSelection && completeFormData.serviceSelection.dietType === 'ai-only') {
-                    message = 'روند ساخت رژیم هوش مصنوعی ممکن است تا ۱۵ دقیقه طول بکشد. می‌توانید بعد از ۱۵ دقیقه مجدداً سر بزنید.';
-                } else {
-                    message = 'درخواست شما با موفقیت ثبت شد. نتیجه پس از تأیید متخصص در تاریخچه سرویس‌ها قابل مشاهده خواهد بود.';
-                }
+                // اضافه کردن اطلاعات قیمت نهایی به داده‌ها
+                completePersianData.finalPrice = confirmedFinalPrice;
+                completePersianData.discountDetails = discountDetails;
                 
-                console.log('📝 Showing message:', message); // برای دیباگ
+                console.log('💰 ارسال داده‌های تخفیف به سرور:', completePersianData.discountInfo);
                 
-                const loader = new AiDastyarLoader({
-                    message: message, // ✅ حالا این message اعمال می‌شود
-                    theme: 'light',
-                    size: 'large',
-                    position: 'center',
-                    closable: true,
-                    overlay: true,
-                    persistent: false,
-                    autoHide: null,
-                    redirectOnClose: null,
-                    onShow: function() {
-                        console.log('✅ Loader shown with message:', this.options.message);
-                    },
-                    onHide: function() {
-                        console.log('✅ Loader hidden');
-                    }
-                });
-                loader.show();*/
                 window.dispatchEvent(new CustomEvent('formSubmitted', {
                     detail: { 
                         formData: completePersianData,
-                        finalPrice: confirmedFinalPrice 
+                        finalPrice: confirmedFinalPrice,
+                        discountInfo: completePersianData.discountInfo // 🔥 ارسال اطلاعات تخفیف
                     }
                 }));
-                
-
             },
             onCancel: () => {
                 if (window.state && window.state.formData) {
@@ -315,7 +294,12 @@ function fetchUserBalance(servicePrice, formData) {
     .then(data => {
         if (data.success) {
             const balanceElement = document.getElementById('current-balance');
-            const formattedBalance = new Intl.NumberFormat('fa-IR').format(data.data.credit);
+        
+            let formattedBalance = '';
+            if (balance !== null && balance !== undefined) {
+                formattedBalance = new Intl.NumberFormat('fa-IR').format(balance);
+            }     
+            
             balanceElement.textContent = formattedBalance + ' تومان';
             
             const confirmBtn = document.getElementById('confirm-payment');

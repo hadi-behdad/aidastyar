@@ -123,7 +123,44 @@ class AI_Assistant_Api_Handler {
             $serviceSelection = $decodedData['serviceSelection'] ?? []; 
             $discountInfo = $decodedData['discountInfo'] ?? [];
            
-           
+            // 🔥 تغییرات جدید: اعمال تخفیف از داده‌های کلاینت
+            $final_price_data = [];
+            
+            // بررسی وجود کلاس Discount Manager
+            if (!class_exists('AI_Assistant_Discount_Manager')) {
+                require_once get_template_directory() . '/functions/discount-core-functions.php';
+            }
+            
+            // اعمال تخفیف بر اساس داده‌های دریافتی از کلاینت
+            $final_price_data = AI_Assistant_Discount_Manager::apply_discount_from_client(
+                $service_id, 
+                $user_id, 
+                $discountInfo
+            );
+            
+            if (!$final_price_data) {
+                throw new Exception('خطا در محاسبه قیمت نهایی');
+            }
+            
+            error_log("💰 قیمت نهایی محاسبه شده: " . $final_price_data['final_price']);
+            error_log("💰 منبع تخفیف: " . ($final_price_data['discount_source'] ?? 'auto'));
+            
+            // ذخیره اطلاعات تخفیف در متادیتای کاربر یا سشن
+            if ($final_price_data['has_discount'] && isset($final_price_data['discount'])) {
+                $discount_data = [
+                    'discount_id' => $final_price_data['discount']->id,
+                    'discount_name' => $final_price_data['discount']->name,
+                    'discount_amount' => $final_price_data['discount_amount'],
+                    'final_price' => $final_price_data['final_price'],
+                    'original_price' => $final_price_data['original_price'],
+                    'applied_at' => current_time('mysql')
+                ];
+                
+                // ذخیره در متادیتای کاربر برای این سرویس
+                update_user_meta($user_id, "last_discount_applied_{$service_id}", $discount_data);
+                
+                error_log("✅ اطلاعات تخفیف در متادیتای کاربر ذخیره شد");
+            }           
             
             if ($service_id === 'diet' ){
                 
@@ -232,11 +269,11 @@ class AI_Assistant_Api_Handler {
 
             $queue = AI_Job_Queue::get_instance();
             $queue->enqueue_job($user_id, $service_id, $prompt, $final_price, $userData);
-             $queue->enqueue_job($user_id, $service_id, $prompt, $final_price, $userData);
-              $queue->enqueue_job($user_id, $service_id, $prompt, $final_price, $userData);
-               $queue->enqueue_job($user_id, $service_id, $prompt, $final_price, $userData);
-                $queue->enqueue_job($user_id, $service_id, $prompt, $final_price, $userData);
-                 $queue->enqueue_job($user_id, $service_id, $prompt, $final_price, $userData);
+            //  $queue->enqueue_job($user_id, $service_id, $prompt, $final_price, $userData);
+            //   $queue->enqueue_job($user_id, $service_id, $prompt, $final_price, $userData);
+            //   $queue->enqueue_job($user_id, $service_id, $prompt, $final_price, $userData);
+            //     $queue->enqueue_job($user_id, $service_id, $prompt, $final_price, $userData);
+            //      $queue->enqueue_job($user_id, $service_id, $prompt, $final_price, $userData);
 
             
             // return [
@@ -254,7 +291,6 @@ class AI_Assistant_Api_Handler {
             ]);
 
         } catch (Exception $e) {
-
             $this->logger->log_error($e->getMessage(), $_POST);
             wp_send_json_error($e->getMessage());
         }
