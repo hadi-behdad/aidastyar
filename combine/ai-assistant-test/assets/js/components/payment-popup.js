@@ -1,4 +1,4 @@
-// payment-popup-simple.js
+// payment-popup.js - نسخه اصلاح شده
 class PaymentPopup {
     constructor(options = {}) {
         this.options = {
@@ -7,7 +7,7 @@ class PaymentPopup {
             serviceType: options.serviceType || 'سرویس',
             customPrice: options.customPrice || null,
             ajaxAction: options.ajaxAction,
-            serviceId: options.serviceId || '', // اضافه کردن serviceId
+            serviceId: options.serviceId || '',
             ...options
         };
         
@@ -19,18 +19,24 @@ class PaymentPopup {
         this.originalPrice = 0;
         this.finalPrice = 0;
         this.discountApplied = false;
+        this.hasAutoDiscount = false;
+        this.autoDiscount = null;
     }
 
     async show() {
         if (this.isOpen) return;
         
         try {
-            // Get service price
-            this.originalPrice = this.options.customPrice || await this.getServicePrice();
-            this.finalPrice = this.originalPrice;
+            // دریافت قیمت سرویس با اعمال تخفیف‌های خودکار
+            const priceData = await this.getServicePriceWithDiscount();
+            this.originalPrice = priceData.original_price;
+            this.finalPrice = priceData.final_price;
+            this.hasAutoDiscount = priceData.has_discount;
+            this.autoDiscount = priceData.discount;
+            this.priceData = priceData; // ذخیره priceData برای استفاده در createPopupElement
             
             // Create popup
-            this.createPopupElement(this.originalPrice);
+            this.createPopupElement();
             
             // Fetch user balance
             await this.fetchUserBalance(this.finalPrice);
@@ -39,6 +45,53 @@ class PaymentPopup {
         } catch (error) {
             console.error('Error showing payment popup:', error);
             alert('خطا در نمایش پرداخت: ' + error.message);
+        }
+    }
+
+    // اضافه کردن تابع جدید برای دریافت قیمت با تخفیف خودکار
+    async getServicePriceWithDiscount() {
+        try {
+            const response = await fetch(aiAssistantVars.ajaxurl, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: new URLSearchParams({
+                    'action': 'get_service_price_with_discount',
+                    'service_id': this.options.serviceId,
+                    'nonce': this.getNonce()
+                })
+            });
+
+            const data = await response.json();
+            
+            if (data.success) {
+                console.log('💰 قیمت با تخفیف خودکار:', data.data);
+                return data.data;
+            } else {
+                throw new Error(data.data?.message || 'خطا در دریافت قیمت');
+            }
+        } catch (error) {
+            console.error('Error getting service price with discount:', error);
+            // Fallback: دریافت قیمت عادی اگر تابع جدید کار نکرد
+            return await this.getServicePriceFallback();
+        }
+    }
+
+    // تابع fallback برای زمانی که تابع جدید کار نمی‌کند
+    async getServicePriceFallback() {
+        try {
+            const price = this.options.customPrice || await this.getServicePrice();
+            return {
+                original_price: price,
+                final_price: price,
+                discount_amount: 0,
+                has_discount: false,
+                discount: null
+            };
+        } catch (error) {
+            console.error('Error in fallback price:', error);
+            throw error;
         }
     }
 
@@ -69,7 +122,10 @@ class PaymentPopup {
         }
     }
 
-    createPopupElement(price) {
+    createPopupElement() {
+        // استفاده از this.priceData که در تابع show ذخیره شده
+        const priceData = this.priceData;
+        
         this.popup = document.createElement('div');
         this.popup.style.cssText = `
             position: fixed;
@@ -84,7 +140,8 @@ class PaymentPopup {
             z-index: 10000;
         `;
         
-        const formattedPrice = new Intl.NumberFormat('fa-IR').format(price);
+        const formattedOriginalPrice = new Intl.NumberFormat('fa-IR').format(priceData.original_price);
+        const formattedFinalPrice = new Intl.NumberFormat('fa-IR').format(priceData.final_price);
         
         this.popup.innerHTML = `
             <div style="
@@ -98,6 +155,22 @@ class PaymentPopup {
                 <div style="margin-bottom: 15px;">
                     <h3 style="margin: 0 0 15px 0; color: #333;">تایید پرداخت</h3>
                     
+                    <!-- نمایش تخفیف خودکار اگر وجود دارد -->
+                    ${priceData.has_discount ? `
+                    <div style="background: #e8f5e8; border: 1px solid #4caf50; border-radius: 6px; padding: 10px; margin-bottom: 15px;">
+                        <div style="display: flex; align-items: center; gap: 8px; color: #2e7d32;">
+                            <i class="fas fa-tag" style="font-size: 16px;"></i>
+                            <strong>تخفیف خودکار اعمال شد!</strong>
+                        </div>
+                        <div style="font-size: 13px; margin-top: 5px; color: #388e3c;">
+                            ${priceData.discount.name} - 
+                            ${priceData.discount.type === 'percentage' ? 
+                              priceData.discount.amount + '%' : 
+                              new Intl.NumberFormat('fa-IR').format(priceData.discount.amount) + ' تومان'}
+                        </div>
+                    </div>
+                    ` : ''}
+                    
                     <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
                         <span>موجودی شما:</span>
                         <span id="current-balance" style="font-weight: bold;">در حال بارگذاری...</span>
@@ -108,7 +181,7 @@ class PaymentPopup {
                         <div style="display: flex; gap: 8px; margin-bottom: 8px;">
                             <input type="text" 
                                 id="discount-code-input" 
-                                placeholder="کد تخفیف (اختیاری)"
+                                placeholder="کد تخفیف اضافی (اختیاری)"
                                 style="flex: 1; padding: 8px; border: 1px solid #ddd; border-radius: 4px; font-size: 14px;">
                             <button id="apply-discount-btn" style="
                                 padding: 8px 12px;
@@ -119,27 +192,31 @@ class PaymentPopup {
                                 cursor: pointer;
                                 font-size: 12px;
                                 white-space: nowrap;
-                            ">اعمال تخفیف</button>
+                            ">اعمال کد تخفیف</button>
                         </div>
                         <div id="discount-message" style="font-size: 12px; min-height: 16px;"></div>
                     </div>
                     
                     <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
                         <span>مبلغ قابل پرداخت:</span>
-                        <span id="final-price" style="font-weight: bold; color: #00857a;">${formattedPrice} تومان</span>
+                        <span id="final-price" style="font-weight: bold; color: #00857a;">${formattedFinalPrice} تومان</span>
                     </div>
                     
+                    ${priceData.has_discount ? `
                     <div style="display: flex; justify-content: space-between; margin-bottom: 5px; font-size: 12px; color: #666;">
                         <span>قیمت اصلی:</span>
-                        <span id="original-price-display">${formattedPrice} تومان</span>
-                    </div>                    
-                    
-                    <div id="discount-display" style="display: none; background: #f8f9fa; padding: 8px; border-radius: 4px; margin-bottom: 10px;">
-                        <div style="display: flex; justify-content: space-between; font-size: 12px;">
-                            <span>مبلغ تخفیف:</span>
-                            <span id="discount-amount" style="color: #28a745;"></span>
-                        </div>
+                        <span id="original-price-display" style="text-decoration: line-through;">${formattedOriginalPrice} تومان</span>
                     </div>
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 10px; font-size: 12px; color: #28a745;">
+                        <span>مقدار تخفیف:</span>
+                        <span id="auto-discount-amount">${new Intl.NumberFormat('fa-IR').format(priceData.discount_amount)} تومان</span>
+                    </div>
+                    ` : `
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 5px; font-size: 12px; color: #666;">
+                        <span>قیمت اصلی:</span>
+                        <span id="original-price-display">${formattedOriginalPrice} تومان</span>
+                    </div>
+                    `}
                     
                     <p style="margin: 0; color: #666; font-size: 14px;">
                         در صورت تأیید، این مبلغ از حساب شما کسر خواهد شد.
@@ -173,10 +250,10 @@ class PaymentPopup {
         `;
         
         document.body.appendChild(this.popup);
-        this.setupEventListeners(price);
+        this.setupEventListeners();
     }
 
-    setupEventListeners(servicePrice) {
+    setupEventListeners() {
         const cancelBtn = this.popup.querySelector('#cancel-payment');
         const applyDiscountBtn = this.popup.querySelector('#apply-discount-btn');
         const discountInput = this.popup.querySelector('#discount-code-input');
@@ -194,8 +271,6 @@ class PaymentPopup {
         });
 
         cancelBtn.addEventListener('click', () => {
-            // this.resetDiscount();
-            
             if (this.options.onCancel) {
                 this.options.onCancel();
             }
@@ -212,12 +287,13 @@ class PaymentPopup {
         document.addEventListener('keydown', (e) => {
             if (e.key === 'Escape' && this.isOpen) {
                 e.preventDefault();
-                e.stopPropagation();;
+                e.stopPropagation();
                 return false;                
             }
         });
     }
 
+    // در تابع applyDiscount، بخش error handler رو به‌روزرسانی کنید:
     async applyDiscount() {
         const discountCode = document.getElementById('discount-code-input').value.trim();
         const messageElement = document.getElementById('discount-message');
@@ -227,12 +303,15 @@ class PaymentPopup {
             return;
         }
         
-        // اعتبارسنجی serviceId
-        if (!this.options.serviceId) {
-            this.showDiscountMessage('خطا در شناسایی سرویس', 'error');
-            return;
-        }        
-    
+        // ذخیره وضعیت فعلی قبل از اعمال کد تخفیف جدید
+        const previousState = {
+            finalPrice: this.finalPrice,
+            discountApplied: this.discountApplied,
+            discountAmount: this.discountAmount,
+            hasAutoDiscount: this.hasAutoDiscount,
+            autoDiscount: this.autoDiscount
+        };
+        
         const applyBtn = document.getElementById('apply-discount-btn');
         const originalText = applyBtn.innerHTML;
         applyBtn.disabled = true;
@@ -270,10 +349,24 @@ class PaymentPopup {
             if (data.success) {
                 this.handleDiscountSuccess(data.data);
             } else {
+                // در صورت خطا، به وضعیت قبلی برگرد
+                this.finalPrice = previousState.finalPrice;
+                this.discountApplied = previousState.discountApplied;
+                this.discountAmount = previousState.discountAmount;
+                this.hasAutoDiscount = previousState.hasAutoDiscount;
+                this.autoDiscount = previousState.autoDiscount;
+                
                 this.handleDiscountError(data.data?.message || 'کد تخفیف معتبر نیست');
             }
         } catch (error) {
             console.error('Error applying discount:', error);
+            // در صورت خطا، به وضعیت قبلی برگرد
+            this.finalPrice = previousState.finalPrice;
+            this.discountApplied = previousState.discountApplied;
+            this.discountAmount = previousState.discountAmount;
+            this.hasAutoDiscount = previousState.hasAutoDiscount;
+            this.autoDiscount = previousState.autoDiscount;
+            
             this.handleDiscountError(error.message || 'خطا در ارتباط با سرور');
         } finally {
             applyBtn.disabled = false;
@@ -337,9 +430,52 @@ class PaymentPopup {
         originalPriceElement.textContent = formattedOriginalPrice + ' تومان';
     }
 
+    // در تابع handleDiscountError این تغییرات رو اعمال کنید:
     handleDiscountError(message) {
         this.showDiscountMessage(message, 'error');
-        this.resetDiscount();
+        
+        // فقط کد تخفیف رو ریست کن، تخفیف عمومی رو حفظ کن
+        this.resetCouponOnly();
+    }
+    
+    // تابع جدید برای ریست کردن فقط کد تخفیف (بدن تأثیر روی تخفیف عمومی)
+    resetCouponOnly() {
+        // فقط اطلاعات کد تخفیف رو پاک کن
+        this.discountApplied = false;
+        
+        // قیمت نهایی رو به حالت قبل از کد تخفیف برگردون (با حفظ تخفیف عمومی)
+        if (this.hasAutoDiscount && this.autoDiscount) {
+            // اگر تخفیف عمومی فعال بود، قیمت نهایی رو به حالت تخفیف عمومی برگردون
+            this.finalPrice = this.priceData.final_price;
+        } else {
+            // اگر تخفیف عمومی نبود، به قیمت اصلی برگرد
+            this.finalPrice = this.originalPrice;
+        }
+        
+        this.discountAmount = 0;
+        
+        // به‌روزرسانی state
+        if (window.state && window.state.formData) {
+            if (window.state.formData.discountInfo) {
+                window.state.formData.discountInfo.discountCode = '';
+                window.state.formData.discountInfo.discountApplied = false;
+                window.state.formData.discountInfo.discountAmount = 0;
+                window.state.formData.discountInfo.finalPrice = this.finalPrice;
+                window.state.formData.discountInfo.discountData = null;
+            }
+        }
+        
+        this.updatePriceDisplay();
+        
+        const discountInput = document.getElementById('discount-code-input');
+        if (discountInput) {
+            discountInput.value = '';
+        }
+        
+        // به‌روزرسانی بررسی موجودی
+        this.fetchUserBalance(this.finalPrice);
+        
+        this.showDiscountMessage('', 'info');
     }
 
     showDiscountMessage(message, type) {
@@ -353,17 +489,17 @@ class PaymentPopup {
         const finalPriceElement = document.getElementById('final-price');
         const formattedPrice = new Intl.NumberFormat('fa-IR').format(this.finalPrice);
         finalPriceElement.textContent = formattedPrice + ' تومان';
-        
     }
 
     showDiscountDetails(data) {
         const discountDisplay = document.getElementById('discount-display');
         const discountAmountElement = document.getElementById('discount-amount');
         
-        const formattedDiscount = new Intl.NumberFormat('fa-IR').format(this.discountAmount);
-        discountAmountElement.textContent = formattedDiscount + ' تومان';
-        
-        discountDisplay.style.display = 'block';
+        if (discountDisplay && discountAmountElement) {
+            const formattedDiscount = new Intl.NumberFormat('fa-IR').format(this.discountAmount);
+            discountAmountElement.textContent = formattedDiscount + ' تومان';
+            discountDisplay.style.display = 'block';
+        }
     }
 
     resetDiscount() {
@@ -386,10 +522,14 @@ class PaymentPopup {
         this.updatePriceDisplay();
         
         const discountDisplay = document.getElementById('discount-display');
-        discountDisplay.style.display = 'none';
+        if (discountDisplay) {
+            discountDisplay.style.display = 'none';
+        }
         
         const discountInput = document.getElementById('discount-code-input');
-        discountInput.value = '';
+        if (discountInput) {
+            discountInput.value = '';
+        }
         
         // به روزرسانی بررسی موجودی
         this.fetchUserBalance(this.finalPrice);
@@ -428,7 +568,10 @@ class PaymentPopup {
         const balanceElement = document.getElementById('current-balance');
         const confirmBtn = document.getElementById('confirm-payment');
         
-        const formattedBalance = new Intl.NumberFormat('fa-IR').format(balance);
+        let formattedBalance = '';
+        if (balance !== null && balance !== undefined) {
+            formattedBalance = new Intl.NumberFormat('fa-IR').format(balance);
+        }        
         balanceElement.textContent = formattedBalance + ' تومان';
         
         if (balance < servicePrice) {
@@ -472,6 +615,8 @@ class PaymentPopup {
     }
 
     hide() {
+        this.isOpen = false;
+        
         this.resetDiscount();
         
         if (this.popup) {
@@ -510,7 +655,7 @@ class PaymentPopup {
             discountInput.value = '';
         }
         
-        if (this.open) {
+        if (this.isOpen) {
             this.fetchUserBalance(this.originalPrice);
         }
         
