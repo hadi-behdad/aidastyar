@@ -18,6 +18,9 @@ class AI_Assistant_History_Manager {
         global $wpdb;
         $this->table_name = $wpdb->prefix . 'service_history';
         add_action('admin_init', [$this, 'handle_history_deletion']);
+        
+        // ایجاد جدول در زمان ساخت instance
+       // $this->maybe_create_table();        
     }
 
     /**
@@ -69,7 +72,7 @@ class AI_Assistant_History_Manager {
             return true;
         
             
-        } finally {
+        } finally { 
             flock($lock_handle, LOCK_UN);
             fclose($lock_handle);
         }        
@@ -78,19 +81,27 @@ class AI_Assistant_History_Manager {
     /**
      * ذخیره یک آیتم در تاریخچه
      */
-    public function save_history($user_id, $service_id, $service_name, $user_data , $response) {
-        global $wpdb;
+public function save_history($user_id, $service_id, $service_name, $user_data, $response) {
+    global $wpdb;
+    
+    // بررسی و ایجاد جدول اگر وجود نداشته باشد
+    $this->maybe_create_table();
+    
+    // بررسی وجود کاربر - نسخه ایمن‌تر
+    $user = get_user_by('ID', $user_id);
+    if (!$user) {
+        error_log('❌ [HISTORY] Invalid user ID: ' . $user_id);
+        return false;
+    }
+    
+    try {
+        $wpdb->query("SET time_zone = '+03:30';");
         
-        // بررسی و ایجاد جدول اگر وجود نداشته باشد
-        $this->maybe_create_table();
-        
-        // بررسی وجود کاربر
-        if (!get_user_by('ID', $user_id)) {
-            error_log('❌ [HISTORY] Invalid user ID: ' . $user_id);
-            return false;
+        // بررسی اینکه user_data آرایه است یا نه
+        if (is_array($user_data) || is_object($user_data)) {
+            $user_data = maybe_serialize($user_data);
         }
         
-        $wpdb->query("SET time_zone = '+03:30';");
         $result = $wpdb->insert(
             $this->table_name,
             [
@@ -100,7 +111,7 @@ class AI_Assistant_History_Manager {
                 'user_data' => $user_data,
                 'response' => wp_kses($response, $this->get_allowed_html_tags())
             ],
-            ['%d', '%s', '%s','%s', '%s']
+            ['%d', '%s', '%s', '%s', '%s']
         );
         
         if ($result === false) {
@@ -108,8 +119,14 @@ class AI_Assistant_History_Manager {
             return false;
         }
         
+        error_log('✅ [HISTORY] Successfully saved history for user ' . $user_id);
         return $wpdb->insert_id;
+        
+    } catch (Exception $e) {
+        error_log('❌ [HISTORY] Exception: ' . $e->getMessage());
+        return false;
     }
+}
 
     /**
      * دریافت تاریخچه کاربر با قابلیت صفحه‌بندی
@@ -118,7 +135,7 @@ class AI_Assistant_History_Manager {
         global $wpdb;
         
         // بررسی و ایجاد جدول اگر وجود نداشته باشد
-        $this->maybe_create_table();
+     //   $this->maybe_create_table();
         
         $paged = get_query_var('paged') ?: 1;
         $offset = ($paged - 1) * $per_page;
@@ -155,7 +172,7 @@ class AI_Assistant_History_Manager {
         global $wpdb;
         
         // بررسی و ایجاد جدول اگر وجود نداشته باشد
-        $this->maybe_create_table();
+    //    $this->maybe_create_table();
         
         if (!$this->is_user_owner($item_id, $user_id)) {
             return false;
@@ -175,7 +192,7 @@ class AI_Assistant_History_Manager {
         global $wpdb;
         
         // بررسی و ایجاد جدول اگر وجود نداشته باشد
-        $this->maybe_create_table();
+    //    $this->maybe_create_table();
         
         $owner_id = $wpdb->get_var(
             $wpdb->prepare(
@@ -249,7 +266,7 @@ class AI_Assistant_History_Manager {
     public function get_history_item($history_id) {
         global $wpdb;
         
-        $this->maybe_create_table();
+      //  $this->maybe_create_table();
         
         return $wpdb->get_row(
             $wpdb->prepare("SELECT * FROM {$this->table_name} WHERE id = %d", $history_id)
@@ -262,7 +279,7 @@ class AI_Assistant_History_Manager {
     public function update_history_response($history_id, $new_response) {
         global $wpdb;
         
-        $this->maybe_create_table();
+    //    $this->maybe_create_table();
         
         $result = $wpdb->update(
             $this->table_name,

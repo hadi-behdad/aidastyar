@@ -45,6 +45,7 @@ class AI_Job_Queue {
         $table_exists = $wpdb->get_var($wpdb->prepare("SHOW TABLES LIKE %s", $this->table_name));
         if ($table_exists === $this->table_name) return;
 
+
         // استفاده از file lock
         $lock_file = WP_CONTENT_DIR . '/ai_job_queue_table.lock';
         $lock_handle = fopen($lock_file, 'w');
@@ -83,11 +84,12 @@ class AI_Job_Queue {
             dbDelta($sql);
             
             error_log('🗃️ [AI_QUEUE] Job table created/verified');
+        
             
         } finally {
             flock($lock_handle, LOCK_UN);
             fclose($lock_handle);
-        }            
+        }        
     }
 
     public function add_cron_intervals($schedules) {
@@ -131,7 +133,7 @@ class AI_Job_Queue {
     }
 
     /** 🔄 بازیابی jobهای گیر کرده با منطق بهبود یافته */
-    public function cleanup_stuck_jobs() {
+    public function cleanup_stuck_jobs() { 
         global $wpdb;
         
         $timeout_threshold = date('Y-m-d H:i:s', time() - $this->processing_timeout);
@@ -260,8 +262,12 @@ class AI_Job_Queue {
         }
     }
 
-    /** 🎯 پردازش REAL API در child process */
-    private function process_single_job_in_child($job_id) {
+/** 🎯 پردازش REAL API در child process */
+/** 🎯 پردازش REAL API در child process - نسخه ایمن */
+private function process_single_job_in_child($job_id) {
+    $child_wpdb = null;
+    
+    try {
         // ایجاد اتصال جدید به دیتابیس
         $child_wpdb = new wpdb(DB_USER, DB_PASSWORD, DB_NAME, DB_HOST);
         
@@ -294,90 +300,114 @@ class AI_Job_Queue {
             return;
         }
 
-        try {
-            error_log('🎯 [CHILD] Starting API processing for job #' . $job->id);
-            
-            // افزایش محدودیت‌ها برای API
-            set_time_limit($this->api_timeout + 60);
-            ini_set('max_execution_time', $this->api_timeout + 60);
-            ini_set('memory_limit', '512M');
-            
-            $payment_handler = AI_Assistant_Payment_Handler::get_instance();
+        error_log('🎯 [CHILD] Starting API processing for job #' . $job->id);
+        
+        // افزایش محدودیت‌ها
+        set_time_limit($this->api_timeout + 60);
+        ini_set('max_execution_time', $this->api_timeout + 60);
+        ini_set('memory_limit', '512M');
+        
+        // شروع تراکنش
+        $child_wpdb->query('START TRANSACTION');
 
-            // شروع تراکنش
-            $child_wpdb->query('START TRANSACTION');
+        // اعتبارسنجی
+        $payment_handler = AI_Assistant_Payment_Handler::get_instance();
+        $this->validate_request($job->prompt, $job->service_id, $job->user_id, $job->final_price, $payment_handler);
+        
+        // 🔥 فراخوانی API (تست)
+        error_log('📡 [CHILD] Calling API for job #' . $job->id);
+        $start_api = microtime(true);
+        
+        // تست با sleep
+        sleep(10);
+        $response = "Test response for job #" . $job->id;
+        // $response = $this->call_deepseek_api($job->prompt);
+        
+        $api_time = round(microtime(true) - $start_api, 2);
+        error_log('⏱️ [CHILD] API call completed in ' . $api_time . 's for job #' . $job->id);
+        
+        if (!$response) {
+            throw new Exception('API call failed');
+        }
 
-            // اعتبارسنجی
-            $this->validate_request($job->prompt, $job->service_id, $job->user_id, $job->final_price, $payment_handler);
-            
-            // 🔥 فراخوانی REAL API - اینجا 3-4 دقیقه طول می‌کشد
-            error_log('📡 [CHILD] Calling DeepSeek API for job #' . $job->id);
-            $start_api = microtime(true);
-          //  $response = $this->call_deepseek_api($job->prompt);
-           
-           sleep(2);
-           
-            
-            $api_time = round(microtime(true) - $start_api, 2);
-            
-            $response = 'test' . $api_time;
-            
-            error_log('⏱️ [CHILD] API call completed in ' . $api_time . 's for job #' . $job->id);
-            
-            if (!$response || (is_array($response) && isset($response['error']))) {
-                throw new Exception('API call failed: ' . (is_array($response) ? $response['error'] : 'Unknown error'));
-            }
+        $cleaned = $this->clean_api_response($response);
 
-            $cleaned = $this->clean_api_response($response);
+        // کسر اعتبار
+        $credit_success = $payment_handler->deduct_credit($job->user_id, $job->final_price, $job->service_id);
+        if (!$credit_success) {
+            throw new Exception('Credit deduction failed');
+        }
 
-            // کسر اعتبار
-            $payment_handler->deduct_credit($job->user_id, $job->final_price, $job->service_id);
+        // ذخیره تاریخچه - با مدیریت خطا
+        $history_manager = AI_Assistant_History_Manager::get_instance();
+        $history_saved = $history_manager->save_history(
+            $job->user_id,
+            $job->service_id,
+            $job->service_id, // service_name
+            maybe_unserialize($job->user_data),
+            $cleaned
+        );
+        
+        if (!$history_saved) {
+            error_log('⚠️ [CHILD] History saving failed for job #' . $job->id . ', but continuing...');
+            // تاریخچه ضروری نیست، ادامه بده
+        }
 
-            // ذخیره تاریخچه
-            $history_manager = AI_Assistant_History_Manager::get_instance();
-            $history_manager->save_history(
-                $job->user_id,
-                $job->service_id,
-                '',
-                maybe_unserialize($job->user_data),
-                $cleaned
-            );
+        // commit تراکنش
+        $child_wpdb->query('COMMIT');
 
-            // commit تراکنش
-            $child_wpdb->query('COMMIT');
+        // به روزرسانی وضعیت job
+        $update_success = $child_wpdb->update($this->table_name, [
+            'status' => 'done',
+            'updated_at' => current_time('mysql'),
+            'processing_log' => $job->processing_log . "\n[SUCCESS] Parallel processing completed in " . $api_time . "s at " . current_time('mysql')
+        ], ['id' => $job->id]);
 
-            // به روزرسانی وضعیت job
-            $child_wpdb->update($this->table_name, [
-                'status' => 'done',
-                'updated_at' => current_time('mysql'),
-                'processing_log' => $job->processing_log . "\n[SUCCESS] Parallel API processing completed in " . $api_time . "s at " . current_time('mysql')
-            ], ['id' => $job->id]);
-
+        if ($update_success) {
             error_log('✅ [CHILD] Job #' . $job->id . ' completed successfully in ' . $api_time . 's');
+        } else {
+            error_log('❌ [CHILD] Failed to update job status for job #' . $job->id);
+        }
 
-        } catch (Exception $e) {
-            // rollback
+    } catch (Exception $e) {
+        // rollback در صورت خطا
+        if ($child_wpdb) {
             try { 
                 $child_wpdb->query('ROLLBACK'); 
             } catch (Exception $ex) {
                 error_log('⚠️ [CHILD] Rollback failed: ' . $ex->getMessage());
             }
+        }
 
-            $error_message = $e->getMessage();
-            error_log('❌ [CHILD] Job #' . $job->id . ' failed: ' . $error_message);
-            
+        $error_message = $e->getMessage();
+        error_log('❌ [CHILD] Job #' . $job_id . ' failed: ' . $error_message);
+        
+        // به روزرسانی وضعیت به error
+        if ($child_wpdb) {
             $child_wpdb->update($this->table_name, [
                 'status' => 'error',
                 'error_message' => substr($error_message, 0, 500),
                 'updated_at' => current_time('mysql'),
-                'processing_log' => $job->processing_log . "\n[ERROR] " . $error_message . " at " . current_time('mysql')
-            ], ['id' => $job->id]);
+                'processing_log' => (isset($job->processing_log) ? $job->processing_log : '') . "\n[ERROR] " . $error_message . " at " . current_time('mysql')
+            ], ['id' => $job_id]);
+        }
+        
+    } finally {
+        // تمیز کردن منابع
+        if ($child_wpdb) {
+            $child_wpdb->close();
         }
     }
+    
+    // خروج explicit
+    exit(0);
+}
+
+
 
     /** 📡 فراخوانی REAL API */
     private function call_deepseek_api($prompt) {
-        $prompt = 'جمله عاشقانه در حد یک خط بگو با عدد:' . rand(10, 300);
+        $prompt = 'خیلی خلاصه و در یک خط بگو که برای گرفتن یک رژیم غذایی چه نکته طلایی باید رعایت کنم';
         $api_key = DEEPSEEK_API_KEY;   
         $api_url = 'https://api.deepseek.com/v1/chat/completions';
 

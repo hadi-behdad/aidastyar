@@ -350,9 +350,8 @@ class AI_Assistant_Payment_Handler {
             fclose($lock_handle);
             return;
         }
-        
-        
-        try {    
+
+        try {   
             // ایجاد جدول موجودی کیف پول
             if ($wpdb->get_var("SHOW TABLES LIKE '{$this->table_name}'") != $this->table_name) {
                 $charset_collate = $wpdb->get_charset_collate();
@@ -381,8 +380,10 @@ class AI_Assistant_Payment_Handler {
                         'balance' => $credit
                     ]);
                 }
+                
+                 error_log('✅ [PAYMENT] Wallet balance table created');
             } 
-            
+             
             // ایجاد جدول تاریخچه تراکنش‌ها
             if ($wpdb->get_var("SHOW TABLES LIKE '{$this->history_table}'") != $this->history_table) {
                 $charset_collate = $wpdb->get_charset_collate();
@@ -407,19 +408,31 @@ class AI_Assistant_Payment_Handler {
                 require_once(ABSPATH . 'wp-admin/includes/upgrade.php');
                 dbDelta($sql);
                 
-                // اضافه کردن محدودیت مقدار برای فیلد type
-                $wpdb->query(
-                    "ALTER TABLE {$this->history_table} 
-                     ADD CONSTRAINT chk_type CHECK (type IN ('credit', 'debit'))"
-                );
+                // اضافه کردن محدودیت مقدار برای فیلد type (اگر وجود ندارد)
+                $constraint_exists = $wpdb->get_var("
+                    SELECT COUNT(*) FROM information_schema.table_constraints 
+                    WHERE table_name = '{$this->history_table}' 
+                    AND constraint_name = 'chk_type'
+                ");
+                
+                if (!$constraint_exists) {
+                    try {
+                        $wpdb->query(
+                            "ALTER TABLE {$this->history_table} 
+                             ADD CONSTRAINT chk_type CHECK (type IN ('credit', 'debit'))"
+                        );
+                    } catch (Exception $e) {
+                        error_log('⚠️ [PAYMENT] Constraint already exists or failed: ' . $e->getMessage());
+                    }
+                }
+                
+                error_log('✅ [PAYMENT] Wallet history table created');
             }
-            
-            error_log('✅ [PAYMENT] Wallet history table created');
             
         } finally {
             flock($lock_handle, LOCK_UN);
             fclose($lock_handle);
-        }   
+        }  
     }
     
     public function get_user_credit($user_id) {
