@@ -76,6 +76,107 @@ document.addEventListener('DOMContentLoaded', () => {
     setupScrollIndicator('medications-selection');
 });
 
+// /assets/js/services/diet/form-events.js
+async function loadServicePrices() {
+    try {
+        const response = await fetch(aiAssistantVars.ajaxurl, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+            },
+            body: new URLSearchParams({
+                'action': 'get_diet_service_price',
+                'security': aiAssistantVars.nonce
+            })
+        });
+
+        const data = await response.json();
+        
+        if (data.success) {
+            const aiOnlyPrice = data.data.price;
+            const withSpecialistPrice = aiOnlyPrice + 25000;
+            
+            // به‌روزرسانی قیمت‌ها در HTML
+            document.getElementById('ai-only-price').textContent = new Intl.NumberFormat('fa-IR').format(aiOnlyPrice);
+            document.getElementById('with-specialist-price').textContent = new Intl.NumberFormat('fa-IR').format(withSpecialistPrice);
+            
+            // ذخیره قیمت‌ها در state
+            if (window.state && window.state.formData) {
+                window.state.formData.servicePrices = {
+                    aiOnly: aiOnlyPrice,
+                    withSpecialist: withSpecialistPrice,
+                    loaded: true,
+                    error: false
+                };
+            }
+            
+            console.log('💰 قیمت‌ها با موفقیت بارگذاری و در state ذخیره شد:', {
+                aiOnly: aiOnlyPrice,
+                withSpecialist: withSpecialistPrice
+            });
+        } else {
+            throw new Error(data.data?.message || 'خطا در دریافت قیمت');
+        }
+    } catch (error) {
+        console.error('Error loading service prices:', error);
+        
+        // 🔥 نمایش پیغام خطا به جای استفاده از مقادیر پیش‌فرض
+        const errorMessage = 'عدم ارتباط با سرور - لطفاً صفحه را رفرش کنید';
+        document.getElementById('ai-only-price').textContent = errorMessage;
+        document.getElementById('with-specialist-price').textContent = errorMessage;
+        
+        // ذخیره وضعیت خطا در state
+        if (window.state && window.state.formData) {
+            window.state.formData.servicePrices = {
+                loaded: false,
+                error: true,
+                errorMessage: errorMessage
+            };
+        }
+        
+        // 🔥 نمایش نوتیفیکیشن به کاربر
+        if (typeof showNotification === 'function') {
+            showNotification('خطا در دریافت قیمت‌ها', 'error');
+        } else {
+            console.warn('⚠️ ' + errorMessage);
+        }
+    }
+}
+
+// /assets/js/services/diet/form-events.js
+function showNotification(message, type = 'info') {
+    // ایجاد یک نوتیفیکیشن ساده
+    const notification = document.createElement('div');
+    notification.style.cssText = `
+        position: fixed;
+        top: 20px;
+        left: 50%;
+        transform: translateX(-50%);
+        padding: 12px 20px;
+        background: ${type === 'error' ? '#f44336' : '#2196F3'};
+        color: white;
+        border-radius: 4px;
+        z-index: 10000;
+        font-family: inherit;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+    `;
+    notification.textContent = message;
+    
+    document.body.appendChild(notification);
+    
+    // حذف خودکار پس از 5 ثانیه
+    setTimeout(() => {
+        if (notification.parentNode) {
+            notification.parentNode.removeChild(notification);
+        }
+    }, 5000);
+}
+
+// فراخوانی تابع هنگام لود صفحه
+document.addEventListener('DOMContentLoaded', function() {
+    loadServicePrices();
+});
+
 window.handleNextStep = function() {
     if (window.state.currentStep < window.totalSteps) {
         window.navigateToStep(window.state.currentStep + 1);
@@ -394,7 +495,8 @@ window.showSummary = function() {
     
     const { 
         userInfo,
-        serviceSelection
+        serviceSelection,
+        servicePrices // 🔥 استفاده از قیمت‌های ذخیره شده در state
     } = state.formData;
 
     const {
@@ -599,12 +701,29 @@ window.showSummary = function() {
     if (foodLimitations.includes('none')) foodLimitationsText.push('ندارم');
 
     let dietTypeText = '';
-    if (dietType === 'ai-only') {
-        dietTypeText = 'رژیم هوش مصنوعی (50,000 تومان)';
-    } else if (dietType === 'with-specialist' && selectedSpecialist) {
-        dietTypeText = `رژیم با تأیید متخصص (75,000 تومان) - ${selectedSpecialist.name}`;
-    } else if (dietType === 'with-specialist') {
-        dietTypeText = 'رژیم با تأیید متخصص (75,000 تومان) - متخصص انتخاب نشده';
+    
+    // 🔥 مدیریت نمایش قیمت‌ها با در نظر گرفتن وضعیت خطا
+    if (servicePrices && servicePrices.error) {
+        // نمایش پیغام خطا
+        dietTypeText = `نوع رژیم: ${serviceSelection.dietType === 'ai-only' ? 'رژیم هوش مصنوعی' : 'رژیم با تأیید متخصص'} - ${servicePrices.errorMessage}`;
+    } else if (servicePrices && servicePrices.loaded) {
+        // استفاده از قیمت‌های واقعی
+        const aiOnlyPrice = servicePrices.aiOnly;
+        const withSpecialistPrice = servicePrices.withSpecialist;
+        
+        const formattedAiOnlyPrice = new Intl.NumberFormat('fa-IR').format(aiOnlyPrice);
+        const formattedWithSpecialistPrice = new Intl.NumberFormat('fa-IR').format(withSpecialistPrice);
+        
+        if (serviceSelection.dietType === 'ai-only') {
+            dietTypeText = `رژیم هوش مصنوعی (${formattedAiOnlyPrice} تومان)`;
+        } else if (serviceSelection.dietType === 'with-specialist' && serviceSelection.selectedSpecialist) {
+            dietTypeText = `رژیم با تأیید متخصص (${formattedWithSpecialistPrice} تومان) - ${serviceSelection.selectedSpecialist.name}`;
+        } else if (serviceSelection.dietType === 'with-specialist') {
+            dietTypeText = `رژیم با تأیید متخصص (${formattedWithSpecialistPrice} تومان) - متخصص انتخاب نشده`;
+        }
+    } else {
+        // اگر قیمت‌ها هنوز لود نشده‌اند
+        dietTypeText = `نوع رژیم: ${serviceSelection.dietType === 'ai-only' ? 'رژیم هوش مصنوعی' : 'رژیم با تأیید متخصص'} - در حال دریافت قیمت...`;
     }
     
     summaryContainer.innerHTML = `
