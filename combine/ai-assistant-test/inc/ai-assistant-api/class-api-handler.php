@@ -269,18 +269,10 @@ class AI_Assistant_Api_Handler {
 
             $queue = AI_Job_Queue::get_instance();
             $queue->enqueue_job($user_id, $service_id, $prompt, $final_price, $userData);
-            //  $queue->enqueue_job($user_id, $service_id, $prompt, $final_price, $userData);
-            //   $queue->enqueue_job($user_id, $service_id, $prompt, $final_price, $userData);
-            //   $queue->enqueue_job($user_id, $service_id, $prompt, $final_price, $userData);
-            //     $queue->enqueue_job($user_id, $service_id, $prompt, $final_price, $userData);
-            //      $queue->enqueue_job($user_id, $service_id, $prompt, $final_price, $userData);
 
-            
-            // return [
-            //   'success' => true,
-            //   'message' => 'درخواست شما ثبت شد و در صف پردازش قرار گرفت.'
-            // ];
 
+            // $queue = AI_Job_Queue_Sequential::get_instance();
+            // $queue->enqueue_job($user_id, $service_id, $prompt, $final_price, $userData);
 
 
             header('Content-Type: application/json; charset=utf-8');
