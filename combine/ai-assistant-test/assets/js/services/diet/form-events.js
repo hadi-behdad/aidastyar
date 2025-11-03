@@ -85,7 +85,7 @@ async function loadServicePrices() {
                 'Content-Type': 'application/x-www-form-urlencoded',
             },
             body: new URLSearchParams({
-                'action': 'get_diet_service_price',
+                'action': 'get_diet_service_prices', // تغییر نام action
                 'security': aiAssistantVars.nonce
             })
         });
@@ -93,18 +93,19 @@ async function loadServicePrices() {
         const data = await response.json();
         
         if (data.success) {
-            const aiOnlyPrice = data.data.price;
-            const withSpecialistPrice = aiOnlyPrice + 25000;
+            const aiOnlyPrice = data.data.base_price;
+            const consultantPrice = data.data.consultant_price;
             
             // به‌روزرسانی قیمت‌ها در HTML
             document.getElementById('ai-only-price').textContent = new Intl.NumberFormat('fa-IR').format(aiOnlyPrice);
-            document.getElementById('with-specialist-price').textContent = new Intl.NumberFormat('fa-IR').format(withSpecialistPrice);
+            document.getElementById('with-specialist-price').textContent = new Intl.NumberFormat('fa-IR').format(aiOnlyPrice + consultantPrice);
             
             // ذخیره قیمت‌ها در state
             if (window.state && window.state.formData) {
                 window.state.formData.servicePrices = {
                     aiOnly: aiOnlyPrice,
-                    withSpecialist: withSpecialistPrice,
+                    consultantFee: consultantPrice, // هزینه مشاور جداگانه ذخیره شود
+                    withSpecialist: aiOnlyPrice + consultantPrice,
                     loaded: true,
                     error: false
                 };
@@ -112,7 +113,8 @@ async function loadServicePrices() {
             
             console.log('💰 قیمت‌ها با موفقیت بارگذاری و در state ذخیره شد:', {
                 aiOnly: aiOnlyPrice,
-                withSpecialist: withSpecialistPrice
+                consultantFee: consultantPrice,
+                withSpecialist: aiOnlyPrice + consultantPrice
             });
         } else {
             throw new Error(data.data?.message || 'خطا در دریافت قیمت');
@@ -120,7 +122,7 @@ async function loadServicePrices() {
     } catch (error) {
         console.error('Error loading service prices:', error);
         
-        // 🔥 نمایش پیغام خطا به جای استفاده از مقادیر پیش‌فرض
+        // نمایش پیغام خطا
         const errorMessage = 'عدم ارتباط با سرور - لطفاً صفحه را رفرش کنید';
         document.getElementById('ai-only-price').textContent = errorMessage;
         document.getElementById('with-specialist-price').textContent = errorMessage;
@@ -134,7 +136,7 @@ async function loadServicePrices() {
             };
         }
         
-        // 🔥 نمایش نوتیفیکیشن به کاربر
+        // نمایش نوتیفیکیشن به کاربر
         if (typeof showNotification === 'function') {
             showNotification('خطا در دریافت قیمت‌ها', 'error');
         } else {
@@ -198,20 +200,34 @@ window.preloadImages = function() {
 }
 
 window.showPaymentConfirmation = function(formData, finalPrice) {
-
     try {
+        // محاسبه قیمت نهایی با در نظر گرفتن هزینه مشاور
+        let calculatedFinalPrice = finalPrice;
+        
+        // اگر رژیم با متخصص انتخاب شده و مشاور انتخاب شده است
+        if (formData.serviceSelection.dietType === 'with-specialist' && 
+            formData.serviceSelection.selectedSpecialist) {
+            
+            const consultantFee = formData.serviceSelection.selectedSpecialist.consultation_price;
+            calculatedFinalPrice += consultantFee;
+            
+            console.log('💰 قیمت نهایی با هزینه مشاور:', {
+                basePrice: finalPrice,
+                consultantFee: consultantFee,
+                total: calculatedFinalPrice
+            });
+        }
+
         const paymentPopup = new PaymentPopup({
             serviceType: 'رژیم غذایی',
             serviceId: 'diet',
-            customPrice: finalPrice,
+            customPrice: calculatedFinalPrice, // استفاده از قیمت محاسبه شده
             ajaxAction: 'get_diet_service_price',
-            // در تابع showPaymentConfirmation، بخش onConfirm را به این صورت به روز کنید
+            includeConsultantFee: formData.serviceSelection.dietType === 'with-specialist',
+            consultantFee: formData.serviceSelection.selectedSpecialist ? 
+                          formData.serviceSelection.selectedSpecialist.consultation_price : 0,
             onConfirm: (completeFormData, confirmedFinalPrice, discountDetails) => {
-                
-                // 🔥 اطمینان از ارسال اطلاعات تخفیف به سرور
                 const completePersianData = window.convertToCompletePersianData(completeFormData);
-                
-                // اضافه کردن اطلاعات قیمت نهایی به داده‌ها
                 completePersianData.finalPrice = confirmedFinalPrice;
                 completePersianData.discountDetails = discountDetails;
                 
@@ -221,7 +237,7 @@ window.showPaymentConfirmation = function(formData, finalPrice) {
                     detail: { 
                         formData: completePersianData,
                         finalPrice: confirmedFinalPrice,
-                        discountInfo: completePersianData.discountInfo // 🔥 ارسال اطلاعات تخفیف
+                        discountInfo: completePersianData.discountInfo
                     }
                 }));
             },
@@ -231,12 +247,11 @@ window.showPaymentConfirmation = function(formData, finalPrice) {
                         discountCode: '',
                         discountApplied: false,
                         discountAmount: 0,
-                        originalPrice: finalPrice, // برگشت به قیمت اصلی
+                        originalPrice: finalPrice,
                         finalPrice: finalPrice,
                         discountData: null
                     };
                 }
-                
                 document.getElementById('SubmitBtn').disabled = false;
             }
         });
@@ -700,26 +715,35 @@ window.showSummary = function() {
     
     if (foodLimitations.includes('none')) foodLimitationsText.push('ندارم');
 
+    // 🔥 اصلاح بخش نمایش قیمت - تعریف متغیرهای لازم
     let dietTypeText = '';
     
-    // 🔥 مدیریت نمایش قیمت‌ها با در نظر گرفتن وضعیت خطا
+    // مدیریت نمایش قیمت‌ها با در نظر گرفتن وضعیت خطا
     if (servicePrices && servicePrices.error) {
         // نمایش پیغام خطا
         dietTypeText = `نوع رژیم: ${serviceSelection.dietType === 'ai-only' ? 'رژیم هوش مصنوعی' : 'رژیم با تأیید متخصص'} - ${servicePrices.errorMessage}`;
     } else if (servicePrices && servicePrices.loaded) {
         // استفاده از قیمت‌های واقعی
         const aiOnlyPrice = servicePrices.aiOnly;
-        const withSpecialistPrice = servicePrices.withSpecialist;
+        const consultantFee = servicePrices.consultantFee || 25000; // قیمت پیش‌فرض مشاور
         
+        // 🔥 تعریف متغیرهای فرمت شده
         const formattedAiOnlyPrice = new Intl.NumberFormat('fa-IR').format(aiOnlyPrice);
-        const formattedWithSpecialistPrice = new Intl.NumberFormat('fa-IR').format(withSpecialistPrice);
         
         if (serviceSelection.dietType === 'ai-only') {
             dietTypeText = `رژیم هوش مصنوعی (${formattedAiOnlyPrice} تومان)`;
         } else if (serviceSelection.dietType === 'with-specialist' && serviceSelection.selectedSpecialist) {
-            dietTypeText = `رژیم با تأیید متخصص (${formattedWithSpecialistPrice} تومان) - ${serviceSelection.selectedSpecialist.name}`;
+            // استفاده از قیمت مشاور انتخاب شده یا قیمت پیش‌فرض
+            const specialistConsultationPrice = serviceSelection.selectedSpecialist.consultation_price || consultantFee;
+            const totalPrice = aiOnlyPrice + specialistConsultationPrice;
+            const formattedTotalPrice = new Intl.NumberFormat('fa-IR').format(totalPrice);
+            
+            dietTypeText = `رژیم با تأیید متخصص (${formattedTotalPrice} تومان) - ${serviceSelection.selectedSpecialist.name}`;
         } else if (serviceSelection.dietType === 'with-specialist') {
-            dietTypeText = `رژیم با تأیید متخصص (${formattedWithSpecialistPrice} تومان) - متخصص انتخاب نشده`;
+            // اگر مشاور انتخاب نشده اما نوع رژیم با مشاور است
+            const totalPrice = aiOnlyPrice + consultantFee;
+            const formattedTotalPrice = new Intl.NumberFormat('fa-IR').format(totalPrice);
+            dietTypeText = `رژیم با تأیید متخصص (${formattedTotalPrice} تومان) - متخصص انتخاب نشده`;
         }
     } else {
         // اگر قیمت‌ها هنوز لود نشده‌اند

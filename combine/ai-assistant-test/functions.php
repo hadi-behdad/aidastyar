@@ -734,3 +734,33 @@ function add_environment_vars_to_js() {
     ]);
 }
 add_action('wp_enqueue_scripts', 'add_environment_vars_to_js', 20);
+
+
+// دریافت قیمت‌های سرویس رژیم غذایی
+function get_diet_service_prices() {
+    // بررسی nonce
+    if (!wp_verify_nonce($_POST['security'], 'ai_assistant_nonce')) {
+        wp_send_json_error('خطای امنیتی');
+    }
+    
+    $diet_db = AI_Assistant_Diet_Consultation_DB::get_instance();
+    
+    // قیمت پایه سرویس
+    $base_price = $diet_db->get_diet_service_base_price();
+    
+    // قیمت مشاور (می‌توانید از اولین مشاور فعال استفاده کنید یا میانگین بگیرید)
+    $consultants = $diet_db->get_active_consultants();
+    $consultant_price = 25000; // قیمت پیش‌فرض
+    
+    if (!empty($consultants)) {
+        // از قیمت اولین مشاور استفاده می‌کنیم
+        $consultant_price = $consultants[0]->consultation_price;
+    }
+    
+    wp_send_json_success([
+        'base_price' => $base_price,
+        'consultant_price' => $consultant_price
+    ]);
+}
+add_action('wp_ajax_get_diet_service_prices', 'get_diet_service_prices');
+add_action('wp_ajax_nopriv_get_diet_service_prices', 'get_diet_service_prices');

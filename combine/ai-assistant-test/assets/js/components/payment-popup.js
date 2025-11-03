@@ -5,9 +5,12 @@ class PaymentPopup {
             onConfirm: options.onConfirm || null,
             onCancel: options.onCancel || null,
             serviceType: options.serviceType || 'سرویس',
+            basePrice: options.basePrice || null, // 🔥 اضافه شده
             customPrice: options.customPrice || null,
             ajaxAction: options.ajaxAction,
             serviceId: options.serviceId || '',
+            includeConsultantFee: options.includeConsultantFee || false,
+            consultantFee: options.consultantFee || 0,
             ...options
         };
         
@@ -21,19 +24,37 @@ class PaymentPopup {
         this.discountApplied = false;
         this.hasAutoDiscount = false;
         this.autoDiscount = null;
+        this.consultantFee = this.options.consultantFee || 0;
+        this.basePrice = this.options.basePrice; 
     }
-
+        
     async show() {
         if (this.isOpen) return;
         
         try {
+            console.log('🔧 PaymentPopup options:', this.options);
+            console.log('💰 basePrice دریافت شده:', this.basePrice);            
+            console.log('🔧 PaymentPopup options:', this.options);
+            
             // دریافت قیمت سرویس با اعمال تخفیف‌های خودکار
             const priceData = await this.getServicePriceWithDiscount();
+            
+            console.log('💰 قیمت دریافتی از سرور:', priceData);
+            console.log('💼 هزینه مشاور:', this.consultantFee);
+            console.log('📋 شامل هزینه مشاور:', this.options.includeConsultantFee);
+            
             this.originalPrice = priceData.original_price;
             this.finalPrice = priceData.final_price;
             this.hasAutoDiscount = priceData.has_discount;
             this.autoDiscount = priceData.discount;
-            this.priceData = priceData; // ذخیره priceData برای استفاده در createPopupElement
+            this.priceData = priceData; // 🔥 ذخیره داده‌های اصلی
+            
+            console.log('🎯 قیمت نهایی پس از محاسبات:', {
+                original: this.originalPrice,
+                final: this.finalPrice,
+                hasAutoDiscount: this.hasAutoDiscount,
+                autoDiscountAmount: priceData.has_discount ? priceData.discount_amount : 0
+            });
             
             // Create popup
             this.createPopupElement();
@@ -48,7 +69,6 @@ class PaymentPopup {
         }
     }
 
-    // اضافه کردن تابع جدید برای دریافت قیمت با تخفیف خودکار
     async getServicePriceWithDiscount() {
         try {
             const response = await fetch(aiAssistantVars.ajaxurl, {
@@ -59,32 +79,65 @@ class PaymentPopup {
                 body: new URLSearchParams({
                     'action': 'get_service_price_with_discount',
                     'service_id': this.options.serviceId,
+                    'include_consultant_fee': this.options.includeConsultantFee ? '1' : '0',
+                    'consultant_fee': this.options.consultantFee.toString(),
                     'nonce': this.getNonce()
                 })
             });
-
+    
             const data = await response.json();
             
             if (data.success) {
-                console.log('💰 قیمت با تخفیف خودکار:', data.data);
+                console.log('💰 قیمت با تخفیف خودکار از سرور:', data.data);
+                
+                // 🔥 اصلاح: اضافه کردن هزینه مشاور به قیمت‌ها
+                let originalPrice = parseFloat(data.data.original_price) || 0;
+                let finalPrice = parseFloat(data.data.final_price) || 0;
+                
+                if (this.options.includeConsultantFee && this.consultantFee > 0) {
+                    originalPrice += this.consultantFee;
+                    finalPrice += this.consultantFee;
+                    
+                    console.log('💰 قیمت پس از اضافه کردن هزینه مشاور:', {
+                        original: originalPrice,
+                        final: finalPrice,
+                        consultantFee: this.consultantFee
+                    });
+                    
+                    // به‌روزرسانی داده‌ها با هزینه مشاور
+                    data.data.original_price = originalPrice;
+                    data.data.final_price = finalPrice;
+                }
+                
                 return data.data;
             } else {
                 throw new Error(data.data?.message || 'خطا در دریافت قیمت');
             }
         } catch (error) {
             console.error('Error getting service price with discount:', error);
-            // Fallback: دریافت قیمت عادی اگر تابع جدید کار نکرد
             return await this.getServicePriceFallback();
         }
     }
 
-    // تابع fallback برای زمانی که تابع جدید کار نمی‌کند
     async getServicePriceFallback() {
         try {
-            const price = this.options.customPrice || await this.getServicePrice();
+            let basePrice = this.options.customPrice || await this.getServicePrice();
+            
+            console.log('🔄 استفاده از fallback price:', {
+                basePrice: basePrice,
+                includeConsultantFee: this.options.includeConsultantFee,
+                consultantFee: this.consultantFee
+            });
+            
+            // اگر هزینه مشاور وجود دارد، به قیمت پایه اضافه کن
+            if (this.options.includeConsultantFee && this.consultantFee > 0) {
+                basePrice += this.consultantFee;
+                console.log('💰 قیمت fallback با هزینه مشاور:', basePrice);
+            }
+            
             return {
-                original_price: price,
-                final_price: price,
+                original_price: basePrice,
+                final_price: basePrice,
                 discount_amount: 0,
                 has_discount: false,
                 discount: null
@@ -126,6 +179,16 @@ class PaymentPopup {
         // استفاده از this.priceData که در تابع show ذخیره شده
         const priceData = this.priceData;
         
+        // محاسبه قیمت پایه (بدون هزینه مشاور)
+        const basePrice = this.options.includeConsultantFee ? 
+            (priceData.original_price - this.consultantFee) : 
+            priceData.original_price;
+        
+        // محاسبه قیمت نهایی پایه (با تخفیف خودکار اما بدون هزینه مشاور)
+        const baseFinalPrice = this.options.includeConsultantFee ? 
+            (priceData.final_price - this.consultantFee) : 
+            priceData.final_price;
+        
         this.popup = document.createElement('div');
         this.popup.style.cssText = `
             position: fixed;
@@ -140,8 +203,11 @@ class PaymentPopup {
             z-index: 10000;
         `;
         
-        const formattedOriginalPrice = new Intl.NumberFormat('fa-IR').format(priceData.original_price);
+        const formattedBasePrice = new Intl.NumberFormat('fa-IR').format(basePrice);
+        const formattedBaseFinalPrice = new Intl.NumberFormat('fa-IR').format(baseFinalPrice);
+        const formattedConsultantFee = new Intl.NumberFormat('fa-IR').format(this.consultantFee);
         const formattedFinalPrice = new Intl.NumberFormat('fa-IR').format(priceData.final_price);
+        const formattedOriginalPrice = new Intl.NumberFormat('fa-IR').format(priceData.original_price);
         
         this.popup.innerHTML = `
             <div style="
@@ -149,7 +215,7 @@ class PaymentPopup {
                 padding: 20px;
                 border-radius: 8px;
                 width: 90%;
-                max-width: 400px;
+                max-width: 450px;
                 box-shadow: 0 2px 10px rgba(0,0,0,0.1);
             ">
                 <div style="margin-bottom: 15px;">
@@ -176,6 +242,11 @@ class PaymentPopup {
                         <span id="current-balance" style="font-weight: bold;">در حال بارگذاری...</span>
                     </div>
                     
+
+                    <!-- بخش جزئیات قیمت (به صورت پویا پر می‌شود) -->
+                    <div style="background: #f8f9fa; border-radius: 6px; padding: 15px; margin-bottom: 15px;" class="price-details-container">
+                        <!-- محتوای این بخش توسط تابع updatePriceDetails پر می‌شود -->
+                    </div>                   
                     <!-- بخش کد تخفیف -->
                     <div style="margin-bottom: 15px; border: 1px solid #e0e0e0; border-radius: 4px; padding: 10px;">
                         <div style="display: flex; gap: 8px; margin-bottom: 8px;">
@@ -196,27 +267,6 @@ class PaymentPopup {
                         </div>
                         <div id="discount-message" style="font-size: 12px; min-height: 16px;"></div>
                     </div>
-                    
-                    <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
-                        <span>مبلغ قابل پرداخت:</span>
-                        <span id="final-price" style="font-weight: bold; color: #00857a;">${formattedFinalPrice} تومان</span>
-                    </div>
-                    
-                    ${priceData.has_discount ? `
-                    <div style="display: flex; justify-content: space-between; margin-bottom: 5px; font-size: 12px; color: #666;">
-                        <span>قیمت اصلی:</span>
-                        <span id="original-price-display" style="text-decoration: line-through;">${formattedOriginalPrice} تومان</span>
-                    </div>
-                    <div style="display: flex; justify-content: space-between; margin-bottom: 10px; font-size: 12px; color: #28a745;">
-                        <span>مقدار تخفیف:</span>
-                        <span id="auto-discount-amount">${new Intl.NumberFormat('fa-IR').format(priceData.discount_amount)} تومان</span>
-                    </div>
-                    ` : `
-                    <div style="display: flex; justify-content: space-between; margin-bottom: 5px; font-size: 12px; color: #666;">
-                        <span>قیمت اصلی:</span>
-                        <span id="original-price-display">${formattedOriginalPrice} تومان</span>
-                    </div>
-                    `}
                     
                     <p style="margin: 0; color: #666; font-size: 14px;">
                         در صورت تأیید، این مبلغ از حساب شما کسر خواهد شد.
@@ -251,6 +301,8 @@ class PaymentPopup {
         
         document.body.appendChild(this.popup);
         this.setupEventListeners();
+        
+        this.updatePriceDetails(this.priceData);
     }
 
     setupEventListeners() {
@@ -293,10 +345,11 @@ class PaymentPopup {
         });
     }
 
-    // در تابع applyDiscount، بخش error handler رو به‌روزرسانی کنید:
     async applyDiscount() {
         const discountCode = document.getElementById('discount-code-input').value.trim();
         const messageElement = document.getElementById('discount-message');
+        
+        console.log('🎫 اعمال کد تخفیف:', discountCode);
         
         if (!discountCode) {
             this.showDiscountMessage('لطفا کد تخفیف را وارد کنید', 'error');
@@ -347,6 +400,7 @@ class PaymentPopup {
             }
     
             if (data.success) {
+                console.log('✅ کد تخفیف معتبر:', data.data);
                 this.handleDiscountSuccess(data.data);
             } else {
                 // در صورت خطا، به وضعیت قبلی برگرد
@@ -389,16 +443,50 @@ class PaymentPopup {
     isUserLoggedIn() {
         return typeof aiAssistantVars !== 'undefined' && aiAssistantVars.user_id && aiAssistantVars.user_id !== '0';
     }
-
+    
     handleDiscountSuccess(data) {
-        // تبدیل مقادیر به عدد برای اطمینان
-        this.finalPrice = parseFloat(data.final_price) || 0;
-        this.discountAmount = parseFloat(data.discount_amount) || 0;
-        this.originalPrice = parseFloat(data.original_price) || this.originalPrice;
+        console.log('🎫 داده‌های کد تخفیف دریافتی:', data);
+        
+        // 🔥 استفاده از basePrice که از form-events.js دریافت شده
+        let basePrice = this.basePrice;
+        if (!basePrice) {
+            basePrice = this.options.includeConsultantFee ? 
+                (this.priceData.original_price - this.consultantFee) : 
+                this.priceData.original_price;
+        }
+        
+        // 🔥 محاسبه تخفیف خودکار از داده‌های اصلی
+        let autoDiscountAmount = 0;
+        if (this.priceData && this.priceData.has_discount) {
+            autoDiscountAmount = parseFloat(this.priceData.discount_amount) || 0;
+        }
+        
+        // 🔥 محاسبه تخفیف کد معرف
+        const manualDiscountAmount = parseFloat(data.discount_amount) || 0;
+        
+        // 🔥 محاسبه جمع کل تخفیف
+        const totalDiscountAmount = autoDiscountAmount + manualDiscountAmount;
+        
+        console.log('🧮 محاسبات نهایی تخفیف:', {
+            basePrice: basePrice,
+            autoDiscount: autoDiscountAmount,
+            manualDiscount: manualDiscountAmount,
+            totalDiscount: totalDiscountAmount
+        });
+        
+        // 🔥 محاسبه قیمت نهایی: basePrice - totalDiscountAmount + consultantFee
+        let finalPrice = basePrice - totalDiscountAmount;
+        if (this.options.includeConsultantFee && this.consultantFee > 0) {
+            finalPrice += this.consultantFee;
+        }
+        
+        this.finalPrice = finalPrice;
+        this.discountAmount = totalDiscountAmount;
+        this.originalPrice = basePrice + (this.options.includeConsultantFee ? this.consultantFee : 0);
         
         this.discountApplied = true;
         
-        // ذخیره اطلاعات تخفیف در state به صورت مستقیم
+        // ذخیره اطلاعات تخفیف در state
         if (window.state && window.state.formData) {
             window.state.formData.discountInfo = {
                 discountCode: document.getElementById('discount-code-input').value.trim(),
@@ -412,16 +500,97 @@ class PaymentPopup {
         
         // به روزرسانی نمایش قیمت
         this.updatePriceDisplay();
-        
-        // نمایش جزئیات تخفیف
-        this.showDiscountDetails(data);
-        
+        this.updatePriceDetails(data);
         this.showDiscountMessage(data.message, 'success');
         
         // به روزرسانی بررسی موجودی با قیمت جدید
         this.fetchUserBalance(this.finalPrice);
+    }
         
-        this.updateOriginalPriceDisplay();
+    // تابع جدید برای به‌روزرسانی جزئیات قیمت
+    updatePriceDetails(discountData = null) {
+        // 🔥 استفاده از basePrice که از form-events.js دریافت شده
+        let basePrice = this.basePrice;
+        
+        // اگر basePrice وجود ندارد، از محاسبه استفاده کن
+        if (!basePrice) {
+            basePrice = this.options.includeConsultantFee ? 
+                (this.originalPrice - this.consultantFee) : 
+                this.originalPrice;
+        }
+        
+        console.log('🔢 basePrice استفاده شده:', basePrice);
+        
+        // 🔥 محاسبه تخفیف خودکار از داده‌های اصلی
+        let autoDiscountAmount = 0;
+        if (this.priceData && this.priceData.has_discount) {
+            autoDiscountAmount = parseFloat(this.priceData.discount_amount) || 0;
+        }
+        
+        // 🔥 محاسبه تخفیف کد معرف فقط اگر کاربر کد تخفیف وارد کرده باشد
+        let manualDiscountAmount = 0;
+        if (discountData && discountData.discount_amount && this.discountApplied) {
+            manualDiscountAmount = parseFloat(discountData.discount_amount) || 0;
+        }
+        
+        // 🔥 جمع کل تخفیف‌ها
+        const totalDiscountAmount = autoDiscountAmount + manualDiscountAmount;
+        
+        console.log('🔢 محاسبات تخفیف:', {
+            basePrice: basePrice,
+            autoDiscount: autoDiscountAmount,
+            manualDiscount: manualDiscountAmount,
+            totalDiscount: totalDiscountAmount,
+            discountApplied: this.discountApplied
+        });
+        
+        const formattedBasePrice = new Intl.NumberFormat('fa-IR').format(basePrice);
+        const formattedConsultantFee = new Intl.NumberFormat('fa-IR').format(this.consultantFee);
+        const formattedTotalDiscount = new Intl.NumberFormat('fa-IR').format(totalDiscountAmount);
+        
+        // پیدا کردن المان‌های جزئیات قیمت و به‌روزرسانی آنها
+        const priceDetailsContainer = this.popup.querySelector('.price-details-container');
+        if (priceDetailsContainer) {
+            priceDetailsContainer.innerHTML = `
+                <h4 style="margin: 0 0 10px 0; color: #333; font-size: 14px;">جزئیات هزینه:</h4>
+                
+                <!-- قیمت پایه رژیم -->
+                <div style="display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 13px;">
+                    <span>قیمت پایه رژیم:</span>
+                    <span>${formattedBasePrice} تومان</span>
+                </div>
+                
+                ${this.options.includeConsultantFee && this.consultantFee > 0 ? `
+                <!-- هزینه مشاور -->
+                <div style="display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 13px;">
+                    <span>هزینه تأیید متخصص:</span>
+                    <span style="color: #00857a;">+ ${formattedConsultantFee} تومان</span>
+                </div>
+                
+                <!-- قیمت کل قبل از تخفیف -->
+                <div style="display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 13px; color: #666;">
+                    <span>جمع کل:</span>
+                    <span style="text-decoration: line-through;">${new Intl.NumberFormat('fa-IR').format(basePrice + this.consultantFee)} تومان</span>
+                </div>
+                ` : ''}
+                
+                ${totalDiscountAmount > 0 ? `
+                <!-- 🔥 نمایش جمع کل تخفیف -->
+                <div style="display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 13px; color: #28a745;">
+                    <span>مقدار تخفیف:</span>
+                    <span>- ${formattedTotalDiscount} تومان</span>
+                </div>
+                ` : ''}
+                
+                <!-- خط جداکننده -->
+                <div style="border-top: 1px dashed #ddd; margin: 10px 0; padding-top: 10px;">
+                    <div style="display: flex; justify-content: space-between; font-weight: bold; color: #00857a;">
+                        <span>مبلغ قابل پرداخت:</span>
+                        <span id="final-price">${new Intl.NumberFormat('fa-IR').format(this.finalPrice)} تومان</span>
+                    </div>
+                </div>
+            `;
+        }
     }
 
     updateOriginalPriceDisplay() {
@@ -437,35 +606,34 @@ class PaymentPopup {
         // فقط کد تخفیف رو ریست کن، تخفیف عمومی رو حفظ کن
         this.resetCouponOnly();
     }
-    
-    // تابع جدید برای ریست کردن فقط کد تخفیف (بدن تأثیر روی تخفیف عمومی)
+        
     resetCouponOnly() {
-        // فقط اطلاعات کد تخفیف رو پاک کن
         this.discountApplied = false;
         
-        // قیمت نهایی رو به حالت قبل از کد تخفیف برگردون (با حفظ تخفیف عمومی)
-        if (this.hasAutoDiscount && this.autoDiscount) {
-            // اگر تخفیف عمومی فعال بود، قیمت نهایی رو به حالت تخفیف عمومی برگردون
-            this.finalPrice = this.priceData.final_price;
-        } else {
-            // اگر تخفیف عمومی نبود، به قیمت اصلی برگرد
-            this.finalPrice = this.originalPrice;
+        // 🔥 بازگشت به حالت اولیه فقط با تخفیف خودکار
+        this.finalPrice = this.priceData.final_price;
+        
+        // 🔥 اگر هزینه مشاور وجود دارد، آن را اضافه کن
+        if (this.options.includeConsultantFee && this.consultantFee > 0) {
+            this.finalPrice += this.consultantFee;
         }
         
-        this.discountAmount = 0;
+        // 🔥 فقط تخفیف خودکار
+        this.discountAmount = this.priceData.has_discount ? parseFloat(this.priceData.discount_amount) || 0 : 0;
         
         // به‌روزرسانی state
         if (window.state && window.state.formData) {
             if (window.state.formData.discountInfo) {
                 window.state.formData.discountInfo.discountCode = '';
                 window.state.formData.discountInfo.discountApplied = false;
-                window.state.formData.discountInfo.discountAmount = 0;
+                window.state.formData.discountInfo.discountAmount = this.discountAmount;
                 window.state.formData.discountInfo.finalPrice = this.finalPrice;
                 window.state.formData.discountInfo.discountData = null;
             }
         }
         
         this.updatePriceDisplay();
+        this.updatePriceDetails();
         
         const discountInput = document.getElementById('discount-code-input');
         if (discountInput) {
@@ -474,8 +642,12 @@ class PaymentPopup {
         
         // به‌روزرسانی بررسی موجودی
         this.fetchUserBalance(this.finalPrice);
-        
         this.showDiscountMessage('', 'info');
+        
+        console.log('🔄 تخفیف حذف شد:', {
+            finalPrice: this.finalPrice,
+            discountAmount: this.discountAmount
+        });
     }
 
     showDiscountMessage(message, type) {
