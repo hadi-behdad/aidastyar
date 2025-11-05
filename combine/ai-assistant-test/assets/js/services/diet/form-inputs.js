@@ -209,13 +209,18 @@ window.setupInput = function(inputId, displayId, field) {
             `${value} ${field === "age" ? "سال" : field === "height" ? "سانتی‌متر" : "کیلوگرم"}` : 
             `0 ${field === "age" ? "سال" : field === "height" ? "سانتی‌متر" : "کیلوگرم"}`;
         
-        // تغییر این خط برای استفاده از متغیرهای CSS
         display.style.color = value ? "var(--text-color)" : "var(--light-text-color)";
         
         state.updateFormData(field, value ? parseInt(value) : null);
         
-        if (field === "weight" && state.formData.height && value) {
-            calculateBMI(state.formData.height, parseInt(value));
+        // این خط را اضافه کنید - محاسبه BMI هنگام تغییر وزن
+        if (field === "weight" && state.formData.userInfo.height && value) {
+            calculateBMI(state.formData.userInfo.height, parseInt(value));
+        }
+        
+        // این خط را نیز اضافه کنید - محاسبه BMI هنگام تغییر قد
+        if (field === "height" && state.formData.userInfo.weight && value) {
+            calculateBMI(parseInt(value), state.formData.userInfo.weight);
         }
     };
 
