@@ -49,15 +49,12 @@ class AI_Job_Queue {
             return;
         }
 
-        try {
+        try { 
             $charset_collate = $wpdb->get_charset_collate();
             $sql = "CREATE TABLE {$this->table_name} (
                 id BIGINT(20) UNSIGNED NOT NULL AUTO_INCREMENT,
                 user_id BIGINT(20) UNSIGNED NOT NULL,
-                service_id VARCHAR(50) NOT NULL,
-                prompt LONGTEXT NOT NULL,
-                final_price DECIMAL(10,2) DEFAULT 0,
-                user_data LONGTEXT NULL,
+                history_id BIGINT UNSIGNED NOT NULL,
                 status ENUM('pending','processing','done','error') DEFAULT 'pending',
                 error_message TEXT NULL,
                 started_at DATETIME NULL,
@@ -70,7 +67,6 @@ class AI_Job_Queue {
                 PRIMARY KEY (id),
                 INDEX (status),
                 INDEX (started_at),
-                INDEX (service_id),
                 INDEX (created_at),
                 INDEX (priority)
             ) $charset_collate;";
@@ -99,15 +95,12 @@ class AI_Job_Queue {
         return $schedules;
     }
 
-    public function enqueue_job($user_id, $service_id, $prompt, $final_price, $user_data = []) {
+    public function enqueue_job($history_id , $user_id) {
         global $wpdb;
 
         $inserted = $wpdb->insert($this->table_name, [
-            'user_id'     => $user_id,
-            'service_id'  => $service_id,
-            'prompt'      => $prompt,
-            'final_price' => $final_price,
-            'user_data'   => maybe_serialize($user_data),
+            'history_id'     => $history_id,
+            'user_id'     => $user_id ,
             'status'      => 'pending',
             'created_at'  => current_time('mysql'),
             'updated_at'  => current_time('mysql')
@@ -281,84 +274,341 @@ class AI_Job_Queue {
             ini_set('max_execution_time', 300);
             ini_set('memory_limit', '256M');
 
-            $this->validate_job($job);
-
+        //    $this->validate_job($job);
+            
+            
             // Call API
-            error_log('📡 [WORKER] Calling API for job #' . $job_id);
+            error_log('📡 [WORKER] Starting job #' . $job_id);
             $start_time = microtime(true);
+            
 
-            $response = "Test response for job #" . $job->id;
-         //   $response = $this->call_deepseek_api($job->prompt);
 
-            $api_time = round(microtime(true) - $start_time, 2);
+            $history_id = $job -> history_id;
+            
+            
+            
+            $history_manager = AI_Assistant_History_Manager::get_instance();            
+            $history = $history_manager ->get_history_item($history_id);
+            
+            // Updateing history status
+            error_log('📝 [WORKER] Updateing history to processing for job' . $job_id);
+            $update_result = $history_manager->update_history(
+                $history_id,
+                'processing'
+            );
 
-            if (!$response || (is_array($response) && isset($response['error']))) {
-                $err = is_array($response) && isset($response['error']) ? $response['error'] : 'Empty or invalid API response';
-                throw new Exception("API call failed: " . $err);
+            if ($update_result) {
+                // موفق
+                error_log('✅ [ACTION] Status updated successfully for ' . $history_id);
+            } else {
+                // ناموفق
+                error_log('❌ [ACTION] Failed to update status for '  . $history_id);
+                throw new Exception('Failed to update history ');
             }
 
-            $cleaned_response = $this->clean_api_response($response);
+            
+            $user_id = $history-> user_id;
+            $service_id = $history-> service_id;
+            $userData = $history-> user_data;
+            
+            $decodedData = json_decode($userData, true); // true برای تبدیل به آرایه
+            
+            
+            // استخراج داده‌ها
+            $userInfo = $decodedData['userInfo'] ?? [];
+            $serviceSelection = $decodedData['serviceSelection'] ?? []; 
+            $discountInfo = $decodedData['discountInfo'] ?? [];
+          
+          
+            if ($service_id === 'diet' ){
+                
+                    $serviceSelectionDietType = $serviceSelection['dietType'] ?? null;
+                    
+                    if ( $serviceSelectionDietType === 'with-specialist'   ){
 
-            // Begin transaction
-            $wpdb->query('START TRANSACTION');
+                        error_log('📝  [DietType] serviceSelectionDietType :' . $serviceSelectionDietType);
+                        
+                        // استخراج داده‌های selectedSpecialist (اگر وجود دارد)
+                        $selectedSpecialistId = null;
+                        $selectedSpecialistName = null;
+                        $selectedSpecialistSpecialty = null;
+                        
+                        if (isset($serviceSelection['selectedSpecialist']) && is_array($serviceSelection['selectedSpecialist'])) {
+                            $selectedSpecialistId = $serviceSelection['selectedSpecialist']['id'] ?? null;
+                            $selectedSpecialistName = $serviceSelection['selectedSpecialist']['name'] ?? null;
+                            $selectedSpecialistSpecialty = $serviceSelection['selectedSpecialist']['specialty'] ?? null;
+                            
+                             error_log('📝 [DietType] $selectedSpecialistName :' . $selectedSpecialistName);
+                        } 
+                    
+                    }                    
 
-            // Payment
-            error_log('💰 [WORKER] Deducting credit for job #' . $job_id);
+            } 
+            
+            $all_services = get_option('ai_assistant_services', []);
+            $service_name = $all_services[$service_id]['name'];
+            
+            
+            $service_manager = AI_Assistant_Service_Manager::get_instance();
+            $original_price = $service_manager->get_service_price($service_id);
+            
+            $service_info = $service_manager->get_service($service_id);
+            if ($service_info && isset($service_info['system_prompt'])) {
+                $system_prompt = $service_info['system_prompt'];
+            } else {
+                error_log('Service not found or system_prompt not set');
+            }
+              
+            
+            $userInfoString = is_array($userInfo) ? json_encode($userInfo, JSON_UNESCAPED_UNICODE) : $userInfo;
+
+            
+            $prompt = $system_prompt . "\n\n" . $userInfoString;
             $payment_handler = AI_Assistant_Payment_Handler::get_instance();
-            $credit_success = $payment_handler->deduct_credit(
-                $job->user_id,
-                $job->final_price,
-                'استفاده از سرویس: ' . $job->service_id,
-                'job_' . $job_id
-            );
-
-            if ($credit_success === false || (is_array($credit_success) && isset($credit_success['error']))) {
-                $err = is_array($credit_success) && isset($credit_success['error']) ? $credit_success['error'] : 'Deduct credit failed';
-                throw new Exception("Payment deduction failed: " . $err);
+            
+            
+            //// DISCOUNT
+                        
+            try {
+                $discountInfo_discount_code = $discountInfo['discountCode'] ?? null;
+                $discountInfo_discountApplied = $discountInfo['discountApplied'] ?? null;
+                
+                // اگر کد تخفیف وارد شده بود اما معتبر نبود
+                if ($discountInfo_discount_code && !empty($discountInfo_discount_code && $discountInfo_discountApplied)) {
+                    // اعتبارسنجی کد تخفیف
+                    $validation_result = AI_Assistant_Discount_Manager::validate_discount(
+                        $discountInfo_discount_code, 
+                        $service_id, 
+                        $user_id
+                    );
+                    
+                    if ($validation_result['valid']) {
+                        // محاسبه قیمت با تخفیف
+                        $discounted_price = AI_Assistant_Discount_Manager::calculate_discounted_price(
+                            $original_price, 
+                            $validation_result['discount']
+                        );
+                        
+                        // استفاده از قیمت با تخفیف
+                        $final_price = $discounted_price;
+                        $discount_applied = true;
+                        
+                    } else {
+                        throw new Exception("کد تخفیف نامعتبر: " . $validation_result['message']);
+                        
+                    }
+                } else {
+                    // اگر کد تخفیف وارد نشده بود
+                    $final_price = $original_price;
+                    $discount_applied = false;
+                }
+                
+                // ادامه پردازش با $final_price
+                
+            } catch (Exception $e) {
+                // مدیریت خطا
+                error_log('Discount Error: ' . $e->getMessage());
+                
+                
             }
+            
+    
+            try {
+                // 1. اعتبارسنجی اولیه (اطمینان از اینکه درخواست درست است، اعتبار کاربر و ...)
+                $this->validate_request($prompt, $service_id, $user_id, $final_price, $payment_handler);
+    
+                // 2. فراخوانی سرویس خارجی (DeepSeek یا هر API‌ای)
+              //  $response = $this->call_deepseek_api($prompt);
+                sleep(15);
+                $response = '📡 [RESPONSE] Test response for job #' . $job_id;
+    
+    
+                // 3. بررسی موفقیت پاسخ API
+                if (!$response || (is_array($response) && isset($response['error']))) {
+                    // اگر API پاسخ معتبری برنگردانده، خطا بده
+                    $err = is_array($response) && isset($response['error']) ? $response['error'] : 'Empty or invalid API response';
+                    throw new Exception("API call failed: " . $err);
+                }
+                
+                
+                $cleaned_response = $this->clean_api_response($response);
 
-            // Save history
-            error_log('📝 [WORKER] Saving history for job #' . $job_id);
-            $history_manager = AI_Assistant_History_Manager::get_instance();
-            $history_success = $history_manager->save_history(
-                $job->user_id,
-                $job->service_id,
-                $job->service_id,
-                maybe_unserialize($job->user_data),
-                $response
-            );
-
-            if ($history_success === false || empty($history_success)) {
-                throw new Exception('Failed to save history');
+    
+                // 4. شروع تراکنش دیتابیس
+                $wpdb->query('START TRANSACTION');
+    
+                
+                error_log('💰 [WORKER] Deducting credit for job #' . $job_id);
+                
+                $payment_handler = AI_Assistant_Payment_Handler::get_instance();
+                $credit_success = $payment_handler->deduct_credit(
+                    $user_id,
+                    $final_price,
+                    'استفاده از سرویس: ' . $service_name,
+                    'job_' . $job_id
+                );
+    
+                if ($credit_success === false || (is_array($credit_success) && isset($credit_success['error']))) {
+                    $err = is_array($credit_success) && isset($credit_success['error']) ? $credit_success['error'] : 'Deduct credit failed';
+                    throw new Exception("Payment deduction failed: " . $err);
+                }                
+                
+                    
+                // Updateing history
+                error_log('📝 [WORKER] Updateing history for job #' . $job_id);
+                // $history_manager = AI_Assistant_History_Manager::get_instance();
+                $update_result = $history_manager->update_history(
+                    $history_id,
+                    'completed'    ,     // $service_id
+                    $cleaned_response
+                );
+                
+            if ($update_result) {
+                // موفق
+                error_log('✅ [ACTION] Status updated successfully for ' . $history_id);
+            } else {
+                // ناموفق
+                error_log('❌ [ACTION] Failed to update status for '  . $history_id);
+                throw new Exception('Failed to update history step 0');
             }
-
-            $wpdb->query('COMMIT');
-
-            // Mark done
-            $update_success = $wpdb->update(
-                $this->table_name,
-                [
-                    'status' => 'done',
-                    'updated_at' => current_time('mysql'),
-                    'processing_log' => $job->processing_log . "\n[SUCCESS] Completed in " . $api_time . "s at " . current_time('mysql')
-                ],
-                ['id' => $job_id],
-                ['%s', '%s', '%s'],
-                ['%d']
-            );
-
-            if ($update_success) {
-                error_log('✅ [WORKER] Job #' . $job_id . ' completed successfully in ' . $api_time . 's');
-                // Clear current job
+            
+                
+                // ✅ افزایش usage_count برای تخفیف‌های کوپن
+                if ($discount_applied && 
+                    isset($validation_result['discount']) && 
+                    $validation_result['discount']->scope === 'coupon') {
+                    
+                    $discount_db = AI_Assistant_Discount_DB::get_instance();
+                    $discount_db->increment_usage($validation_result['discount']->id);
+                    
+                    $this->logger->log('Discount usage incremented:', [
+                        'discount_id' => $validation_result['discount']->id,
+                        'discount_code' => $discountInfo_discount_code,
+                        'user_id' => $user_id,
+                        'service_id' => $service_id,
+                        'final_price' => $final_price
+                    ]);
+                }                
+    
+                // 7. در صورت نیاز، ثبت درخواست مشاوره
+                $Consultant_Rec = null;
+                if ($service_id === 'diet' && $serviceSelectionDietType === 'with-specialist') {
+                    $Nutrition_Consultant_Manager = AI_Assistant_Nutrition_Consultant_Manager::get_instance();
+                    $Consultant_Rec = $Nutrition_Consultant_Manager->submit_consultation_request($history_id, 6000);
+    
+                    if ($Consultant_Rec === false || (is_array($Consultant_Rec) && isset($Consultant_Rec['error']))) {
+                        $err = is_array($Consultant_Rec) && isset($Consultant_Rec['error']) ? $Consultant_Rec['error'] : 'submit_consultation_request failed';
+                        throw new Exception("Consultation request failed: " . $err);
+                    }
+                    
+                    else if($Consultant_Rec)
+                    
+                    {
+                        // Updateing history status
+                        error_log('📝 [WORKER] Updateing history for job #' . $job_id);
+                       // $history_manager = AI_Assistant_History_Manager::get_instance();
+                        $history_success = $history_manager->update_history(
+                            $history_id,
+                            'consultant_queue'
+                        );
+                        
+                        if ($history_success === false || empty($history_success)) {
+                            throw new Exception('Failed to update history step 2');
+                        }                        
+                        
+                        
+                    }
+                    
+                    
+                }
+                
+                
+                // 8. همه چی موفق بود -> commit
+                $wpdb->query('COMMIT');
+                
+                    
+                $api_time = round(microtime(true) - $start_time, 2);
+    
+    
+    
+                // Mark done
+                $update_success = $wpdb->update(
+                    $this->table_name,
+                    [
+                        'status' => 'done',
+                        'updated_at' => current_time('mysql'),
+                        'processing_log' => $job->processing_log . "\n[SUCCESS] Completed in " . $api_time . "s at " . current_time('mysql')
+                    ],
+                    ['id' => $job_id],
+                    ['%s', '%s', '%s'],
+                    ['%d']
+                );
+    
+                if ($update_success) {
+                    error_log('✅ [WORKER] Job #' . $job_id . ' completed successfully in ' . $api_time . 's');
+                    // Clear current job
+                    delete_option($this->current_job_option_key);
+                    
+                    // Trigger next job processing
+                    $this->maybe_process_jobs();
+                    
+                    return true;
+                } else {
+                    throw new Exception('Failed to update job status');
+                }                
+    
+    
+            } catch (Exception $e) {
+                // هر خطایی رخ داد، rollback و لاگ
+                try {
+                    $wpdb->query('ROLLBACK');
+                } catch (Exception $rollbackEx) {
+                    // اگر rollback هم خطا داد، لاگش کن
+                    error_log('Rollback failed: ' . $rollbackEx->getMessage());
+                }
+    
+                $error_message = $e->getMessage();
+                error_log('❌ [WORKER] Job #' . $job_id . ' failed: ' . $error_message);
+    
+                $wpdb->update(
+                    $this->table_name,
+                    [
+                        'status' => 'error',
+                        'error_message' => substr($error_message, 0, 500),
+                        'updated_at' => current_time('mysql'),
+                        'processing_log' => $job->processing_log . "\n[ERROR] " . $error_message . " at " . current_time('mysql')
+                    ],
+                    ['id' => $job_id],
+                    ['%s', '%s', '%s', '%s'],
+                    ['%d']
+                );
+                
+                
+                // Updateing history status
+                error_log('📝 [WORKER] Updateing history for job #' . $job_id);
+               // $history_manager = AI_Assistant_History_Manager::get_instance();
+                $history_success = $history_manager->update_history(
+                    $history_id,
+                    'error'
+                );                
+    
+                // Clear current job on error
                 delete_option($this->current_job_option_key);
                 
-                // Trigger next job processing
+                // Trigger next job processing even on error
                 $this->maybe_process_jobs();
                 
-                return true;
-            } else {
-                throw new Exception('Failed to update job status');
+                return false;
+                // برگردوندن خطا به فراخواننده — (می‌تونی این شیوه را سفارشی کنی)
+                return [
+                    'success' => false,
+                    'message' => 'Processing failed: ' . $e->getMessage(),
+                    'exception' => $e->getMessage(),
+                ];
             }
+            
+
+
 
         } catch (Exception $e) {
             $error_message = $e->getMessage();
@@ -384,24 +634,6 @@ class AI_Job_Queue {
             $this->maybe_process_jobs();
             
             return false;
-        }
-    }
-
-    private function validate_job($job) {
-        if (empty($job->prompt) || empty($job->service_id)) {
-            throw new Exception('پارامترهای ورودی نامعتبر هستند');
-        }
-
-        $user = get_user_by('ID', $job->user_id);
-        if (!$user) {
-            throw new Exception('کاربر یافت نشد');
-        }
-
-        $payment_handler = AI_Assistant_Payment_Handler::get_instance();
-        $has_credit = $payment_handler->has_enough_credit($job->user_id, $job->final_price);
-
-        if (is_wp_error($has_credit) || !$has_credit) {
-            throw new Exception('موجودی حساب کافی نیست');
         }
     }
 
@@ -498,6 +730,11 @@ class AI_Job_Queue {
     }
 
     private function validate_request($prompt, $service_id, $user_id, $final_price, $payment_handler) {
+        $user = get_user_by('ID', $user_id);
+        if (!$user) {
+            throw new Exception('کاربر یافت نشد');
+        }          
+        
         if (empty($prompt) || empty($service_id)) {
             throw new Exception('پارامترهای ورودی نامعتبر هستند');
         }
@@ -505,6 +742,8 @@ class AI_Job_Queue {
         if (!$payment_handler->has_enough_credit($user_id, $final_price)) {
             throw new Exception('موجودی حساب شما کافی نیست');
         }
+        
+      
     }
 }
 
