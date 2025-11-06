@@ -273,7 +273,7 @@ require_once __DIR__ . '/inc/admin/services-admin.php';
 //--------------------------------------------------------------
 
 
-require_once get_template_directory() . '/inc/class-history-manager.php';
+// require_once get_template_directory() . '/inc/class-history-manager.php';
 
 
 function ai_service_history_output() {
