@@ -104,12 +104,16 @@ class AI_Assistant_Nutrition_Consultant_Manager {
      */
     public function handle_consultation_review() {
         
-                error_log('[Diet Consultation] $contract $contract :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::');
+        error_log('[Diet Consultation] $contract $contract :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::');
         // بررسی nonce و دسترسی
         if (!wp_verify_nonce($_POST['nonce'], 'consultation_review_nonce') || 
             !current_user_can('nutrition_consultant')) {
             wp_die('دسترسی غیرمجاز');
         }
+        
+        
+        
+        
 
         $request_id = intval($_POST['request_id']);
         $consultant_id = get_current_user_id();
@@ -122,61 +126,76 @@ class AI_Assistant_Nutrition_Consultant_Manager {
         if (!$request || $request->consultant_id != $consultant_id) {
             wp_send_json_error('درخواست یافت نشد یا دسترسی ندارید.');
         }
-
-        // آماده‌سازی داده‌های بروزرسانی
-        $update_data = [];
         
-        if ($action === 'save_draft') {
-            $update_data = [
-                'status' => 'under_review',
-                'consultant_notes' => $consultant_notes,
-                'final_diet_data' => $final_diet_data
-            ];
-        } elseif ($action === 'approve') {
-            $update_data = [
-                'status' => 'approved',
-                'consultant_notes' => $consultant_notes,
-                'final_diet_data' => $final_diet_data
-            ];
-        } elseif ($action === 'reject') {
-            $update_data = [
-                'status' => 'rejected',
-                'consultant_notes' => $consultant_notes
-            ];
-        }
-
-        // بروزرسانی درخواست
-        $result = $this->consultation_db->update_consultation_request($request_id, $update_data);
         
-        if ($result) {
-            // اگر تایید شد، اطلاع‌رسانی به کاربر
-            if ($action === 'approve') {
-                
-                $commission = $this->consultation_db->calculate_commission($request_id);
-                $this->notification_manager->send_consultation_result($request->user_id, $request_id);
-                
-                // Updateing history status for user
-                error_log('📝 [WORKER] Updateing history to processing for job' );
-                $update_result = $this->history_manager->update_history(
-                    $request->service_history_id,
-                    'approved'
-                );
- 
-            }elseif ($action === 'save_draft') {
+        if ($request->status === 'approved')
+        
+        {
             
-                // Updateing history status for user
-                error_log('📝 [WORKER] Updateing history to processing for job' );
-                $update_result = $this->history_manager->update_history(
-                    $request->service_history_id,
-                    'under_review'
-                );
-                
-            }
-            
-            wp_send_json_success('تغییرات با موفقیت ذخیره شد.');
+            wp_send_json_error('این درخواست قبلا تایید شده و امکان تغییر مجدد وجود ندارد.');
         } else {
-            wp_send_json_error('خطا در ذخیره تغییرات.');
+            
+                    
+                // آماده‌سازی داده‌های بروزرسانی
+                $update_data = [];
+                
+                if ($action === 'save_draft') {
+                    $update_data = [
+                        'status' => 'under_review',
+                        'consultant_notes' => $consultant_notes,
+                        'final_diet_data' => $final_diet_data
+                    ];
+                } elseif ($action === 'approve') {
+                    $update_data = [
+                        'status' => 'approved',
+                        'consultant_notes' => $consultant_notes,
+                        'final_diet_data' => $final_diet_data
+                    ];
+                } elseif ($action === 'reject') {
+                    $update_data = [
+                        'status' => 'rejected',
+                        'consultant_notes' => $consultant_notes
+                    ];
+                }
+        
+                // بروزرسانی درخواست
+                $result = $this->consultation_db->update_consultation_request($request_id, $update_data);
+                
+                if ($result) {
+                    // اگر تایید شد، اطلاع‌رسانی به کاربر
+                    if ($action === 'approve') {
+                        
+                        $commission = $this->consultation_db->calculate_commission($request_id);
+                        $this->notification_manager->send_consultation_result($request->user_id, $request_id);
+                        
+                        // Updateing history status for user
+                        error_log('📝 [WORKER] Updateing history to processing for job' );
+                        $update_result = $this->history_manager->update_history(
+                            $request->service_history_id,
+                            'approved'
+                        );
+         
+                    }elseif ($action === 'save_draft') {
+                    
+                        // Updateing history status for user
+                        error_log('📝 [WORKER] Updateing history to processing for job' );
+                        $update_result = $this->history_manager->update_history(
+                            $request->service_history_id,
+                            'under_review'
+                        );
+                        
+                    }
+                    
+                    wp_send_json_success('تغییرات با موفقیت ذخیره شد.');
+                } else {
+                    wp_send_json_error('خطا در ذخیره تغییرات.');
+                }            
+            
+            
+            
         }
+
+
     }
 
     /**
