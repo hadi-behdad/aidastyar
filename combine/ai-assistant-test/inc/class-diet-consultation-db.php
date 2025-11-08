@@ -622,13 +622,15 @@ class AI_Assistant_Diet_Consultation_DB {
         $delay_hours = $this->calculate_delay_hours($plan->created_at, $plan->reviewed_at);
         $penalty_multiplier = $this->calculate_penalty($delay_hours, $contract->full_payment_hours, $contract->delay_penalty_factor);
 
-        $base_commission = ($contract->commission_type === 'percent')
-            ? $plan->consultation_price * ($contract->commission_value / 100)
-            : $contract->commission_value;
+        // $base_commission = ($contract->commission_type === 'percent')
+        //     ? $plan->consultation_price * ($contract->commission_value / 100)
+        //     : $contract->commission_value;
+        
+        $base_commission = $contract->commission_value;
 
         $final_commission = $base_commission * $penalty_multiplier;
 
-        $wpdb->insert($this->commissions_table, [
+        $wpdb->insert($this->commissions_table, [ 
             'request_id' => $request_id,
             'consultant_id' => $plan->consultant_id,
             'base_amount' => $plan->consultation_price,
@@ -833,6 +835,9 @@ class AI_Assistant_Diet_Consultation_DB {
     private function calculate_penalty($delay_hours, $full_payment_hours, $factor) {
         if ($delay_hours <= $full_payment_hours) return 1;
         $extra = $delay_hours - $full_payment_hours;
-        return pow($factor, $extra);
+        return max(pow($factor, $extra),0.05);
+        
+
+
     }    
 }

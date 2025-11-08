@@ -493,8 +493,20 @@ class AI_Job_Queue {
                 // 7. در صورت نیاز، ثبت درخواست مشاوره
                 $Consultant_Rec = null;
                 if ($service_id === 'diet' && $serviceSelectionDietType === 'with-specialist') {
+                    
+                    
+                    $Consultation_DB = AI_Assistant_Diet_Consultation_DB::get_instance();
+                    $consultant = $Consultation_DB -> get_consultant($selectedSpecialistId);
+                    
+                    $contract = $Consultation_DB->get_active_contract($consultant->user_id);
+                    
+                    if ($contract === false || empty($contract)) {
+                        throw new Exception('not valid contract');
+                    }                     
+                    
+                    
                     $Nutrition_Consultant_Manager = AI_Assistant_Nutrition_Consultant_Manager::get_instance();
-                    $Consultant_Rec = $Nutrition_Consultant_Manager->submit_consultation_request($history_id, 6000);
+                    $Consultant_Rec = $Nutrition_Consultant_Manager->submit_consultation_request($history_id ,  $consultant->user_id , $contract->commission_value);
     
                     if ($Consultant_Rec === false || (is_array($Consultant_Rec) && isset($Consultant_Rec['error']))) {
                         $err = is_array($Consultant_Rec) && isset($Consultant_Rec['error']) ? $Consultant_Rec['error'] : 'submit_consultation_request failed';

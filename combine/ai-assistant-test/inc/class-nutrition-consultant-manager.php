@@ -29,7 +29,7 @@ class AI_Assistant_Nutrition_Consultant_Manager {
     /**
      * ثبت درخواست بازبینی جدید
      */
-    public function submit_consultation_request($service_history_id, $consultation_price = 0) {
+    public function submit_consultation_request($service_history_id, $consultant_id , $consultation_price) {
         // دریافت اطلاعات تاریخچه
         $history_item = $this->history_manager->get_history_item($service_history_id);
         if (!$history_item) {
@@ -42,10 +42,10 @@ class AI_Assistant_Nutrition_Consultant_Manager {
         // }
 
         // دریافت مشاور (فعلاً اولین مشاور)
-        $consultant_id = $this->get_available_consultant();
-        if (!$consultant_id) {
-            return new WP_Error('no_consultant', 'هیچ مشاور فعالی یافت نشد.');
-        }
+        // $consultant_id = $this->get_available_consultant();
+        // if (!$consultant_id) {
+        //     return new WP_Error('no_consultant', 'هیچ مشاور فعالی یافت نشد.');
+        // }
         
         
         
