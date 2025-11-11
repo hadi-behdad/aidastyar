@@ -26,6 +26,8 @@ class PaymentPopup {
         this.autoDiscount = null;
         this.consultantFee = this.options.consultantFee || 0;
         this.basePrice = this.options.basePrice; 
+        this.focusHandler = null;
+        this.visibilityHandler = null;  
     }
         
     async show() {
@@ -63,6 +65,8 @@ class PaymentPopup {
             await this.fetchUserBalance(this.finalPrice);
             
             this.isOpen = true;
+            
+            this.setupBalanceRefresh();
         } catch (error) {
             console.error('Error showing payment popup:', error);
             alert('خطا در نمایش پرداخت: ' + error.message);
@@ -734,6 +738,26 @@ class PaymentPopup {
             document.getElementById('confirm-payment').disabled = false;
         }
     }
+    
+    setupBalanceRefresh() {
+        // ذخیره رفرنس‌های handler
+        this.focusHandler = () => {
+            if (this.isOpen) {
+                this.fetchUserBalance(this.finalPrice);
+            }
+        };
+        
+        this.visibilityHandler = () => {
+            if (!document.hidden && this.isOpen) {
+                this.fetchUserBalance(this.finalPrice);
+            }
+        };
+        
+        // اضافه کردن event listenerها
+        window.addEventListener('focus', this.focusHandler);
+        document.addEventListener('visibilitychange', this.visibilityHandler);
+    }
+
 
     updateBalanceUI(balance, servicePrice) {
         const balanceElement = document.getElementById('current-balance');
@@ -750,9 +774,11 @@ class PaymentPopup {
             confirmBtn.textContent = 'افزایش موجودی';
             confirmBtn.onclick = () => {
                 const baseUrl = window.location.origin;
-                window.location.href = `${baseUrl}/wallet-charge/`;
+                const shortfall = Math.ceil(servicePrice - balance); // مقدار کمبود
+                window.open(baseUrl + "/wallet-charge/?needed_amount=" + shortfall, "_blank");
             };
         } else {
+            balanceElement.style.color = '#333';
             // حالت اول: موجودی کافی است
             confirmBtn.textContent = 'تأیید پرداخت';
             // ✅ راه حل: استفاده از arrow function برای حفظ this
@@ -784,18 +810,35 @@ class PaymentPopup {
         
         confirmBtn.disabled = false;
     }
-
+    
     hide() {
         this.isOpen = false;
-        
         this.resetDiscount();
         
         if (this.popup) {
             document.body.removeChild(this.popup);
             this.popup = null;
-            this.isOpen = false;
+        }
+        
+        this.isOpen = false;
+        
+        // پاک کردن event listenerها
+        this.cleanupBalanceRefresh();
+    }
+    
+    cleanupBalanceRefresh() {
+        // حذف event listenerها
+        if (this.focusHandler) {
+            window.removeEventListener('focus', this.focusHandler);
+            this.focusHandler = null;
+        }
+        
+        if (this.visibilityHandler) {
+            document.removeEventListener('visibilitychange', this.visibilityHandler);
+            this.visibilityHandler = null;
         }
     }
+    
     
     resetDiscount() {
         this.finalPrice = this.originalPrice;
