@@ -1480,11 +1480,15 @@ $theme_assets = get_stylesheet_directory_uri();
                     </div>
                     
                     <div class="card-footer">
-                        <div class="price-section">
-                            <div class="price-amount" id="with-specialist-price">در حال دریافت قیمت...</div>
+                        <p class="specialist-price-note" style="text-align: center; color: #666; font-size: 13px; margin: 0;">
+                            قیمت براساس مشاور انتخابی
+                        </p>
+                        <div class="price-section" id="with-specialist-price-container" style="display: none;">
+                            <div class="price-amount" id="with-specialist-price">...</div>
                             <div class="price-currency">تومان</div>
                         </div>
                     </div>
+
                 </div>
             </div>
         </div>

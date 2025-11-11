@@ -333,39 +333,37 @@ class AI_Assistant_Diet_Consultation_DB {
         );
     }
 
-    /**
-     * دریافت لیست مشاورین فعال
-     */
     public function get_active_consultants() {
         if (!$this->ensure_tables_exist()) {
-            return [];
+            return array();
         }
-    
-        global $wpdb;
         
+        global $wpdb;
         $consultants = $wpdb->get_results("
-            SELECT 
-                c.id,
-                c.name,
-                '' as specialty,
-                ct.commission_value as consultation_price
+            SELECT c.id, c.name, '' as specialty, 
+            ct.commission_value as consultation_price,
+            ct.commission_type
             FROM {$this->consultants_table} c
-            LEFT JOIN {$this->contracts_table} ct ON c.id = ct.consultant_id 
-                AND ct.active_from <= NOW() 
-                AND (ct.active_to IS NULL OR ct.active_to >= NOW())
+            LEFT JOIN {$this->contracts_table} ct 
+            ON c.id = ct.consultant_id
+            AND ct.active_from <= NOW()
+            AND (ct.active_to IS NULL OR ct.active_to >= NOW())
+            AND ct.commission_type = 'fixed'  -- فقط قراردادهای fixed
             WHERE c.status = 'active'
-            ORDER BY c.name ASC
+            ORDER BY ct.active_from DESC, c.name ASC
         ");
         
-        // اگر قیمت مشاور پیدا نشد، از قیمت پیش‌فرض استفاده کن
-        foreach ($consultants as &$consultant) {
-            if (!$consultant->consultation_price) {
-                $consultant->consultation_price = 25000; // قیمت پیش‌فرض
+        foreach ($consultants as $consultant) {
+            // اگه قرارداد نداشته باشه یا commission_value صفر باشه
+            if (!$consultant->consultation_price || $consultant->consultation_price <= 0) {
+                error_log("Consultant {$consultant->id} has no valid contract!");
+                $consultant->consultation_price = 150000; // یه قیمت پیش‌فرض معقول
             }
         }
         
         return $consultants;
     }
+
     
     /**
      * دریافت قیمت پایه سرویس رژیم غذایی
