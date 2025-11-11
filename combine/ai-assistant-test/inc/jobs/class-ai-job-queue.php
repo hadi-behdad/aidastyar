@@ -313,7 +313,6 @@ class AI_Job_Queue {
             
             $decodedData = json_decode($userData, true); // true برای تبدیل به آرایه
             
-            
             // استخراج داده‌ها
             $userInfo = $decodedData['userInfo'] ?? [];
             $serviceSelection = $decodedData['serviceSelection'] ?? []; 
@@ -366,50 +365,64 @@ class AI_Job_Queue {
             $prompt = $system_prompt . "\n\n" . $userInfoString;
             $payment_handler = AI_Assistant_Payment_Handler::get_instance();
             
-            
             //// DISCOUNT
                         
             try {
-                $discountInfo_discount_code = $discountInfo['discountCode'] ?? null;
-                $discountInfo_discountApplied = $discountInfo['discountApplied'] ?? null;
+                $discountDetails = $decodedData['discountDetails'] ?? [];
+                $discountInfo = $decodedData['discountInfo'] ?? [];
                 
-                // اگر کد تخفیف وارد شده بود اما معتبر نبود
-                if ($discountInfo_discount_code && !empty($discountInfo_discount_code && $discountInfo_discountApplied)) {
-                    // اعتبارسنجی کد تخفیف
-                    $validation_result = AI_Assistant_Discount_Manager::validate_discount(
-                        $discountInfo_discount_code, 
-                        $service_id, 
-                        $user_id
-                    );
+                error_log('🎯 [DISCOUNT DEBUG] Using discountDetails: ' . print_r($discountDetails, true));
+                
+                // این منطق را جایگزین کنید:
+                if (!empty($discountDetails) && isset($discountDetails['finalPrice'])) {
+                    $final_price = floatval($discountDetails['finalPrice']);
+                    $original_price = floatval($discountDetails['originalPrice'] ?? $final_price);
                     
-                    if ($validation_result['valid']) {
-                        // محاسبه قیمت با تخفیف
-                        $discounted_price = AI_Assistant_Discount_Manager::calculate_discounted_price(
-                            $original_price, 
-                            $validation_result['discount']
+                    // تشخیص خودکار اینکه تخفیف اعمال شده یا نه
+                    $discount_applied = ($final_price < $original_price);
+                    
+                    error_log('✅ [DISCOUNT] Using discountDetails - Final price: ' . $final_price);
+                    error_log('🎯 [DISCOUNT] Auto-detected discount applied: ' . ($discount_applied ? 'YES' : 'NO'));
+                } 
+                else if (!empty($discountInfo)) {
+    
+                    $discountInfo_discount_code = $discountInfo['discountCode'] ?? null;
+                    $discountInfo_discountApplied = $discountInfo['discountApplied'] ?? null;
+                    
+                    // اگر کد تخفیف وارد شده بود اما معتبر نبود
+                    if ($discountInfo_discount_code && !empty($discountInfo_discount_code && $discountInfo_discountApplied)) {
+                        // اعتبارسنجی کد تخفیف
+                        $validation_result = AI_Assistant_Discount_Manager::validate_discount(
+                            $discountInfo_discount_code, 
+                            $service_id, 
+                            $user_id
                         );
                         
-                        // استفاده از قیمت با تخفیف
-                        $final_price = $discounted_price;
-                        $discount_applied = true;
-                        
-                    } else {
-                        throw new Exception("کد تخفیف نامعتبر: " . $validation_result['message']);
-                        
+                        if ($validation_result['valid']) {
+                            // محاسبه قیمت با تخفیف
+                            $discounted_price = AI_Assistant_Discount_Manager::calculate_discounted_price(
+                                $original_price, 
+                                $validation_result['discount']
+                            );
+                            
+                            // استفاده از قیمت با تخفیف
+                            $final_price = $discounted_price;
+                            $discount_applied = true;
+                            
+                        } else {
+                            throw new Exception("کد تخفیف نامعتبر: " . $validation_result['message']);
+                            
+                        }
                     }
                 } else {
-                    // اگر کد تخفیف وارد نشده بود
                     $final_price = $original_price;
                     $discount_applied = false;
+                    error_log('ℹ️ [DISCOUNT] No discount data found, using original price: ' . $original_price);
                 }
-                
-                // ادامه پردازش با $final_price
-                
+   
             } catch (Exception $e) {
                 // مدیریت خطا
                 error_log('Discount Error: ' . $e->getMessage());
-                
-                
             }
             
     
