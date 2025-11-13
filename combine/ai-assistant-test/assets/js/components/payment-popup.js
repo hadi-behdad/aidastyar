@@ -617,9 +617,9 @@ class PaymentPopup {
         this.finalPrice = this.priceData.final_price;
         
         // 🔥 اگر هزینه مشاور وجود دارد، آن را اضافه کن
-        if (this.options.includeConsultantFee && this.consultantFee > 0) {
-            this.finalPrice += this.consultantFee;
-        }
+        // if (this.options.includeConsultantFee && this.consultantFee > 0) {
+        //     this.finalPrice += this.consultantFee;
+        // }
         
         // 🔥 فقط تخفیف خودکار
         this.discountAmount = this.priceData.has_discount ? parseFloat(this.priceData.discount_amount) || 0 : 0;
