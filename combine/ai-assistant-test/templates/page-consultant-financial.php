@@ -249,7 +249,11 @@ wp_enqueue_style('font-awesome', 'https://cdnjs.cloudflare.com/ajax/libs/font-aw
                                 <tr>
                                     <td>#<?php echo $commission->request_id; ?></td>
                                     <td><?php echo number_format($commission->base_amount); ?> تومان</td>
-                                    <td><?php echo $commission->delay_hours; ?> ساعت</td>
+                                    <?php
+                                    $hours = floor($commission->delay_hours);
+                                    $minutes = round(($commission->delay_hours - $hours) * 60);
+                                    ?>
+                                    <td><?php echo sprintf('%02d:%02d', $hours, $minutes); ?></td>
                                     <td><?php echo $commission->penalty_multiplier; ?></td>
                                     <td class="commission-amount"><?php echo number_format($commission->final_commission); ?> تومان</td>
                                     <td><?php echo date_i18n('Y/m/d - H:i', strtotime($commission->generated_at)); ?></td>

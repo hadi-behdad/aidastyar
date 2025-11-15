@@ -336,6 +336,7 @@
 
 .financial-tab-content.active {
     display: block;
+    overflow: auto;
 }
 
 /* رسپانسیو */
@@ -357,7 +358,7 @@
     }
     
     .contract-field {
-        flex-direction: column;
+        /*flex-direction: column;*/
         align-items: flex-start;
         gap: 0.25rem;
     }

@@ -81,15 +81,15 @@ class AI_Assistant_Nutrition_Consultant_Manager {
     /**
      * دریافت اولین مشاور فعال
      */
-    private function get_available_consultant() {
-        $consultants = get_users([
-            'role' => 'nutrition_consultant',
-            'number' => 1,
-            'fields' => 'ID'
-        ]);
+    // private function get_available_consultant() {
+    //     $consultants = get_users([
+    //         'role' => 'nutrition_consultant',
+    //         'number' => 1,
+    //         'fields' => 'ID'
+    //     ]);
         
-        return !empty($consultants) ? $consultants[0] : false;
-    }
+    //     return !empty($consultants) ? $consultants[0] : false;
+    // }
 
     /**
      * بررسی آیا سرویس مربوط به رژیم غذایی است
@@ -116,10 +116,16 @@ class AI_Assistant_Nutrition_Consultant_Manager {
         
 
         $request_id = intval($_POST['request_id']);
-        $consultant_id = get_current_user_id();
+        $consultant_user_id = get_current_user_id();
         $action = sanitize_text_field($_POST['action_type']);
         $consultant_notes = sanitize_textarea_field($_POST['consultant_notes'] ?? '');
         $final_diet_data = wp_unslash($_POST['final_diet_data'] ?? ''); // داده‌های JSON
+
+        $consultation = $this->consultation_db->get_consultation_by_user_id($consultant_user_id);
+        
+        if ($consultation) {
+            $consultant_id = $consultation->id;
+        }        
 
         // بررسی مالکیت درخواست
         $request = $this->consultation_db->get_consultation_request($request_id);
@@ -208,7 +214,13 @@ class AI_Assistant_Nutrition_Consultant_Manager {
         }
 
         $request_id = intval($_POST['request_id']);
-        $consultant_id = get_current_user_id();
+        $consultant_user_id = get_current_user_id();
+        
+        $consultation = $this->consultation_db->get_consultation_by_user_id($consultant_user_id);
+        
+        if ($consultation) {
+            $consultant_id = $consultation->id;
+        }
 
         $request = $this->consultation_db->get_consultation_request($request_id);
         if (!$request || $request->consultant_id != $consultant_id) {
