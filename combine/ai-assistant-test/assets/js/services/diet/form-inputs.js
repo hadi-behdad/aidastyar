@@ -170,7 +170,10 @@ window.setupTextInput = function(inputId, displayId, field) {
             if (inputId === "first-name-input") {
                 // از فیلد نام به فیلد نام خانوادگی برو
                 document.getElementById("last-name-input").focus();
-            } else if (inputId === "last-name-input" && input.value.trim()) {
+            } else if (inputId === "last-name-input") {
+                // از فیلد نام به فیلد نام خانوادگی برو
+                document.getElementById("age-input").focus();
+            } else if (inputId === "age-input" && input.value.trim()) {
                 // از فیلد نام خانوادگی به مرحله بعد برو
                 if (nextButton && !nextButton.disabled) {
                     nextButton.click();
@@ -336,7 +339,7 @@ document.addEventListener("DOMContentLoaded", () => {
         // فقط اجازه کار Enter در مراحل خاص
         if (event.key === "Enter") {
             const allowedSteps = [
-                STEPS.AGE, 
+                STEPS.PERSONAL_INFO,
                 STEPS.HEIGHT, 
                 STEPS.WEIGHT, 
                 STEPS.TARGET_WEIGHT,
