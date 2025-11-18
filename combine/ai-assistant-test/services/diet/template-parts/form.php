@@ -64,6 +64,19 @@ $theme_assets = get_stylesheet_directory_uri();
             <span id="age-display">0 سال</span>
         </div>
         
+        <div id="age-validation-container">
+            <p id="age-error" class="error-message"></p>
+            <div class="separator-dotted"></div>
+            <div class="info-box">
+                <div class="info-content">
+                    <img src="<?php echo $theme_assets; ?>/assets/images/png/age-min.png" width="30" height="30" alt="سن">
+                    <div class="info-text">
+                        <span class="first-line">سن شما را می‌پرسیم تا برنامه شخصی شما را ایجاد کنیم.</span>
+                        <span class="second-line">افراد مسن‌تر نسبت به افراد جوان‌تر با همان شاخص توده بدنی (BMI)، معمولاً چربی بدن بیشتری دارند</span>
+                    </div>
+                </div>
+            </div>
+        </div>        
         <!-- Animated Illustration Container -->
         <div class="name-input-illustration">
             <div class="floating-pen"></div>

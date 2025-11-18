@@ -2,6 +2,14 @@
 window.validateStep = function(step) {
     const nextButton = document.querySelector(".next-step");
     const errorMessages = {
+        [STEPS.PERSONAL_INFO]: { 
+            field: "age", 
+            min: CONSTANTS.MIN_AGE, 
+            max: CONSTANTS.MAX_AGE, 
+            unit: "سال", 
+            label: "سن", 
+            errorId: "age-error" 
+        },        
         [STEPS.HEIGHT]: { 
             field: "height", 
             min: CONSTANTS.MIN_HEIGHT, 
@@ -54,10 +62,10 @@ window.validateStep = function(step) {
         const age = state.formData.userInfo.age;
         nextButton.disabled = !(firstName && lastName);
         
-        if (!age || age < CONSTANTS.MINAGE || age > CONSTANTS.MAXAGE) {
+        if (!age || age < CONSTANTS.MIN_AGE || age > CONSTANTS.MAX_AGE) {
            nextButton.disabled = true;    
         }
-        return;
+        // return;
     }    
     
     if (errorMessages[step]) {
