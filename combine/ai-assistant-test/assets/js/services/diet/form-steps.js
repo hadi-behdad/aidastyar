@@ -577,28 +577,51 @@ window.setupExerciseSelection = function(currentStep) {
     });
 };
 
+// به‌روزرسانی setupHeightWeightInput برای مرحله ترکیبی
+window.setupHeightWeightInput = function(currentStep) {
+    if (currentStep !== STEPS.HEIGHT_WEIGHT) return;
+    
+    const heightInput = document.getElementById('height-input');
+    const weightInput = document.getElementById('weight-input');
+    
+    // فوکوس روی اولین فیلد خالی
+    if (!state.formData.userInfo.height) {
+        heightInput.focus();
+    } else if (!state.formData.userInfo.weight) {
+        weightInput.focus();
+    }
+    
+    // اگر هر دو مقدار از قبل وجود داشته باشد، BMI را محاسبه کن
+    if (state.formData.userInfo.height && state.formData.userInfo.weight) {
+        calculateBMI(state.formData.userInfo.height, state.formData.userInfo.weight);
+    }
+    
+    // Validate step
+    validateHeightWeight();
+};
+
+
 window.showStep = function(step) {
     const stepElements = [
         "gender-selection-step",        // 1
         "personal-info-step",           // 2
         "goal-selection-step",          // 3
-        "height-input-step",            // 5
-        "weight-input-step",            // 6
-        "target-weight-step",           // 7
-        "goal-weight-display",          // 8
-        "chronic-conditions-step",      // 9
-        "medications-step",             // 10
-        "digestive-conditions-step",    // 11
-        "surgery-step",                 // 12
-        "water-intake-step",            // 13
-        "activity-selection-step",      // 14
-        "exercise-activity-step",       // 15
-        "diet-style-step",              // 16
-        "food-limitations-step",        // 17
-        "favorite-foods-step",          // 18
-        "diet-type-selection-step",     // 19
-        "terms-agreement-step",         // 20
-        "confirm-submit-step"           // 21
+        "height-weight-input-step",     // 4 ← تغییر: مرحله ترکیبی جدید
+        "target-weight-step",           // 5
+        "goal-weight-display",          // 6
+        "chronic-conditions-step",      // 7
+        "medications-step",             // 8
+        "digestive-conditions-step",    // 9
+        "surgery-step",                 // 10
+        "water-intake-step",            // 11
+        "activity-selection-step",      // 12
+        "exercise-activity-step",       // 13
+        "diet-style-step",              // 14
+        "food-limitations-step",        // 15
+        "favorite-foods-step",          // 16
+        "diet-type-selection-step",     // 17
+        "terms-agreement-step",         // 18
+        "confirm-submit-step"           // 19
     ];
     
     document.querySelectorAll(".step").forEach(el => {
@@ -691,22 +714,46 @@ window.showStep = function(step) {
         submitButtonContainer.style.display = (step === STEPS.CONFIRMATION) ? "block" : "none";
     }
     
-    if ([STEPS.PERSONAL_INFO, STEPS.HEIGHT, STEPS.WEIGHT, STEPS.TARGET_WEIGHT].includes(step)) {
-        const inputId = `${["first-name", "last-name", "height", "weight", "target-weight"][step - 2]}-input`;
-        const inputElement = document.getElementById(inputId);
-        if (inputElement) inputElement.focus();
+    // فوکوس خودکار برای input های خاص
+    if ([STEPS.PERSONAL_INFO, STEPS.TARGET_WEIGHT].includes(step)) {
+        setTimeout(() => {
+            let inputElement = null;
+            
+            if (step === STEPS.PERSONAL_INFO) {
+                // فوکوس روی first-name-input
+                inputElement = document.getElementById('first-name-input');
+            } else if (step === STEPS.TARGET_WEIGHT) {
+                // فوکوس روی target-weight-input
+                inputElement = document.getElementById('target-weight-input');
+            }
+            
+            if (inputElement) {
+                inputElement.focus();
+                // اسکرول به input (اختیاری)
+                inputElement.scrollIntoView({ 
+                    behavior: 'smooth', 
+                    block: 'center' 
+                });
+            }
+        }, 300);
         
-        const nextButton = document.querySelector(".next-step");
-        if (nextButton) nextButton.disabled = true;
-        
+        const nextButton = document.querySelector('.next-step');
+        if (nextButton) {
+            nextButton.disabled = true;
+        }
         validateStep(step);
-    }    
+    }
+  
     
-    if (step === STEPS.WATER_INTAKE) {
+    if (step === STEPS.HEIGHT_WEIGHT) {
+        setupHeightWeightInput(step);
+        document.getElementById('next-button-container').style.display = 'block';
+    }
+    else if (step === STEPS.WATER_INTAKE) {
         setupWaterIntakeSelection(step);
         document.getElementById("next-button-container").style.display = "block";
     } 
-    if (step === STEPS.DIGESTIVE_CONDITIONS) {
+    else if (step === STEPS.DIGESTIVE_CONDITIONS) {
         setupDigestiveConditionsSelection(step);
     }
     else if (step === STEPS.SURGERY) {
@@ -876,8 +923,7 @@ window.handleBackStep = function() {
 window.handleEnterKey = function(event) {
     // فقط در مراحل عددی (سن، قد، وزن، وزن هدف) و مرحله نهایی اجازه کار با Enter را بده
     const allowedSteps = [
-        STEPS.HEIGHT, 
-        STEPS.WEIGHT, 
+        STEPS.HEIGHT_WEIGHT,
         STEPS.TARGET_WEIGHT,
         STEPS.PERSONAL_INFO,
         STEPS.CONFIRMATION

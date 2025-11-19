@@ -3004,3 +3004,76 @@ body.dark-mode .diet-type-card.premium:not(.selected) {
     overflow-y: auto;
     height: 60vh;
 }
+
+/* استایل برای مرحله ترکیبی قد و وزن */
+#height-weight-input-step .input-container {
+    margin-bottom: 15px;
+}
+
+#height-weight-validation-container {
+    width: 100%;
+    max-width: 500px;
+    margin-left: auto;
+    margin-right: auto;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+/* استایل پیام خطای یکپارچه */
+#height-weight-error {
+    margin: 0;
+    padding: 15px;
+    border-radius: 0;
+    font-size: 14px;
+    text-align: center;
+    transition: all 0.3s ease;
+    border: none;
+    border-bottom: 1px dashed var(--border-color);
+}
+
+#height-weight-error.invalid {
+    background-color: rgba(244, 67, 54, 0.1);
+    color: #f44336;
+    border: 1px solid rgba(244, 67, 54, 0.3);
+    border-bottom: 1px dashed rgba(244, 67, 54, 0.3);
+}
+
+#height-weight-error.valid {
+    background-color: rgba(76, 175, 80, 0.1);
+    color: #4CAF50;
+    border: 1px solid rgba(76, 175, 80, 0.3);
+    border-bottom: 1px dashed rgba(76, 175, 80, 0.3);
+}
+
+#height-weight-error:empty {
+    display: none;
+}
+
+/* بهبود نمایش BMI */
+#height-weight-input-step #bmi-result-container {
+    margin: 0;
+    padding: 15px;
+}
+
+/* فاصله بین separator و info-box */
+#height-weight-validation-container .separator-dotted {
+    margin: 0;
+    border: none;
+    height: 1px;
+    background: repeating-linear-gradient(
+        to right,
+        var(--border-color),
+        var(--border-color) 2px,
+        transparent 2px,
+        transparent 4px
+    );
+}
+
+#height-weight-validation-container .info-box {
+    margin: 0;
+    padding: 15px;
+    border: none;
+    border-radius: 0;
+    background-color: transparent;
+}

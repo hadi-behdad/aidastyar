@@ -9,23 +9,7 @@ window.validateStep = function(step) {
             unit: "سال", 
             label: "سن", 
             errorId: "age-error" 
-        },        
-        [STEPS.HEIGHT]: { 
-            field: "height", 
-            min: CONSTANTS.MIN_HEIGHT, 
-            max: CONSTANTS.MAX_HEIGHT, 
-            unit: "سانتی‌متر", 
-            label: "قد", 
-            errorId: "height-error" 
-        },
-        [STEPS.WEIGHT]: { 
-            field: "weight", 
-            min: CONSTANTS.MIN_WEIGHT, 
-            max: CONSTANTS.MAX_WEIGHT, 
-            unit: "کیلوگرم", 
-            label: "وزن", 
-            errorId: "weight-error" 
-        },
+        }, 
         [STEPS.TARGET_WEIGHT]: { 
             field: "targetWeight", 
             min: CONSTANTS.MIN_WEIGHT, 
@@ -56,6 +40,9 @@ window.validateStep = function(step) {
         }
     };
     
+    if (step === STEPS.HEIGHT_WEIGHT) 
+        return validateHeightWeight();    
+        
     if (step === STEPS.PERSONAL_INFO) {
         const firstName = state.formData.userInfo.firstName;
         const lastName = state.formData.userInfo.lastName;
@@ -104,6 +91,74 @@ window.validateStep = function(step) {
         if (nextButton) nextButton.disabled = false;
     }
 }
+
+// Validation ترکیبی برای قد و وزن با یک پیام مشترک
+window.validateHeightWeight = function() {
+    const heightInput = document.getElementById('height-input');
+    const weightInput = document.getElementById('weight-input');
+    const errorElement = document.getElementById('height-weight-error');
+    const nextButton = document.querySelector('.next-step');
+    
+    const height = parseInt(heightInput.value);
+    const weight = parseInt(weightInput.value);
+    
+    let isValid = false;
+    let errorMessage = '';
+    
+    // بررسی حالت‌های مختلف
+    
+    // حالت 1: هیچکدام وارد نشده
+    if ((!height || height === 0) && (!weight || weight === 0)) {
+        errorMessage = 'لطفاً قد و وزن خود را وارد کنید';
+    }
+    // حالت 2: فقط قد وارد نشده
+    else if (!height || height === 0) {
+        errorMessage = 'لطفاً قد خود را وارد کنید';
+    }
+    // حالت 3: فقط وزن وارد نشده
+    else if (!weight || weight === 0) {
+        errorMessage = 'لطفاً وزن خود را وارد کنید';
+    }
+    // حالت 4: قد خارج از بازه معتبر
+    else if (height < CONSTANTS.MIN_HEIGHT || height > CONSTANTS.MAX_HEIGHT) {
+        errorMessage = `قد باید بین ${CONSTANTS.MIN_HEIGHT} تا ${CONSTANTS.MAX_HEIGHT} سانتی‌متر باشد`;
+    }
+    // حالت 5: وزن خارج از بازه معتبر
+    else if (weight < CONSTANTS.MIN_WEIGHT || weight > CONSTANTS.MAX_WEIGHT) {
+        errorMessage = `وزن باید بین ${CONSTANTS.MIN_WEIGHT} تا ${CONSTANTS.MAX_WEIGHT} کیلوگرم باشد`;
+    }
+    // حالت 6: هر دو معتبر هستند
+    else {
+        errorMessage = '✓ قد و وزن وارد شده معتبر است';
+        isValid = true;
+    }
+    
+    // نمایش پیام
+    if (errorElement) {
+        errorElement.textContent = errorMessage;
+        
+        if (isValid) {
+            errorElement.classList.remove('invalid');
+            errorElement.classList.add('valid');
+        } else {
+            errorElement.classList.remove('valid');
+            errorElement.classList.add('invalid');
+        }
+    }
+    
+    // فعال/غیرفعال کردن دکمه Next
+    if (nextButton) {
+        nextButton.disabled = !isValid;
+    }
+    
+    // محاسبه BMI اگر هر دو معتبر باشند
+    if (isValid) {
+        calculateBMI(height, weight);
+    }
+    
+    return isValid;
+};
+
 
 window.calculateBMI = function(height, weight) {
     const heightInMeters = height / 100;

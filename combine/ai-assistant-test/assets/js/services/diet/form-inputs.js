@@ -82,6 +82,7 @@ function setupInputEffects() {
       }
     });
   });
+          
 }
 
 window.setupTextInput = function(inputId, displayId, field) {
@@ -89,6 +90,12 @@ window.setupTextInput = function(inputId, displayId, field) {
     const display = document.getElementById(displayId);
     const nextButton = document.querySelector(".next-step");
 
+    const maxLengths = {
+        firstName: 30,
+        lastName: 40
+    };
+    const maxLength = maxLengths[field] || 50;
+    
     // تنظیمات اولیه
     input.style.fontFamily = 'Vazir, Tahoma, sans-serif';
     input.style.fontSize = '16px';
@@ -152,6 +159,11 @@ window.setupTextInput = function(inputId, displayId, field) {
                 input.setSelectionRange(input.value.length, input.value.length);
             }, 0);
         }
+        
+        // محدود کردن طول
+        if (input.value.length > maxLength) {
+            input.value = input.value.substring(0, maxLength);
+        }        
     });
 
     input.addEventListener("keydown", (e) => {
@@ -203,43 +215,54 @@ window.setupTextInput = function(inputId, displayId, field) {
 window.setupInput = function(inputId, displayId, field) {
     const input = document.getElementById(inputId);
     const display = document.getElementById(displayId);
-    const nextButton = document.querySelector(".next-step");
-
-    if (nextButton) nextButton.disabled = true;
-
+    const nextButton = document.querySelector('.next-step');
+    
+    if (!input || !display) return;
+    
+    if (nextButton) {
+        nextButton.disabled = true;
+    }
+    
     const updateDisplay = (value) => {
-        display.textContent = value ? 
-            `${value} ${field === "age" ? "سال" : field === "height" ? "سانتی‌متر" : "کیلوگرم"}` : 
-            `0 ${field === "age" ? "سال" : field === "height" ? "سانتی‌متر" : "کیلوگرم"}`;
-        
-        display.style.color = value ? "var(--text-color)" : "var(--light-text-color)";
+        display.textContent = value ? `${value} ${field === 'age' ? 'سال' : field === 'height' ? 'سانتی‌متر' : 'کیلوگرم'}` : `0 ${field === 'age' ? 'سال' : field === 'height' ? 'سانتی‌متر' : 'کیلوگرم'}`;
+        display.style.color = value ? 'var(--text-color)' : 'var(--light-text-color)';
         
         state.updateFormData(field, value ? parseInt(value) : null);
         
-        // این خط را اضافه کنید - محاسبه BMI هنگام تغییر وزن
-        if (field === "weight" && state.formData.userInfo.height && value) {
+        // محاسبه BMI برای مرحله ترکیبی
+        if (field === 'weight' && state.formData.userInfo.height && value) {
             calculateBMI(state.formData.userInfo.height, parseInt(value));
         }
         
-        // این خط را نیز اضافه کنید - محاسبه BMI هنگام تغییر قد
-        if (field === "height" && state.formData.userInfo.weight && value) {
+        if (field === 'height' && state.formData.userInfo.weight && value) {
             calculateBMI(parseInt(value), state.formData.userInfo.weight);
         }
     };
-
-    input.addEventListener("input", () => {
-        let value = input.value.replace(/\D/g, "");
-        if (field === "age" && value.length > 2) value = value.slice(0, 2);
-        else if ((field === "height" || field === "weight") && value.length > 3) value = value.slice(0, 3);
+    
+    input.addEventListener('input', () => {
+        let value = input.value.replace(/\D/g, '');
+        
+        if (field === 'age' && value.length > 2) {
+            value = value.slice(0, 2);
+        } else if ((field === 'height' || field === 'weight') && value.length > 3) {
+            value = value.slice(0, 3);
+        }
         
         input.value = value;
         updateDisplay(value);
         
-        if (input.type === "text") {
-            setTimeout(() => input.setSelectionRange(value.length, value.length), 0);
+        if (input.type === 'text') {
+            setTimeout(() => {
+                input.setSelectionRange(value.length, value.length);
+            }, 0);
         }
         
-        validateStep(state.currentStep);
+        // فراخوانی validation برای مرحله فعلی
+        if (state.currentStep === STEPS.HEIGHT_WEIGHT) {
+            validateHeightWeight();
+        } else {
+            validateStep(state.currentStep);
+        }
     });
 
     input.addEventListener("click", () => {
@@ -252,6 +275,47 @@ window.setupInput = function(inputId, displayId, field) {
         if (!value) updateDisplay("");
         validateStep(state.currentStep);
     });
+    
+    // Event listener برای کلیدهای Enter و جهت‌دار
+    input.addEventListener('keydown', (e) => {
+        // جلوگیری از حرکت کرسور با کلیدهای چپ/راست
+        if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') {
+            e.preventDefault();
+            const cursorPos = input.selectionStart;
+            const newPos = e.key === 'ArrowLeft' 
+                ? Math.min(cursorPos + 1, input.value.length)
+                : Math.max(cursorPos - 1, 0);
+            input.setSelectionRange(newPos, newPos);
+        }
+        
+        // انتقال فوکوس با کلید Enter
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            
+            // برای فیلد قد، انتقال به فیلد وزن
+            if (inputId === 'height-input') {
+                const weightInput = document.getElementById('weight-input');
+                if (weightInput) {
+                    weightInput.focus();
+                }
+            }
+            // برای فیلد وزن، اگر مقادیر معتبر هستند، کلیک روی Next
+            else if (inputId === 'weight-input') {
+                const nextButton = document.querySelector('.next-step');
+                if (nextButton && !nextButton.disabled) {
+                    nextButton.click();
+                }
+            }
+            // برای target-weight-input هم همین منطق
+            else if (inputId === 'target-weight-input') {
+                const nextButton = document.querySelector('.next-step');
+                if (nextButton && !nextButton.disabled) {
+                    nextButton.click();
+                }
+            }
+        }
+    });
+    
 }
 
 window.setupOptionSelection = function(selector, key) {
@@ -335,23 +399,23 @@ document.addEventListener("DOMContentLoaded", () => {
     setupOptionSelection(".activity-option", "activity");
     setupOptionSelection(".exercise-option", "exercise");
 
-    document.getElementById("multi-step-form").addEventListener("keydown", function(event) {
-        // فقط اجازه کار Enter در مراحل خاص
-        if (event.key === "Enter") {
-            const allowedSteps = [
-                STEPS.PERSONAL_INFO,
-                STEPS.HEIGHT, 
-                STEPS.WEIGHT, 
-                STEPS.TARGET_WEIGHT,
-                STEPS.CONFIRMATION
-            ];
+    // document.getElementById("multi-step-form").addEventListener("keydown", function(event) {
+    //     // فقط اجازه کار Enter در مراحل خاص
+    //     if (event.key === "Enter") {
+    //         const allowedSteps = [
+    //             STEPS.PERSONAL_INFO,
+    //             STEPS.HEIGHT, 
+    //             STEPS.WEIGHT, 
+    //             STEPS.TARGET_WEIGHT,
+    //             STEPS.CONFIRMATION
+    //         ];
             
-            if (!allowedSteps.includes(state.currentStep)) {
-                event.preventDefault();
-                return false;
-            }
-        }
-    });
+    //         if (!allowedSteps.includes(state.currentStep)) {
+    //             event.preventDefault();
+    //             return false;
+    //         }
+    //     }
+    // });
     
     document.addEventListener("keydown", handleEnterKey);
     

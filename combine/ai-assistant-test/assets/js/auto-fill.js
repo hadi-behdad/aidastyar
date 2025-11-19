@@ -7,6 +7,32 @@ document.addEventListener('DOMContentLoaded', function() {
     const LONG_DELAY = 1000 * MUL_VALUE;
     const SHORT_DELAY = 300 * MUL_VALUE;
     
+    const testData = {
+        userInfo: {
+            firstName: "هادی",
+            lastName: "بهداد", 
+            gender: 'male',
+            goal: 'weight-loss',
+            age: 40,
+            height: 174,
+            weight: 73,
+            targetWeight: 71,
+            activity: 'medium',
+            exercise: 'medium',
+            waterIntake: 14,
+            surgery: ['none'],
+            digestiveConditions: ['none'],
+            dietStyle: ['none'],
+            foodLimitations: ['none'],
+            chronicConditions: ['none'],
+            medications: ['none'],
+            favoriteFoods: ['none']
+        },
+        serviceSelection: {
+            dietType: "ai-only",
+            selectedSpecialist: null
+        }
+    };    
     // فقط در محیط تست اجرا شود
     if ((window.location.pathname.includes('service/diet')) && (window.location.hostname.includes('test.') || 
         (typeof aiAssistantVars !== 'undefined' && aiAssistantVars.env === 'sandbox'))) {
@@ -22,33 +48,6 @@ document.addEventListener('DOMContentLoaded', function() {
             }
             
             window.removeEventListener('stateUpdated', handleStateChange);
-            
-            const testData = {
-                userInfo: {
-                    firstName: "هادی",
-                    lastName: "بهداد", 
-                    gender: 'male',
-                    goal: 'weight-loss',
-                    age: 40,
-                    height: 174,
-                    weight: 73,
-                    targetWeight: 71,
-                    activity: 'medium',
-                    exercise: 'medium',
-                    waterIntake: 14,
-                    surgery: ['none'],
-                    digestiveConditions: ['none'],
-                    dietStyle: ['none'],
-                    foodLimitations: ['none'],
-                    chronicConditions: ['none'],
-                    medications: ['none'],
-                    favoriteFoods: ['none']
-                },
-                serviceSelection: {
-                    dietType: "ai-only",
-                    selectedSpecialist: null
-                }
-            };
             
             function handleStateChange() {
                 console.trace();
@@ -110,9 +109,6 @@ document.addEventListener('DOMContentLoaded', function() {
 
             function fillNumberSteps() {
                 const fieldMap = {
-                    [STEPS.PERSONAL_INFO]: {id: 'age-input', value: testData.userInfo.age, name: 'سن'},
-                    [STEPS.HEIGHT]: {id: 'height-input', value: testData.userInfo.height, name: 'قد'},
-                    [STEPS.WEIGHT]: {id: 'weight-input', value: testData.userInfo.weight, name: 'وزن'},
                     [STEPS.TARGET_WEIGHT]: {id: 'target-weight-input', value: testData.userInfo.targetWeight, name: 'وزن هدف'}
                 };
 
@@ -266,16 +262,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
             }
 
-            // تابع کمکی برای کلیک روی دکمه بعدی
-            function clickNextButton(delay) {
-                setTimeout(() => {
-                    const nextButton = document.querySelector('.next-step:not([disabled])');
-                    if (nextButton) {
-                        nextButton.click();
-                    }
-                }, delay);
-            }
-
             // تابع اصلی برای پر کردن بر اساس مرحله فعلی
             function fillStepBasedOnCurrentState() {
                 switch(state.currentStep) {
@@ -288,11 +274,8 @@ document.addEventListener('DOMContentLoaded', function() {
                     case STEPS.GOAL:
                         fillGoalStep();
                         break;
-                    case STEPS.HEIGHT:
-                        fillNumberSteps();
-                        break;
-                    case STEPS.WEIGHT:
-                        fillNumberSteps();
+                    case STEPS.HEIGHT_WEIGHT:  // ✅ تغییر: به جای STEPS.HEIGHT
+                        fillHeightWeightStep();  // ✅ تغییر: تابع جدید
                         break;
                     case STEPS.TARGET_WEIGHT:
                         fillNumberSteps();
@@ -347,6 +330,56 @@ document.addEventListener('DOMContentLoaded', function() {
             fillStepBasedOnCurrentState();
         }
 
+        // پر کردن مرحله ترکیبی قد و وزن
+        function fillHeightWeightStep() {
+            if (state.currentStep !== STEPS.HEIGHT_WEIGHT) return;
+            
+            console.log('📝 Filling Height & Weight step...');
+            
+            // پر کردن قد
+            const heightInput = document.getElementById('height-input');
+            if (heightInput) {
+                heightInput.value = testData.userInfo.height;
+                heightInput.dispatchEvent(new Event('input', { bubbles: true }));
+                console.log('✅ Height set:', testData.userInfo.height);
+            }
+            
+            // تاخیر کوتاه قبل از وزن
+            setTimeout(() => {
+                const weightInput = document.getElementById('weight-input');
+                if (weightInput) {
+                    weightInput.value = testData.userInfo.weight;
+                    weightInput.dispatchEvent(new Event('input', { bubbles: true }));
+                    console.log('✅ Weight set:', testData.userInfo.weight);
+                }
+                
+                // تاخیر برای validation
+                setTimeout(() => {
+                    // اجرای validation دستی
+                    if (typeof validateHeightWeight === 'function') {
+                        validateHeightWeight();
+                    }
+                    
+                    // کلیک Next
+                    setTimeout(() => {
+                        clickNextButton(NEXT_BUTTON_DELAY);
+                    }, 300);
+                }, 400);
+            }, 300);
+        }
+
+
+
+        // تابع کمکی برای کلیک روی دکمه بعدی
+        function clickNextButton(delay) {
+            setTimeout(() => {
+                const nextButton = document.querySelector('.next-step:not([disabled])');
+                if (nextButton) {
+                    nextButton.click();
+                }
+            }, delay);
+        }
+        
         // ایجاد دکمه پر کردن خودکار (بدون تغییر)
         function createAutoFillButton() {
             if (document.getElementById('dev-auto-fill-btn')) return;
