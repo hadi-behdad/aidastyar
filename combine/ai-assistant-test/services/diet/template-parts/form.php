@@ -47,18 +47,33 @@ $theme_assets = get_stylesheet_directory_uri();
 
     <!-- Step 2: Personal Information -->
     <div id="personal-info-step" class="step">
-        <h2>لطفا نام و نام خانوادگی را وارد کنید</h2>
+        <h2>اطلاعات شخصی</h2>
         
+        <!-- First Name Input -->
         <div class="input-container" style="margin-bottom: 15px;">
-            <input type="text" id="first-name-input" dir="rtl" placeholder=" ">
+            <input 
+                type="text" 
+                id="first-name-input" 
+                dir="rtl" 
+                maxlength="30"
+                lang="fa"
+                autocomplete="given-name">
             <span id="first-name-display"></span>
         </div>
         
+        <!-- Last Name Input -->
         <div class="input-container" style="margin-bottom: 15px;">
-            <input type="text" id="last-name-input" dir="rtl" placeholder=" ">
+            <input 
+                type="text" 
+                id="last-name-input" 
+                dir="rtl" 
+                maxlength="40"
+                lang="fa"
+                autocomplete="family-name">
             <span id="last-name-display"></span>
-        </div>        
+        </div>
         
+        <!-- Age Input -->
         <div class="input-container">
             <input type="text" inputmode="numeric" id="age-input">
             <span id="age-display">0 سال</span>
@@ -71,18 +86,20 @@ $theme_assets = get_stylesheet_directory_uri();
                 <div class="info-content">
                     <img src="<?php echo $theme_assets; ?>/assets/images/png/age-min.png" width="30" height="30" alt="سن">
                     <div class="info-text">
-                        <span class="first-line">سن شما را می‌پرسیم تا برنامه شخصی شما را ایجاد کنیم.</span>
-                        <span class="second-line">افراد مسن‌تر نسبت به افراد جوان‌تر با همان شاخص توده بدنی (BMI)، معمولاً چربی بدن بیشتری دارند</span>
+                        <span class="first-line">محاسبه سن شما</span>
+                        <span class="second-line">سن شما را می‌پرسیم تا برنامه شخصی شما را ایجاد کنیم.</span>
                     </div>
                 </div>
             </div>
-        </div>        
+        </div>
+        
         <!-- Animated Illustration Container -->
         <div class="name-input-illustration">
             <div class="floating-pen"></div>
             <div class="floating-document"></div>
-        </div>        
+        </div>
     </div>
+
 
     <!-- Step 2: Goal Selection -->
     <div id="goal-selection-step" class="step">
@@ -122,38 +139,29 @@ $theme_assets = get_stylesheet_directory_uri();
         </div>
     </div>
 
-    <!-- Step 4: Height Input -->
-    <div id="height-input-step" class="step">
-        <h2>قد شما چقدر است؟</h2>
-        <div class="input-container">
+    <!-- Step 4: Height & Weight Input (Combined) -->
+    <div id="height-weight-input-step" class="step">
+        <h2>قد و وزن شما چقدر است؟</h2>
+        
+        <!-- Height Input -->
+        <div class="input-container" style="margin-bottom: 15px;">
             <input type="text" inputmode="numeric" id="height-input">
             <span id="height-display">0 سانتی‌متر</span>
         </div>
-        <div id="height-validation-container">
-            <p id="height-error" class="error-message"></p>
-            <div class="separator-dotted"></div>
-            <div class="info-box">
-                <div class="info-content">
-                    <img src="<?php echo $theme_assets; ?>/assets/images/png/height-min.png" width="30" height="30" alt="قد">
-                    <div class="info-text">
-                        <span class="first-line">محاسبه شاخص توده بدنی شما</span>
-                        <span class="second-line">شاخص توده بدنی (BMI) به طور گسترده به عنوان یک معیار برای سنجش خطر ابتلا یا شیوع برخی مشکلات سلامتی مورد استفاده قرار می‌گیرد</span>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Step 5: Weight Input -->
-    <div id="weight-input-step" class="step">
-        <h2>وزن شما چقدر است؟</h2>
-        <div class="input-container">
+        
+        <!-- Weight Input -->
+        <div class="input-container" style="margin-bottom: 15px;">
             <input type="text" inputmode="numeric" id="weight-input">
             <span id="weight-display">0 کیلوگرم</span>
         </div>
-        <div id="weight-validation-container">
-            <p id="weight-error" class="error-message"></p>
+        
+        <div id="height-weight-validation-container">
+            <!-- ✅ فقط یک error-message -->
+            <p id="height-weight-error" class="error-message"></p>
+            
             <div class="separator-dotted"></div>
+            
+            <!-- BMI Result Container -->
             <div id="bmi-result-container">
                 <div class="bmi-info">
                     <h3>شاخص توده بدنی (BMI) شما: <span id="bmi-value">0</span></h3>
@@ -172,8 +180,21 @@ $theme_assets = get_stylesheet_directory_uri();
                     </div>
                 </div>
             </div>
+            
+            <div class="separator-dotted"></div>
+            <div class="info-box">
+                <div class="info-content">
+                    <img src="<?php echo $theme_assets; ?>/assets/images/png/height-min.png" width="30" height="30" alt="قد و وزن">
+                    <div class="info-text">
+                        <span class="first-line">محاسبه شاخص توده بدنی شما</span>
+                        <span class="second-line">شاخص توده بدنی (BMI) به طور گسترده به عنوان یک معیار برای سنجش خطر ابتلا یا شیوع برخی مشکلات سلامتی مورد استفاده قرار می‌گیرد</span>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
+
+
 
     <!-- Step 6: Target Weight -->
     <div id="target-weight-step" class="step">

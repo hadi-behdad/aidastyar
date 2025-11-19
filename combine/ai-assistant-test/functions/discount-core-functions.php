@@ -92,25 +92,27 @@ class AI_Assistant_Discount_Manager {
                 
             case 'user_based':
                 // تخفیف مبتنی بر کاربر
-                if ($discount->user_restriction === 'specific_users') {
-                    $users = $discount_db->get_discount_users($discount->id);
-                    $is_applicable = in_array($user_id, $users);
-                    if ($is_applicable) {
-                        error_log("💰 تخفیف کاربری اعمال شد: {$discount->name} - برای کاربر: {$user_id}");
+                if ($user_id >0 ){
+                    if ($discount->user_restriction === 'specific_users') {
+                        $users = $discount_db->get_discount_users($discount->id);
+                        $is_applicable = in_array($user_id, $users);
+                        if ($is_applicable) {
+                            error_log("💰 تخفیف کاربری اعمال شد: {$discount->name} - برای کاربر: {$user_id}");
+                        }
+                        return $is_applicable;
+                    } elseif ($discount->user_restriction === 'first_time') {
+                        // بررسی اینکه کاربر قبلاً از این سرویس خرید کرده است یا خیر
+                        $has_previous_purchase = self::has_user_purchased_service($user_id, $service_id); // ✅ اصلاح شده
+                        $is_applicable = !$has_previous_purchase;
+                        
+                        if ($is_applicable) {
+                            error_log("💰 تخفیف اولین خرید اعمال شد: {$discount->name} - برای کاربر: {$user_id} و سرویس: {$service_id}");
+                        } else {
+                            error_log("⚠️ کاربر قبلاً از سرویس {$service_id} خرید کرده است، بنابراین تخفیف اولین خرید اعمال نمی‌شود.");
+                        }
+                        
+                        return $is_applicable;
                     }
-                    return $is_applicable;
-                } elseif ($discount->user_restriction === 'first_time') {
-                    // بررسی اینکه کاربر قبلاً از این سرویس خرید کرده است یا خیر
-                    $has_previous_purchase = self::has_user_purchased_service($user_id, $service_id); // ✅ اصلاح شده
-                    $is_applicable = !$has_previous_purchase;
-                    
-                    if ($is_applicable) {
-                        error_log("💰 تخفیف اولین خرید اعمال شد: {$discount->name} - برای کاربر: {$user_id} و سرویس: {$service_id}");
-                    } else {
-                        error_log("⚠️ کاربر قبلاً از سرویس {$service_id} خرید کرده است، بنابراین تخفیف اولین خرید اعمال نمی‌شود.");
-                    }
-                    
-                    return $is_applicable;
                 }
                 return false;
                 
