@@ -23,28 +23,28 @@ header("Expires: 0");
 
 get_header();
 
-$consultant_id = get_current_user_id();
+
 $consultation_db = AI_Assistant_Diet_Consultation_DB::get_instance();
 
-// دریافت اطلاعات مشاور
-$consultant = $consultation_db->get_consultant_by_user_id($consultant_id);
+$consultant = $consultation_db -> get_consultant_by_user_id(get_current_user_id());
+$consultant_id = $consultant ->id;
 
 
 
 // دریافت قرارداد فعال
-$active_contract = $consultation_db->get_active_contract($consultant->user_id ?? 0);
+$active_contract = $consultation_db->get_active_contract($consultant_id ?? 0);
 
 
 // دریافت آمار مالی
-$pending_commissions = $consultation_db->get_consultant_commissions($consultant->user_id ?? 0, 'pending');
-$paid_commissions = $consultation_db->get_consultant_commissions($consultant->user_id ?? 0, 'paid');
+$pending_commissions = $consultation_db->get_consultant_commissions($consultant_id ?? 0, 'pending');
+$paid_commissions = $consultation_db->get_consultant_commissions($consultant_id ?? 0, 'paid');
 
 // محاسبه جمع مبالغ
 $total_pending = array_sum(array_column($pending_commissions, 'final_commission'));
 $total_paid = array_sum(array_column($paid_commissions, 'final_commission'));
 
 // دریافت تاریخچه پرداخت‌ها
-$payouts = $consultation_db->get_consultant_payouts($consultant->user_id ?? 0);
+$payouts = $consultation_db->get_consultant_payouts($consultant_id ?? 0);
 
 // بارگذاری استایل‌ها
 wp_enqueue_style('consultant-financial-dashboard-css', 

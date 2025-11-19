@@ -17,6 +17,8 @@ if (!defined('DEEPSEEK_API_KEY')) {
 define('DISABLE_WP_CRON', true);
 
 
+
+
 // 1. تنظیمات پایه قالب
 function ai_assistant_setup() {
     load_theme_textdomain('ai-assistant', get_template_directory() . '/languages');
@@ -39,6 +41,9 @@ add_action('after_setup_theme', 'ai_assistant_setup');
 
 
 require_once get_template_directory() . '/inc/ai-assistant-api/ai-assistant-api.php';
+
+require_once get_template_directory() . '/inc/jobs/process-requests-job.php';
+require_once get_template_directory() . '/inc/jobs/ai-article-generator.php';
 
 require_once get_template_directory() . '/inc/jobs/class-ai-job-queue.php';
 AI_Job_Queue::get_instance();
@@ -765,3 +770,36 @@ function get_diet_service_prices() {
 }
 add_action('wp_ajax_get_diet_service_prices', 'get_diet_service_prices');
 add_action('wp_ajax_nopriv_get_diet_service_prices', 'get_diet_service_prices');
+
+
+
+/**
+ * Disable Gravatar completely and use local default avatar
+ */
+add_filter('avatar_defaults', 'local_default_avatar');
+function local_default_avatar($avatars) {
+    $local_avatar = get_template_directory_uri() . '/assets/images/default-avatar.png';
+    $avatars[$local_avatar] = 'Local Avatar';
+    return $avatars;
+}
+
+add_filter('get_avatar_url', 'force_local_avatar', 10, 3);
+function force_local_avatar($url, $id_or_email, $args) {
+    return get_template_directory_uri() . '/assets/images/default-avatar.png';
+}
+
+add_filter('pre_get_avatar', 'use_local_avatar_only', 10, 3);
+function use_local_avatar_only($avatar, $id_or_email, $args) {
+    $local_avatar = get_template_directory_uri() . '/assets/images/default-avatar.png';
+
+    $size = isset($args['size']) ? intval($args['size']) : 80;
+
+    return sprintf(
+        '<img src="%s" class="avatar avatar-%d photo" width="%d" height="%d" />',
+        esc_url($local_avatar),
+        $size,
+        $size,
+        $size
+    );
+}
+

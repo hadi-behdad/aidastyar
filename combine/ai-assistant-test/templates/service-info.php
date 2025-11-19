@@ -31,7 +31,7 @@ if (!$service) {
     status_header(404);
     get_template_part(404);
     exit();
-}
+} 
 
 $full_description = $service['full_description'] ?? '
     <h3>درباره این سرویس</h3>
@@ -42,15 +42,30 @@ $full_description = $service['full_description'] ?? '
 // گرفتن اطلاعات قیمت و تخفیف (فرضی)
 $service_price = isset($service['price']) ? $service['price'] : 50000;
 // $service_discount = isset($service['discount']) ? $service['discount'] : 0;
-$service_discount = 20;
-$final_price = $service_discount > 0 ? $service_price * (1 - $service_discount/100) : $service_price;
+//$service_discount = 20;
+
+
+$final_price = $service_price;
+
+$best_discount = AI_Assistant_Discount_Manager::find_best_discount($service_id,get_current_user_id(), '');
+
+$service_discount = $best_discount->amount;
+if ($best_discount) {
+    $final_price = AI_Assistant_Discount_Manager::calculate_discounted_price($service_price, $best_discount);
+    
+    error_log("✅ تخفیف اعمال شد: {$best_discount->name} - نوع: {$best_discount->type} - مقدار: {$best_discount->amount}");
+    error_log("💰 قیمت اصلی: {$service_price} - - قیمت نهایی: {$final_price}");
+    
+
+}
+
 
 // گرفتن نظرات سرویس
 $comments_db = AI_Assistant_Comments_DB::get_instance();
 $service_comments = $comments_db->get_comments($service_id, 'approved', 5);
 $average_rating = $comments_db->get_average_rating($service_id);
 $average_rating = $average_rating ? round($average_rating, 1) : 0;
-$total_comments = 20;
+$total_comments = $comments_db -> get_comment_count($service_id , 'approved');
 ?>
 
 <div class="ai-container service_info-container">
@@ -159,6 +174,43 @@ $total_comments = 20;
         </div>
         <?php endif; ?>
     </div>
+    
+
+<!-- بعد از اسلایدر نظرات، فرم ثبت نظر را اضافه کنید -->
+<div class="user-comment-section">
+    <?php if (is_user_logged_in()) : ?>
+        <div class="comment-form-container">
+            <h3>ثبت نظر جدید</h3>
+            
+            
+            <form class="service-comment-form" method="post">
+                <input type="hidden" name="service_id" id="selected-service-id" value="">
+                
+                <div class="rating-input">
+                    <label>امتیاز شما:</label>
+                    <div class="stars-input">
+                        <i class="fas fa-star" data-value="1"></i>
+                        <i class="fas fa-star" data-value="2"></i>
+                        <i class="fas fa-star" data-value="3"></i>
+                        <i class="fas fa-star" data-value="4"></i>
+                        <i class="fas fa-star" data-value="5"></i>
+                    </div>
+                    <input type="hidden" name="rating" value="0">
+                </div>
+                <div class="comment-textarea-container">
+                    <textarea name="comment_text" class="comment-textarea" placeholder="نظر خود را اینجا بنویسید..." required></textarea>
+                </div>
+                <div class="form-submit">
+                    <button type="submit" class="comment-submit-btn">ثبت نظر</button>
+                </div>
+            </form>
+        </div>
+    <?php else : ?>
+        <div class="login-to-comment">
+            <p>برای ثبت نظر باید <a href="<?php echo wp_login_url(get_permalink()); ?>">وارد حساب کاربری</a> خود شوید.</p>
+        </div>
+    <?php endif; ?>
+</div>    
 </div>
 
 <style>
@@ -397,6 +449,166 @@ $total_comments = 20;
     padding: 10px 25px;
 }
 
+/* comment */
+
+.user-comment-section {
+    max-width: 1200px;
+    margin: 2rem auto;
+    padding: 0 20px;
+}
+
+.comment-form-container {
+    background: #fff;
+    padding: 2.5rem;
+    border-radius: 8px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+    border: 1px solid #f0f0f0;
+    transition: all 0.3s ease;
+}
+
+.comment-form-container:hover {
+    box-shadow: 0 15px 40px rgba(0, 0, 0, 0.12);
+}
+
+.comment-form-container h3 {
+    margin-bottom: 1.8rem;
+    margin-top: 0.5rem;
+    color: #2d3748;
+    text-align: center;
+    font-size: 1.5rem;
+    font-weight: 600;
+}
+
+
+.rating-input {
+    margin-bottom: 1.5rem;
+    text-align: center;
+}
+
+.rating-input label {
+    display: block;
+    margin-bottom: 0.8rem;
+    font-weight: 600;
+    color: #4a5568;
+    font-size: 1.1rem;
+}
+
+.stars-input {
+    display: flex;
+    justify-content: center;
+    gap: 5px;
+    direction: ltr;
+}
+
+.stars-input i {
+    font-size: 1.5rem;
+    color: #e2e8f0;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.stars-input i:hover,
+.stars-input i.active {
+    color: #ffc107;
+    transform: scale(1.15);
+}
+
+
+.comment-textarea-container {
+    margin-bottom: 1.5rem;
+}
+
+
+.comment-textarea {
+    width: 100%;
+    min-height: 140px;
+    padding: 1.2rem;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    resize: none;
+    font-family: inherit;
+    font-size: 1rem;
+    line-height: 1.6;
+    transition: all 0.3s ease;
+    box-sizing: border-box;
+}
+
+.comment-textarea:focus {
+    border-color: #4e54c8;
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(78, 84, 200, 0.1);
+}
+
+.form-submit {
+    text-align: center;
+}
+
+.comment-submit-btn {
+    background: linear-gradient(135deg, #4e54c8, #8f94fb);
+    color: white;
+    border: none;
+    padding: 14px 36px;
+    border-radius: 50px;
+    font-weight: 600;
+    font-size: 1.1rem;
+    cursor: pointer;
+    transition: all 0.3s;
+    box-shadow: 0 4px 12px rgba(78, 84, 200, 0.25);
+}
+
+.comment-submit-btn:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 20px rgba(78, 84, 200, 0.35);
+}
+
+.comment-submit-btn:active {
+    transform: translateY(-1px);
+}
+
+
+.login-to-comment {
+    text-align: center;
+    padding: 2.5rem;
+    background: #f8f9fa;
+    border-radius: 16px;
+    border: 1px dashed #d2d6dc;
+    color: #718096;
+}
+
+.login-to-comment a {
+    color: #4e54c8;
+    font-weight: 600;
+    text-decoration: none;
+    transition: all 0.2s;
+}
+
+.login-to-comment a:hover {
+    color: #3b42b5;
+    text-decoration: underline;
+}
+
+
+.comment-message {
+    padding: 14px 18px;
+    border-radius: 10px;
+    margin-bottom: 1.5rem;
+    font-weight: 500;
+    text-align: center;
+}
+
+.comment-success {
+    background-color: #f0fff4;
+    color: #2f855a;
+    border: 1px solid #c6f6d5;
+}
+
+.comment-error {
+    background-color: #fff5f5;
+    color: #c53030;
+    border: 1px solid #fed7d7;
+}
+
+
 /* رسپانسیو برای موبایل */
 @media (max-width: 768px) {
     .service_info-main {
@@ -426,8 +638,250 @@ $total_comments = 20;
         align-items: flex-start;
         gap: 10px;
     }
+    
+    .user-comment-section {
+        padding: 0 15px;
+        margin: 2rem auto;
+    } 
+    
+    .comment-form-container {
+        padding: 1.3rem;
+    }
+    
+    .stars-input i {
+        font-size: 1.3rem;
+    }    
 }
 </style>
+
+
+<script>
+jQuery(document).ready(function($) {
+    const slider = $('.testimonials-slider');
+    const items = $('.testimonial-item');
+    
+    if (items.length > 0) {
+        
+        // محاسبه عرض هر آیتم و فضای بین آنها
+        const itemStyle = window.getComputedStyle(items[0]);
+        const itemWidth = items[0].offsetWidth + 
+                         parseInt(itemStyle.marginLeft) + 
+                         parseInt(itemStyle.marginRight);
+        
+        let currentIndex = 0;
+        let autoScroll;
+        
+        function startAutoScroll() {
+            autoScroll = setInterval(function() {
+                if (currentIndex < items.length - 1) {
+                    currentIndex++;
+                } else {
+                    currentIndex = 0;
+                }
+                scrollToSlide(currentIndex);
+            }, 5000);
+        }
+        
+        function safeScrollTo(element, position) {
+            // ذخیره موقعیت اسکرول عمودی فعلی
+            const currentVerticalScroll = window.pageYOffset || document.documentElement.scrollTop;
+            
+            // انجام اسکرول افقی
+            element.animate({
+                scrollLeft: position
+            }, 10);
+            
+            // بازگرداندن موقعیت اسکرول عمودی به حالت قبلی
+            window.scrollTo(0, currentVerticalScroll);
+        }
+        
+        // و در تابع scrollToSlide از آن استفاده کنید:
+        function scrollToSlide(index) {
+            const slide = items.eq(index);
+            const position = slide.offset().left - slider.offset().left + slider.scrollLeft() - 15;
+            
+            safeScrollTo(slider, position);
+        }
+        
+        // شروع اسلایدشو اتوماتیک
+        startAutoScroll();
+        
+        // توقف اسکرول خودکار هنگام هاور
+        slider.hover(
+            function() {
+                clearInterval(autoScroll);
+            },
+            function() {
+                startAutoScroll();
+            }
+        );
+        
+        // اضافه کردن قابلیت درگ برای موبایل
+        let isDown = false;
+        let startX;
+        let scrollLeft;
+        
+        slider.on('mousedown', function(e) {
+            isDown = true;
+            startX = e.pageX - slider.offset().left;
+            scrollLeft = slider.scrollLeft();
+            clearInterval(autoScroll);
+        });
+        
+        slider.on('mouseleave', function() {
+            isDown = false;
+        });
+        
+        slider.on('mouseup', function() {
+            isDown = false;
+        });
+        
+        slider.on('mousemove', function(e) {
+            if (!isDown) return;
+            e.preventDefault();
+            const x = e.pageX - slider.offset().left;
+            const walk = (x - startX) * 2;
+            slider.scrollLeft(scrollLeft - walk);
+        });
+        
+        // تشخیص اسکرول لمسی برای دستگاه‌های موبایل
+        slider.on('touchstart', function(e) {
+            startX = e.originalEvent.touches[0].pageX - slider.offset().left;
+            scrollLeft = slider.scrollLeft();
+            clearInterval(autoScroll);
+        });
+        
+        slider.on('touchmove', function(e) {
+            if (!startX) return;
+            const x = e.originalEvent.touches[0].pageX - slider.offset().left;
+            const walk = (x - startX) * 2;
+            slider.scrollLeft(scrollLeft - walk);
+        });
+    }
+});
+
+jQuery(document).ready(function($) {
+    // مدیریت ستاره‌های امتیازدهی
+    $('.stars-input i').on('click', function(e) {
+        const stars = $(this).parent().find('i');
+        const rating = parseInt($(this).data('value'));
+        
+        stars.removeClass('active');
+        stars.each(function() {
+            if (parseInt($(this).data('value')) <= rating) {
+                $(this).addClass('active');
+            }
+        });
+        
+        $(this).closest('.rating-input').find('input[name="rating"]').val(rating);
+    });
+});
+
+jQuery(document).ready(function($) {
+
+    
+    // اعتبارسنجی فرم قبل از ارسال
+    function validateCommentForm() {
+        let isValid = true;
+        
+        // حذف پیام خطای قبلی اگر وجود دارد
+        $('.comment-message').remove();
+        
+        //const selectedService = $('#selected-service-id').val();
+        const selectedService = "<?php echo get_query_var('service_id'); ?>";
+        const commentText = $('.comment-textarea').val().trim();
+        const rating = $('input[name="rating"]').val();
+        
+
+        
+        // اعتبارسنجی متن نظر
+        if (!commentText) {
+            const messageEl = $('<div class="comment-message comment-error">لطفاً متن نظر خود را وارد کنید.</div>');
+            $('.comment-form-container').prepend(messageEl);
+            isValid = false;
+        }
+        
+        // اعتبارسنجی امتیاز
+        if (!rating || rating < 1) {
+            const messageEl = $('<div class="comment-message comment-error">لطفاً امتیاز دهید.</div>');
+            $('.comment-form-container').prepend(messageEl);
+            isValid = false;
+        }
+        
+        return isValid;
+    }
+    
+    $('.service-comment-form').on('submit', function(e) {
+        e.preventDefault();
+        
+        // حذف تمام پیام‌های قبلی قبل از اعتبارسنجی جدید
+        $('.comment-message').remove();
+        
+        // اعتبارسنجی فرم
+        if (!validateCommentForm()) {
+            return;
+        }
+
+        const form = $(this);
+        //const selectedService = $('#selected-service-id').val();
+        const selectedService = "<?php echo get_query_var('service_id'); ?>";
+        const commentText = form.find('.comment-textarea').val().trim();
+        const rating = form.find('input[name="rating"]').val();
+        const submitBtn = form.find('.comment-submit-btn');
+        
+        submitBtn.prop('disabled', true).text('در حال ثبت...');
+
+        $.ajax({
+            url: '<?php echo admin_url("admin-ajax.php"); ?>',
+            type: 'POST',
+            data: {
+                action: 'submit_service_comment',
+                security: '<?php echo wp_create_nonce("service_comment_nonce"); ?>',
+                service_id: selectedService,
+                comment_text: commentText,
+                rating: rating
+            },
+            success: function(response) {
+                if (response.success) {
+                    // نمایش پیام موفقیت
+                    const messageEl = $('<div class="comment-message comment-success">' + response.data + '</div>');
+                    $('.comment-form-container').prepend(messageEl);
+                    
+                    // ریست فرم
+                    form.find('.comment-textarea').val('');
+                    form.find('input[name="rating"]').val('0');
+                    form.find('.stars-input i').removeClass('active');
+                    $('.service-selection-card').removeClass('selected');
+                    $('#selected-service-id').val('');
+                    
+                    // اسکرول به بالای فرم
+                    $('html, body').animate({
+                        scrollTop: $('.comment-form-container').offset().top - 100
+                    }, 500);
+                } else {
+                    // نمایش پیام خطا
+                    const messageEl = $('<div class="comment-message comment-error">' + response.data + '</div>');
+                    $('.comment-form-container').prepend(messageEl);
+                }
+            },
+            error: function() {
+                // نمایش پیام خطای سرور
+                const messageEl = $('<div class="comment-message comment-error">خطا در ارتباط با سرور. لطفاً مجدداً تلاش کنید.</div>');
+                $('.comment-form-container').prepend(messageEl);
+            },
+            complete: function() {
+                submitBtn.prop('disabled', false).text('ثبت نظر');
+            }
+        });
+    });
+    
+    // اضافه کردن event listener برای تغییرات در فرم که پیام‌های خطا را پاک کند
+    $('.comment-textarea, .stars-input i').on('input change', function() {
+        // اگر کاربر شروع به تایپ کرد یا امتیاز تغییر کرد، پیام‌های خطا را پاک کن
+        $('.comment-message').remove();
+    });
+});
+</script>
 
 <?php
 get_footer();

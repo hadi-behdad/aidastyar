@@ -93,9 +93,12 @@ function render_consultant_requests_table($requests, $status) {
 
 get_header();
 
-$consultant_id = get_current_user_id();
+
 $consultation_db = AI_Assistant_Diet_Consultation_DB::get_instance();
 $consultation_manager = AI_Assistant_Nutrition_Consultant_Manager::get_instance();
+
+$consultant = $consultation_db -> get_consultant_by_user_id(get_current_user_id());
+$consultant_id = $consultant ->id;
 
 // دریافت آمار درخواست‌ها
 $request_counts = $consultation_db->get_consultant_request_counts($consultant_id);

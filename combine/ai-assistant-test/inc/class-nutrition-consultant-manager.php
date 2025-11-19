@@ -104,16 +104,12 @@ class AI_Assistant_Nutrition_Consultant_Manager {
      */
     public function handle_consultation_review() {
         
-        error_log('[Diet Consultation] $contract $contract :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::');
         // بررسی nonce و دسترسی
         if (!wp_verify_nonce($_POST['nonce'], 'consultation_review_nonce') || 
             !current_user_can('nutrition_consultant')) {
             wp_die('دسترسی غیرمجاز');
         }
-        
-        
-        
-        
+ 
 
         $request_id = intval($_POST['request_id']);
         $consultant_user_id = get_current_user_id();

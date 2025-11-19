@@ -101,13 +101,14 @@ $history = $wallet->get_transaction_history($current_user_id, 10, get_query_var(
     </div>
 </div>
 
+
 <?php
 // اسکریپت AJAX برای حذف
-wp_enqueue_script('wallet-history-ajax', get_template_directory_uri() . '/assets/js/wallet-history-ajax.js', ['jquery'], null, true);
-wp_localize_script('wallet-history-ajax', 'wallet_history_ajax', [
-    'ajax_url' => admin_url('admin-ajax.php'),
-    'nonce' => wp_create_nonce('wallet_history_ajax_nonce'),
-    'confirm_delete' => __('آیا از حذف این تراکنش مطمئن هستید؟', 'ai-assistant'),
-]);
+// wp_enqueue_script('wallet-history-ajax', get_template_directory_uri() . '/assets/js/wallet-history-ajax.js', ['jquery'], null, true);
+// wp_localize_script('wallet-history-ajax', 'wallet_history_ajax', [
+//     'ajax_url' => admin_url('admin-ajax.php'),
+//     'nonce' => wp_create_nonce('wallet_history_ajax_nonce'),
+//     'confirm_delete' => __('آیا از حذف این تراکنش مطمئن هستید؟', 'ai-assistant'),
+// ]);
 
 get_footer();

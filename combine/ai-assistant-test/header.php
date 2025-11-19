@@ -48,6 +48,7 @@
                                 تاریخچه
                             </a>
                             
+                            
                             <!-- اضافه کردن لینک پروفایل در منوی اصلی -->
                             <a href="<?php echo home_url('/profile'); ?>" class=" user-profile-menu-item">
                                 
@@ -62,7 +63,11 @@
                                 
                                 <a href="<?php echo home_url('/management-discounts/'); ?>" class="">
                                     مدیریت تخفیف ها
-                                </a>                                 
+                                </a>
+                                
+                                <a href="<?php echo home_url('/admin-payout-manager/'); ?>" class="">
+                                    تسویه حساب مشاوران
+                                </a>                                    
                                 
                                 
                             <?php endif; ?>   
@@ -175,6 +180,11 @@
                                 تاریخچه
                             </a>
                             
+                            <a href="<?php echo home_url('/user-wallet-history'); ?>" class="menu-item-card <?php if (is_page('user-wallet-history')) echo 'menu-active'; ?>">
+                                <span class="dashicons dashicons-randomize"></span>
+                                تاریخچه تراکنش ها
+                            </a>                            
+                            
                             
                             <a href="<?php echo home_url('/profile'); ?>" class="menu-item-card <?php if ( untrailingslashit($_SERVER['REQUEST_URI']) == '/profile' ) echo 'menu-active'; ?>">
                                 <span class="dashicons dashicons-admin-users"></span>
@@ -191,7 +201,12 @@
                                 <a href="<?php echo home_url('/management-discounts/'); ?>" class="menu-item-card <?php if (is_page('management-discounts')) echo 'menu-active'; ?>">
                                     <span class="dashicons dashicons-tickets"></span>
                                     مدیریت تخفیف ها
-                                </a>                                
+                                </a> 
+                                
+                                <a href="<?php echo home_url('/admin-payout-manager/'); ?>" class="menu-item-card <?php if (is_page('admin-payout-manager')) echo 'menu-active'; ?>">
+                                    <span class="dashicons dashicons-randomize"></span>
+                                    تسویه حساب مشاوران
+                                </a>                                 
                                 
                             <?php endif; ?>
                             

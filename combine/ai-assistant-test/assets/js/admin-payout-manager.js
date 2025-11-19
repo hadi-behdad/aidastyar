@@ -120,8 +120,13 @@ jQuery(document).ready(function($) {
                 success: function(response) {
                     if (response.success) {
                         self.renderConsultantsTable(response.data);
-                                        // آپدیت عدد تب مشاوران از داده‌های pagination
-                        $('#consultants-tab-count').text(response.data.pagination.total_items);
+                                
+                        // چاپ مقدار قبل از ست کردن
+                        console.log('مقدار total_items:', response.data.pagination.total_items);
+                        console.log('کل داده‌های pagination:', response.data.pagination);                        
+                                
+                        // آپدیت عدد تب مشاوران از داده‌های pagination
+                        $('#ConsultantsWithPending-tab-count').text(response.data.pagination.total_items);
                        
                         
                     } else {

@@ -148,7 +148,7 @@ class AI_Assistant_Api_Handler {
             
             error_log('📝 [WORKER] Saved history for history_id #' . $history_id);            
             
-            $queue = AI_Job_Queue::get_instance();
+            $queue = new process_requests_job();
             $queue->enqueue_job($history_id , $user_id);
 
 
