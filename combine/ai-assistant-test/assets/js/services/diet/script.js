@@ -306,22 +306,21 @@ window.STEPS = {
     GENDER: 1,
     PERSONAL_INFO: 2,
     GOAL: 3,
-    HEIGHT_WEIGHT: 4,        // ← تغییر: ترکیب HEIGHT و WEIGHT
-    TARGET_WEIGHT: 5,        // ← تغییر: از 6 به 5
-    GOAL_DISPLAY: 6,         // ← تغییر: از 7 به 6
-    CHRONIC_CONDITIONS: 7,   // ← تغییر: از 8 به 7
-    MEDICATIONS: 8,          // ← تغییر: از 9 به 8
-    DIGESTIVE_CONDITIONS: 9, // ← تغییر: از 10 به 9
-    SURGERY: 10,             // ← تغییر: از 11 به 10
-    WATER_INTAKE: 11,        // ← تغییر: از 12 به 11
-    ACTIVITY: 12,            // ← تغییر: از 13 به 12
-    EXERCISE: 13,            // ← تغییر: از 14 به 13
-    DIET_STYLE: 14,          // ← تغییر: از 15 به 14
-    FOOD_LIMITATIONS: 15,    // ← تغییر: از 16 به 15
-    FAVORITE_FOODS: 16,      // ← تغییر: از 17 به 16
-    DIET_TYPE_SELECTION: 17, // ← تغییر: از 18 به 17
-    TERMS_AGREEMENT: 18,     // ← تغییر: از 19 به 18
-    CONFIRMATION: 19         // ← تغییر: از 20 به 19 (مرحله نهایی)
+    HEIGHT_WEIGHT: 4,
+    TARGET_WEIGHT: 5,
+    CHRONIC_CONDITIONS: 6,    // ✅ تغییر: 7 → 6
+    MEDICATIONS: 7,           // ✅ تغییر: 8 → 7
+    DIGESTIVE_CONDITIONS: 8,  // ✅ تغییر: 9 → 8
+    SURGERY: 9,               // ✅ تغییر: 10 → 9
+    WATER_INTAKE: 10,         // ✅ تغییر: 11 → 10
+    ACTIVITY: 11,             // ✅ تغییر: 12 → 11
+    EXERCISE: 12,             // ✅ تغییر: 13 → 12
+    DIET_STYLE: 13,           // ✅ تغییر: 14 → 13
+    FOOD_LIMITATIONS: 14,     // ✅ تغییر: 15 → 14
+    FAVORITE_FOODS: 15,       // ✅ تغییر: 16 → 15
+    DIET_TYPE_SELECTION: 16,  // ✅ تغییر: 17 → 16
+    TERMS_AGREEMENT: 17,      // ✅ تغییر: 18 → 17
+    CONFIRMATION: 18          // ✅ تغییر: 19 → 18
 };
 
 // تعداد مراحل اصلی (بدون احتساب دو مرحله آخر)

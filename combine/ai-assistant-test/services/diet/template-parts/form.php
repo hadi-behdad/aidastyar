@@ -218,27 +218,6 @@ $theme_assets = get_stylesheet_directory_uri();
         </div>
     </div>
 
-    <!-- Step 7: Goal Weight Display -->
-    <div id="goal-weight-display" class="step">
-        <div class="step7-image-container">
-            <div class="goal-title-container">
-                <h2 class="goal-title" id="goal-title-text">هدف: در حال بارگذاری...</h2>
-            </div>
-            <div class="weight-display-container">
-                <div class="weight-display-box current-weight">
-                    <div class="weight-value">${state.formData.userInfo.weight || 0}</div>
-                    <div class="weight-unit">کیلوگرم</div>
-                    <div class="weight-label">وزن فعلی شما</div>
-                </div>
-                <div class="weight-display-box target-weight">
-                    <div class="weight-value">${state.formData.userInfo.targetWeight || 0}</div>
-                    <div class="weight-unit">کیلوگرم</div>
-                    <div class="weight-label">وزن هدف شما</div>
-                </div>
-            </div>
-        </div>
-    </div>
-
     <!-- Step 9: Chronic Conditions (بیماری‌های مزمن اصلی) -->
     <div id="chronic-conditions-step" class="step checkbox-step-container">
         <h2>بیماری‌های مزمن و زمینه‌ای</h2>

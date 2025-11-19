@@ -1061,10 +1061,6 @@ body.dark-mode .checked-animation .check-icon {
         width: 500px;
     }
     
-    #goal-weight-display {
-        height: calc(100vh - 160px); /* ارتفاع کمتر در موبایل */
-    }
-    
     .chart-container {
         min-height: 250px;
     }
@@ -1111,64 +1107,6 @@ body.dark-mode .checked-animation .check-icon {
 .step[data-step="11"] ~ #next-button-container,
 .step[data-step="12"] ~ #next-button-container {
     display: block;
-}
-
-
-#goal-weight-display {
-    display: none;
-    justify-content: center;
-    align-items: center;
-    min-height: 200px;
-    padding: 20px;
-    padding-top: 0px;
-}
-
-.step.active#goal-weight-display {
-    display: flex; 
-}
-
-.step7-image-container {
-    width: 100%;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 30px;
-    padding: 0px;
-}
-
-.step7-image-container svg {
-    max-width: 100%;
-    height: auto;
-}
-
-/* استایل مخصوص حالت افزایش وزن */
-.step7-image-container svg[width="592px"] image:nth-child(2) {
-    transform: translateX(-50%);
-}
-
-@media (max-width: 768px) {
-    .step7-image-container svg {
-        width: 100%;
-        height: auto;
-    }
-    
-    .step7-image-container svg[width="592px"] image:nth-child(2) {
-        transform: none;
-    }
-}
-
-
-.weight-display-container {
-    display: flex;
-    flex-direction: row;
-    justify-content: center;
-    align-items: center;
-    gap: 10px;
-    width: 100%;
-    max-width: 500px;
-    margin: 0px auto 0;
-    padding: 0 0px;
-    box-sizing: border-box;
 }
 
 .weight-display-box {
@@ -1275,13 +1213,6 @@ body.dark-mode .weight-label {
 }
 
 @media (max-width: 500px) {
-    .weight-display-container {
-        /*width: calc(100% - 40px);*/
-        max-width: 100%;
-        padding: 0;
-        gap: 8px;
-    }
-    
     .weight-display-box {
         width: calc(50% - 4px);
         height: 85px;
@@ -1290,12 +1221,6 @@ body.dark-mode .weight-label {
 }
 
 @media (max-width: 480px) {
-    .weight-display-container {
-        flex-direction: row;
-        gap: 8px;
-        padding: 0 0px;
-    }
-    
     .weight-display-box {
         width: 42%;
         height: 85px;
@@ -1313,11 +1238,6 @@ body.dark-mode .weight-label {
     .weight-label {
         font-size: 10px;
     }
-}
-
-.goal-title-container {
-    width: 100%;
-    text-align: center;
 }
 
 .goal-title {
@@ -1345,43 +1265,6 @@ body.dark-mode .weight-label {
         font-size: 18px;
         padding-top: 20px;
     }
-}
-
-@media (max-width: 768px) {
-    .goal-title-container {
-        display: block;
-    }
-}
-
-@media (min-width: 769px) {
-    .goal-title-container {
-        display: none;
-    }
-}
-
-#goal-title-text {
-    opacity: 0;
-    transform: translateY(20px);
-    transition: all 0.5s ease-out;
-    text-align: center;
-}
-
-.step.active #goal-title-text {
-    opacity: 1;
-    transform: translateY(0);
-}
-.goal-svg {
-    width: 100%;
-    height: auto;
-    max-width: 592px;
-    max-height: 392px;
-    display: block;
-    margin: 0 auto;
-}
-
-.weight-display-container {
-    position: relative;
-    z-index: 2;
 }
 
 .checkbox-step-container {

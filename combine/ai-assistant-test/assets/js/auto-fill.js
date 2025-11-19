@@ -189,25 +189,6 @@ document.addEventListener('DOMContentLoaded', function() {
                     }
                 }
             }
-
-            function fillGoalDisplayStep() {
-                if (state.currentStep === STEPS.GOAL_DISPLAY) {
-                    
-                    const checkSVGLoaded = setInterval(() => {
-                        const svgElement = document.querySelector('#goal-weight-display object');
-                        if (svgElement && svgElement.contentDocument) {
-                            clearInterval(checkSVGLoaded);
-                            clickNextButton(LONG_DELAY);
-                        }
-                    }, 200);
-
-                    setTimeout(() => {
-                        if (state.currentStep === STEPS.GOAL_DISPLAY) {
-                            clickNextButton(0);
-                        }
-                    }, 3000);
-                }
-            }
             
             function fillDietTypeStep() {
                 if (state.currentStep === STEPS.DIET_TYPE_SELECTION) {
@@ -306,9 +287,6 @@ document.addEventListener('DOMContentLoaded', function() {
                         break;
                     case STEPS.MEDICATIONS:
                         fillCheckboxSteps();
-                        break;
-                    case STEPS.GOAL_DISPLAY:
-                        fillGoalDisplayStep();
                         break;
                     case STEPS.FAVORITE_FOODS:
                         fillCheckboxSteps();

@@ -606,22 +606,21 @@ window.showStep = function(step) {
         "gender-selection-step",        // 1
         "personal-info-step",           // 2
         "goal-selection-step",          // 3
-        "height-weight-input-step",     // 4 ← تغییر: مرحله ترکیبی جدید
+        "height-weight-input-step",     // 4
         "target-weight-step",           // 5
-        "goal-weight-display",          // 6
-        "chronic-conditions-step",      // 7
-        "medications-step",             // 8
-        "digestive-conditions-step",    // 9
-        "surgery-step",                 // 10
-        "water-intake-step",            // 11
-        "activity-selection-step",      // 12
-        "exercise-activity-step",       // 13
-        "diet-style-step",              // 14
-        "food-limitations-step",        // 15
-        "favorite-foods-step",          // 16
-        "diet-type-selection-step",     // 17
-        "terms-agreement-step",         // 18
-        "confirm-submit-step"           // 19
+        "chronic-conditions-step",      // 6
+        "medications-step",             // 7
+        "digestive-conditions-step",    // 8
+        "surgery-step",                 // 9
+        "water-intake-step",            // 10
+        "activity-selection-step",      // 11
+        "exercise-activity-step",       // 12
+        "diet-style-step",              // 13
+        "food-limitations-step",        // 14
+        "favorite-foods-step",          // 15
+        "diet-type-selection-step",     // 16
+        "terms-agreement-step",         // 17
+        "confirm-submit-step"           // 18
     ];
     
     document.querySelectorAll(".step").forEach(el => {
@@ -640,51 +639,6 @@ window.showStep = function(step) {
         if (currentStepElement.id === "goal-weight-display") {
             currentStepElement.style.display = 'flex';
         }
-    }
-
-    if (step === STEPS.GOAL_DISPLAY) {
-        const goalTitleElement = document.getElementById('goal-title-text');
-        if (goalTitleElement) {
-            const goalText = {
-                "weight-loss": "هدف: کاهش وزن",
-                "weight-gain": "هدف: افزایش وزن", 
-                "fitness": "هدف: حفظ سلامت"
-            }[state.formData.userInfo.goal];
-            
-            goalTitleElement.textContent = goalText || "هدف: مشخص نشده";
-        }
-    
-        const imageContainer = document.querySelector('#goal-weight-display .step7-image-container');
-        let svgFile = '';
-        
-        if (state.formData.userInfo.goal === 'weight-loss') {
-            svgFile = wpVars.themeBasePath + '/assets/images/svg/weight-loss.svg';
-        } else if (state.formData.userInfo.goal === 'weight-gain' || state.formData.userInfo.goal === 'fitness') {
-            svgFile = wpVars.themeBasePath + '/assets/images/svg/weight-gain.svg';
-        }
-        
-        imageContainer.innerHTML = `
-            <div class="goal-title-container">
-                <h2 class="goal-title" id="goal-title-text">
-                    ${state.formData.userInfo.goal === 'weight-loss' ? 'کاهش وزن' : 
-                      state.formData.userInfo.goal === 'weight-gain' ? 'افزایش وزن' : 
-                      'حفظ سلامت'}
-                </h2>
-            </div>
-            <object type="image/svg+xml" data="${svgFile}" class="goal-svg"></object>
-            <div class="weight-display-container">
-                <div class="weight-display-box target-weight">
-                    <div class="weight-value">${state.formData.userInfo.targetWeight || 0}</div>
-                    <div class="weight-unit">کیلوگرم</div>
-                    <div class="weight-label">وزن هدف</div>
-                </div>
-                <div class="weight-display-box current-weight">
-                    <div class="weight-value">${state.formData.userInfo.weight || 0}</div>
-                    <div class="weight-unit">کیلوگرم</div>
-                    <div class="weight-label">وزن فعلی</div>
-                </div>
-            </div>
-        `;
     }
     
     // مدیریت نمایش دکمه بعدی
