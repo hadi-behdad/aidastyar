@@ -635,7 +635,7 @@ class PaymentPopup {
             }
         }
         
-        this.updatePriceDisplay();
+        this.updatePriceDisplay(true);
         this.updatePriceDetails();
         
         const discountInput = document.getElementById('discount-code-input');
@@ -645,7 +645,7 @@ class PaymentPopup {
         
         // به‌روزرسانی بررسی موجودی
         this.fetchUserBalance(this.finalPrice);
-        this.showDiscountMessage('', 'info');
+        // this.showDiscountMessage('', 'info');
         
         console.log('🔄 تخفیف حذف شد:', {
             finalPrice: this.finalPrice,
@@ -655,16 +655,33 @@ class PaymentPopup {
 
     showDiscountMessage(message, type) {
         const messageElement = document.getElementById('discount-message');
+        
+        // بررسی وجود المنت
+        if (!messageElement) {
+            console.error('❌ المنت discount-message یافت نشد!');
+            return;
+        }
+        
         messageElement.textContent = message;
         messageElement.style.color = type === 'success' ? '#28a745' : 
                                    type === 'error' ? '#dc3545' : '#6c757d';
+        
+        // اضافه کردن log برای دیباگ
+        console.log('💬 پیام تخفیف نمایش داده شد:', { message, type });
     }
 
-    updatePriceDisplay() {
+
+    updatePriceDisplay(keepErrorMessage = false) {
         const finalPriceElement = document.getElementById('final-price');
         const formattedPrice = new Intl.NumberFormat('fa-IR').format(this.finalPrice);
         finalPriceElement.textContent = formattedPrice + ' تومان';
+        
+        // ❌ فقط اگه پیام خطا نداریم، پیام رو پاک کن
+        if (!keepErrorMessage) {
+            this.showDiscountMessage('', 'info');
+        }
     }
+
 
     showDiscountDetails(data) {
         const discountDisplay = document.getElementById('discount-display');

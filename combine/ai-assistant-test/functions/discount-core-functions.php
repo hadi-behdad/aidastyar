@@ -140,30 +140,76 @@ class AI_Assistant_Discount_Manager {
         return false; // کاربر اولین خرید از این سرویس را دارد
     }
 
-    /**
-     * اعتبارسنجی کد تخفیف (برای استفاده در AJAX)
-     */
     public static function validate_discount($discount_code, $service_id, $user_id) {
         $discount_db = AI_Assistant_Discount_DB::get_instance();
         $all_discounts = $discount_db->get_all_discounts();
         $now = current_time('mysql');
         
+        // پیدا کردن تخفیف با این کد
+        $found_discount = null;
         foreach ($all_discounts as $discount) {
-            if ($discount->code === $discount_code && 
-                $discount->active == 1 &&
-                self::is_discount_valid($discount, $now) &&
-                self::is_discount_applicable($discount, $service_id, $user_id, $discount_code)) {
-                
-                return [
-                    'valid' => true,
-                    'discount' => $discount,
-                    'message' => 'کد تخفیف اعمال شد'
-                ];
+            if ($discount->code === $discount_code) {
+                $found_discount = $discount;
+                break;
             }
         }
         
-        return ['valid' => false, 'message' => 'کد تخفیف معتبر نیست'];
+        // ❌ اگر کد پیدا نشد
+        if (!$found_discount) {
+            return [
+                'valid' => false, 
+                'message' => '❌ کد تخفیف وارد شده معتبر نیست'
+            ];
+        }
+        
+        // ❌ بررسی فعال بودن
+        if ($found_discount->active != 1) {
+            return [
+                'valid' => false, 
+                'message' => '⚠️ این کد تخفیف غیرفعال شده است'
+            ];
+        }
+        
+        // ❌ بررسی تاریخ شروع
+        if ($found_discount->start_date && $found_discount->start_date > $now) {
+            return [
+                'valid' => false, 
+                'message' => '⏰ این کد تخفیف هنوز فعال نشده است'
+            ];
+        }
+        
+        // ❌ بررسی تاریخ پایان (تاریخ گذشته)
+        if ($found_discount->end_date && $found_discount->end_date < $now) {
+            return [
+                'valid' => false, 
+                'message' => '⏳ تاریخ استفاده از این کد تخفیف به پایان رسیده است'
+            ];
+        }
+        
+        // ❌ بررسی محدودیت استفاده (ظرفیت تمام شده)
+        if ($found_discount->usage_limit > 0 && $found_discount->usage_count >= $found_discount->usage_limit) {
+            return [
+                'valid' => false, 
+                'message' => '🚫 ظرفیت استفاده از این کد تخفیف تمام شده است'
+            ];
+        }
+        
+        // ❌ بررسی اعتبار برای این سرویس و کاربر (مربوط به شما نیست)
+        if (!self::is_discount_applicable($found_discount, $service_id, $user_id, $discount_code)) {
+            return [
+                'valid' => false, 
+                'message' => '🔒 این کد تخفیف برای شما یا این سرویس قابل استفاده نیست'
+            ];
+        }
+        
+        // ✅ همه چیز درست است
+        return [
+            'valid' => true,
+            'discount' => $found_discount,
+            'message' => '✅ کد تخفیف با موفقیت اعمال شد'
+        ];
     }
+
     
     /**
      * محاسبه قیمت نهایی با اعمال تخفیف
