@@ -1,5 +1,12 @@
 // /home/aidastya/public_html/test/wp-content/themes/ai-assistant-test/assets/js/services/diet/form-steps.js
 
+// ==========================================
+// Cache for Consultant Data
+// ==========================================
+window.consultantsCache = window.consultantsCache || null;
+window.isFetchingConsultants = window.isFetchingConsultants || false;
+
+
 window.setupComplexCheckboxSelection = function(step, config) {
     if (state.currentStep !== step) return;
 
@@ -942,7 +949,6 @@ window.setupDietTypeSelection = function(currentStep) {
                 nextButton.disabled = false;
             } else if (dietType === 'with-specialist') {
                 openSpecialistPopup();
-                console.log('Opening specialist popup, current state:', state.formData);
             }
         });
     });
@@ -1002,12 +1008,9 @@ function resetSpecialistPopup() {
 }
 
 window.closeSpecialistPopup = function() {
-    console.log('closeSpecialistPopup is called');
     const popup = document.getElementById('specialist-popup');
     popup.style.display = 'none';
-    // حذف انتخاب مشاور در صورت انصراف
-    // state.updateFormData('selectedSpecialist', null);
-    console.log('selectedSpecialist: ' + state.formData.serviceSelection.selectedSpecialist);
+    
     // غیرفعال کردن دکمه مرحله بعد
     const nextButton = document.querySelector(".next-step");
     if (!state.formData.serviceSelection.selectedSpecialist) {
@@ -1017,7 +1020,6 @@ window.closeSpecialistPopup = function() {
 
 window.confirmSpecialistSelection = function() {
     if (state.formData.serviceSelection.selectedSpecialist) {
-        console.log('Confirming specialist:', state.formData.serviceSelection.selectedSpecialist);
         closeSpecialistPopup();
         // فعال کردن دکمه مرحله بعد
         const nextButton = document.querySelector(".next-step");
@@ -1031,18 +1033,31 @@ window.confirmSpecialistSelection = function() {
     }
 };
 
-// بارگذاری مشاورین در پاپ‌آپ
 function loadNutritionConsultantsPopup() {
     const specialistSelection = document.getElementById('specialist-selection-popup');
     
     resetSpecialistPopup();
     
+    // ✅ چک کردن cache
+    if (window.consultantsCache) {
+        renderConsultantsList(window.consultantsCache);
+        return;
+    }
+    
+    // ✅ جلوگیری از درخواست همزمان
+    if (window.isFetchingConsultants) {
+        return;
+    }
+    
+    // ✅ نمایش Loading
     specialistSelection.innerHTML = `
         <div class="loading-specialists">
             <div class="loading-spinner"></div>
             <p>در حال بارگذاری لیست متخصصین...</p>
         </div>
     `;
+    
+    window.isFetchingConsultants = true;
     
     fetch(aiAssistantVars.ajaxurl, {
         method: 'POST',
@@ -1056,39 +1071,57 @@ function loadNutritionConsultantsPopup() {
     })
     .then(response => response.json())
     .then(data => {
-        if (data.success) {
-            specialistSelection.innerHTML = '';
+        window.isFetchingConsultants = false;
+        
+        if (data.success && data.data.consultants && data.data.consultants.length > 0) {
+            // ✅ ذخیره در cache
+            window.consultantsCache = data.data.consultants;
             
-            if (data.data.consultants && data.data.consultants.length > 0) {
-                // در تابع loadNutritionConsultantsPopup - بخش ایجاد کارت مشاور
-                data.data.consultants.forEach(consultant => {
-                    const specialistCard = document.createElement('div');
-                    specialistCard.className = 'specialist-card-popup';
-                    specialistCard.dataset.specialistId = consultant.id;
-                    specialistCard.innerHTML = `
-                        <div class="specialist-info-popup">
-                            <div class="specialist-name-popup">${consultant.name}</div>
-                            <div class="specialist-specialty-popup">${consultant.specialty}</div>
-                            <div class="specialist-price-popup">+${new Intl.NumberFormat('fa-IR').format(consultant.consultation_price)} تومان</div>
-                        </div>
-                        <button type="button" class="select-specialist-btn-popup" onclick="selectSpecialistInPopup(${consultant.id}, '${consultant.name.replace(/'/g, "\\'")}', '${consultant.specialty.replace(/'/g, "\\'")}', ${consultant.consultation_price})">
-                            انتخاب
-                        </button>
-                    `;
-                    specialistSelection.appendChild(specialistCard);
-                });
-            } else {
-                specialistSelection.innerHTML = '<div style="text-align: center; padding: 20px; color: #666;">هیچ متخصص فعالی یافت نشد</div>';
-            }
+            // ✅ رندر لیست
+            renderConsultantsList(window.consultantsCache);
         } else {
-            specialistSelection.innerHTML = '<div style="text-align: center; padding: 20px; color: #f44336;">خطا در بارگذاری لیست متخصصین</div>';
+            specialistSelection.innerHTML = '<div style="text-align: center; padding: 20px; color: #666;">هیچ متخصص فعالی یافت نشد</div>';
         }
     })
     .catch(error => {
-        console.error('Error loading consultants:', error);
+        window.isFetchingConsultants = false;
+        console.error('❌ Error loading consultants:', error);
         specialistSelection.innerHTML = '<div style="text-align: center; padding: 20px; color: #f44336;">خطا در ارتباط با سرور</div>';
     });
 }
+
+// ==========================================
+// Render Consultants List
+// ==========================================
+function renderConsultantsList(consultants) {
+    const specialistSelection = document.getElementById('specialist-selection-popup');
+    
+    if (!consultants || consultants.length === 0) {
+        specialistSelection.innerHTML = '<div style="text-align: center; padding: 20px; color: #666;">هیچ متخصصی یافت نشد</div>';
+        return;
+    }
+    
+    specialistSelection.innerHTML = '';
+    
+    consultants.forEach(consultant => {
+        const specialistCard = document.createElement('div');
+        specialistCard.className = 'specialist-card-popup';
+        specialistCard.dataset.specialistId = consultant.id;
+        specialistCard.innerHTML = `
+            <div class="specialist-info-popup">
+                <div class="specialist-name-popup">${consultant.name}</div>
+                <div class="specialist-specialty-popup">${consultant.specialty}</div>
+                <div class="specialist-price-popup">+${new Intl.NumberFormat('fa-IR').format(consultant.consultation_price)} تومان</div>
+            </div>
+            <button type="button" class="select-specialist-btn-popup" onclick="selectSpecialistInPopup(${consultant.id}, '${consultant.name.replace(/'/g, "\\'")}', '${consultant.specialty.replace(/'/g, "\\'")}', ${consultant.consultation_price})">
+                انتخاب
+            </button>
+        `;
+        specialistSelection.appendChild(specialistCard);
+    });
+    
+}
+
 
 // انتخاب مشاور در پاپ‌آپ
 window.selectSpecialistInPopup = function(specialistId, specialistName, specialty, consultationPrice) {
@@ -1128,5 +1161,4 @@ window.selectSpecialistInPopup = function(specialistId, specialistName, specialt
     const confirmBtn = document.querySelector('.popup-confirm-btn');
     confirmBtn.disabled = false;
     
-    console.log('Specialist selected:', state.formData.serviceSelection.selectedSpecialist);
 };

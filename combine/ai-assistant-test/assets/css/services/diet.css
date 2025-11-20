@@ -345,17 +345,31 @@ h2 {
     box-shadow: 0 5px 15px var(--orange-shadow);
 }
 
-#next-button-container {
-    position: fixed;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    background: var(--white-color);
-    padding: 15px 20px;
-    text-align: center;
-    box-shadow: 0 -2px 10px var(--shadow-color);
-    display: none;
-}
+/*#next-button-container {*/
+/*    position: fixed;*/
+/*    bottom: 0;*/
+/*    left: 0;*/
+/*    right: 0;*/
+/*    background: var(--white-color);*/
+/*    padding: 15px 20px;*/
+/*    text-align: center;*/
+/*    box-shadow: 0 -2px 10px var(--shadow-color);*/
+/*    display: none;*/
+/*}*/
+
+/*#next-button-container,*/
+/*#submit-button-container {*/
+/*    position: fixed;*/
+/*    bottom: 0;*/
+/*    left: 0;*/
+/*    right: 0;*/
+/*    background: var(--white-color);*/
+/*    padding: 15px 20px;*/
+/*    text-align: center;*/
+/*    box-shadow: 0 -2px 10px var(--shadow-color);*/
+/*    z-index: 100;*/
+/*    transition: bottom 0.3s ease;*/
+/*}*/
 
 button.next-step {
     width: 100%;
@@ -383,17 +397,17 @@ button.next-step:disabled {
     opacity: 0.7;
 }
 
-#submit-button-container {
-    position: fixed;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    background: var(--white-color);
-    padding: 15px 20px;
-    text-align: center;
-    box-shadow: 0 -2px 10px var(--shadow-color);
-    display: none;
-}
+/*#submit-button-container {*/
+/*    position: fixed;*/
+/*    bottom: 0;*/
+/*    left: 0;*/
+/*    right: 0;*/
+/*    background: var(--white-color);*/
+/*    padding: 15px 20px;*/
+/*    text-align: center;*/
+/*    box-shadow: 0 -2px 10px var(--shadow-color);*/
+/*    display: none;*/
+/*}*/
 
 button.submit-form {
     width: 100%;
@@ -2959,4 +2973,31 @@ body.dark-mode .diet-type-card.premium:not(.selected) {
     border: none;
     border-radius: 0;
     background-color: transparent;
+}
+
+
+#next-button-container,
+#submit-button-container {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    width: 100%;
+    background: var(--white-color);
+    padding: 15px 20px;
+    text-align: center;
+    box-shadow: 0 -2px 10px var(--shadow-color);
+    z-index: 1000;
+    box-sizing: border-box;
+    display: none;
+    /* حذف transition برای جلوگیری از لگ */
+}
+
+.theme-toggle {
+    z-index: 1001 !important; /* بالاتر از next-button-container که 1000 است */
+}
+
+body.dark-mode #next-button-container,
+body.dark-mode #submit-button-container {
+    background: var(--dark-bg-color);
 }

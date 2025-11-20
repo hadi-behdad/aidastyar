@@ -224,8 +224,21 @@ window.setupInput = function(inputId, displayId, field) {
     }
     
     const updateDisplay = (value) => {
-        display.textContent = value ? `${value} ${field === 'age' ? 'سال' : field === 'height' ? 'سانتی‌متر' : 'کیلوگرم'}` : `0 ${field === 'age' ? 'سال' : field === 'height' ? 'سانتی‌متر' : 'کیلوگرم'}`;
-        display.style.color = value ? 'var(--text-color)' : 'var(--light-text-color)';
+        // ذخیره متن پیش‌فرض اولیه (فقط یک بار)
+        if (!display.dataset.originalText) {
+            display.dataset.originalText = display.textContent;
+        }
+        
+        if (value) {
+            // اگر مقدار وجود دارد
+            const unit = field === 'age' ? 'سال' : field === 'height' ? 'سانتی‌متر' : 'کیلوگرم';
+            display.textContent = `${value} ${unit}`;
+            display.style.color = 'var(--text-color)';
+        } else {
+            // اگر خالی است، متن اولیه را برگردان
+            display.textContent = display.dataset.originalText;
+            display.style.color = 'var(--light-text-color)';
+        }
         
         state.updateFormData(field, value ? parseInt(value) : null);
         
@@ -238,6 +251,7 @@ window.setupInput = function(inputId, displayId, field) {
             calculateBMI(parseInt(value), state.formData.userInfo.weight);
         }
     };
+
     
     input.addEventListener('input', () => {
         let value = input.value.replace(/\D/g, '');
@@ -434,3 +448,139 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     });    
 });
+
+
+/**
+ * مدیریت دکمه با کیبورد موبایل - نسخه نهایی
+ * دکمه همیشه بالای کیبورد می‌مونه، حتی با اسکرول
+ */
+function handleMobileKeyboard() {
+    const nextButtonContainer = document.getElementById('next-button-container');
+    const submitButtonContainer = document.getElementById('submit-button-container');
+    
+    if (!nextButtonContainer && !submitButtonContainer) return;
+    
+    let windowHeight = window.innerHeight;
+    let isKeyboardOpen = false;
+    let rafId = null;
+    
+    function getActiveContainer() {
+        if (nextButtonContainer && nextButtonContainer.style.display !== 'none') {
+            return nextButtonContainer;
+        }
+        if (submitButtonContainer && submitButtonContainer.style.display !== 'none') {
+            return submitButtonContainer;
+        }
+        return null;
+    }
+    
+    function updateButtonPosition() {
+        // لغو animation frame قبلی برای بهینه‌سازی
+        if (rafId) {
+            cancelAnimationFrame(rafId);
+        }
+        
+        rafId = requestAnimationFrame(() => {
+            const container = getActiveContainer();
+            if (!container) return;
+            
+            // استفاده از visualViewport برای دقت بالا
+            const viewport = window.visualViewport;
+            let viewportHeight, viewportOffsetTop;
+            
+            if (viewport) {
+                viewportHeight = viewport.height;
+                viewportOffsetTop = viewport.offsetTop || 0;
+            } else {
+                viewportHeight = window.innerHeight;
+                viewportOffsetTop = 0;
+            }
+            
+            // تشخیص کیبورد (اگر viewport بیش از 150px کوچکتر شد)
+            const keyboardHeight = windowHeight - viewportHeight;
+            
+            if (keyboardHeight > 150) {
+                // کیبورد باز است
+                isKeyboardOpen = true;
+                
+                // محاسبه موقعیت دقیق
+                const bottomPosition = Math.max(0, keyboardHeight - viewportOffsetTop);
+                
+                container.style.position = 'fixed';
+                container.style.bottom = `${bottomPosition}px`;
+                container.style.left = '0';
+                container.style.right = '0';
+                container.style.zIndex = '1000';
+                
+            } else {
+                // کیبورد بسته است
+                if (isKeyboardOpen) {
+                    isKeyboardOpen = false;
+                }
+                
+                container.style.position = 'fixed';
+                container.style.bottom = '0';
+                container.style.left = '0';
+                container.style.right = '0';
+                container.style.zIndex = '1000';
+            }
+        });
+    }
+    
+    function updateWindowHeight() {
+        // فقط وقتی کیبورد بسته است، ارتفاع window را به‌روز کن
+        if (!isKeyboardOpen) {
+            windowHeight = window.innerHeight;
+        }
+    }
+    
+    // استفاده از visualViewport (بهترین روش)
+    if (window.visualViewport) {
+        window.visualViewport.addEventListener('resize', updateButtonPosition);
+        window.visualViewport.addEventListener('scroll', updateButtonPosition);
+    }
+    
+    // Fallback برای مرورگرهای بدون visualViewport
+    window.addEventListener('resize', () => {
+        updateWindowHeight();
+        updateButtonPosition();
+    });
+    
+    // برای scroll عادی صفحه
+    window.addEventListener('scroll', updateButtonPosition, { passive: true });
+    
+    // برای تغییر orientation
+    window.addEventListener('orientationchange', () => {
+        setTimeout(() => {
+            updateWindowHeight();
+            updateButtonPosition();
+        }, 300);
+    });
+    
+    // وقتی input focus می‌شود
+    document.addEventListener('focusin', (e) => {
+        if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.tagName === 'SELECT') {
+            setTimeout(updateButtonPosition, 300);
+        }
+    });
+    
+    // وقتی input blur می‌شود
+    document.addEventListener('focusout', (e) => {
+        if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.tagName === 'SELECT') {
+            setTimeout(() => {
+                updateWindowHeight();
+                updateButtonPosition();
+            }, 300);
+        }
+    });
+    
+    // اجرای اولیه
+    updateButtonPosition();
+}
+
+// فراخوانی
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', handleMobileKeyboard);
+} else {
+    handleMobileKeyboard();
+}

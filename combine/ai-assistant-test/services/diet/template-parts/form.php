@@ -76,7 +76,7 @@ $theme_assets = get_stylesheet_directory_uri();
         <!-- Age Input -->
         <div class="input-container">
             <input type="text" inputmode="numeric" id="age-input">
-            <span id="age-display">0 سال</span>
+            <span id="age-display">سن شما</span>
         </div>
         
         <div id="age-validation-container">
@@ -146,13 +146,13 @@ $theme_assets = get_stylesheet_directory_uri();
         <!-- Height Input -->
         <div class="input-container" style="margin-bottom: 15px;">
             <input type="text" inputmode="numeric" id="height-input">
-            <span id="height-display">0 سانتی‌متر</span>
+            <span id="height-display">قد شما</span>
         </div>
         
         <!-- Weight Input -->
         <div class="input-container" style="margin-bottom: 15px;">
             <input type="text" inputmode="numeric" id="weight-input">
-            <span id="weight-display">0 کیلوگرم</span>
+            <span id="weight-display">وزن شما</span>
         </div>
         
         <div id="height-weight-validation-container">
@@ -201,7 +201,7 @@ $theme_assets = get_stylesheet_directory_uri();
         <h2>وزن هدف شما چقدر است؟</h2>
         <div class="input-container">
             <input type="text" inputmode="numeric" id="target-weight-input">
-            <span id="target-weight-display">0 کیلوگرم</span>
+            <span id="target-weight-display">وزن هدف شما</span>
         </div>
         <div id="target-weight-validation-container">
             <p id="targetWeight-error" class="error-message"></p>
