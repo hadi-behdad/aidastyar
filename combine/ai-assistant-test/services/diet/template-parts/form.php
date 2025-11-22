@@ -1401,39 +1401,17 @@ $theme_assets = get_stylesheet_directory_uri();
     <!-- Step 19: Diet Type Selection - نسخه اصلاح شده -->
     <div id="diet-type-selection-step" class="step">
         <h2>نوع رژیم مورد نظر خود را انتخاب کنید</h2>
-        <p class="step-description">لطفاً نوع رژیم غذایی که مایل به دریافت آن هستید را انتخاب نمایید</p>
         
         <div class="step-content-container">
             <div id="diet-type-selection" class="diet-type-grid scrollable-container">
                 <!-- کارت رژیم هوش مصنوعی -->
                 <div class="diet-type-card" data-diet-type="ai-only">
                     <div class="card-header">
-                        <div class="card-icon ai-icon">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <path d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
-                            </svg>
-                        </div>
                         <div class="card-badge">پیشنهادی</div>
                     </div>
                     
                     <div class="card-content">
                         <h3 class="card-title">رژیم هوش مصنوعی</h3>
-                        <p class="card-description">طراحی شده توسط پیشرفته‌ترین الگوریتم‌های هوش مصنوعی با توجه به مشخصات فردی شما</p>
-                        
-                        <ul class="feature-list">
-                            <li class="feature-item">
-                                <span class="feature-icon">✓</span>
-                                <span>شخصی‌سازی کامل</span>
-                            </li>
-                            <li class="feature-item">
-                                <span class="feature-icon">✓</span>
-                                <span>براساس آخرین تحقیقات علمی</span>
-                            </li>
-                            <li class="feature-item">
-                                <span class="feature-icon">✓</span>
-                                <span>پشتیبانی آنلاین</span>
-                            </li>
-                        </ul>
                     </div>
                     
                     <div class="card-footer">
@@ -1447,45 +1425,65 @@ $theme_assets = get_stylesheet_directory_uri();
                 <!-- کارت رژیم با تأیید متخصص -->
                 <div class="diet-type-card premium" data-diet-type="with-specialist">
                     <div class="card-header">
-                        <div class="card-icon specialist-icon">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <path d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
-                            </svg>
-                        </div>
-                        <div class="card-badge premium-badge">حرفه‌ای</div>
+                        <div class="card-badge premium-badge">ویژه</div>
                     </div>
                     
                     <div class="card-content">
                         <h3 class="card-title">رژیم با تأیید متخصص</h3>
-                        <p class="card-description">طراحی توسط هوش مصنوعی + بررسی و تأیید نهایی توسط متخصص تغذیه منتخب شما</p>
-                        
-                        <ul class="feature-list">
-                            <li class="feature-item">
-                                <span class="feature-icon">✓</span>
-                                <span>همه امکانات نسخه هوش مصنوعی</span>
-                            </li>
-                            <li class="feature-item">
-                                <span class="feature-icon">⭐</span>
-                                <span>تأیید نهایی توسط متخصص</span>
-                            </li>
-                            <li class="feature-item">
-                                <span class="feature-icon">⭐</span>
-                                <span>مشاوره تخصصی اختصاصی</span>
-                            </li>
-                        </ul>
                     </div>
                     
                     <div class="card-footer">
-                        <p class="specialist-price-note" style="text-align: center; color: #666; font-size: 13px; margin: 0;">
-                            قیمت براساس مشاور انتخابی
+                        <!-- متن پیش‌فرض قبل از انتخاب متخصص -->
+                        <p class="specialist-price-note" id="specialist-select-note">
+                            قیمت نهایی پس از انتخاب مشاور مشخص می‌شود
                         </p>
-                        <div class="price-section" id="with-specialist-price-container" style="display: none;">
-                            <div class="price-amount" id="with-specialist-price">...</div>
-                            <div class="price-currency">تومان</div>
+                        
+                        <!-- جزئیات قیمت بعد از انتخاب متخصص -->
+                        <div class="price-breakdown" id="price-breakdown" style="display: none;">
+                            <!-- قیمت سرویس AI -->
+                            <div class="price-row">
+                                <div class="price-row-label">
+                                    <span class="price-icon">🤖</span>
+                                    <span>سرویس هوش مصنوعی</span>
+                                </div>
+                                <div class="price-row-value">
+                                    <span id="ai-service-price" class="price-value">0</span>
+                                    <span class="price-currency-small">تومان</span>
+                                    <span id="ai-service-discount" class="discount-badge" style="display: none;"></span>
+                                </div>
+                            </div>
+                            
+                            <!-- قیمت مشاور -->
+                            <div class="price-row">
+                                <div class="price-row-label">
+                                    <span class="price-icon">👨‍⚕️</span>
+                                    <span>مشاوره متخصص</span>
+                                </div>
+                                <div class="price-row-value">
+                                    <span id="consultant-price" class="price-value">0</span>
+                                    <span class="price-currency-small">تومان</span>
+                                    <span id="consultant-discount" class="discount-badge" style="display: none;"></span>
+                                </div>
+                            </div>
+                            
+                            <!-- خط جداکننده -->
+                            <div class="price-divider"></div>
+                            
+                            <!-- قیمت کل -->
+                            <div class="price-row total-price-row">
+                                <div class="price-row-label">
+                                    <span class="price-icon">💰</span>
+                                    <span class="total-label">جمع کل</span>
+                                </div>
+                                <div class="price-row-value">
+                                    <span id="total-price" class="price-value total">0</span>
+                                    <span class="price-currency-small">تومان</span>
+                                </div>
+                            </div>
                         </div>
                     </div>
-
                 </div>
+
             </div>
         </div>
     </div>

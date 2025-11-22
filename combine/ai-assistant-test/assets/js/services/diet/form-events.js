@@ -267,12 +267,27 @@ window.showPaymentConfirmation = function(formData, finalPrice) {
     try {
         // محاسبه قیمت نهایی با در نظر گرفتن هزینه مشاور
         let calculatedFinalPrice = finalPrice;
+        let consultantFee = 0; // ✅ تعریف پیشفرض
         
-        // اگر رژیم با متخصص انتخاب شده و مشاور انتخاب شده است
-        if (formData.serviceSelection.dietType === 'with-specialist' && 
-            formData.serviceSelection.selectedSpecialist) {
+        // اگر رژیم با متخصص انتخاب شده
+        if (formData.serviceSelection.dietType === 'with-specialist') {
+            // ✅ اول بررسی کن اگر مشاور خاص انتخاب شده
+            if (formData.serviceSelection.selectedSpecialist && 
+                formData.serviceSelection.selectedSpecialist.consultation_price) {
+                consultantFee = formData.serviceSelection.selectedSpecialist.consultation_price;
+                console.log('✅ استفاده از قیمت مشاور انتخابی:', consultantFee);
+            } 
+            // ✅ اگر مشاور انتخاب نشده، از قیمت پیشفرض استفاده کن
+            else if (window.state?.formData?.servicePrices?.consultantFee) {
+                consultantFee = window.state.formData.servicePrices.consultantFee;
+                console.log('⚠️ مشاور انتخاب نشده - استفاده از قیمت پیشفرض:', consultantFee);
+            }
+            // ✅ fallback اگر هیچکدام وجود نداشت
+            else {
+                consultantFee = 25000; // قیمت پیشفرض هاردکد
+                console.warn('⚠️ قیمت مشاور یافت نشد - استفاده از مقدار پیشفرض:', consultantFee);
+            }
             
-            const consultantFee = formData.serviceSelection.selectedSpecialist.consultation_price;
             calculatedFinalPrice += consultantFee;
             
             console.log('💰 قیمت نهایی با هزینه مشاور:', {
@@ -288,17 +303,16 @@ window.showPaymentConfirmation = function(formData, finalPrice) {
             customPrice: calculatedFinalPrice, // استفاده از قیمت محاسبه شده
             ajaxAction: 'get_diet_service_price',
             includeConsultantFee: formData.serviceSelection.dietType === 'with-specialist',
-            consultantFee: formData.serviceSelection.selectedSpecialist ? 
-                          formData.serviceSelection.selectedSpecialist.consultation_price : 0,
+            consultantFee: consultantFee, // ✅ حالا همیشه یک مقدار معتبر داره
             onConfirm: (completeFormData, confirmedFinalPrice, discountDetails) => {
                 const completePersianData = window.convertToCompletePersianData(completeFormData);
                 completePersianData.finalPrice = confirmedFinalPrice;
                 completePersianData.discountDetails = discountDetails;
-                
-                console.log('💰 ارسال داده‌های تخفیف به سرور:', completePersianData.discountInfo);
-                
+
+                console.log('💰 ارسال دادههای تخفیف به سرور:', completePersianData.discountInfo);
+
                 window.dispatchEvent(new CustomEvent('formSubmitted', {
-                    detail: { 
+                    detail: {
                         formData: completePersianData,
                         finalPrice: confirmedFinalPrice,
                         discountInfo: completePersianData.discountInfo
@@ -319,12 +333,14 @@ window.showPaymentConfirmation = function(formData, finalPrice) {
                 document.getElementById('SubmitBtn').disabled = false;
             }
         });
+
         paymentPopup.show();
     } catch (error) {
         console.error('Error showing payment popup:', error);
         alert('خطا در نمایش پرداخت. لطفاً صفحه را رفرش کنید.');
-    }    
+    }
 };
+
 
 function setupChronicDiabetesDetails() {
     const diabetesCheckbox = document.getElementById('chronic-diabetes');

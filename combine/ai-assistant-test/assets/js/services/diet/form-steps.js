@@ -1123,28 +1123,24 @@ function renderConsultantsList(consultants) {
 }
 
 
-// انتخاب مشاور در پاپ‌آپ
 window.selectSpecialistInPopup = function(specialistId, specialistName, specialty, consultationPrice) {
-    // حذف انتخاب از همه کارت‌ها
-    document.querySelectorAll('.specialist-card-popup').forEach(card => {
-        card.classList.remove('selected');
-    });
+    document.querySelectorAll('.specialist-card-popup').forEach(card => card.classList.remove('selected'));
     
-    // انتخاب کارت فعلی
     const selectedCard = document.querySelector(`.specialist-card-popup[data-specialist-id="${specialistId}"]`);
     if (selectedCard) {
         selectedCard.classList.add('selected');
     }
     
-    // ذخیره در state
     state.updateFormData('serviceSelection.selectedSpecialist', {
         id: parseInt(specialistId),
         name: specialistName,
         specialty: specialty,
-        consultation_price: parseInt(consultationPrice)
+        consultationprice: parseInt(consultationPrice)
     });
     
-    // نمایش اطلاعات مشاور انتخاب شده
+    // 🆕 بروزرسانی قیمت نهایی در کارت "رژیم با تأیید متخصص"
+    updateSpecialistTotalPrice(parseInt(consultationPrice));
+    
     const specialistInfo = document.getElementById('selected-specialist-info');
     const specialistDetails = document.getElementById('specialist-details');
     
@@ -1152,13 +1148,92 @@ window.selectSpecialistInPopup = function(specialistId, specialistName, specialt
         <div><strong>${specialistName}</strong></div>
         <div style="color: #666; font-size: 0.9em; margin: 5px 0;">${specialty}</div>
         <div style="color: #4CAF50; font-weight: bold; font-size: 0.9em;">
-            +${new Intl.NumberFormat('fa-IR').format(consultationPrice)} تومان هزینه تأیید متخصص
+            ${new Intl.NumberFormat('fa-IR').format(consultationPrice)} تومان
         </div>
     `;
+    
     specialistInfo.style.display = 'block';
     
-    // فعال کردن دکمه تأیید در پاپ‌آپ
     const confirmBtn = document.querySelector('.popup-confirm-btn');
     confirmBtn.disabled = false;
-    
 };
+
+/**
+ * به‌روزرسانی جزئیات قیمت با نمایش دو سطری
+ * @param {number} consultationPrice - قیمت مشاوره متخصص
+ */
+function updateSpecialistTotalPrice(consultationPrice) {
+    const state = window.state;
+    const servicePrices = state.formData.servicePrices;
+    
+    // قیمت‌های سرویس AI
+    const aiOnlyFinalPrice = servicePrices.aiOnly || 0; // قیمت نهایی AI
+    const aiOnlyOriginalPrice = servicePrices.aiOnlyOriginal || 0; // قیمت اصلی AI
+    const hasDiscount = servicePrices.hasDiscount || false; // آیا تخفیف داره؟
+    
+    // محاسبه تخفیف
+    const aiDiscountAmount = aiOnlyOriginalPrice - aiOnlyFinalPrice;
+    const aiDiscountPercent = aiOnlyOriginalPrice > 0 
+        ? Math.round((aiDiscountAmount / aiOnlyOriginalPrice) * 100) 
+        : 0;
+    
+    // قیمت کل
+    const totalPrice = aiOnlyFinalPrice + consultationPrice;
+    
+    // المان‌های HTML
+    const priceBreakdown = document.getElementById('price-breakdown');
+    const selectNote = document.getElementById('specialist-select-note');
+    const aiServicePrice = document.getElementById('ai-service-price');
+    const aiServiceDiscount = document.getElementById('ai-service-discount');
+    const consultantPriceEl = document.getElementById('consultant-price');
+    const consultantDiscountEl = document.getElementById('consultant-discount');
+    const totalPriceEl = document.getElementById('total-price');
+    
+    if (!priceBreakdown || !selectNote) return;
+    
+    // مخفی کردن متن انتخاب متخصص
+    selectNote.style.display = 'none';
+    
+    // نمایش جزئیات قیمت
+    priceBreakdown.style.display = 'block';
+    
+    // 1️⃣ قیمت سرویس AI
+    if (hasDiscount && aiDiscountAmount > 0) {
+        // اگر تخفیف داره
+        aiServicePrice.innerHTML = `
+            <span class="price-value old-price">${new Intl.NumberFormat('fa-IR').format(aiOnlyOriginalPrice)}</span>
+            <span class="price-value">${new Intl.NumberFormat('fa-IR').format(aiOnlyFinalPrice)}</span>
+        `;
+        aiServiceDiscount.textContent = `${aiDiscountPercent}% تخفیف`;
+        aiServiceDiscount.style.display = 'inline-block';
+    } else {
+        // بدون تخفیف
+        aiServicePrice.textContent = new Intl.NumberFormat('fa-IR').format(aiOnlyFinalPrice);
+        aiServiceDiscount.style.display = 'none';
+    }
+    
+    // 2️⃣ قیمت مشاور (فعلاً بدون تخفیف - در آینده می‌تونید اضافه کنید)
+    consultantPriceEl.textContent = new Intl.NumberFormat('fa-IR').format(consultationPrice);
+    consultantDiscountEl.style.display = 'none'; // فعلاً تخفیف برای مشاور نداریم
+    
+    // 3️⃣ قیمت کل
+    totalPriceEl.textContent = new Intl.NumberFormat('fa-IR').format(totalPrice);
+    
+    // ذخیره در state
+    state.formData.servicePrices = {
+        ...state.formData.servicePrices,
+        withSpecialistTotal: totalPrice,
+        consultantFee: consultationPrice,
+        aiServiceFinal: aiOnlyFinalPrice,
+        aiServiceOriginal: aiOnlyOriginalPrice,
+        hasAiDiscount: hasDiscount
+    };
+    
+    console.log('💰 جزئیات قیمت:', {
+        aiOriginal: aiOnlyOriginalPrice,
+        aiFinal: aiOnlyFinalPrice,
+        aiDiscount: aiDiscountAmount,
+        consultant: consultationPrice,
+        total: totalPrice
+    });
+}
