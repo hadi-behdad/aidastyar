@@ -5,6 +5,7 @@ jQuery(document).ready(function($) {
         e.preventDefault();
         var $form = $(this);
         var mobile = $('#mobile').val().trim();
+        var referralCode = $('#referral-code').val().trim(); // ✅ دریافت کد معرف        
         
         // اعتبارسنجی اولیه
         if(!mobile) {
@@ -27,6 +28,7 @@ jQuery(document).ready(function($) {
             data: {
                 action: 'send_otp',
                 mobile: mobile,
+                referral_code: referralCode // ✅ ارسال کد معرف
             },
             success: function(response) {
                 if(response.success) {
@@ -84,6 +86,7 @@ jQuery(document).ready(function($) {
         var $form = $(this);
         var otp_code = $('#otp-code').val().trim();
         var mobile = $('#verify-mobile').val();
+        var referralCode = $('#referral-code').val().trim(); // ✅ دریافت کد معرف
         
         if(!otp_code || otp_code.length !== 5) {
             showMessage('لطفا کد تایید ۵ رقمی را وارد کنید', 'error');
@@ -102,7 +105,9 @@ jQuery(document).ready(function($) {
             data: {
                 action: 'verify_otp',
                 mobile: mobile,
-                otp_code: otp_code
+                otp_code: otp_code,
+                referral_code: referralCode // ✅ ارسال کد معرف
+                
             },
             success: function(response) {
                 // در قسمت موفقیت‌آمیز بودن ورود OTP

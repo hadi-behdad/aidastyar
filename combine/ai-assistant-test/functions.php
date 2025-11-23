@@ -803,3 +803,29 @@ function use_local_avatar_only($avatar, $id_or_email, $args) {
     );
 }
 
+
+// اضافه کردن تب معرف به حساب کاربری
+function ai_assistant_add_referral_tab($items) {
+    $new_items = [];
+    foreach ($items as $key => $value) {
+        $new_items[$key] = $value;
+        if ($key === 'dashboard') {
+            $new_items['referral-dashboard'] = __('سیستم معرف', 'ai-assistant');
+        }
+    }
+    return $new_items;
+}
+add_filter('woocommerce_account_menu_items', 'ai_assistant_add_referral_tab');
+
+function ai_assistant_add_referral_endpoint() {
+    add_rewrite_endpoint('referral-dashboard', EP_ROOT | EP_PAGES);
+}
+add_action('init', 'ai_assistant_add_referral_endpoint');
+
+function ai_assistant_referral_tab_content() {
+    include get_template_directory() . '/templates/referral-dashboard.php';
+}
+add_action('woocommerce_account_referral-dashboard_endpoint', 'ai_assistant_referral_tab_content');
+
+// بارگذاری کلاس سیستم معرف
+require_once get_template_directory() . '/inc/class-referral-system.php';
