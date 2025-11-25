@@ -266,7 +266,9 @@ class ConsultantDietEditor {
                 const label = this.escapeHtml(item.label.trim());
                 const value = this.escapeHtml(item.value.trim());
                 
-                if (sectionIndex === 1) {  // برای غیرقابل ویرایش کردن بخش مشخصات کاربر
+                if (sectionIndex === 0) {  // برای غیرقابل ویرایش کردن بخش مشخصات کاربر
+                
+                
                     html += `
                         <li>
                             <span class="not-editable-text" data-path="${basePath}.items.${itemIndex}.label">${label}</span>: 

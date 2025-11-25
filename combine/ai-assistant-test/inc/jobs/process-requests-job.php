@@ -1,59 +1,97 @@
 <?php
-if (!defined('ABSPATH')) exit;
+/**
+ * Process Requests Job - Refactored and Improved
+ * Version: 2.0
+ * 
+ * Improvements:
+ * - Better error handling and transaction management
+ * - Fixed race conditions
+ * - Improved logging and debugging
+ * - Better validation and security
+ * - Cleaned up logic flow
+ */
 
-class process_requests_job {
-    // اضافه کردن این properties
-    private $table_name = 'ai_job_queue'; // نام جدول خود را قرار دهید
-    private $lock_option_key = 'process_requests_job_lock';
-    private $current_job_option_key = 'process_requests_current_job';
+if (!defined('ABSPATH')) {
+    exit;
+}
+
+class AI_Assistant_Process_Requests_Job {
+    
+    private static $instance = null;
+    private $table_name;
+    private $lock_option_key = 'ai_process_requests_lock';
+    private $current_job_option_key = 'ai_current_processing_job';
     private $processing_timeout = 300; // 5 minutes
-
-    public function handle() {
-        error_log('✅ process_requests_job executed at ' . current_time('mysql'));
-        
+    
+    public static function get_instance() {
+        if (self::$instance === null) {
+            self::$instance = new self();
+        }
+        return self::$instance;
+    }
+    
+    private function __construct() {
         global $wpdb;
+        $this->table_name = $wpdb->prefix . 'job_queue';
         
-        // Check if another process is already running
-        $lock = get_option($this->lock_option_key);
-        if ($lock && $lock > time() - 300) {
+        // Register actions
+     //   add_action('ai_process_job_queue', [$this, 'run']);
+        
+        // Create table if needed
+        $this->maybe_create_table();
+    }
+    
+    /**
+     * Main entry point - called by cron every minute
+     */
+    public function run() {
+        // Check if processing is already in progress
+        $lock = get_transient($this->lock_option_key);
+        
+        if ($lock !== false) {
             error_log('⏸️ [PROCESS_REQUESTS] Processing already in progress, skipping');
             return;
         }
-
-        // Acquire lock
-        update_option($this->lock_option_key, time());
-
+        
+        // Acquire lock using transient (better than options for shared hosting)
+        set_transient($this->lock_option_key, time(), 300); // 5 minute lock
+        
         try {
-            
-            
             $this->process_jobs_sequentially();
+        } catch (Exception $e) {
+            error_log('❌ [PROCESS_REQUESTS] Fatal error: ' . $e->getMessage());
         } finally {
-            
             // Release lock
-            delete_option($this->lock_option_key);
+            delete_transient($this->lock_option_key);
         }
     }
     
-    
-    
-    
+    /**
+     * Create database table if not exists
+     */
     public function maybe_create_table() {
         global $wpdb;
+        
+        // Check if table already exists
         if ($wpdb->get_var("SHOW TABLES LIKE '{$this->table_name}'") == $this->table_name) {
             return;
         }
-
+        
+        // Use file lock to prevent race condition during table creation
         $lock_file = WP_CONTENT_DIR . '/ai_job_queue_table.lock';
-        $lock_handle = fopen($lock_file, 'w');
-
-        if (!flock($lock_handle, LOCK_EX | LOCK_NB)) {
-            fclose($lock_handle);
+        $lock_handle = @fopen($lock_file, 'w');
+        
+        if (!$lock_handle || !flock($lock_handle, LOCK_EX | LOCK_NB)) {
+            if ($lock_handle) {
+                fclose($lock_handle);
+            }
             return;
         }
-
-        try { 
+        
+        try {
             $charset_collate = $wpdb->get_charset_collate();
-            $sql = "CREATE TABLE {$this->table_name} (
+            
+            $sql = "CREATE TABLE IF NOT EXISTS {$this->table_name} (
                 id BIGINT(20) UNSIGNED NOT NULL AUTO_INCREMENT,
                 user_id BIGINT(20) UNSIGNED NOT NULL,
                 history_id BIGINT UNSIGNED NOT NULL,
@@ -67,643 +105,670 @@ class process_requests_job {
                 processing_log LONGTEXT NULL,
                 priority INT DEFAULT 0,
                 PRIMARY KEY (id),
-                INDEX (status),
-                INDEX (started_at),
-                INDEX (created_at),
-                INDEX (priority)
+                INDEX idx_status (status),
+                INDEX idx_started_at (started_at),
+                INDEX idx_created_at (created_at),
+                INDEX idx_priority (priority),
+                INDEX idx_history (history_id)
             ) $charset_collate;";
-
+            
             require_once(ABSPATH . 'wp-admin/includes/upgrade.php');
             dbDelta($sql);
-
-            error_log('✅ [JOB_QUEUE] Table created successfully');
-
+            
+            error_log('✅ [JOB_QUEUE] Table created/verified successfully');
+            
         } finally {
             flock($lock_handle, LOCK_UN);
             fclose($lock_handle);
+            @unlink($lock_file);
         }
     }
-
-    // public function add_cron_intervals($schedules) {
-    //     if (!isset($schedules['every_minute'])) {
-    //         $schedules['every_minute'] = ['interval' => 60,'display' => __('Every Minute')];
-    //     }
-    //     if (!isset($schedules['every_3_minutes'])) {
-    //         $schedules['every_3_minutes'] = ['interval' => 180,'display' => __('Every 3 Minutes')];
-    //     }
-    //     if (!isset($schedules['every_5_minutes'])) {
-    //         $schedules['every_5_minutes'] = ['interval' => 300,'display' => __('Every 5 Minutes')];
-    //     }
-    //     return $schedules;
-    // }
-
-    public function enqueue_job($history_id , $user_id) {
+    
+    /**
+     * Enqueue a new job
+     */
+    public function enqueue_job($history_id, $user_id) {
         global $wpdb;
-
-        $inserted = $wpdb->insert($this->table_name, [
-            'history_id'     => $history_id,
-            'user_id'     => $user_id ,
-            'status'      => 'pending',
-            'created_at'  => current_time('mysql'),
-            'updated_at'  => current_time('mysql')
-        ]);
-
+        
+        // Validate inputs
+        if (empty($history_id) || empty($user_id)) {
+            error_log('❌ [ENQUEUE] Invalid parameters: history_id or user_id is empty');
+            return false;
+        }
+        
+        // Check for duplicate jobs
+        $existing = $wpdb->get_var($wpdb->prepare(
+            "SELECT id FROM {$this->table_name} WHERE history_id = %d AND status IN ('pending', 'processing')",
+            $history_id
+        ));
+        
+        if ($existing) {
+            error_log('⚠️ [ENQUEUE] Job already exists for history_id: ' . $history_id);
+            return $existing;
+        }
+        
+        $inserted = $wpdb->insert(
+            $this->table_name,
+            [
+                'history_id' => $history_id,
+                'user_id' => $user_id,
+                'status' => 'pending',
+                'created_at' => current_time('mysql'),
+                'updated_at' => current_time('mysql')
+            ],
+            ['%d', '%d', '%s', '%s', '%s']
+        );
+        
         if ($inserted === false) {
             error_log('❌ [ENQUEUE] Failed to insert job: ' . $wpdb->last_error);
             return false;
         }
-
+        
         $job_id = $wpdb->insert_id;
-        error_log('✅ [ENQUEUE] Job #' . $job_id . ' added - Service: ' . $service_id);
-
-        // Trigger processing immediately
-     //   $this->maybe_process_jobs();
-
+        error_log('✅ [ENQUEUE] Job #' . $job_id . ' added for history_id: ' . $history_id);
+        
         return $job_id;
     }
-
-    // private function maybe_process_jobs() {
-    //     // Schedule immediate processing
-    //     if (!wp_next_scheduled('ai_process_job_queue')) {
-    //         wp_schedule_single_event(time() + 2, 'ai_process_job_queue');
-    //     } else {
-    //         wp_schedule_single_event(time() + 2, 'ai_process_job_queue');
-    //     }
-    //     spawn_cron();
-    // }
-
+    
+    /**
+     * Process jobs sequentially (one at a time)
+     */
     public function process_jobs_sequentially() {
         global $wpdb;
-
-        // // Check if another process is already running
-        // $lock = get_option($this->lock_option_key);
-        // if ($lock && $lock > time() - 300) { // 5-minute lock
-        //     error_log('⏸️ [SEQUENTIAL] Processing already in progress, skipping');
-        //     return;
-        // }
-
-        // // Acquire lock
-        // update_option($this->lock_option_key, time());
-
-        try {
-            error_log('🔄 [SEQUENTIAL] Processing cycle started at: ' . current_time('mysql'));
-
-            $this->cleanup_stuck_jobs();
-
-            // Check if there's already a job being processed
-            $current_job_id = get_option($this->current_job_option_key);
-            if ($current_job_id) {
-                $current_job = $wpdb->get_row($wpdb->prepare("SELECT * FROM {$this->table_name} WHERE id = %d", $current_job_id));
-                if ($current_job && $current_job->status === 'processing') {
-                    error_log('⏸️ [SEQUENTIAL] Job #' . $current_job_id . ' is still processing, waiting...');
-                    return;
-                } else {
-                    // Current job is done or failed, clear it
-                    delete_option($this->current_job_option_key);
-                }
-            }
-
-            // Get the oldest pending job
-            $pending_job = $wpdb->get_row("
-                SELECT * FROM {$this->table_name} 
-                WHERE status = 'pending' 
-                ORDER BY id ASC 
-                LIMIT 1
-            ");
-
-            if (!$pending_job) {
-                error_log('📭 [SEQUENTIAL] No pending jobs found');
+        
+        error_log('🔄 [SEQUENTIAL] Processing cycle started at: ' . current_time('mysql'));
+        
+        // First, cleanup any stuck jobs
+        $this->cleanup_stuck_jobs();
+        
+        // Check if there's already a job being processed
+        $current_job_id = get_transient($this->current_job_option_key);
+        
+        if ($current_job_id) {
+            $current_job = $wpdb->get_row($wpdb->prepare(
+                "SELECT * FROM {$this->table_name} WHERE id = %d",
+                $current_job_id
+            ));
+            
+            if ($current_job && $current_job->status === 'processing') {
+                error_log('⏸️ [SEQUENTIAL] Job #' . $current_job_id . ' is still processing, waiting...');
                 return;
+            } else {
+                // Current job is done or failed, clear it
+                delete_transient($this->current_job_option_key);
             }
-
-            error_log('🎯 [SEQUENTIAL] Starting processing for job #' . $pending_job->id);
-
-            // Claim the job
-            $now = current_time('mysql');
-            $updated = $wpdb->update(
-                $this->table_name,
-                [
-                    'status' => 'processing',
-                    'started_at' => $now,
-                    'last_attempt' => $now,
-                    'processing_log' => ($pending_job->processing_log ?: '') . "\n[SEQUENTIAL] Claimed at " . $now
-                ],
-                ['id' => $pending_job->id, 'status' => 'pending'],
-                ['%s', '%s', '%s', '%s'],
-                ['%d', '%s']
-            );
-
-            if (!$updated || $wpdb->rows_affected === 0) {
-                error_log('❌ [SEQUENTIAL] Failed to claim job #' . $pending_job->id);
-                return;
-            }
-
-            // Set as current job
-            update_option($this->current_job_option_key, $pending_job->id);
-
-            // Process the job
-            $this->process_single_job($pending_job->id);
-
-        } finally {
-            // Release lock
-          //  delete_option($this->lock_option_key);
         }
+        
+        // Get the oldest pending job
+        $pending_job = $wpdb->get_row(
+            "SELECT * FROM {$this->table_name} 
+             WHERE status = 'pending' 
+             ORDER BY priority DESC, id ASC 
+             LIMIT 1"
+        );
+        
+        if (!$pending_job) {
+            error_log('📭 [SEQUENTIAL] No pending jobs found');
+            return;
+        }
+        
+        error_log('🎯 [SEQUENTIAL] Starting processing for job #' . $pending_job->id);
+        
+        // Claim the job (atomic operation using WHERE clause)
+        $now = current_time('mysql');
+        $log_entry = "\n[" . $now . "] Claimed by processor";
+        
+        $updated = $wpdb->update(
+            $this->table_name,
+            [
+                'status' => 'processing',
+                'started_at' => $now,
+                'last_attempt' => $now,
+                'processing_log' => $wpdb->prepare('%s', $pending_job->processing_log . $log_entry)
+            ],
+            [
+                'id' => $pending_job->id,
+                'status' => 'pending' // Only update if still pending
+            ],
+            ['%s', '%s', '%s', '%s'],
+            ['%d', '%s']
+        );
+        
+        if (!$updated || $wpdb->rows_affected === 0) {
+            error_log('❌ [SEQUENTIAL] Failed to claim job #' . $pending_job->id . ' (already claimed by another process)');
+            return;
+        }
+        
+        // Set as current job
+        set_transient($this->current_job_option_key, $pending_job->id, 300);
+        
+        // Process the job
+        $this->process_single_job($pending_job->id);
     }
-
+    
+    /**
+     * Cleanup stuck jobs
+     */
     public function cleanup_stuck_jobs() {
         global $wpdb;
-
+        
         $timeout_threshold = date('Y-m-d H:i:s', time() - $this->processing_timeout);
-
-        $stuck_jobs = $wpdb->get_results($wpdb->prepare("
-            SELECT * FROM {$this->table_name} 
-            WHERE status = 'processing' 
-            AND started_at < %s
-            ORDER BY started_at ASC
-        ", $timeout_threshold));
-
+        
+        $stuck_jobs = $wpdb->get_results($wpdb->prepare(
+            "SELECT * FROM {$this->table_name} 
+             WHERE status = 'processing' 
+             AND started_at < %s 
+             ORDER BY started_at ASC",
+            $timeout_threshold
+        ));
+        
+        if (empty($stuck_jobs)) {
+            return;
+        }
+        
         foreach ($stuck_jobs as $job) {
+            $log_entry = "\n[" . current_time('mysql') . "] Cleanup: timeout detected";
+            
             if ($job->retry_count < 2) {
-                $wpdb->update($this->table_name, [
-                    'status' => 'pending',
-                    'started_at' => null,
-                    'retry_count' => $job->retry_count + 1,
-                    'last_attempt' => current_time('mysql'),
-                    'error_message' => 'Timeout - Retry ' . ($job->retry_count + 1),
-                    'processing_log' => $job->processing_log . "\n[RETRY] Reset at " . current_time('mysql')
-                ], ['id' => $job->id]);
-
-                error_log('🔄 [CLEANUP] Job #' . $job->id . ' reset for retry');
+                // Reset for retry
+                $wpdb->update(
+                    $this->table_name,
+                    [
+                        'status' => 'pending',
+                        'started_at' => null,
+                        'retry_count' => $job->retry_count + 1,
+                        'last_attempt' => current_time('mysql'),
+                        'error_message' => 'Timeout - Retry ' . ($job->retry_count + 1),
+                        'processing_log' => $job->processing_log . $log_entry
+                    ],
+                    ['id' => $job->id],
+                    ['%s', '%s', '%d', '%s', '%s', '%s'],
+                    ['%d']
+                );
+                
+                error_log('🔄 [CLEANUP] Job #' . $job->id . ' reset for retry (' . ($job->retry_count + 1) . '/2)');
             } else {
-                $wpdb->update($this->table_name, [
-                    'status' => 'error',
-                    'error_message' => 'Job stuck after 2 retries',
-                    'updated_at' => current_time('mysql'),
-                    'processing_log' => $job->processing_log . "\n[ERROR] Marked as stuck at " . current_time('mysql')
-                ], ['id' => $job->id]);
-
-                error_log('❌ [CLEANUP] Job #' . $job->id . ' marked as error');
+                // Mark as error after 2 retries
+                $wpdb->update(
+                    $this->table_name,
+                    [
+                        'status' => 'error',
+                        'error_message' => 'Job stuck after 2 retries',
+                        'updated_at' => current_time('mysql'),
+                        'processing_log' => $job->processing_log . $log_entry . " - Max retries exceeded"
+                    ],
+                    ['id' => $job->id],
+                    ['%s', '%s', '%s', '%s'],
+                    ['%d']
+                );
+                
+                error_log('❌ [CLEANUP] Job #' . $job->id . ' marked as error (max retries exceeded)');
             }
         }
-
+        
         // Clear current job if it's stuck
-        $current_job_id = get_option($this->current_job_option_key);
+        $current_job_id = get_transient($this->current_job_option_key);
         if ($current_job_id) {
-            $current_job = $wpdb->get_row($wpdb->prepare("SELECT * FROM {$this->table_name} WHERE id = %d", $current_job_id));
-            if ($current_job && $current_job->status === 'processing' && strtotime($current_job->started_at) < time() - $this->processing_timeout) {
-                delete_option($this->current_job_option_key);
+            $current_job = $wpdb->get_row($wpdb->prepare(
+                "SELECT * FROM {$this->table_name} WHERE id = %d",
+                $current_job_id
+            ));
+            
+            if ($current_job && 
+                $current_job->status === 'processing' && 
+                strtotime($current_job->started_at) < time() - $this->processing_timeout) {
+                delete_transient($this->current_job_option_key);
                 error_log('🔄 [CLEANUP] Cleared stuck current job #' . $current_job_id);
             }
         }
     }
-
+    
+    /**
+     * Process a single job
+     */
     private function process_single_job($job_id) {
         global $wpdb;
-
+        
         error_log('🎯 [WORKER] Starting processing for job #' . $job_id);
-
-        // Load job row
-        $job = $wpdb->get_row($wpdb->prepare("SELECT * FROM {$this->table_name} WHERE id = %d", $job_id));
+        
+        // Load job
+        $job = $wpdb->get_row($wpdb->prepare(
+            "SELECT * FROM {$this->table_name} WHERE id = %d",
+            $job_id
+        ));
+        
         if (!$job) {
-            error_log('❌ [WORKER-1] Job #' . $job_id . ' not found');
-            delete_option($this->current_job_option_key);
+            error_log('❌ [WORKER] Job #' . $job_id . ' not found');
+            delete_transient($this->current_job_option_key);
             return false;
         }
-
+        
+        // Initialize variables
+        $history_id = $job->history_id;
+        $user_id = $job->user_id;
+        $history_manager = null;
+        $start_time = microtime(true);
+        
         try {
             // Environment setup
-            set_time_limit(300);
-            ini_set('max_execution_time', 300);
-            ini_set('memory_limit', '256M');
-
-        //    $this->validate_job($job);
+            @set_time_limit(300);
+            @ini_set('max_execution_time', '300');
+            @ini_set('memory_limit', '256M');
             
+            // Get history manager
+            $history_manager = AI_Assistant_History_Manager::get_instance();
+            $history = $history_manager->get_history_item($history_id);
             
-            // Call API
-            error_log('📡 [WORKER] Starting job #' . $job_id);
-            $start_time = microtime(true);
-            
-
-
-            $history_id = $job -> history_id;
-            
-            
-            
-            $history_manager = AI_Assistant_History_Manager::get_instance();            
-            $history = $history_manager ->get_history_item($history_id);
-            
-            // Updateing history status
-            error_log('📝 [WORKER] Updateing history to processing for job' . $job_id);
-            $update_result = $history_manager->update_history(
-                $history_id,
-                'processing'
-            );
-
-            if ($update_result) {
-                // موفق
-                error_log('✅ [ACTION-1] Status updated successfully for ' . $history_id);
-            } else {
-                // ناموفق
-                error_log('❌ [ACTION] Failed to update status for '  . $history_id);
-                throw new Exception('Failed to update history ');
+            if (!$history) {
+                throw new Exception('History item not found: ' . $history_id);
             }
-
             
-            $user_id = $history-> user_id;
-            $service_id = $history-> service_id;
-            $userData = $history-> user_data;
+            // Update history to processing
+            error_log('📝 [WORKER] Updating history to processing for job #' . $job_id);
+            $update_result = $history_manager->update_history($history_id, 'processing');
             
-            $decodedData = json_decode($userData, true); // true برای تبدیل به آرایه
+            if (!$update_result) {
+                throw new Exception('Failed to update history status to processing');
+            }
             
-            // استخراج داده‌ها
+            // Extract data from history
+            $service_id = $history->service_id;
+            $userData = $history->user_data;
+            $decodedData = json_decode($userData, true);
+            
+            if (json_last_error() !== JSON_ERROR_NONE) {
+                throw new Exception('Invalid JSON in user_data: ' . json_last_error_msg());
+            }
+            
             $userInfo = $decodedData['userInfo'] ?? [];
-            $serviceSelection = $decodedData['serviceSelection'] ?? []; 
+            $serviceSelection = $decodedData['serviceSelection'] ?? [];
+            $discountDetails = $decodedData['discountDetails'] ?? [];
             $discountInfo = $decodedData['discountInfo'] ?? [];
-          
-          
-            if ($service_id === 'diet' ){
-                
-                    $serviceSelectionDietType = $serviceSelection['dietType'] ?? null;
-                    
-                    if ( $serviceSelectionDietType === 'with-specialist'   ){
-
-                        error_log('📝  [DietType] serviceSelectionDietType :' . $serviceSelectionDietType);
-                        
-                        // استخراج داده‌های selectedSpecialist (اگر وجود دارد)
-                        $selectedSpecialistId = null;
-                        $selectedSpecialistName = null;
-                        $selectedSpecialistSpecialty = null;
-                        
-                        if (isset($serviceSelection['selectedSpecialist']) && is_array($serviceSelection['selectedSpecialist'])) {
-                            $selectedSpecialistId = $serviceSelection['selectedSpecialist']['id'] ?? null;
-                            $selectedSpecialistName = $serviceSelection['selectedSpecialist']['name'] ?? null;
-                            $selectedSpecialistSpecialty = $serviceSelection['selectedSpecialist']['specialty'] ?? null;
-                            
-                             error_log('📝 [DietType] $selectedSpecialistName :' . $selectedSpecialistName);
-                        } 
-                    
-                    }                    
-
-            } 
             
+            // Get service information
             $all_services = get_option('ai_assistant_services', []);
+            if (!isset($all_services[$service_id])) {
+                throw new Exception('Service not found: ' . $service_id);
+            }
+            
             $service_name = $all_services[$service_id]['name'];
-            
-            
             $service_manager = AI_Assistant_Service_Manager::get_instance();
+            $service_info = $service_manager->get_service($service_id);
+            
+            if (!$service_info || !isset($service_info['system_prompt'])) {
+                throw new Exception('Service information or system_prompt not found');
+            }
+            
+            $system_prompt = $service_info['system_prompt'];
             $original_price = $service_manager->get_service_price($service_id);
             
-            $service_info = $service_manager->get_service($service_id);
-            if ($service_info && isset($service_info['system_prompt'])) {
-                $system_prompt = $service_info['system_prompt'];
-            } else {
-                error_log('Service not found or system_prompt not set');
-            }
-              
+            // Calculate final price with discount
+            list($final_price, $discount_applied, $discount_code, $discount_data) = 
+                $this->calculate_final_price($original_price, $discountDetails, $discountInfo, $service_id, $user_id);
             
+            error_log('💰 [WORKER] Price calculation - Original: ' . $original_price . ', Final: ' . $final_price . ', Discount: ' . ($discount_applied ? 'YES' : 'NO'));
+            
+            // Prepare prompt
             $userInfoString = is_array($userInfo) ? json_encode($userInfo, JSON_UNESCAPED_UNICODE) : $userInfo;
-
-            
             $prompt = $system_prompt . "\n\n" . $userInfoString;
-            $payment_handler = AI_Assistant_Payment_Handler::get_instance();
             
-            //// DISCOUNT
-                        
-            try {
-                $discountDetails = $decodedData['discountDetails'] ?? [];
-                $discountInfo = $decodedData['discountInfo'] ?? [];
-                
-                error_log('🎯 [DISCOUNT DEBUG] Using discountDetails: ' . print_r($discountDetails, true));
-                
-                // این منطق را جایگزین کنید:
-                if (!empty($discountDetails) && isset($discountDetails['finalPrice'])) {
-                    $final_price = floatval($discountDetails['finalPrice']);
-                    $original_price = floatval($discountDetails['originalPrice'] ?? $final_price);
-                    
-                    // تشخیص خودکار اینکه تخفیف اعمال شده یا نه
-                    $discount_applied = ($final_price < $original_price);
-                    
-                    error_log('✅ [DISCOUNT] Using discountDetails - Final price: ' . $final_price);
-                    error_log('🎯 [DISCOUNT] Auto-detected discount applied: ' . ($discount_applied ? 'YES' : 'NO'));
-                } 
-                else if (!empty($discountInfo)) {
-    
-                    $discountInfo_discount_code = $discountInfo['discountCode'] ?? null;
-                    $discountInfo_discountApplied = $discountInfo['discountApplied'] ?? null;
-                    
-                    // اگر کد تخفیف وارد شده بود اما معتبر نبود
-                    if ($discountInfo_discount_code && !empty($discountInfo_discount_code && $discountInfo_discountApplied)) {
-                        // اعتبارسنجی کد تخفیف
-                        $validation_result = AI_Assistant_Discount_Manager::validate_discount(
-                            $discountInfo_discount_code, 
-                            $service_id, 
-                            $user_id
-                        );
-                        
-                        if ($validation_result['valid']) {
-                            // محاسبه قیمت با تخفیف
-                            $discounted_price = AI_Assistant_Discount_Manager::calculate_discounted_price(
-                                $original_price, 
-                                $validation_result['discount']
-                            );
-                            
-                            // استفاده از قیمت با تخفیف
-                            $final_price = $discounted_price;
-                            $discount_applied = true;
-                            
-                        } else {
-                            throw new Exception("کد تخفیف نامعتبر: " . $validation_result['message']);
-                            
-                        }
-                    }
-                } else {
-                    $final_price = $original_price;
-                    $discount_applied = false;
-                    error_log('ℹ️ [DISCOUNT] No discount data found, using original price: ' . $original_price);
-                }
+            // Validate request
+            $payment_handler = AI_Assistant_Payment_Handler::get_instance();
+            $this->validate_request($prompt, $service_id, $user_id, $final_price, $payment_handler);
+            
+            // Call API
+            error_log('📡 [WORKER] Calling API for job #' . $job_id);
+     //      $response = $this->call_deepseek_api($prompt);
+           
+         //   sleep(15);
+            $response = '
+            
+{
+  "title": "برنامه تغذیه‌ای بالینی",
+  "sections": [
+
+    {
+      "title": "۷. توصیه‌ها",
+      "content": {
+        "type": "list",
+        "items": [
+          "مصرف 3.5 لیتر آب در روز را ادامه دهید",
+          "وعده‌های غذایی را منظم و در زمان‌های مشخص مصرف کنید",
+          "پروتئین کافی در هر وعده دریافت کنید",
+          "میوه و سبزیجات متنوع مصرف کنید",
+          "خواب کافی (7-8 ساعت) داشته باشید"
+        ]
+      }
+    }
+
    
-            } catch (Exception $e) {
-                // مدیریت خطا
-                error_log('Discount Error: ' . $e->getMessage());
+  ]
+}            
+            
+            
+            
+            ';
+            
+            
+            
+            if (!$response || (is_array($response) && isset($response['error']))) {
+                $err = is_array($response) && isset($response['error']) ? $response['error'] : 'Empty or invalid API response';
+                throw new Exception('API call failed: ' . $err);
             }
             
-    
+            $cleaned_response = $this->clean_api_response($response);
+            
+            // Start database transaction
+            $wpdb->query('START TRANSACTION');
+            $transaction_started = true;
+            
             try {
-                // 1. اعتبارسنجی اولیه (اطمینان از اینکه درخواست درست است، اعتبار کاربر و ...)
-                $this->validate_request($prompt, $service_id, $user_id, $final_price, $payment_handler);
-    
-                // 2. فراخوانی سرویس خارجی (DeepSeek یا هر API‌ای)
-              //  $response = $this->call_deepseek_api($prompt);
-                sleep(15);
-                $response = '📡 [RESPONSE] Test response for job #' . $job_id;
-    
-    
-                // 3. بررسی موفقیت پاسخ API
-                if (!$response || (is_array($response) && isset($response['error']))) {
-                    // اگر API پاسخ معتبری برنگردانده، خطا بده
-                    $err = is_array($response) && isset($response['error']) ? $response['error'] : 'Empty or invalid API response';
-                    throw new Exception("API call failed: " . $err);
-                }
-                
-                
-                $cleaned_response = $this->clean_api_response($response);
-
-    
-                // 4. شروع تراکنش دیتابیس
-                $wpdb->query('START TRANSACTION');
-    
-                
+                // Deduct credit
                 error_log('💰 [WORKER] Deducting credit for job #' . $job_id);
-                
-                $payment_handler = AI_Assistant_Payment_Handler::get_instance();
                 $credit_success = $payment_handler->deduct_credit(
                     $user_id,
                     $final_price,
                     'استفاده از سرویس: ' . $service_name,
                     'job_' . $job_id
                 );
-    
+                
                 if ($credit_success === false || (is_array($credit_success) && isset($credit_success['error']))) {
                     $err = is_array($credit_success) && isset($credit_success['error']) ? $credit_success['error'] : 'Deduct credit failed';
-                    throw new Exception("Payment deduction failed: " . $err);
-                }                
+                    throw new Exception('Payment deduction failed: ' . $err);
+                }
                 
-                    
-                // Updateing history
-                error_log('📝 [WORKER] Updateing history for job #' . $job_id);
-                // $history_manager = AI_Assistant_History_Manager::get_instance();
+                // Update history with response
+                error_log('📝 [WORKER] Updating history with response for job #' . $job_id);
                 $update_result = $history_manager->update_history(
                     $history_id,
-                    'completed'    ,     // $service_id
+                    'completed',
                     $cleaned_response
                 );
                 
-                if ($update_result) {
-                    // موفق
-                    error_log('✅ [ACTION-2] Status updated successfully for ' . $history_id);
+                if (!$update_result) {
+                    throw new Exception('Failed to update history with response');
+                }
+                
+                // Update history with response
+                error_log("📝 [WORKER] Updating history with response for job #$job_id");
+                $update_result = $history_manager->update_history($history_id, 'completed', $cleaned_response);
+                if (!$update_result) {
+                    throw new Exception("Failed to update history with response");
+                }
+                
+                // ✅ پردازش referral - داخل Transaction فعلی
+                error_log("🎯 [REFERRAL] Checking if this is first purchase for user: $user_id");
+                
+                // بررسی اینکه آیا این اولین خرید است
+                $previous_jobs = $wpdb->get_var($wpdb->prepare(
+                    "SELECT COUNT(*) FROM {$this->table_name} 
+                     WHERE user_id = %d AND status = 'done' AND id < %d",
+                    $user_id, 
+                    $job_id
+                ));
+                
+                error_log("🎯 [REFERRAL] Previous completed jobs: $previous_jobs");
+                
+                if ($previous_jobs == 0) {
+                    error_log("🎯 [REFERRAL] This is the FIRST purchase! Triggering referral reward...");
+                    
+                    // فراخوانی هوک - همه Query ها داخل Transaction فعلی هستند
+                    do_action('ai_assistant_first_purchase_completed', $user_id, $history_id, $final_price);
+                    
+                    error_log("🎯 [REFERRAL] Referral processing completed");
                 } else {
-                    // ناموفق
-                    error_log('❌ [ACTION] Failed to update status for '  . $history_id);
-                    throw new Exception('Failed to update history step 0');
+                    error_log("🎯 [REFERRAL] Not first purchase (count: $previous_jobs), skipping referral");
                 }
-            
-               
+
                 
-                // ✅ افزایش usage_count برای تخفیف‌های کوپن
-                if ($discount_applied && 
-                    isset($validation_result['discount']) && 
-                    $validation_result['discount']->scope === 'coupon') {
-                    
+                // Increment discount usage if applicable
+                if ($discount_applied && isset($discount_data['discount']) && $discount_data['discount']->scope === 'coupon') {
                     $discount_db = AI_Assistant_Discount_DB::get_instance();
-                    $discount_db->increment_usage($validation_result['discount']->id);
-                    
-                    $this->logger->log('Discount usage incremented:', [
-                        'discount_id' => $validation_result['discount']->id,
-                        'discount_code' => $discountInfo_discount_code,
-                        'user_id' => $user_id,
-                        'service_id' => $service_id,
-                        'final_price' => $final_price
-                    ]);
-                }                
-    
-                // 7. در صورت نیاز، ثبت درخواست مشاوره
-                $Consultant_Rec = null;
-                if ($service_id === 'diet' && $serviceSelectionDietType === 'with-specialist') {
-                    
-                    
-                    $Consultation_DB = AI_Assistant_Diet_Consultation_DB::get_instance();
-                    $consultant = $Consultation_DB -> get_consultant($selectedSpecialistId);
-                    
-                    $contract = $Consultation_DB->get_active_contract($consultant->id);
-                    
-                                    
-                    if ($contract === false || empty($contract)) {
-                        throw new Exception('not valid contract');
-                    }                     
-                    
-                    
-                    $Nutrition_Consultant_Manager = AI_Assistant_Nutrition_Consultant_Manager::get_instance();
-                    $Consultant_Rec = $Nutrition_Consultant_Manager->submit_consultation_request($history_id ,  $consultant->id , $contract->commission_value);
-    
-                    if ($Consultant_Rec === false || (is_array($Consultant_Rec) && isset($Consultant_Rec['error']))) {
-                        $err = is_array($Consultant_Rec) && isset($Consultant_Rec['error']) ? $Consultant_Rec['error'] : 'submit_consultation_request failed';
-                        throw new Exception("Consultation request failed: " . $err);
-                    }
-                    
-                    else if($Consultant_Rec)
-                    
-                    {
-                        // Updateing history status
-                        error_log('📝 [WORKER] Updateing history for job #' . $job_id);
-                       // $history_manager = AI_Assistant_History_Manager::get_instance();
-                        $history_success = $history_manager->update_history(
-                            $history_id,
-                            'consultant_queue'
-                        );
-                        
-                        if ($history_success === false || empty($history_success)) {
-                            throw new Exception('Failed to update history step 2');
-                        }                        
-                        
-                        
-                    }
-                    
-                    
+                    $discount_db->increment_usage($discount_data['discount']->id);
+                    error_log('✅ [DISCOUNT] Usage incremented for code: ' . $discount_code);
                 }
                 
-                  
+                // Handle diet consultation if needed
+                $consultation_handled = $this->handle_diet_consultation(
+                    $service_id,
+                    $serviceSelection,
+                    $history_id,
+                    $history_manager
+                );
                 
-                // 8. همه چی موفق بود -> commit
+                // Commit transaction
                 $wpdb->query('COMMIT');
-                error_log('✅ [COMMITED] Job #' . $job_id);
-                    
+                $transaction_started = false;
+                error_log('✅ [TRANSACTION] Committed for job #' . $job_id);
+                
+                // Calculate processing time
                 $api_time = round(microtime(true) - $start_time, 2);
-    
-    
-    
-                // Mark done
+                $log_entry = "\n[" . current_time('mysql') . "] Completed successfully in " . $api_time . "s";
+                
+                // Mark job as done
                 $update_success = $wpdb->update(
                     $this->table_name,
                     [
                         'status' => 'done',
                         'updated_at' => current_time('mysql'),
-                        'processing_log' => $job->processing_log . "\n[SUCCESS] Completed in " . $api_time . "s at " . current_time('mysql')
+                        'processing_log' => $job->processing_log . $log_entry
                     ],
                     ['id' => $job_id],
                     ['%s', '%s', '%s'],
                     ['%d']
                 );
-    
-                if ($update_success) {
-                    error_log('✅ [WORKER] Job #' . $job_id . ' completed successfully in ' . $api_time . 's');
-                    // Clear current job
-                    delete_option($this->current_job_option_key);
-                    
-                    // Trigger next job processing
-                    $this->maybe_process_jobs();
-                    
-                    return true;
-                } else {
-                    throw new Exception('Failed to update job status');
-                }                
-    
-    
-            } catch (Exception $e) {
-                // هر خطایی رخ داد، rollback و لاگ
-                try {
-                    $wpdb->query('ROLLBACK');
-                    error_log('✅ [ROLLBACK] Job #' . $job_id);
-                } catch (Exception $rollbackEx) {
-                    // اگر rollback هم خطا داد، لاگش کن
-                    error_log('Rollback failed: ' . $rollbackEx->getMessage());
+                
+                if (!$update_success) {
+                    error_log('⚠️ [WORKER] Failed to update job status to done, but job completed successfully');
                 }
-    
-                $error_message = $e->getMessage();
-                error_log('❌ [WORKER-2] Job #' . $job_id . ' failed: ' . $error_message);
-    
-                $wpdb->update(
-                    $this->table_name,
-                    [
-                        'status' => 'error',
-                        'error_message' => substr($error_message, 0, 500),
-                        'updated_at' => current_time('mysql'),
-                        'processing_log' => $job->processing_log . "\n[ERROR] " . $error_message . " at " . current_time('mysql')
-                    ],
-                    ['id' => $job_id],
-                    ['%s', '%s', '%s', '%s'],
-                    ['%d']
-                );
                 
+                error_log('✅ [WORKER] Job #' . $job_id . ' completed successfully in ' . $api_time . 's');
                 
-                // Updateing history status
-                error_log('📝 [WORKER] Updateing history for job #' . $job_id);
-               // $history_manager = AI_Assistant_History_Manager::get_instance();
-                $history_success = $history_manager->update_history(
-                    $history_id,
-                    'error'
-                );                
-    
-                // Clear current job on error
-                delete_option($this->current_job_option_key);
+                // Clear current job
+                delete_transient($this->current_job_option_key);
                 
-                // Trigger next job processing even on error
-                $this->maybe_process_jobs();
+                return true;
                 
-                return false;
-                // برگردوندن خطا به فراخواننده — (می‌تونی این شیوه را سفارشی کنی)
-                return [
-                    'success' => false,
-                    'message' => 'Processing failed: ' . $e->getMessage(),
-                    'exception' => $e->getMessage(),
-                ];
+            } catch (Exception $inner_e) {
+                // Rollback transaction if it was started
+                if (isset($transaction_started) && $transaction_started) {
+                    $wpdb->query('ROLLBACK');
+                    error_log('🔄 [TRANSACTION] Rolled back for job #' . $job_id);
+                }
+                throw $inner_e; // Re-throw to outer catch
             }
             
-
-
-
         } catch (Exception $e) {
             $error_message = $e->getMessage();
-            error_log('❌ [WORKER-3] Job #' . $job_id . ' failed: ' . $error_message);
-
+            $error_trace = $e->getTraceAsString();
+            error_log('❌ [WORKER] Job #' . $job_id . ' failed: ' . $error_message);
+            error_log('Stack trace: ' . $error_trace);
+            
+            // Rollback if transaction is still active
+            if (isset($transaction_started) && $transaction_started) {
+                try {
+                    $wpdb->query('ROLLBACK');
+                    error_log('🔄 [TRANSACTION] Rolled back for job #' . $job_id);
+                } catch (Exception $rollback_e) {
+                    error_log('❌ [ROLLBACK] Failed: ' . $rollback_e->getMessage());
+                }
+            }
+            
+            $log_entry = "\n[" . current_time('mysql') . "] Error: " . $error_message;
+            
+            // Update job status to error
             $wpdb->update(
                 $this->table_name,
                 [
                     'status' => 'error',
                     'error_message' => substr($error_message, 0, 500),
                     'updated_at' => current_time('mysql'),
-                    'processing_log' => $job->processing_log . "\n[ERROR] " . $error_message . " at " . current_time('mysql')
+                    'processing_log' => $job->processing_log . $log_entry
                 ],
                 ['id' => $job_id],
                 ['%s', '%s', '%s', '%s'],
                 ['%d']
             );
-
-            // Clear current job on error
-            delete_option($this->current_job_option_key);
             
-            // Trigger next job processing even on error
-            $this->maybe_process_jobs();
+            // Update history status to error
+            if ($history_manager && isset($history_id)) {
+                try {
+                    $history_manager->update_history($history_id, 'error');
+                    error_log('📝 [WORKER] History updated to error status');
+                } catch (Exception $history_e) {
+                    error_log('❌ [WORKER] Failed to update history: ' . $history_e->getMessage());
+                }
+            }
+            
+            // Clear current job
+            delete_transient($this->current_job_option_key);
             
             return false;
         }
     }
-
-    public function get_queue_stats() {
-        global $wpdb;
-
-        return [
-            'pending' => $wpdb->get_var("SELECT COUNT(*) FROM {$this->table_name} WHERE status = 'pending'"),
-            'processing' => $wpdb->get_var("SELECT COUNT(*) FROM {$this->table_name} WHERE status = 'processing'"),
-            'done' => $wpdb->get_var("SELECT COUNT(*) FROM {$this->table_name} WHERE status = 'done'"),
-            'error' => $wpdb->get_var("SELECT COUNT(*) FROM {$this->table_name} WHERE status = 'error'"),
-            'total' => $wpdb->get_var("SELECT COUNT(*) FROM {$this->table_name}"),
-        ];
+    
+    /**
+     * Calculate final price with discount
+     */
+    private function calculate_final_price($original_price, $discountDetails, $discountInfo, $service_id, $user_id) {
+        $final_price = $original_price;
+        $discount_applied = false;
+        $discount_code = null;
+        $discount_data = [];
+        
+        try {
+            // First check discountDetails (from frontend calculation)
+            if (!empty($discountDetails) && isset($discountDetails['finalPrice'])) {
+                $final_price = floatval($discountDetails['finalPrice']);
+                $original_price = floatval($discountDetails['originalPrice'] ?? $final_price);
+                $discount_applied = ($final_price < $original_price);
+                
+                error_log('✅ [DISCOUNT] Using discountDetails - Final: ' . $final_price . ', Discount: ' . ($discount_applied ? 'YES' : 'NO'));
+            }
+            // Fallback to discountInfo validation
+            else if (!empty($discountInfo)) {
+                $discount_code = $discountInfo['discountCode'] ?? null;
+                $discount_applied_flag = $discountInfo['discountApplied'] ?? false;
+                
+                if (!empty($discount_code) && $discount_applied_flag) {
+                    // Validate discount code
+                    $validation_result = AI_Assistant_Discount_Manager::validate_discount(
+                        $discount_code,
+                        $service_id,
+                        $user_id
+                    );
+                    
+                    if ($validation_result['valid']) {
+                        $discounted_price = AI_Assistant_Discount_Manager::calculate_discounted_price(
+                            $original_price,
+                            $validation_result['discount']
+                        );
+                        
+                        $final_price = $discounted_price;
+                        $discount_applied = true;
+                        $discount_data = $validation_result;
+                        
+                        error_log('✅ [DISCOUNT] Code validated - ' . $discount_code . ', Final: ' . $final_price);
+                    } else {
+                        error_log('⚠️ [DISCOUNT] Invalid code: ' . $discount_code . ' - ' . $validation_result['message']);
+                    }
+                }
+            }
+            
+            if (!$discount_applied) {
+                error_log('ℹ️ [DISCOUNT] No discount applied, using original price: ' . $original_price);
+            }
+            
+        } catch (Exception $e) {
+            error_log('❌ [DISCOUNT] Error processing discount: ' . $e->getMessage());
+            $final_price = $original_price;
+            $discount_applied = false;
+        }
+        
+        return [$final_price, $discount_applied, $discount_code, $discount_data];
     }
-
-    public function get_job_status($job_id) {
-        global $wpdb;
-        return $wpdb->get_row($wpdb->prepare("SELECT * FROM {$this->table_name} WHERE id = %d", $job_id));
-    }
-
-    public function reset_failed_job($job_id) {
-        global $wpdb;
-        return $wpdb->update(
-            $this->table_name,
-            [
-                'status' => 'pending',
-                'error_message' => null,
-                'started_at' => null,
-                'retry_count' => 0
-            ],
-            ['id' => $job_id, 'status' => 'error']
+    
+    /**
+     * Handle diet consultation request
+     */
+    private function handle_diet_consultation($service_id, $serviceSelection, $history_id, $history_manager) {
+        if ($service_id !== 'diet') {
+            return false;
+        }
+        
+        $dietType = $serviceSelection['dietType'] ?? null;
+        
+        if ($dietType !== 'with-specialist') {
+            return false;
+        }
+        
+        error_log('📝 [CONSULTATION] Processing diet consultation request');
+        
+        $selectedSpecialist = $serviceSelection['selectedSpecialist'] ?? null;
+        
+        if (!is_array($selectedSpecialist) || empty($selectedSpecialist['id'])) {
+            throw new Exception('Selected specialist data is invalid or missing');
+        }
+        
+        $specialist_id = $selectedSpecialist['id'];
+        $specialist_name = $selectedSpecialist['name'] ?? 'Unknown';
+        
+        error_log('📝 [CONSULTATION] Specialist: ' . $specialist_name . ' (ID: ' . $specialist_id . ')');
+        
+        // Get consultant and contract
+        $consultation_db = AI_Assistant_Diet_Consultation_DB::get_instance();
+        $consultant = $consultation_db->get_consultant($specialist_id);
+        
+        if (!$consultant) {
+            throw new Exception('Consultant not found: ' . $specialist_id);
+        }
+        
+        $contract = $consultation_db->get_active_contract($consultant->id);
+        
+        if (empty($contract)) {
+            throw new Exception('No active contract found for consultant: ' . $specialist_id);
+        }
+        
+        // Submit consultation request
+        $nutrition_manager = AI_Assistant_Nutrition_Consultant_Manager::get_instance();
+        $consultation_result = $nutrition_manager->submit_consultation_request(
+            $history_id,
+            $consultant->id,
+            $contract->commission_value
         );
+        
+        if ($consultation_result === false || (is_array($consultation_result) && isset($consultation_result['error']))) {
+            $err = is_array($consultation_result) && isset($consultation_result['error']) ? 
+                   $consultation_result['error'] : 'submit_consultation_request failed';
+            throw new Exception('Consultation request failed: ' . $err);
+        }
+        
+        // Update history status to consultant_queue
+        $history_update = $history_manager->update_history($history_id, 'consultant_queue');
+        
+        if (!$history_update) {
+            throw new Exception('Failed to update history to consultant_queue status');
+        }
+        
+        error_log('✅ [CONSULTATION] Request submitted successfully for history #' . $history_id);
+        
+        return true;
     }
-
-    // ---------- API call & helpers ----------
+    
+    /**
+     * Call DeepSeek API
+     */
     private function call_deepseek_api($prompt) {
+        
+        
+     //   $prompt= 'یه جمله ساده بگو';
+        if (!defined('DEEPSEEK_API_KEY') || empty(DEEPSEEK_API_KEY)) {
+            throw new Exception('DEEPSEEK_API_KEY is not defined');
+        }
+        
         $api_key = DEEPSEEK_API_KEY;
         $api_url = 'https://api.deepseek.com/v1/chat/completions';
-
+        
         $args = [
             'headers' => [
                 'Content-Type' => 'application/json',
@@ -720,62 +785,159 @@ class process_requests_job {
                 'max_tokens' => 8000
             ]),
             'timeout' => 180,
-            'httpversion' => '1.1'
+            'httpversion' => '1.1',
+            'sslverify' => true
         ];
-
+        
         $response = wp_remote_post($api_url, $args);
-
+        
         if (is_wp_error($response)) {
             throw new Exception('خطا در ارتباط با سرور DeepSeek: ' . $response->get_error_message());
         }
-
+        
         $response_code = wp_remote_retrieve_response_code($response);
         $body = wp_remote_retrieve_body($response);
-
+        
         if ($response_code !== 200) {
+            error_log('DeepSeek API Error - Code: ' . $response_code . ', Body: ' . substr($body, 0, 500));
             throw new Exception('خطا از سمت DeepSeek API. کد وضعیت: ' . $response_code);
         }
-
+        
         $decoded_body = json_decode($body, true);
-
+        
+        if (json_last_error() !== JSON_ERROR_NONE) {
+            throw new Exception('پاسخ API قابل decode نیست: ' . json_last_error_msg());
+        }
+        
         if (empty($decoded_body['choices'][0]['message']['content'])) {
             throw new Exception('پاسخ نامعتبر از API دریافت شد');
         }
-
+        
         return $decoded_body['choices'][0]['message']['content'];
     }
-
+    
+    /**
+     * Clean API response
+     */
     private function clean_api_response($response_content) {
+        if (empty($response_content)) {
+            return '';
+        }
+        
+        // Remove markdown code blocks
         $patterns = [
             '/^```json\s*/',
             '/\s*```$/',
             '/^```\s*/',
             '/\s*```$/',
         ];
-
+        
         $cleaned_response = preg_replace($patterns, '', $response_content);
         $cleaned_response = trim($cleaned_response);
+        
+        // Remove control characters
         $cleaned_response = preg_replace('/[\x00-\x1F\x7F]/u', '', $cleaned_response);
-
+        
         return $cleaned_response;
     }
-
+    
+    /**
+     * Validate request before processing
+     */
     private function validate_request($prompt, $service_id, $user_id, $final_price, $payment_handler) {
+        // Validate user
         $user = get_user_by('ID', $user_id);
         if (!$user) {
             throw new Exception('کاربر یافت نشد');
-        }          
-        
-        if (empty($prompt) || empty($service_id)) {
-            throw new Exception('پارامترهای ورودی نامعتبر هستند');
         }
-
+        
+        // Validate inputs
+        if (empty($prompt)) {
+            throw new Exception('پرامپت خالی است');
+        }
+        
+        if (empty($service_id)) {
+            throw new Exception('شناسه سرویس خالی است');
+        }
+        
+        // Check credit
         if (!$payment_handler->has_enough_credit($user_id, $final_price)) {
-            throw new Exception('موجودی حساب شما کافی نیست');
+            throw new Exception('موجودی حساب شما کافی نیست. قیمت: ' . number_format($final_price) . ' تومان');
         }
         
-      
-    }    
-
-
+        return true;
+    }
+    
+    /**
+     * Get queue statistics
+     */
+    public function get_queue_stats() {
+        global $wpdb;
+        
+        return [
+            'pending' => (int) $wpdb->get_var("SELECT COUNT(*) FROM {$this->table_name} WHERE status = 'pending'"),
+            'processing' => (int) $wpdb->get_var("SELECT COUNT(*) FROM {$this->table_name} WHERE status = 'processing'"),
+            'done' => (int) $wpdb->get_var("SELECT COUNT(*) FROM {$this->table_name} WHERE status = 'done'"),
+            'error' => (int) $wpdb->get_var("SELECT COUNT(*) FROM {$this->table_name} WHERE status = 'error'"),
+            'total' => (int) $wpdb->get_var("SELECT COUNT(*) FROM {$this->table_name}"),
+        ];
+    }
+    
+    /**
+     * Get job status
+     */
+    public function get_job_status($job_id) {
+        global $wpdb;
+        
+        return $wpdb->get_row($wpdb->prepare(
+            "SELECT * FROM {$this->table_name} WHERE id = %d",
+            $job_id
+        ));
+    }
+    
+    /**
+     * Reset failed job
+     */
+    public function reset_failed_job($job_id) {
+        global $wpdb;
+        
+        return $wpdb->update(
+            $this->table_name,
+            [
+                'status' => 'pending',
+                'error_message' => null,
+                'started_at' => null,
+                'retry_count' => 0,
+                'updated_at' => current_time('mysql')
+            ],
+            ['id' => $job_id, 'status' => 'error'],
+            ['%s', '%s', '%s', '%d', '%s'],
+            ['%d', '%s']
+        );
+    }
+    
+    /**
+     * Delete old completed jobs (cleanup)
+     */
+    public function cleanup_old_jobs($days = 30) {
+        global $wpdb;
+        
+        $threshold = date('Y-m-d H:i:s', strtotime("-{$days} days"));
+        
+        $deleted = $wpdb->query($wpdb->prepare(
+            "DELETE FROM {$this->table_name} 
+             WHERE status = 'done' 
+             AND updated_at < %s",
+            $threshold
+        ));
+        
+        if ($deleted) {
+            error_log('🧹 [CLEANUP] Deleted ' . $deleted . ' old completed jobs');
+        }
+        
+        return $deleted;
+    }
 }
+
+// Initialize
+AI_Assistant_Process_Requests_Job::get_instance();

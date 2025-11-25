@@ -18,7 +18,6 @@ define('DISABLE_WP_CRON', true);
 
 
 
-
 // 1. تنظیمات پایه قالب
 function ai_assistant_setup() {
     load_theme_textdomain('ai-assistant', get_template_directory() . '/languages');
@@ -46,7 +45,7 @@ require_once get_template_directory() . '/inc/jobs/process-requests-job.php';
 require_once get_template_directory() . '/inc/jobs/ai-article-generator.php';
 
 require_once get_template_directory() . '/inc/jobs/class-ai-job-queue.php';
-AI_Job_Queue::get_instance();
+//AI_Job_Queue::get_instance();
 
 require_once get_template_directory() . '/inc/class-service-db.php';
 require_once get_template_directory() . '/inc/class-service-manager.php';
@@ -805,27 +804,36 @@ function use_local_avatar_only($avatar, $id_or_email, $args) {
 
 
 // اضافه کردن تب معرف به حساب کاربری
-function ai_assistant_add_referral_tab($items) {
-    $new_items = [];
-    foreach ($items as $key => $value) {
-        $new_items[$key] = $value;
-        if ($key === 'dashboard') {
-            $new_items['referral-dashboard'] = __('سیستم معرف', 'ai-assistant');
-        }
-    }
-    return $new_items;
-}
-add_filter('woocommerce_account_menu_items', 'ai_assistant_add_referral_tab');
+// function ai_assistant_add_referral_tab($items) {
+//     $new_items = [];
+//     foreach ($items as $key => $value) {
+//         $new_items[$key] = $value;
+//         if ($key === 'dashboard') {
+//             $new_items['referral-dashboard'] = __('سیستم معرف', 'ai-assistant');
+//         }
+//     }
+//     return $new_items;
+// }
+// add_filter('woocommerce_account_menu_items', 'ai_assistant_add_referral_tab');
 
-function ai_assistant_add_referral_endpoint() {
-    add_rewrite_endpoint('referral-dashboard', EP_ROOT | EP_PAGES);
-}
-add_action('init', 'ai_assistant_add_referral_endpoint');
+// function ai_assistant_add_referral_endpoint() {
+//     add_rewrite_endpoint('referral-dashboard', EP_ROOT | EP_PAGES);
+// }
+// add_action('init', 'ai_assistant_add_referral_endpoint');
 
-function ai_assistant_referral_tab_content() {
-    include get_template_directory() . '/templates/referral-dashboard.php';
-}
-add_action('woocommerce_account_referral-dashboard_endpoint', 'ai_assistant_referral_tab_content');
+// function ai_assistant_referral_tab_content() {
+//     include get_template_directory() . '/templates/referral-dashboard.php';
+// }
+// add_action('woocommerce_account_referral-dashboard_endpoint', 'ai_assistant_referral_tab_content');
 
 // بارگذاری کلاس سیستم معرف
 require_once get_template_directory() . '/inc/class-referral-system.php';
+
+
+
+add_filter('show_admin_bar', function($show) {
+    if (!current_user_can('manage_options')) { // برای غیرمدیران
+        return false;
+    }
+    return $show;
+});

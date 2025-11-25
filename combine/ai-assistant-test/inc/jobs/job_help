@@ -1,0 +1,13 @@
+-- اجرای دستی جابها
+https://test.aidastyar.com/?run_ai_jobs=1&secret=test123456
+
+
+--پاک کردن schedules:
+https://test.aidastyar.com/?clear_ai_schedules=1
+
+
+--بررسی schedules
+https://test.aidastyar.com/?check_ai_schedules=1
+باید ببینی:
+Process Job: زمان بعدی (مثلاً 15:30:00)
+Article Job: زمان بعدی (مثلاً 15:31:00)

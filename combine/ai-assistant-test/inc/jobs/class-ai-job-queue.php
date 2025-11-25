@@ -1,143 +1,397 @@
 <?php
-if (!defined('ABSPATH')) exit;
+/**
+ * AI Job Queue Manager
+ * مدیریت Job های زمان‌بندی شده برای هوش مصنوعی
+ * 
+ * نحوه استفاده:
+ * 1. تنظیم Cron در cPanel: * * * * * curl -s "https://test.aidastyar.com/wp-cron.php?doing_wp_cron" > /dev/null
+ * 2. فعال‌سازی در wp-config.php: define('DISABLE_WP_CRON', true);
+ * 3. این فایل را در functions.php یا mu-plugins لود کنید
+ * 
+ * @version 2.0.0
+ * @author Your Name
+ */
+
+
+
+if (!defined('ABSPATH')) {
+    exit;
+}
+
 
 class AI_Job_Queue {
+    
+    /**
+     * نسخه singleton
+     */
     private static $instance = null;
-
+    
+    /**
+     * برای جلوگیری از scheduling مکرر در یک request
+     */
+    private static $initialized = false;
+    
+    /**
+     * نام hook ها - مهم: باید با add_action ها یکسان باشند
+     */
+    const HOOK_PROCESS_REQUESTS = 'ai_cron_process_requests';
+    const HOOK_ARTICLE_GENERATOR = 'ai_cron_article_generator';
+    
+    /**
+     * نام option برای ذخیره وضعیت
+     */
+    const OPTION_LAST_PROCESS = 'ai_job_last_process_run';
+    const OPTION_LAST_ARTICLE = 'ai_job_last_article_run';
+    
+    /**
+     * دریافت instance
+     */
     public static function get_instance() {
         if (self::$instance === null) {
             self::$instance = new self();
         }
         return self::$instance;
     }
-
-    public function __construct() {
-        add_action('init', [$this, 'init']);
-        // اضافه کردن هوک برای اجرای دستی
-        add_action('wp_ajax_nopriv_run_ai_jobs', [$this, 'run_jobs_manually']);
-        add_action('wp_ajax_run_ai_jobs', [$this, 'run_jobs_manually']);
-    }
-
-    public function init() {
-        error_log('🔄 [JOB_QUEUE] Initializing...');
-        $this->setup_cron_schedules();
-        $this->schedule_jobs();
+    
+    /**
+     * Constructor
+     */
+    private function __construct() {
+        // فقط یکبار initialize شود
+        if (self::$initialized) {
+            return;
+        }
         
-        // اجرای دستی jobs اگر cron فعال نباشد
-        $this->maybe_run_jobs_manually();
-    }
-
-    public function setup_cron_schedules() {
-        error_log('🔄 [JOB_QUEUE] setup_cron_schedules...');
-        add_filter('cron_schedules', [$this, 'add_cron_intervals']);
-    }
-
-    public function add_cron_intervals($schedules) {
+        error_log('🔄 [JOB_QUEUE] Initializing v2.0...');
         
-        error_log('🔄 [JOB_QUEUE] add_cron_intervals...');
+        // اضافه کردن schedule های سفارشی
+        add_filter('cron_schedules', [$this, 'add_custom_schedules']);
+        
+        // Hook کردن job ها
+        add_action(self::HOOK_PROCESS_REQUESTS, [$this, 'execute_process_requests_job']);
+        add_action(self::HOOK_ARTICLE_GENERATOR, [$this, 'execute_article_generator_job']);
+        
+        // Schedule کردن job ها در اولین بار
+        add_action('init', [$this, 'maybe_schedule_jobs'], 5);
+        
+        // اجرای دستی از URL (برای تست)
+        add_action('init', [$this, 'handle_manual_run'], 10);
+        
+        // اضافه کردن دستور WP-CLI (اختیاری)
+        if (defined('WP_CLI') && WP_CLI) {
+            WP_CLI::add_command('ai-jobs', [$this, 'cli_commands']);
+        }
+        
+        self::$initialized = true;
+        error_log('✅ [JOB_QUEUE] Initialized successfully');
+    }
+    
+    /**
+     * اضافه کردن schedule های سفارشی
+     */
+    public function add_custom_schedules($schedules) {
+        // هر 1 دقیقه
         if (!isset($schedules['every_minute'])) {
-            $schedules['every_minute'] = ['interval' => 60, 'display' => __('Every Minute')];
+            $schedules['every_minute'] = [
+                'interval' => 60,
+                'display'  => __('Every Minute')
+            ];
         }
+        
+        // هر 24 ساعت
         if (!isset($schedules['every_24_hours'])) {
-            $schedules['every_24_hours'] = ['interval' => 86400, 'display' => __('Every 24 Hours')];
+            $schedules['every_24_hours'] = [
+                'interval' => 86400,
+                'display'  => __('Every 24 Hours')
+            ];
         }
+        
         return $schedules;
     }
-
-    public function schedule_jobs() {
-        error_log('📅 [JOB_QUEUE] Scheduling jobs...');
+    
+    /**
+     * Schedule کردن job ها (فقط در صورت نیاز)
+     */
+    public function maybe_schedule_jobs() {
+        // بررسی و schedule کردن process_requests_job
+        // ⏱️ هر 1 دقیقه یکبار
+        if (!wp_next_scheduled(self::HOOK_PROCESS_REQUESTS)) {
+            $scheduled = wp_schedule_event(time(), 'every_minute', self::HOOK_PROCESS_REQUESTS);
+            if ($scheduled !== false) {
+                error_log('✅ [JOB_QUEUE] Scheduled ' . self::HOOK_PROCESS_REQUESTS . ' (every minute)');
+            } else {
+                error_log('❌ [JOB_QUEUE] Failed to schedule ' . self::HOOK_PROCESS_REQUESTS);
+            }
+        }
         
-        //Process requests job - every minute
-        if (!wp_next_scheduled('ai_process_requests_job')) {
-            wp_schedule_event(time(), 'every_minute', 'ai_process_requests_job');
-            error_log('✅ [JOB_QUEUE] Scheduled ai_process_requests_job');
+        // بررسی و schedule کردن article_generator_job
+        // ⏱️ هر 24 ساعت یکبار (ساعت 2 بامداد)
+        if (!wp_next_scheduled(self::HOOK_ARTICLE_GENERATOR)) {
+            // محاسبه زمان: فردا ساعت 2 بامداد
+            $tomorrow_2am = strtotime('tomorrow 2:00am');
+            
+            // اگر الان بعد از ساعت 2 صبح نیست، از امروز شروع کن
+            $now = time();
+            $today_2am = strtotime('today 2:00am');
+            
+            if ($now < $today_2am) {
+                // هنوز ساعت 2 صبح امروز نشده، از امروز شروع کن
+                $start_time = $today_2am;
+            } else {
+                // ساعت 2 صبح امروز گذشته، از فردا شروع کن
+                $start_time = $tomorrow_2am;
+            }
+            
+            $scheduled = wp_schedule_event($start_time, 'every_24_hours', self::HOOK_ARTICLE_GENERATOR);
+            
+            if ($scheduled !== false) {
+                error_log('✅ [JOB_QUEUE] Scheduled ' . self::HOOK_ARTICLE_GENERATOR . ' for ' . date('Y-m-d H:i:s', $start_time) . ' (every 24 hours)');
+            } else {
+                error_log('❌ [JOB_QUEUE] Failed to schedule ' . self::HOOK_ARTICLE_GENERATOR);
+            }
         }
-        add_action('ai_process_requests_job', [$this, 'execute_process_requests_job']);
-
-        // Article generator job - every 24 hours
-        if (!wp_next_scheduled('article_generator_job')) {
-            wp_schedule_event(time(), 'every_minute', 'article_generator_job');
-            error_log('✅ [JOB_QUEUE] Scheduled airticle_generator_job');
-        }
-        add_action('article_generator_job', [$this, 'execute_article_generator_job']);
-
-        // Log scheduled events
-      //  $this->log_scheduled_events();
     }
 
+    
+    /**
+     * اجرای process_requests_job
+     * هر 1 دقیقه یکبار
+     */
     public function execute_process_requests_job() {
-        error_log('🎯 [JOB_QUEUE] Executing process_requests_job at ' . current_time('mysql'));
+        $start_time = microtime(true);
+        $current_time = current_time('mysql');
         
-        if (!class_exists('process_requests_job')) {
-            error_log('❌ [JOB_QUEUE] process_requests_job class not found');
+        error_log('🎯 [PROCESS_JOB] Starting at ' . $current_time);
+        
+        // بررسی کلاس
+        if (!class_exists('AI_Assistant_Process_Requests_Job')) {
+            error_log('❌ [PROCESS_JOB] Class "AI_Assistant_Process_Requests_Job" not found');
             return;
         }
         
-        $job = new process_requests_job();
-        $job->handle();
+        // Lock برای جلوگیری از اجرای همزمان
+        $lock_key = 'ai_process_job_lock';
+        $lock = get_transient($lock_key);
+        
+        if ($lock) {
+            error_log('⏸️ [PROCESS_JOB] Already running (locked), skipping...');
+            return;
+        }
+        
+        // Set lock برای 3 دقیقه
+        set_transient($lock_key, true, 180);
+        
+        try {
+            // اجرای job
+            $job = AI_Assistant_Process_Requests_Job::get_instance();
+            $job->run();
+            
+            // ذخیره زمان آخرین اجرا
+            update_option(self::OPTION_LAST_PROCESS, time());
+            
+            $elapsed = round(microtime(true) - $start_time, 2);
+            error_log("✅ [PROCESS_JOB] Completed in {$elapsed}s");
+            
+        } catch (Exception $e) {
+            error_log('❌ [PROCESS_JOB] Error: ' . $e->getMessage());
+            error_log('Stack trace: ' . $e->getTraceAsString());
+            
+        } finally {
+            // پاک کردن lock
+            delete_transient($lock_key);
+        }
     }
-
+    
+    /**
+     * اجرای article_generator_job
+     * هر 24 ساعت یکبار
+     */
     public function execute_article_generator_job() {
-        error_log('🎯 [JOB_QUEUE] Executing ai_article_generator_job at ' . current_time('mysql'));
+        $start_time = microtime(true);
+        $current_time = current_time('mysql');
         
+        error_log('🎯 [ARTICLE_JOB] Starting at ' . $current_time);
+        
+        // بررسی کلاس
         if (!class_exists('ai_article_generator_job')) {
-            error_log('❌ [JOB_QUEUE] ai_article_generator_job class not found');
+            error_log('❌ [ARTICLE_JOB] Class "ai_article_generator_job" not found');
             return;
         }
         
-        $job = new ai_article_generator_job();
-        $job->handle();
-    }
-
-    private function log_scheduled_events() {
-        error_log('📋 [JOB_QUEUE] Scheduled events:');
-        error_log('   - ai_process_requests_job: ' . (wp_next_scheduled('ai_process_requests_job') ? 'YES' : 'NO'));
-        error_log('   - ai_article_generator_job: ' . (wp_next_scheduled('article_generator_job') ? 'YES' : 'NO'));
-    }
-
-    /**
-     * اجرای دستی jobs اگر cron فعال نباشد
-     */
-    private function maybe_run_jobs_manually() {
-        // فقط در صورت درخواست دستی اجرا شود
-        if (isset($_GET['run_ai_jobs']) && $_GET['run_ai_jobs'] === '1') {
-            $this->run_jobs_manually();
-        }
-    }
-
-    /**
-     * اجرای دستی همه jobs
-     */
-    public function run_jobs_manually() {
-        error_log('🔧 [JOB_QUEUE] Manually running jobs');
+        // Lock برای جلوگیری از اجرای همزمان
+        $lock_key = 'ai_article_job_lock';
+        $lock = get_transient($lock_key);
         
-        // اجرای jobهای schedule شده
-        if (wp_next_scheduled('ai_process_requests_job')) {
-            $this->execute_process_requests_job();
+        if ($lock) {
+            error_log('⏸️ [ARTICLE_JOB] Already running (locked), skipping...');
+            return;
         }
         
-        if (wp_next_scheduled('ai_article_generator_job')) {
-            $this->execute_article_generator_job();
-        }
+        // Set lock برای 2 ساعت
+        set_transient($lock_key, true, 7200);
         
-        // اگر از طریق AJAX فراخوانی شده، پاسخ برگردان
-        if (wp_doing_ajax()) {
-            wp_die('Jobs executed manually');
+        try {
+            // اجرای job
+            $job = new ai_article_generator_job();
+            $job->handle();
+            
+            // ذخیره زمان آخرین اجرا
+            update_option(self::OPTION_LAST_ARTICLE, time());
+            
+            $elapsed = round(microtime(true) - $start_time, 2);
+            error_log("✅ [ARTICLE_JOB] Completed in {$elapsed}s");
+            
+        } catch (Exception $e) {
+            error_log('❌ [ARTICLE_JOB] Error: ' . $e->getMessage());
+            error_log('Stack trace: ' . $e->getTraceAsString());
+            
+        } finally {
+            // پاک کردن lock
+            delete_transient($lock_key);
         }
     }
-
+    
     /**
-     * غیرفعال کردن WP-Cron و استفاده از سیستم cron واقعی
+     * اجرای دستی از URL
+     * استفاده: https://test.aidastyar.com/?run_ai_jobs=1&secret=YOUR_SECRET
      */
-    public static function disable_wp_cron() {
-        if (!defined('DISABLE_WP_CRON')) {
-            define('DISABLE_WP_CRON', true);
+    public function handle_manual_run() {
+        if (!isset($_GET['run_ai_jobs']) || $_GET['run_ai_jobs'] !== '1') {
+            return;
+        }
+        
+        // امنیت: باید secret key درست باشد
+        $secret = defined('AI_JOBS_SECRET') ? AI_JOBS_SECRET : 'change_me_please';
+        if (!isset($_GET['secret']) || $_GET['secret'] !== $secret) {
+            wp_die('❌ Invalid secret key', 'Unauthorized', ['response' => 401]);
+        }
+        
+        error_log('🔧 [JOB_QUEUE] Manual execution requested');
+        
+        // اجرای هر دو job
+        $this->execute_process_requests_job();
+        $this->execute_article_generator_job();
+        
+        wp_die('✅ Jobs executed manually at ' . current_time('mysql'));
+    }
+    
+    /**
+     * دریافت وضعیت job ها
+     */
+    public function get_status() {
+        $process_next = wp_next_scheduled(self::HOOK_PROCESS_REQUESTS);
+        $article_next = wp_next_scheduled(self::HOOK_ARTICLE_GENERATOR);
+        
+        $process_last = get_option(self::OPTION_LAST_PROCESS, 0);
+        $article_last = get_option(self::OPTION_LAST_ARTICLE, 0);
+        
+        return [
+            'process_requests' => [
+                'next_run' => $process_next ? date('Y-m-d H:i:s', $process_next) : 'Not scheduled',
+                'last_run' => $process_last ? date('Y-m-d H:i:s', $process_last) : 'Never',
+                'interval' => 'Every minute'
+            ],
+            'article_generator' => [
+                'next_run' => $article_next ? date('Y-m-d H:i:s', $article_next) : 'Not scheduled',
+                'last_run' => $article_last ? date('Y-m-d H:i:s', $article_last) : 'Never',
+                'interval' => 'Every 24 hours'
+            ]
+        ];
+    }
+    
+    /**
+     * حذف تمام job های schedule شده
+     */
+    public function clear_schedules() {
+        $process_cleared = wp_clear_scheduled_hook(self::HOOK_PROCESS_REQUESTS);
+        $article_cleared = wp_clear_scheduled_hook(self::HOOK_ARTICLE_GENERATOR);
+        
+        error_log('🗑️ [JOB_QUEUE] Cleared schedules: process=' . ($process_cleared ? 'yes' : 'no') . ', article=' . ($article_cleared ? 'yes' : 'no'));
+        
+        return [
+            'process_requests' => $process_cleared,
+            'article_generator' => $article_cleared
+        ];
+    }
+    
+    /**
+     * WP-CLI Commands (اختیاری)
+     */
+    public function cli_commands($args, $assoc_args) {
+        $command = isset($args[0]) ? $args[0] : 'status';
+        
+        switch ($command) {
+            case 'status':
+                $status = $this->get_status();
+                WP_CLI::line('📊 Job Queue Status:');
+                WP_CLI::line('');
+                WP_CLI::line('Process Requests Job:');
+                WP_CLI::line('  Next: ' . $status['process_requests']['next_run']);
+                WP_CLI::line('  Last: ' . $status['process_requests']['last_run']);
+                WP_CLI::line('');
+                WP_CLI::line('Article Generator Job:');
+                WP_CLI::line('  Next: ' . $status['article_generator']['next_run']);
+                WP_CLI::line('  Last: ' . $status['article_generator']['last_run']);
+                break;
+                
+            case 'run':
+                $job = isset($args[1]) ? $args[1] : 'all';
+                if ($job === 'all' || $job === 'process') {
+                    WP_CLI::line('Running process_requests_job...');
+                    $this->execute_process_requests_job();
+                }
+                if ($job === 'all' || $job === 'article') {
+                    WP_CLI::line('Running article_generator_job...');
+                    $this->execute_article_generator_job();
+                }
+                WP_CLI::success('Jobs executed');
+                break;
+                
+            case 'clear':
+                $this->clear_schedules();
+                WP_CLI::success('Schedules cleared');
+                break;
+                
+            case 'reschedule':
+                $this->clear_schedules();
+                $this->maybe_schedule_jobs();
+                WP_CLI::success('Schedules reset');
+                break;
+                
+            default:
+                WP_CLI::error('Unknown command. Available: status, run, clear, reschedule');
         }
     }
 }
 
-// غیرفعال کردن WP-Cron داخلی
-//AI_Job_Queue::disable_wp_cron();
+
+// اضافه کردن URL برای clear کردن schedules
+add_action('init', function() {
+    if (isset($_GET['clear_ai_schedules']) && $_GET['clear_ai_schedules'] === '1') {
+        $cleared = AI_Job_Queue::get_instance()->clear_schedules();
+        error_log('🗑️ Cleared schedules manually');
+        wp_die('✅ Schedules cleared! Reload the page to reschedule.');
+    }
+});
+
+
+// اضافه کردن URL برای دیدن schedules
+add_action('init', function() {
+    if (isset($_GET['check_ai_schedules']) && $_GET['check_ai_schedules'] === '1') {
+        $process_next = wp_next_scheduled('ai_cron_process_requests');
+        $article_next = wp_next_scheduled('ai_cron_article_generator');
+        
+        echo '<h2>Current Schedules:</h2>';
+        echo '<p><strong>Process Job:</strong> ' . ($process_next ? date('Y-m-d H:i:s', $process_next) : 'Not scheduled') . '</p>';
+        echo '<p><strong>Article Job:</strong> ' . ($article_next ? date('Y-m-d H:i:s', $article_next) : 'Not scheduled') . '</p>';
+        
+        echo '<h2>All Cron Events:</h2>';
+        echo '<pre>' . print_r(_get_cron_array(), true) . '</pre>';
+        
+        wp_die();
+    }
+});
+
 
 // Initialize
 AI_Job_Queue::get_instance();
