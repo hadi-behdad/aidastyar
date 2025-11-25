@@ -50,28 +50,29 @@ $theme_assets = get_stylesheet_directory_uri();
         <h2>اطلاعات شخصی</h2>
         
         <!-- First Name Input -->
-        <div class="input-container" style="margin-bottom: 15px;">
+        <div class="input-container text-input-simple" style="margin-bottom: 15px;">
             <input 
                 type="text" 
                 id="first-name-input" 
                 dir="rtl" 
                 maxlength="30"
                 lang="fa"
-                autocomplete="given-name">
-            <span id="first-name-display"></span>
+                autocomplete="given-name"
+                placeholder="نام">
         </div>
         
         <!-- Last Name Input -->
-        <div class="input-container" style="margin-bottom: 15px;">
+        <div class="input-container text-input-simple" style="margin-bottom: 15px;">
             <input 
                 type="text" 
                 id="last-name-input" 
                 dir="rtl" 
                 maxlength="40"
                 lang="fa"
-                autocomplete="family-name">
-            <span id="last-name-display"></span>
+                autocomplete="family-name"
+                placeholder="نام خانوادگی">
         </div>
+
         
         <!-- Age Input -->
         <div class="input-container">

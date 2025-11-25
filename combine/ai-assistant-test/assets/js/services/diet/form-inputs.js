@@ -85,133 +85,6 @@ function setupInputEffects() {
           
 }
 
-window.setupTextInput = function(inputId, displayId, field) {
-    const input = document.getElementById(inputId);
-    const display = document.getElementById(displayId);
-    const nextButton = document.querySelector(".next-step");
-
-    const maxLengths = {
-        firstName: 30,
-        lastName: 40
-    };
-    const maxLength = maxLengths[field] || 50;
-    
-    // تنظیمات اولیه
-    input.style.fontFamily = 'Vazir, Tahoma, sans-serif';
-    input.style.fontSize = '16px';
-    input.style.letterSpacing = '0';
-    input.style.direction = 'rtl';
-    input.style.textAlign = 'right';
-    input.setAttribute('autocomplete', 'off');
-    input.setAttribute('autocorrect', 'off');
-    input.setAttribute('spellcheck', 'false');
-
-    // تنظیم placeholder متناسب با فیلد
-    const placeholderText = field === "firstName" ? "نام" : "نام خانوادگی";
-    display.textContent = placeholderText;
-    display.style.color = "var(--light-text-color)";
-    
-    // هماهنگ‌سازی عرض input و display
-    const syncWidth = () => {
-        display.style.width = input.offsetWidth + 'px';
-    };
-    syncWidth();
-    window.addEventListener('resize', syncWidth);
-
-    const updateDisplay = (value) => {
-        if (value) {
-            display.textContent = value;
-            display.style.color = "var(--text-color)";
-        } else {
-            display.textContent = placeholderText;
-            display.style.color = "var(--light-text-color)";
-        }
-        state.updateFormData(field, value);
-        validateStep(state.currentStep);
-        
-        // هماهنگ‌سازی عرض پس از هر تغییر
-        syncWidth();
-    };
-
-    let isComposing = false;
-    let lastValue = '';
-
-    input.addEventListener('compositionstart', () => {
-        isComposing = true;
-    });
-
-    input.addEventListener('compositionend', () => {
-        isComposing = false;
-        if (input.value !== lastValue) {
-            updateDisplay(input.value);
-            lastValue = input.value;
-        }
-        setTimeout(() => {
-            input.setSelectionRange(input.value.length, input.value.length);
-        }, 0);
-    });
-
-    input.addEventListener("input", (e) => {
-        if (!isComposing) {
-            updateDisplay(e.target.value);
-            lastValue = e.target.value;
-            setTimeout(() => {
-                input.setSelectionRange(input.value.length, input.value.length);
-            }, 0);
-        }
-        
-        // محدود کردن طول
-        if (input.value.length > maxLength) {
-            input.value = input.value.substring(0, maxLength);
-        }        
-    });
-
-    input.addEventListener("keydown", (e) => {
-        if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') {
-            e.preventDefault();
-            const cursorPos = input.selectionStart;
-            const newPos = e.key === 'ArrowLeft' ? Math.min(cursorPos + 1, input.value.length) 
-                                              : Math.max(cursorPos - 1, 0);
-            input.setSelectionRange(newPos, newPos);
-        }
-        
-        // اضافه کردن مدیریت کلید Enter
-        if (e.key === "Enter") {
-            e.preventDefault();
-            
-            if (inputId === "first-name-input") {
-                // از فیلد نام به فیلد نام خانوادگی برو
-                document.getElementById("last-name-input").focus();
-            } else if (inputId === "last-name-input") {
-                // از فیلد نام به فیلد نام خانوادگی برو
-                document.getElementById("age-input").focus();
-            } else if (inputId === "age-input" && input.value.trim()) {
-                // از فیلد نام خانوادگی به مرحله بعد برو
-                if (nextButton && !nextButton.disabled) {
-                    nextButton.click();
-                }
-            }
-        }
-    });
-
-    input.addEventListener("focus", () => {
-        setTimeout(() => {
-            input.setSelectionRange(input.value.length, input.value.length);
-        }, 0);
-    });
-
-    input.addEventListener("blur", () => {
-        if (!input.value.trim()) {
-            display.textContent = field === "firstName" ? "نام" : "نام خانوادگی";
-            display.style.color = "var(--light-text-color)";
-            syncWidth();
-        }
-    });
-
-    // مقدار اولیه
-    updateDisplay(input.value);
-};
-
 window.setupInput = function(inputId, displayId, field) {
     const input = document.getElementById(inputId);
     const display = document.getElementById(displayId);
@@ -405,8 +278,8 @@ document.addEventListener("DOMContentLoaded", () => {
     setupInput("weight-input", "weight-display", "weight");
     setupInput("target-weight-input", "target-weight-display", "targetWeight");
     
-    setupTextInput("first-name-input", "first-name-display", "firstName");
-    setupTextInput("last-name-input", "last-name-display", "lastName");
+    setupSimpleTextInput('first-name-input', 'firstName');
+    setupSimpleTextInput('last-name-input', 'lastName');
 
     setupOptionSelection(".gender-option", "gender");
     setupOptionSelection(".goal-option", "goal");
@@ -584,3 +457,76 @@ if (document.readyState === 'loading') {
 } else {
     handleMobileKeyboard();
 }
+
+
+/**
+ * تابع ساده برای فیلدهای نام و نام خانوادگی
+ * (بدون span و با placeholder واقعی)
+ */
+window.setupSimpleTextInput = function(inputId, field) {
+    const input = document.getElementById(inputId);
+    
+    if (!input) {
+        console.error(`Input not found: ${inputId}`);
+        return;
+    }
+
+    // تنظیم حداکثر طول
+    const maxLengths = {
+        firstName: 30,
+        lastName: 40
+    };
+    const maxLength = maxLengths[field] || 50;
+
+    // متغیر برای مدیریت IME (کیبورد فارسی/عربی)
+    let isComposing = false;
+
+    // تابع به‌روزرسانی مقدار
+    const updateValue = (value) => {
+        state.updateFormData(field, value);
+        validateStep(state.currentStep);
+    };
+
+    // رویداد شروع composition (مثلاً تایپ فارسی)
+    input.addEventListener('compositionstart', () => {
+        isComposing = true;
+    });
+
+    // رویداد پایان composition
+    input.addEventListener('compositionend', () => {
+        isComposing = false;
+        updateValue(input.value);
+    });
+
+    // رویداد تغییر متن
+    input.addEventListener("input", (e) => {
+        // فقط وقتی composition تمام شده، آپدیت کن
+        if (!isComposing) {
+            updateValue(e.target.value);
+        }
+        
+        // محدودیت طول
+        if (input.value.length > maxLength) {
+            input.value = input.value.substring(0, maxLength);
+        }
+    });
+
+    // رویداد فشردن کلید
+    input.addEventListener("keydown", (e) => {
+        if (e.key === "Enter") {
+            e.preventDefault();
+            
+            // فوکوس به فیلد بعدی
+            if (inputId === "first-name-input") {
+                const lastNameInput = document.getElementById("last-name-input");
+                if (lastNameInput) lastNameInput.focus();
+            } else if (inputId === "last-name-input") {
+                const ageInput = document.getElementById("age-input");
+                if (ageInput) ageInput.focus();
+            }
+        }
+    });
+
+    // مقدار اولیه
+    updateValue(input.value);
+};

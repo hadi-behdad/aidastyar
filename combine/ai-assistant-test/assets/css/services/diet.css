@@ -4050,3 +4050,39 @@ body.dark-mode .specialist-price-note {
     border-color: #ed8936;
     color: #ffa726;
 }
+
+/* ========================================
+   استایل اختصاصی برای نام و نام خانوادگی
+   (رفع مشکل سامسونگ)
+   ======================================== */
+
+.text-input-simple input {
+  color: var(--text-color) !important;
+  background: #ffffff !important;
+  font-family: Vazir, Tahoma, sans-serif;
+  font-size: 16px;
+  direction: rtl;
+  text-align: right;
+  padding: 15px;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  width: 100%;
+  transition: all 0.3s ease;
+}
+
+.text-input-simple input::placeholder {
+  color: var(--light-text-color);
+  opacity: 0.7;
+  font-family: Vazir, Tahoma, sans-serif;
+}
+
+.text-input-simple input:focus {
+  border-color: #00857a;
+  outline: none;
+  background: #f0fdfa !important;
+}
+
+/* مخفی کردن span برای این فیلدها */
+.text-input-simple span {
+  display: none !important;
+}
