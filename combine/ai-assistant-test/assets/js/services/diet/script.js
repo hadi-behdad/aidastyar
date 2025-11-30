@@ -21,7 +21,6 @@ window.state = {
             medications: [],
             dietStyle: [],
             foodLimitations: [],
-            favoriteFoods: [],
             chronicDiabetesType: "",
             chronicFastingBloodSugar: "",
             chronicHba1c: "",
@@ -135,8 +134,7 @@ window.state = {
                 'foodLimitations': { prefix: 'limitation', items: userInfo.foodLimitations || [] },
                 'digestiveConditions': { prefix: 'digestive', items: userInfo.digestiveConditions || [] },
                 'chronicConditions': { prefix: 'chronic', items: userInfo.chronicConditions || [] },
-                'medications': { prefix: 'medication', items: userInfo.medications || [] },
-                'favoriteFoods': { prefix: 'food', items: userInfo.favoriteFoods || [] }
+                'medications': { prefix: 'medication', items: userInfo.medications || [] }
             };
     
             Object.entries(checkboxGroups).forEach(([groupKey, groupData]) => {
@@ -317,10 +315,9 @@ window.STEPS = {
     EXERCISE: 12,             // ✅ تغییر: 13 → 12
     DIET_STYLE: 13,           // ✅ تغییر: 14 → 13
     FOOD_LIMITATIONS: 14,     // ✅ تغییر: 15 → 14
-    FAVORITE_FOODS: 15,       // ✅ تغییر: 16 → 15
-    DIET_TYPE_SELECTION: 16,  // ✅ تغییر: 17 → 16
-    TERMS_AGREEMENT: 17,      // ✅ تغییر: 18 → 17
-    CONFIRMATION: 18          // ✅ تغییر: 19 → 18
+    DIET_TYPE_SELECTION: 15,
+    TERMS_AGREEMENT: 16,
+    CONFIRMATION: 17
 };
 
 // تعداد مراحل اصلی (بدون احتساب دو مرحله آخر)
@@ -471,44 +468,6 @@ window.VALUE_MAPPING = {
         'other': 'سایر'
     },
     
-    favoriteFoods: {
-        'gheymeh': 'قیمه (کم‌روغن)',
-        'ghormeh': 'قرمه سبزی (کم‌چرب)',
-        'kabab-koobideh': 'کباب کوبیده (کم‌چرب)',
-        'joojeh-kabab': 'جوجه کباب',
-        'kabab-barg': 'کباب برگ',
-        'fesenjan': 'فسنجان (کم‌شیرینی)',
-        'bademjan': 'خورشت بادمجان (کم‌روغن)',
-        'karafs': 'خورشت کرفس',
-        'aloo-esfenaj': 'خورشت آلواسفناج',
-        'abgoosht': 'آبگوشت (کم‌چربی)',
-        'pizza': 'پیتزا (نسخه سالم)',
-        'burger': 'همبرگر (نسخه سالم)',
-        'pasta': 'پاستا (غلات کامل)',
-        'sandwich': 'ساندویچ مرغ گریل',
-        'salad': 'سالاد سزار سالم',
-        'chelo': 'چلوی ساده',
-        'sabzi-polo': 'سبزی پلو',
-        'adas-polo': 'عدس پلو',
-        'lobya-polo': 'لوبیا پلو',
-        'shevid-polo': 'شوید پلو',
-        'salad-shirazi': 'سالاد شیرازی',
-        'mast-o-khiar': 'ماست و خیار',
-        'borani-esfenaj': 'بورانی اسفناج',
-        'borani-bademjan': 'بورانی بادمجان',
-        'nokhod-kishmesh': 'نخود و کشمش (متعادل)',
-        'ash-reshteh': 'آش رشته (کم‌روغن)',
-        'ash-jow': 'آش جو',
-        'halim': 'حلیم گندم (کم‌شیرینی)',
-        'adas': 'عدسی',
-        'lobya': 'خوراک لوبیا (کم‌روغن)',
-        'omelet': 'املت (کم‌روغن)',
-        'nimroo': 'نیمرو (کم‌روغن)',
-        'egg-tomato': 'خوراک تخم مرغ و گوجه',
-        'kookoo-sabzi': 'کوکو سبزی (فر یا گریل)',
-        'kookoo-sibzamini': 'کوکو سیب زمینی (فر یا گریل)',
-        'none': 'ترجیح می‌دهم برنامه بر اساس نیازهای غذایی من تنظیم شود'
-    },
     // نوع رژیم
     dietType: {
         'ai-only': 'ai-only',
@@ -550,7 +509,6 @@ window.KEY_MAPPING = {
     // اطلاعات غذایی
     'dietStyle': 'سبک غذایی',
     'foodLimitations': 'محدودیت‌های غذایی',
-    'favoriteFoods': 'غذاهای مورد علاقه',
     
     // اطلاعات تخفیف
     'discountCode': 'discountCode',
@@ -616,7 +574,7 @@ window.convertToPersianData = function(formData) {
     // تبدیل آرایه‌ها
     const arrayFields = [
         'chronicConditions', 'medications', 'digestiveConditions', 
-        'surgery', 'dietStyle', 'foodLimitations', 'favoriteFoods'
+        'surgery', 'dietStyle', 'foodLimitations'
     ];
     
     arrayFields.forEach(field => {

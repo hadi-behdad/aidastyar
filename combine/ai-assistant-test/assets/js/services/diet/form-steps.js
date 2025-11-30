@@ -624,7 +624,6 @@ window.showStep = function(step) {
         "exercise-activity-step",       // 12
         "diet-style-step",              // 13
         "food-limitations-step",        // 14
-        "favorite-foods-step",          // 15
         "diet-type-selection-step",     // 16
         "terms-agreement-step",         // 17
         "confirm-submit-step"           // 18
@@ -741,10 +740,6 @@ window.showStep = function(step) {
         setupFoodLimitationsSelection(step);
         document.getElementById("next-button-container").style.display = "block";
     } 
-    else if (step === STEPS.FAVORITE_FOODS) {
-        setupFavoriteFoodsSelection(step);
-        document.getElementById("next-button-container").style.display = "block";
-    }  
     else if (step === STEPS.DIET_TYPE_SELECTION) {
         setupDietTypeSelection(step);
         document.getElementById("next-button-container").style.display = "block";
@@ -765,61 +760,6 @@ window.showStep = function(step) {
             submitButton.disabled = !confirmCheckbox.checked;
         }
     }
-}
-
-window.setupFavoriteFoodsSelection = function(currentStep) {
-    setupComplexCheckboxSelection(currentStep, {
-        noneCheckboxId: 'foods-none',
-        dataKey: 'favoriteFoods',
-        options: [
-            // غذاهای اصلی ایرانی
-            { key: 'gheymeh', id: 'food-gheymeh' },
-            { key: 'ghormeh', id: 'food-ghormeh' },
-            { key: 'kabab-koobideh', id: 'food-kabab-koobideh' },
-            { key: 'joojeh-kabab', id: 'food-joojeh-kabab' },
-            { key: 'kabab-barg', id: 'food-kabab-barg' },
-            { key: 'fesenjan', id: 'food-fesenjan' },
-            { key: 'bademjan', id: 'food-bademjan' },
-            { key: 'karafs', id: 'food-karafs' },
-            { key: 'aloo-esfenaj', id: 'food-aloo-esfenaj' },
-            { key: 'abgoosht', id: 'food-abgoosht' },
-            
-            // غذاهای بین‌المللی جدید
-            { key: 'pizza', id: 'food-pizza' },
-            { key: 'burger', id: 'food-burger' },
-            { key: 'pasta', id: 'food-pasta' },
-            { key: 'sandwich', id: 'food-sandwich' },
-            { key: 'salad', id: 'food-salad' },      
-            
-            // برنج‌های سالم
-            { key: 'chelo', id: 'food-chelo' },
-            { key: 'sabzi-polo', id: 'food-sabzi-polo' },
-            { key: 'adas-polo', id: 'food-adas-polo' },
-            { key: 'lobya-polo', id: 'food-lobya-polo' },
-            { key: 'shevid-polo', id: 'food-shevid-polo' },
-            
-            // پیش‌غذاها و مخلفات
-            { key: 'salad-shirazi', id: 'food-salad-shirazi' },
-            { key: 'mast-o-khiar', id: 'food-mast-o-khiar' },
-            { key: 'borani-esfenaj', id: 'food-borani-esfenaj' },
-            { key: 'borani-bademjan', id: 'food-borani-bademjan' },
-            { key: 'nokhod-kishmesh', id: 'food-nokhod-kishmesh' },
-            
-            // غذاهای سنتی
-            { key: 'ash-reshteh', id: 'food-ash-reshteh' },
-            { key: 'ash-jow', id: 'food-ash-jow' },
-            { key: 'halim', id: 'food-halim' },
-            { key: 'adas', id: 'food-adas' },
-            { key: 'lobya', id: 'food-lobya' },
-            
-            // غذاهای ساده
-            { key: 'omelet', id: 'food-omelet' },
-            { key: 'nimroo', id: 'food-nimroo' },
-            { key: 'egg-tomato', id: 'food-egg-tomato' },
-            { key: 'kookoo-sabzi', id: 'food-kookoo-sabzi' },
-            { key: 'kookoo-sibzamini', id: 'food-kookoo-sibzamini' }
-        ]
-    });
 }
 
 window.updateStepCounter = function(step) {

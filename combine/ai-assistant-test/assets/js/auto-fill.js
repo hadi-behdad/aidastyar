@@ -2,8 +2,8 @@
 
 document.addEventListener('DOMContentLoaded', function() {
     // تعریف متغیر سراسری برای delay
-    const MUL_VALUE = 2;
-    const NEXT_BUTTON_DELAY = 200;
+    const MUL_VALUE = 3;
+    const NEXT_BUTTON_DELAY = 300;
     const LONG_DELAY = 1000 * MUL_VALUE;
     const SHORT_DELAY = 300 * MUL_VALUE;
     
@@ -25,8 +25,7 @@ document.addEventListener('DOMContentLoaded', function() {
             dietStyle: ['none'],
             foodLimitations: ['none'],
             chronicConditions: ['none'],
-            medications: ['none'],
-            favoriteFoods: ['none']
+            medications: ['none']
         },
         serviceSelection: {
             dietType: "ai-only",
@@ -174,8 +173,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     [STEPS.FOOD_LIMITATIONS]: {prefix: 'limitations', name: 'محدودیت‌های غذایی'},
                     [STEPS.CHRONIC_CONDITIONS]: {prefix: 'chronic', name: 'بیماری‌های مزمن'},
                     [STEPS.MEDICATIONS]: {prefix: 'medications', name: 'داروهای مصرفی'},
-                    [STEPS.DIGESTIVE_CONDITIONS]: {prefix: 'digestive', name: 'مشکلات گوارشی'},
-                    [STEPS.FAVORITE_FOODS]: {prefix: 'foods', name: 'غذاهای مورد علاقه'} // اضافه شده
+                    [STEPS.DIGESTIVE_CONDITIONS]: {prefix: 'digestive', name: 'مشکلات گوارشی'}
                 };
 
                 if (stepMap[state.currentStep]) {
@@ -286,9 +284,6 @@ document.addEventListener('DOMContentLoaded', function() {
                         fillCheckboxSteps();
                         break;
                     case STEPS.MEDICATIONS:
-                        fillCheckboxSteps();
-                        break;
-                    case STEPS.FAVORITE_FOODS:
                         fillCheckboxSteps();
                         break;
                     case STEPS.DIET_TYPE_SELECTION:
