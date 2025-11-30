@@ -323,6 +323,65 @@ class AI_Assistant_Process_Requests_Job {
         }
     }
     
+    private function recordTermsAcceptanceInTransaction($userid, $service_id = 'diet', $history_id = null) {
+        try {
+            error_log("🔍 [DEBUG] recordTermsAcceptanceInTransaction called");
+            error_log("  - userid: $userid");
+            error_log("  - service_id: $service_id");
+            error_log("  - history_id: $history_id");
+            
+            $terms_db = Terms_Acceptance_DB::get_instance();
+            $terms_content = $this->getFullTermsContent();
+            
+            if ( empty( $terms_content ) ) {
+                throw new Exception( 'Terms content empty' );
+            }
+            
+            error_log("🔍 [DEBUG] Before saveAcceptanceInTransaction - history_id: $history_id");
+            
+            $acceptance_id = $terms_db->saveAcceptanceInTransaction( 
+                $userid, 
+                $terms_content, 
+                $service_id, 
+                $history_id
+            );
+            
+            error_log("🔍 [DEBUG] After saveAcceptanceInTransaction - acceptance_id: $acceptance_id");
+            
+            if ( ! $acceptance_id ) {
+                throw new Exception( 'Failed to record terms acceptance' );
+            }
+            
+            return $acceptance_id;
+        } catch ( Exception $e ) {
+            error_log( "ERROR recording terms: " . $e->getMessage() );
+            throw $e;
+        }
+    }
+    
+    
+    /**
+     * دریافت متن کامل شرایط از منبع مرکزی
+     * 
+     * @return string
+     * @throws Exception
+     */
+    private function getFullTermsContent() {
+        error_log('WORKER: Getting terms from central source');
+        
+        // ✅ استفاده از تابع مرکزی
+        $terms_content = aidastyar_get_terms_with_title();
+        
+        if (empty($terms_content)) {
+            error_log('Terms content is EMPTY');
+            throw new Exception('Terms content is empty');
+        }
+        
+        error_log('Content length: ' . strlen($terms_content));
+        return $terms_content;
+    }
+
+    
     /**
      * Process a single job
      */
@@ -463,6 +522,9 @@ class AI_Assistant_Process_Requests_Job {
             $transaction_started = true;
             
             try {
+                // STEP 1: Record Terms Acceptance FIRST
+                $this->recordTermsAcceptanceInTransaction( $user_id, $service_id, $job->history_id );
+                
                 // Deduct credit
                 error_log('💰 [WORKER] Deducting credit for job #' . $job_id);
                 $credit_success = $payment_handler->deduct_credit(

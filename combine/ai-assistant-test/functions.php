@@ -837,3 +837,19 @@ add_filter('show_admin_bar', function($show) {
     }
     return $show;
 });
+
+
+
+// بارگذاری کلاس‌های مدیریت تأییدیه
+require_once get_template_directory() . '/inc/class-terms-acceptance-db.php';
+require_once get_template_directory() . '/inc/class-terms-manager.php';
+require_once get_template_directory() . '/inc/ajax-terms-handlers.php';
+
+
+add_action('init', function() {
+    Terms_Acceptance_DB::get_instance();
+}, 1);
+
+
+// Load Terms Content (Single Source of Truth)
+require_once get_template_directory() . '/inc/terms-content.php';

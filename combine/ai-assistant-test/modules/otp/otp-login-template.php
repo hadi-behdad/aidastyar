@@ -22,11 +22,11 @@ get_header(); ?>
                     <input type="text" id="mobile" name="mobile" required>
                     <label for="mobile">شماره موبایل</label>
                 </div>
-<div class="form-group floating-label" style="margin-top: 15px;">
-    <input type="text" id="referral-code" name="referral_code" placeholder=" ">
-    <label for="referral-code">کد معرف (اختیاری)</label>
-    <small class="form-hint">اگر کد معرف دارید، وارد کنید</small>
-</div>
+                <div class="form-group floating-label" style="margin-top: 15px;">
+                    <input type="text" id="referral-code" name="referral_code" placeholder=" ">
+                    <label for="referral-code">شماره موبایل معرف (اختیاری)</label>
+                    <small class="form-hint">اگر موبایل معرف را دارید، وارد کنید</small>
+                </div>
                 
                 <button type="submit" class="btn-primary">
                     <span class="btn-text">دریافت کد تایید</span>
