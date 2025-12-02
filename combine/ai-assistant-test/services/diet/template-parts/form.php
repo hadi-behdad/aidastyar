@@ -406,86 +406,88 @@ $theme_assets = get_stylesheet_directory_uri();
         </div>
     </div>
     
-    <!-- Step 10: Medications Selection -->
+    <!-- Step 10 Medications Selection -->
     <div id="medications-step" class="step checkbox-step-container">
-        <h2>داروهای مصرفی</h2>
-        <p class="step-description">لطفاً داروهایی که به طور منظم مصرف می‌کنید را انتخاب کنید</p>
+        <h2>داروهای منظم</h2>
+        <p class="step-description">داروهای منظمی که به طور مستمر مصرف می‌کنید را انتخاب کنید</p>
         
         <div class="checkbox-container first-option stand-alone-none">
             <input type="checkbox" id="medications-none" class="real-checkbox">
             <label for="medications-none" class="checkbox-label">
                 <span class="check-icon"></span>
-                <span class="label-text">هیچ داروی خاصی مصرف نمی‌کنم</span>
+                <span class="label-text">هیچ‌کدام (داروی منظم مصرف نمی‌کنم)</span>
             </label>
         </div>
         
-        <div class="separator"></div>
+        <div class="separator-dotted"></div>
         
         <div id="medications-selection" class="checkbox-selection-container checkbox-list-container scrollable-container">
+            
+            <!-- Original Medications -->
             <div class="checkbox-container">
                 <input type="checkbox" id="medication-diabetes" class="real-checkbox">
                 <label for="medication-diabetes" class="checkbox-label">
                     <span class="check-icon"></span>
-                    <span class="label-text">داروهای دیابت (متفورمین، انسولین و...)</span>
+                    <span class="label-text">داروهای دیابت</span>
                 </label>
             </div>
-            
+    
             <div class="checkbox-container">
                 <input type="checkbox" id="medication-thyroid" class="real-checkbox">
                 <label for="medication-thyroid" class="checkbox-label">
                     <span class="check-icon"></span>
-                    <span class="label-text">داروهای تیروئید (لووتیروکسین و...)</span>
+                    <span class="label-text">داروهای تیروئید</span>
                 </label>
             </div>
-            
+    
             <div class="checkbox-container">
                 <input type="checkbox" id="medication-corticosteroids" class="real-checkbox">
                 <label for="medication-corticosteroids" class="checkbox-label">
                     <span class="check-icon"></span>
-                    <span class="label-text">کورتون‌ها (پردنیزولون و...)</span>
+                    <span class="label-text">کورتیکواستروئیدها (سیستمی)</span>
                 </label>
             </div>
-            
+    
             <div class="checkbox-container">
                 <input type="checkbox" id="medication-anticoagulants" class="real-checkbox">
                 <label for="medication-anticoagulants" class="checkbox-label">
                     <span class="check-icon"></span>
-                    <span class="label-text">داروهای ضد انعقاد (وارفارین و ...)</span>
+                    <span class="label-text">داروهای ضدانعقاد</span>
                 </label>
             </div>
-            
+    
             <div class="checkbox-container">
                 <input type="checkbox" id="medication-hypertension" class="real-checkbox">
                 <label for="medication-hypertension" class="checkbox-label">
                     <span class="check-icon"></span>
-                    <span class="label-text">داروهای فشار خون</span>
+                    <span class="label-text">داروهای فشارخون</span>
                 </label>
             </div>
-            
+    
             <div class="checkbox-container">
                 <input type="checkbox" id="medication-psychiatric" class="real-checkbox">
                 <label for="medication-psychiatric" class="checkbox-label">
                     <span class="check-icon"></span>
-                    <span class="label-text">داروهای اعصاب و روان</span>
+                    <span class="label-text">داروهای روان‌پزشکی</span>
                 </label>
             </div>
-            
+    
             <div class="checkbox-container">
                 <input type="checkbox" id="medication-hormonal" class="real-checkbox">
                 <label for="medication-hormonal" class="checkbox-label">
                     <span class="check-icon"></span>
-                    <span class="label-text">داروهای هورمونی (قرص ضد بارداری، هورمون درمانی)</span>
+                    <span class="label-text">داروهای هورمونی</span>
                 </label>
             </div>
-            
+    
             <div class="checkbox-container">
                 <input type="checkbox" id="medication-cardiac" class="real-checkbox">
                 <label for="medication-cardiac" class="checkbox-label">
                     <span class="check-icon"></span>
-                    <span class="label-text">داروهای قلبی و عروقی</span>
+                    <span class="label-text">داروهای قلبی</span>
                 </label>
             </div>
-            
+    
             <div class="checkbox-container">
                 <input type="checkbox" id="medication-gastrointestinal" class="real-checkbox">
                 <label for="medication-gastrointestinal" class="checkbox-label">
@@ -493,14 +495,51 @@ $theme_assets = get_stylesheet_directory_uri();
                     <span class="label-text">داروهای گوارشی</span>
                 </label>
             </div>
+    
+            <!-- NEW MEDICATIONS - 4 گروه جدید -->
             
+            <h3 class="different-category-titles" style="margin-top: 20px; border-top: 1px solid #ddd; padding-top: 15px;">داروهای خاص</h3>
+    
+            <div class="checkbox-container">
+                <input type="checkbox" id="medication-immunosuppressants" class="real-checkbox">
+                <label for="medication-immunosuppressants" class="checkbox-label">
+                    <span class="check-icon"></span>
+                    <span class="label-text">داروهای سرکوب ایمنی (پیوند، روماتولوژی)</span>
+                </label>
+            </div>
+    
+            <div class="checkbox-container">
+                <input type="checkbox" id="medication-cancer-oral" class="real-checkbox">
+                <label for="medication-cancer-oral" class="checkbox-label">
+                    <span class="check-icon"></span>
+                    <span class="label-text">داروهای ضدسرطان خوراکی / تارگت‌تراپی</span>
+                </label>
+            </div>
+    
+            <div class="checkbox-container">
+                <input type="checkbox" id="medication-anticonvulsant" class="real-checkbox">
+                <label for="medication-anticonvulsant" class="checkbox-label">
+                    <span class="check-icon"></span>
+                    <span class="label-text">داروهای ضدصرع / عصبی</span>
+                </label>
+            </div>
+    
+            <div class="checkbox-container">
+                <input type="checkbox" id="medication-weight-loss" class="real-checkbox">
+                <label for="medication-weight-loss" class="checkbox-label">
+                    <span class="check-icon"></span>
+                    <span class="label-text">داروهای لاغری / GLP-1</span>
+                </label>
+            </div>
+    
             <div class="checkbox-container">
                 <input type="checkbox" id="medication-supplements" class="real-checkbox">
                 <label for="medication-supplements" class="checkbox-label">
                     <span class="check-icon"></span>
-                    <span class="label-text">مکمل‌ها، ویتامین‌ها و محصولات ورزشی</span>
+                    <span class="label-text">مکمل‌های ویتامین و معادن</span>
                 </label>
             </div>
+    
         </div>
     </div>
 

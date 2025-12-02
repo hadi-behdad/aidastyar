@@ -577,15 +577,23 @@ window.showSummary = function() {
     const medicationsText = [];
     if (medications.includes('diabetes')) medicationsText.push('داروهای دیابت');
     if (medications.includes('thyroid')) medicationsText.push('داروهای تیروئید');
-    if (medications.includes('corticosteroids')) medicationsText.push('کورتون‌ها');
-    if (medications.includes('anticoagulants')) medicationsText.push('داروهای ضد انعقاد');
-    if (medications.includes('hypertension')) medicationsText.push('داروهای فشار خون');
-    if (medications.includes('psychiatric')) medicationsText.push('داروهای اعصاب و روان');
+    if (medications.includes('corticosteroids')) medicationsText.push('کورتیکواستروئیدها');
+    if (medications.includes('anticoagulants')) medicationsText.push('داروهای ضدانعقاد');
+    if (medications.includes('hypertension')) medicationsText.push('داروهای فشارخون');
+    if (medications.includes('psychiatric')) medicationsText.push('داروهای روان‌پزشکی');
     if (medications.includes('hormonal')) medicationsText.push('داروهای هورمونی');
-    if (medications.includes('cardiac')) medicationsText.push('داروهای قلبی و عروقی');
+    if (medications.includes('cardiac')) medicationsText.push('داروهای قلبی');
     if (medications.includes('gastrointestinal')) medicationsText.push('داروهای گوارشی');
-    if (medications.includes('supplements')) medicationsText.push('مکمل‌ها و ویتامین‌ها');
-    if (medications.includes('none')) medicationsText.push('هیچ داروی خاصی مصرف نمی‌کنم');
+    if (medications.includes('supplements')) medicationsText.push('مکمل‌ها');
+    
+    // NEW medications
+    if (medications.includes('immunosuppressants')) medicationsText.push('داروهای سرکوب ایمنی');
+    if (medications.includes('cancer-oral')) medicationsText.push('داروهای ضدسرطان خوراکی');
+    if (medications.includes('anticonvulsant')) medicationsText.push('داروهای ضدصرع');
+    if (medications.includes('weight-loss')) medicationsText.push('داروهای لاغری');
+    
+    if (medications.includes('none')) medicationsText.push('بدون داروی منظم');
+
 
     // اضافه کردن به تابع showSummary
     const exerciseText = { 

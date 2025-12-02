@@ -25,7 +25,7 @@ document.addEventListener('DOMContentLoaded', function() {
             dietStyle: ['none'],
             foodLimitations: ['none'],
             chronicConditions: ['none'],
-            medications: ['none']
+            medications: ['diabetes', 'thyroid', 'immunosuppressants', 'weight-loss']
         },
         serviceSelection: {
             dietType: "ai-only",

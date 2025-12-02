@@ -178,23 +178,35 @@ window.setupSurgerySelection = function(currentStep) {
     setupCancerDetails();
 };
 
+
+// REPLACE WITH THIS:
 window.setupMedicationsSelection = function(currentStep) {
-    setupComplexCheckboxSelection(currentStep, {
-        noneCheckboxId: 'medications-none',
-        dataKey: 'medications',
-        options: [
-            { key: 'diabetes', id: 'medication-diabetes' },
-            { key: 'thyroid', id: 'medication-thyroid' },
-            { key: 'corticosteroids', id: 'medication-corticosteroids' },
-            { key: 'anticoagulants', id: 'medication-anticoagulants' },
-            { key: 'hypertension', id: 'medication-hypertension' },
-            { key: 'psychiatric', id: 'medication-psychiatric' },
-            { key: 'hormonal', id: 'medication-hormonal' },
-            { key: 'cardiac', id: 'medication-cardiac' },
-            { key: 'gastrointestinal', id: 'medication-gastrointestinal' },
-            { key: 'supplements', id: 'medication-supplements' }
-        ]
-    });
+    setupComplexCheckboxSelection(
+        currentStep,
+        {
+            noneCheckboxId: 'medications-none',
+            dataKey: 'medications',
+            options: [
+                // Original medications
+                { key: 'diabetes', id: 'medication-diabetes' },
+                { key: 'thyroid', id: 'medication-thyroid' },
+                { key: 'corticosteroids', id: 'medication-corticosteroids' },
+                { key: 'anticoagulants', id: 'medication-anticoagulants' },
+                { key: 'hypertension', id: 'medication-hypertension' },
+                { key: 'psychiatric', id: 'medication-psychiatric' },
+                { key: 'hormonal', id: 'medication-hormonal' },
+                { key: 'cardiac', id: 'medication-cardiac' },
+                { key: 'gastrointestinal', id: 'medication-gastrointestinal' },
+                { key: 'supplements', id: 'medication-supplements' },
+                
+                // NEW medications
+                { key: 'immunosuppressants', id: 'medication-immunosuppressants' },
+                { key: 'cancer-oral', id: 'medication-cancer-oral' },
+                { key: 'anticonvulsant', id: 'medication-anticonvulsant' },
+                { key: 'weight-loss', id: 'medication-weight-loss' }
+            ]
+        }
+    );
 };
 
 window.setupChronicConditionsSelection = function(currentStep) {
