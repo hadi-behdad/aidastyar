@@ -21,17 +21,22 @@ function add_persian_numbers_script() {
             });
         }
         
-        // تبدیل اعداد در کل بدنه صفحه به جز step-counter و style
         function convertAllNumbers() {
-            // همه المان‌های متنی به جز آنهایی که در step-counter یا style هستند
-            $('body').find('*').not('#step-counter, #step-counter *, style, style *').contents().each(function() {
-                // همچنین از تبدیل محتوای المان‌های style جلوگیری کنید
-                if (this.nodeType === 3 && this.textContent.trim() !== '' && 
-                    this.parentNode.nodeName !== 'STYLE') {
-                    this.textContent = convertToPersianNumbers(this.textContent);
+            // انتخاب تمام عناصر به جز اسکریپت‌ها، استایل‌ها و کلاس‌های خاص
+            jQuery('body').find('*:not(#step-counter, #step-counter *, script, style, noscript, .step-counter, .no-convert)').contents().each(function() {
+                
+                // بررسی اینکه نود متنی باشد و خالی نباشد
+                if (this.nodeType === 3 && this.textContent.trim() !== '') {
+                    
+                    // اطمینان حاصل کنید که والد این متن اسکریپت یا استایل نیست
+                    var parentTag = this.parentNode.nodeName.toUpperCase();
+                    if (parentTag !== 'SCRIPT' && parentTag !== 'STYLE' && parentTag !== 'NOSCRIPT') {
+                        this.textContent = convertToPersianNumbers(this.textContent);
+                    }
                 }
             });
         }
+
         
         // اجرا پس از لود کامل صفحه
         $(document).ready(function() {

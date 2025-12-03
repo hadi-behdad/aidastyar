@@ -300,29 +300,6 @@ window.CONSTANTS = {
     MAX_WEIGHT: 180
 };
 
-window.STEPS = {
-    GENDER: 1,
-    PERSONAL_INFO: 2,
-    GOAL: 3,
-    HEIGHT_WEIGHT: 4,
-    TARGET_WEIGHT: 5,
-    CHRONIC_CONDITIONS: 6,    // ✅ تغییر: 7 → 6
-    MEDICATIONS: 7,           // ✅ تغییر: 8 → 7
-    DIGESTIVE_CONDITIONS: 8,  // ✅ تغییر: 9 → 8
-    SURGERY: 9,               // ✅ تغییر: 10 → 9
-    WATER_INTAKE: 10,         // ✅ تغییر: 11 → 10
-    ACTIVITY: 11,             // ✅ تغییر: 12 → 11
-    EXERCISE: 12,             // ✅ تغییر: 13 → 12
-    DIET_STYLE: 13,           // ✅ تغییر: 14 → 13
-    FOOD_LIMITATIONS: 14,     // ✅ تغییر: 15 → 14
-    DIET_TYPE_SELECTION: 15,
-    TERMS_AGREEMENT: 16,
-    CONFIRMATION: 17
-};
-
-// تعداد مراحل اصلی (بدون احتساب دو مرحله آخر)
-window.totalSteps = Object.keys(STEPS).length - 3; 
-
 window.VALUE_MAPPING = {
     // جنسیت
     gender: {
