@@ -21,6 +21,7 @@ window.state = {
             medications: [],
             dietStyle: [],
             foodLimitations: [],
+            menstrualStatus: "",
             chronicDiabetesType: "",
             chronicFastingBloodSugar: "",
             chronicHba1c: "",
@@ -307,6 +308,14 @@ window.VALUE_MAPPING = {
         'female': 'زن'
     },
     
+    menstrualStatus: {
+        'not-set': 'تنظیم نشده',
+        'regular': 'منظم',
+        'irregular': 'نامنظم',
+        'menopause': 'یائسگی',
+        'pregnancy': 'بارداری',
+        'skip': 'نمیخوام جواب بدم'
+    },
     // هدف
     goal: {
         'weight-loss': 'کاهش وزن - برنامه‌ای برای رسیدن به وزن ایده‌آل و سالم',
@@ -470,6 +479,8 @@ window.KEY_MAPPING = {
     'weight': 'وزن فعلی',
     'targetWeight': 'وزن هدف',
     
+    'menstrualStatus': 'وضعیت دوره‌ای',
+    
     // اطلاعات هدف و فعالیت
     'goal': 'هدف از دریافت رژیم',
     'activity': 'سطح فعالیت روزانه',
@@ -481,9 +492,9 @@ window.KEY_MAPPING = {
     'chronicDiabetesType': 'نوع دیابت',
     'chronicFastingBloodSugar': 'قند خون ناشتا',
     'chronicHba1c': 'سطح HbA1c',
-    'medications': 'داروهای مصرفی',
+    'medications': 'داروهای منظمی که به طور مستمر مصرف می‌کنید',
     'digestiveConditions': 'مشکلات گوارشی',
-    'surgery': 'سابقه جراحی',
+    'surgery': 'سابقه جراحی و اقدامات پزشکی',
     'cancerTreatment': 'نوع درمان سرطان',
     'cancerType': 'نوع سرطان',
     
@@ -518,6 +529,10 @@ window.convertToPersianData = function(formData) {
     // تبدیل مقادیر ساده
     if (persianData.gender && VALUE_MAPPING.gender[persianData.gender]) {
         persianData.gender = VALUE_MAPPING.gender[persianData.gender];
+    }
+    
+    if (persianData.menstrualStatus && VALUE_MAPPING.menstrualStatus[persianData.menstrualStatus]) {
+        persianData.menstrualStatus = VALUE_MAPPING.menstrualStatus[persianData.menstrualStatus];
     }
     
     if (persianData.goal && VALUE_MAPPING.goal[persianData.goal]) {

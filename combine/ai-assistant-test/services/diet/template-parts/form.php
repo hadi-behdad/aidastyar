@@ -7,7 +7,7 @@ $theme_assets = get_stylesheet_directory_uri();
     <?php wp_nonce_field('diet_form_nonce', 'diet_form_security'); ?>
     
     <div id="header-container">
-        <div id="step-counter"><span id="current-step">1</span>/<span id="total-steps">19</span></div>
+        <div id="step-counter"><span id="current-step">1</span>/<span id="total-steps">20</span></div>
         <button type="button" id="back-button">›</button>
         
         <div id="header-logo" onclick="window.location.href='<?php echo home_url(); ?>'">
@@ -44,7 +44,80 @@ $theme_assets = get_stylesheet_directory_uri();
             </div>
         </div>
     </div>
-
+    
+    <!-- شبیه: chronic-conditions-step ولی برای Radio -->
+    <div id="menstrual-status-step" class="step checkbox-list-container scrollable-container" style="max-height:75vh">
+        <h2>وضعیت دوره‌ای خود را مشخص کنید</h2>
+        <p class="step-description">این اطلاعات به ما کمک می‌کند تا برنامه غذایی شخصی‌شده‌تری برای شما ایجاد کنیم</p>
+        
+        <div id="menstrual-status-selection" class="checkbox-selection-container">
+            <!-- Option 1 -->
+            <div class="checkbox-container">
+                <input type="radio" id="menstrual-not-set" name="menstrual-status" value="not-set" class="real-checkbox">
+                <label for="menstrual-not-set" class="checkbox-label">
+                    <span class="check-icon"></span>
+                    <span class="label-text">تنظیم نشده / نمی‌دانم</span>
+                </label>
+            </div>
+            
+            <!-- Option 2 -->
+            <div class="checkbox-container">
+                <input type="radio" id="menstrual-regular" name="menstrual-status" value="regular" class="real-checkbox">
+                <label for="menstrual-regular" class="checkbox-label">
+                    <span class="check-icon"></span>
+                    <span class="label-text">منظم</span>
+                </label>
+            </div>
+            
+            <!-- Option 3 -->
+            <div class="checkbox-container">
+                <input type="radio" id="menstrual-irregular" name="menstrual-status" value="irregular" class="real-checkbox">
+                <label for="menstrual-irregular" class="checkbox-label">
+                    <span class="check-icon"></span>
+                    <span class="label-text">نامنظم</span>
+                </label>
+            </div>
+            
+            <!-- Option 4 -->
+            <div class="checkbox-container">
+                <input type="radio" id="menstrual-menopause" name="menstrual-status" value="menopause" class="real-checkbox">
+                <label for="menstrual-menopause" class="checkbox-label">
+                    <span class="check-icon"></span>
+                    <span class="label-text">یائسگی رسیده‌ام</span>
+                </label>
+            </div>
+            
+            <!-- Option 5 -->
+            <div class="checkbox-container">
+                <input type="radio" id="menstrual-pregnancy" name="menstrual-status" value="pregnancy" class="real-checkbox">
+                <label for="menstrual-pregnancy" class="checkbox-label">
+                    <span class="check-icon"></span>
+                    <span class="label-text">باردار هستم</span>
+                </label>
+            </div>
+            
+            <!-- نیست Option - Skip -->
+            <div class="checkbox-container stand-alone-skip">
+                <input type="radio" id="menstrual-skip" name="menstrual-status" value="skip" class="real-checkbox">
+                <label for="menstrual-skip" class="checkbox-label">
+                    <span class="check-icon"></span>
+                    <span class="label-text">نمیخوام جواب بدم</span>
+                </label>
+            </div>
+            
+        </div>
+        
+        <div class="separator-dotted"></div>
+        <div class="info-box">
+            <div class="info-content">
+                <div class="info-text">
+                    <span class="first-line">چرا این سوال مهم است؟</span>
+                    <span class="second-line">وضعیت دوره‌ای و هورمونی بر متابولیسم، تقاضای کالری، نیاز به تغذیه و انتخاب غذاها تاثیر می‌گذارد.</span>
+                </div>
+            </div>
+        </div>
+    </div>
+    
     <!-- Step 2: Personal Information -->
     <div id="personal-info-step" class="step">
         <h2>اطلاعات شخصی</h2>
@@ -141,7 +214,7 @@ $theme_assets = get_stylesheet_directory_uri();
     </div>
 
     <!-- Step 4: Height & Weight Input (Combined) -->
-    <div id="height-weight-input-step" class="step">
+    <div id="height-weight-input-step" class="step checkbox-list-container scrollable-container" style="max-height:75vh">
         <h2>قد و وزن شما چقدر است؟</h2>
         
         <!-- Height Input -->
@@ -194,8 +267,6 @@ $theme_assets = get_stylesheet_directory_uri();
             </div>
         </div>
     </div>
-
-
 
     <!-- Step 6: Target Weight -->
     <div id="target-weight-step" class="step">

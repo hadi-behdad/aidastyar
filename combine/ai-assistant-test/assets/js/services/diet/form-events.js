@@ -64,6 +64,8 @@ function setupScrollIndicator(containerId) {
 
 // استفاده از تابع برای تمام کانتینرهای اسکرول
 document.addEventListener('DOMContentLoaded', () => {
+    setupScrollIndicator('menstrual-status-step');
+    setupScrollIndicator('height-weight-input-step');
     setupScrollIndicator('surgery-selection');
     setupScrollIndicator('goal-selection');
     setupScrollIndicator('chronic-conditions-selection');
@@ -237,16 +239,71 @@ function showNotification(message, type = 'info') {
     }, 5000);
 }
 
-// فراخوانی تابع هنگام لود صفحه
+// Gender Selection Event Handler
 document.addEventListener('DOMContentLoaded', function() {
-    loadServicePrices();
+  // Gender Selection
+  const genderOptions = document.querySelectorAll('.gender-option');
+  genderOptions.forEach(option => {
+    option.addEventListener('click', function() {
+      const gender = this.dataset.gender;
+      state.updateFormData('userInfo.gender', gender);
+      
+      // اگر خانم انتخاب شد، مرحله MENSTRUAL_STATUS نمایش داده شود
+      // اگر آقا انتخاب شد، مرحله MENSTRUAL_STATUS skip شود
+      
+      // اگر حالا می‌رویم جلو
+      setTimeout(() => {
+        window.handleNextStep();
+      }, 300);
+    });
+  });
+
+  loadServicePrices();
 });
 
+
 window.handleNextStep = function() {
-    if (window.state.currentStep < window.totalSteps) {
-        window.navigateToStep(window.state.currentStep + 1);
-    }
+  if (window.state.currentStep < window.totalSteps) {
+    const nextStep = window.state.currentStep + 1;
+    const actualStep = getActualNextStep(nextStep);
+    window.navigateToStep(actualStep);
+  }
 };
+
+window.handleBackStep = function() {
+  if (state.currentStep > 1) {
+    const previousStep = state.currentStep - 1;
+    const actualStep = window.getActualPreviousStep(previousStep);
+    window.navigateToStep(actualStep);
+  }
+};
+
+// ============================================================================
+// HELPER: Skip MENSTRUAL_STATUS for males
+// ============================================================================
+window.getActualNextStep = function(requestedStep) {
+  // اگر مرد بود، مرحله MENSTRUAL_STATUS (2) رو skip کنید
+  if (requestedStep === window.STEPS.MENSTRUAL_STATUS && 
+      state.formData.userInfo.gender === 'male') {
+    return window.STEPS.PERSONAL_INFO; // برو به مرحله بعدی (3)
+  }
+  return requestedStep;
+};
+
+// ✅ صحیح:
+window.getActualPreviousStep = function(requestedStep) {
+  // اگر هم اکنون در PERSONAL_INFO هستیم و عقب می‌رویم
+  if (state.currentStep === window.STEPS.PERSONAL_INFO) {
+    if (state.formData.userInfo.gender === 'male') {
+      return window.STEPS.GENDER; // برو به step 1 (skip step 2)
+    } else {
+      return window.STEPS.MENSTRUAL_STATUS; // برو به step 2
+    }
+  }
+  
+  return requestedStep;
+};
+
 
 window.preloadImages = function() {
     const images = [
@@ -516,7 +573,7 @@ window.showSummary = function() {
         digestiveConditions = [], dietStyle = [],
         foodLimitations = [], chronicConditions, medications,
         chronicDiabetesType, chronicFastingBloodSugar, chronicHba1c,
-        cancerTreatment, cancerType
+        cancerTreatment, cancerType, menstrualStatus
     } = userInfo;
 
     const { dietType, selectedSpecialist } = serviceSelection;
@@ -525,6 +582,21 @@ window.showSummary = function() {
     if (firstName) personalInfoText.push(`نام: ${firstName}`);
     if (lastName) personalInfoText.push(`نام خانوادگی: ${lastName}`);
     
+    // ✅ بعد (متغیر جدید):
+    let menstrualStatusText = '';
+    
+    if (gender === 'female' && menstrualStatus) {
+        const menstrualMap = {
+            'not-set': 'تنظیم نشده',
+            'regular': 'منظم',
+            'irregular': 'نامنظم',
+            'menopause': 'یائسگی',
+            'pregnancy': 'بارداری',
+            'skip': 'نمیخوام جواب بدم'
+        };
+        menstrualStatusText = menstrualMap[menstrualStatus];
+    }
+
     const goalText = { 
         "weight-loss": "کاهش وزن", 
         "weight-gain": "افزایش وزن", 
@@ -730,6 +802,11 @@ window.showSummary = function() {
             <span class="summary-label">جنسیت:</span>
             <span class="summary-value">${gender === "male" ? "مرد" : "زن"}</span>
         </div>
+        ${gender === "female" ? `
+        <div class="summary-item menstrual-item">
+            <span class="summary-label">وضعیت دوره‌ای:</span>
+            <span class="summary-value">${menstrualStatusText}</span>
+        </div>        `:''}
         <div class="summary-item">
             <span class="summary-label">سن:</span>
             <span class="summary-value">${age} سال</span>

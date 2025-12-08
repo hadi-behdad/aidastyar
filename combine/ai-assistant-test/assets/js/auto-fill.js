@@ -9,9 +9,10 @@ document.addEventListener('DOMContentLoaded', function() {
     
     const testData = {
         userInfo: {
-            firstName: "هادی",
-            lastName: "بهداد", 
-            gender: 'male',
+            firstName: "ملیحه",
+            lastName: "محمدی", 
+            gender: 'female',
+            menstrualStatus: 'regular',
             goal: 'weight-loss',
             age: 40,
             height: 174,
@@ -55,22 +56,46 @@ document.addEventListener('DOMContentLoaded', function() {
             
             // سایر توابع موجود بدون تغییر (فقط ترتیب فراخوانی به‌روز می‌شود)
             function fillGenderStep() {
-                if (state.currentStep === STEPS.GENDER) {
-                    const termsCheckbox = document.getElementById('confirm-terms');
-                    if (termsCheckbox && !termsCheckbox.checked) {
-                        termsCheckbox.checked = true;
-                        termsCheckbox.dispatchEvent(new Event('change'));
-                    }
+                if (state.currentStep !== STEPS.GENDER) return;
 
-                    setTimeout(() => {
-                        const genderOption = document.querySelector(`.gender-option[data-gender="${testData.userInfo.gender}"]`);
-                        if (genderOption) {
-                            genderOption.click();
-                            clickNextButton(LONG_DELAY);
-                        }
-                    }, SHORT_DELAY);
+                const termsCheckbox = document.getElementById('confirm-terms');
+                if (termsCheckbox && !termsCheckbox.checked) {
+                    termsCheckbox.checked = true;
+                    termsCheckbox.dispatchEvent(new Event('change', { bubbles: true }));
                 }
+
+                setTimeout(() => {
+                    const genderOption = document.querySelector(`.gender-option[data-gender="${testData.userInfo.gender}"]`);
+                    if (genderOption) {
+                        genderOption.click();
+                        state.updateFormData('userInfo.gender', testData.userInfo.gender);
+                    }
+                    clickNextButton(LONG_DELAY);
+                }, SHORT_DELAY);
+                
             }
+                        
+            function fillMenstrualStatusStep() {
+                if (state.currentStep !== STEPS.MENSTRUAL_STATUS) return;
+            
+                console.log('🎯 Filling Menstrual Status:', testData.userInfo.menstrualStatus);
+            
+                setTimeout(() => {
+                    const radio = document.querySelector(
+                        `input[name="menstrual-status"][value="${testData.userInfo.menstrualStatus}"]`
+                    );
+                    
+                    if (radio) {
+                        radio.checked = true;
+                        radio.dispatchEvent(new Event('change', { bubbles: true }));
+                        state.updateFormData('userInfo.menstrualStatus', testData.userInfo.menstrualStatus);
+                        console.log('✅ Menstrual Status selected:', testData.userInfo.menstrualStatus);
+                    }
+                    
+                    clickNextButton(NEXT_BUTTON_DELAY);
+                }, SHORT_DELAY);
+            }
+            
 
             function fillPersonalInfoStep() {
                 if (state.currentStep === STEPS.PERSONAL_INFO) {
@@ -246,6 +271,9 @@ document.addEventListener('DOMContentLoaded', function() {
                 switch(state.currentStep) {
                     case STEPS.GENDER:
                         fillGenderStep();
+                        break;
+                    case STEPS.MENSTRUAL_STATUS:
+                        fillMenstrualStatusStep();
                         break;
                     case STEPS.PERSONAL_INFO:
                         fillPersonalInfoStep();

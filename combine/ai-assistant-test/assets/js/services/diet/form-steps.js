@@ -2,22 +2,23 @@
 
 window.STEPS = {
     GENDER: 1,
-    PERSONAL_INFO: 2,
-    GOAL: 3,
-    HEIGHT_WEIGHT: 4,
-    TARGET_WEIGHT: 5,
-    CHRONIC_CONDITIONS: 6,    // ✅ تغییر: 7 → 6
-    MEDICATIONS: 7,           // ✅ تغییر: 8 → 7
-    DIGESTIVE_CONDITIONS: 8,  // ✅ تغییر: 9 → 8
-    SURGERY: 9,               // ✅ تغییر: 10 → 9
-    WATER_INTAKE: 10,         // ✅ تغییر: 11 → 10
-    ACTIVITY: 11,             // ✅ تغییر: 12 → 11
-    EXERCISE: 12,             // ✅ تغییر: 13 → 12
-    DIET_STYLE: 13,           // ✅ تغییر: 14 → 13
-    FOOD_LIMITATIONS: 14,     // ✅ تغییر: 15 → 14
-    DIET_TYPE_SELECTION: 15,
-    TERMS_AGREEMENT: 16,
-    CONFIRMATION: 17
+    MENSTRUAL_STATUS: 2,
+    PERSONAL_INFO: 3,
+    GOAL: 4,
+    HEIGHT_WEIGHT: 5,
+    TARGET_WEIGHT: 6,
+    CHRONIC_CONDITIONS: 7,    // ✅ تغییر: 7 → 6
+    MEDICATIONS: 8,           // ✅ تغییر: 8 → 7
+    DIGESTIVE_CONDITIONS: 9,  // ✅ تغییر: 9 → 8
+    SURGERY: 10,               // ✅ تغییر: 10 → 9
+    WATER_INTAKE: 11,         // ✅ تغییر: 11 → 10
+    ACTIVITY: 12,             // ✅ تغییر: 12 → 11
+    EXERCISE: 13,             // ✅ تغییر: 13 → 12
+    DIET_STYLE: 14,           // ✅ تغییر: 14 → 13
+    FOOD_LIMITATIONS: 15,     // ✅ تغییر: 15 → 14
+    DIET_TYPE_SELECTION: 16,
+    TERMS_AGREEMENT: 17,
+    CONFIRMATION: 18
 };
 
 // تعداد مراحل اصلی (بدون احتساب دو مرحله آخر)
@@ -29,115 +30,295 @@ window.totalSteps = Object.keys(STEPS).length - 3;
 window.consultantsCache = window.consultantsCache || null;
 window.isFetchingConsultants = window.isFetchingConsultants || false;
 
+// ============================================
+// Menstrual Status - بدون CSS اضافی
+// استفاده از check-icon/checked classes موجود
+// ============================================
 
-window.setupComplexCheckboxSelection = function(step, config) {
-    if (state.currentStep !== step) return;
+window.setupMenstrualStatusSelection = function(step) {
+    if (step !== window.STEPS.MENSTRUAL_STATUS) return;
 
-    const elements = {
-        noneCheckbox: document.getElementById(config.noneCheckboxId),
-        nextButton: document.querySelector(".next-step")
-    };
+    const radioInputs = document.querySelectorAll('input[name="menstrual-status"]');
+    const checkboxContainers = document.querySelectorAll('#menstrual-status-selection .checkbox-container');
+    const nextButton = document.querySelector('.next-step');
 
-    // ساختاردهی گزینه‌ها
-    config.options.forEach(option => {
-        elements[option.key] = document.getElementById(option.id);
+    if (radioInputs.length === 0) {
+        console.warn('⚠️ Menstrual status radios not found');
+        return;
+    }
+
+    // ────────────────────────────────────────────
+    // 1️⃣ بازنشانی حالت اولیه
+    // ────────────────────────────────────────────
+    nextButton.disabled = true;
+    checkboxContainers.forEach(container => {
+        container.classList.remove('checked');
+    });
+    radioInputs.forEach(radio => {
+        radio.checked = false;
     });
 
-    // مدیریت نمایش گزینه‌های زنانه
-    if (config.genderDependent) {
-        const femaleOnlyOptions = document.querySelectorAll('.female-only');
-        if (state.formData.userInfo.gender === 'female') {
-            femaleOnlyOptions.forEach(el => el.style.display = 'block');
-        } else {
-            femaleOnlyOptions.forEach(el => {
-                el.style.display = 'none';
-                const checkbox = el.querySelector('.real-checkbox');
-                if (checkbox) checkbox.checked = false;
-            });
+    // ────────────────────────────────────────────
+    // 2️⃣ اگر مقدار قبلی وجود داشت، بازنشانی کنید
+    // ────────────────────────────────────────────
+    if (state.formData.userInfo.menstrualStatus) {
+        const prevValue = state.formData.userInfo.menstrualStatus;
+        const prevRadio = document.querySelector(
+            `input[name="menstrual-status"][value="${prevValue}"]`
+        );
+        
+        if (prevRadio) {
+            prevRadio.checked = true;
+            const container = prevRadio.closest('.checkbox-container');
+            if (container) {
+                container.classList.add('checked');
+                nextButton.disabled = false;
+            }
         }
     }
 
-    elements.nextButton.disabled = true;
-
-    const validateForm = () => {
-        let anyChecked = false;
+    // ────────────────────────────────────────────
+    // 3️⃣ Event listeners برای radio buttons
+    // ────────────────────────────────────────────
+    radioInputs.forEach(radio => {
+        // جلوگیری از duplicate listeners
+        radio.removeEventListener('change', handleMenstrualChange);
         
-        // بررسی انتخاب‌ها
-        config.options.forEach(option => {
-            if (elements[option.key]?.checked) {
-                anyChecked = true;
-            }
-        });
-
-        if (elements.noneCheckbox.checked) {
-            anyChecked = true;
-        }
-
-        elements.nextButton.disabled = !anyChecked;
-        
-        // به‌روزرسانی state
-        const selectedValues = [];
-        config.options.forEach(option => {
-            if (elements[option.key]?.checked) {
-                selectedValues.push(option.key);
-            }
-        });
-
-        if (elements.noneCheckbox.checked) {
-            selectedValues.push('none');
-        }
-
-        state.updateFormData(config.dataKey, selectedValues);
-    };
-
-    const handleCheckboxChange = (checkbox) => {
-        checkbox.addEventListener('change', function() {
-            const label = this.nextElementSibling;
-            if (label) {
-                label.classList.add('checked-animation');
-                setTimeout(() => {
-                    label.classList.remove('checked-animation');
-                    label.classList.toggle('checked', this.checked);
-                }, 800);
-            }
-            validateForm();
-        });
-    };
-
-    // مدیریت چک‌باکس "هیچکدام"
-    elements.noneCheckbox.addEventListener('change', function() {
-        if (this.checked) {
-            config.options.forEach(option => {
-                if (elements[option.key]) {
-                    elements[option.key].checked = false;
-                    const label = elements[option.key].nextElementSibling;
-                    if (label) label.classList.remove('checked');
-                }
-            });
-        }
-        validateForm();
+        // اضافه کردن listener جدید
+        radio.addEventListener('change', handleMenstrualChange);
     });
 
-    // مدیریت سایر چک‌باکس‌ها
+    // ────────────────────────────────────────────
+    // 4️⃣ Click on label برای toggle
+    // ────────────────────────────────────────────
+    checkboxContainers.forEach(container => {
+        const label = container.querySelector('.checkbox-label');
+        const radio = container.querySelector('input[type="radio"]');
+        
+        if (label && radio) {
+            label.addEventListener('click', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                radio.click();
+                radio.checked = true;
+                radio.dispatchEvent(new Event('change', { bubbles: true }));
+            });
+        }
+    });
+
+    console.log('✅ Menstrual Status Selection Setup Complete');
+};
+
+// ────────────────────────────────────────────
+// Handler تغییر Radio
+// ────────────────────────────────────────────
+window.handleMenstrualChange = function(event) {
+    const radio = event.target;
+    
+    if (!radio.checked) return;
+
+    const selectedValue = radio.value;
+    const selectedContainer = radio.closest('.checkbox-container');
+    const allContainers = document.querySelectorAll('#menstrual-status-selection .checkbox-container');
+    const nextButton = document.querySelector('.next-step');
+
+    // ────────────────────────────────────────────
+    // حذف 'checked' از تمام containers
+    // ────────────────────────────────────────────
+    allContainers.forEach(container => {
+        container.classList.remove('checked');
+    });
+
+    // ────────────────────────────────────────────
+    // اضافه کردن 'checked' به container انتخاب شده
+    // ────────────────────────────────────────────
+    if (selectedContainer) {
+        selectedContainer.classList.add('checked');
+    }
+
+    // ────────────────────────────────────────────
+    // ذخیره مقدار در state
+    // ────────────────────────────────────────────
+    state.updateFormData('userInfo.menstrualStatus', selectedValue);
+
+    // ────────────────────────────────────────────
+    // فعال کردن دکمه Next
+    // ────────────────────────────────────────────
+    nextButton.disabled = false;
+
+    console.log('✅ Menstrual Status:', selectedValue);
+};
+
+// ────────────────────────────────────────────
+// Utility Functions
+// ────────────────────────────────────────────
+
+window.getMenstrualStatus = function() {
+    const checked = document.querySelector('input[name="menstrual-status"]:checked');
+    return checked ? checked.value : undefined;
+};
+
+window.setMenstrualStatus = function(status) {
+    const validStatuses = ['not-set', 'regular', 'irregular', 'menopause', 'pregnancy'];
+    
+    if (!validStatuses.includes(status)) {
+        console.warn(`⚠️ Invalid status: ${status}`);
+        return false;
+    }
+
+    const radio = document.querySelector(`input[name="menstrual-status"][value="${status}"]`);
+    if (radio) {
+        radio.checked = true;
+        radio.dispatchEvent(new Event('change', { bubbles: true }));
+        return true;
+    }
+
+    return false;
+};
+
+window.resetMenstrualStatusSelection = function() {
+    document.querySelectorAll('input[name="menstrual-status"]').forEach(radio => {
+        radio.checked = false;
+    });
+    
+    document.querySelectorAll('#menstrual-status-selection .checkbox-container').forEach(container => {
+        container.classList.remove('checked');
+    });
+    
+    state.updateFormData('userInfo.menstrualStatus', undefined);
+    document.querySelector('.next-step').disabled = true;
+
+    console.log('🔄 Menstrual Status Reset');
+};
+
+// ============================================================================
+// SETUP COMPLEX CHECKBOX SELECTION (Original - Modified for gender dependency)
+// ============================================================================
+window.setupComplexCheckboxSelection = function(step, config) {
+  if (state.currentStep !== step) return;
+
+  const elements = {
+    noneCheckbox: document.getElementById(config.noneCheckboxId),
+    nextButton: document.querySelector('.next-step')
+  };
+
+  config.options.forEach(option => {
+    elements[option.key] = document.getElementById(option.id);
+  });
+
+  // Handle gender-dependent options (show/hide for females only)
+  if (config.genderDependent) {
+    const femaleOnlyOptions = document.querySelectorAll('.female-only');
+    
+    if (state.formData.userInfo.gender === 'female') {
+      femaleOnlyOptions.forEach(el => el.style.display = 'block');
+    } else {
+      femaleOnlyOptions.forEach(el => el.style.display = 'none');
+      // Uncheck female-only options if gender changed
+      femaleOnlyOptions.forEach(el => {
+        const checkbox = el.querySelector('.real-checkbox');
+        if (checkbox) checkbox.checked = false;
+      });
+    }
+  }
+
+  // Disable next button initially
+  elements.nextButton.disabled = true;
+
+  // Validation function
+  const validateForm = () => {
+    let anyChecked = false;
+    
     config.options.forEach(option => {
-        if (elements[option.key]) {
-            handleCheckboxChange(elements[option.key]);
-            elements[option.key].addEventListener('change', function() {
-                if (this.checked) {
-                    elements.noneCheckbox.checked = false;
-                    const label = elements.noneCheckbox.nextElementSibling;
-                    if (label) label.classList.remove('checked');
-                }
-                validateForm();
-            });
-        }
+      if (elements[option.key]?.checked) {
+        anyChecked = true;
+      }
     });
 
+    if (elements.noneCheckbox.checked) {
+      anyChecked = true;
+    }
+
+    elements.nextButton.disabled = !anyChecked;
+
+    // Update state with selected values
+    const selectedValues = [];
+    config.options.forEach(option => {
+      if (elements[option.key]?.checked) {
+        selectedValues.push(option.key);
+      }
+    });
+
+    if (elements.noneCheckbox.checked) {
+      selectedValues.push('none');
+    }
+
+    state.updateFormData(config.dataKey, selectedValues);
+  };
+
+  // Handle individual checkbox changes with animation
+  const handleCheckboxChange = (checkbox) => {
+    checkbox.addEventListener('change', function() {
+      const label = this.nextElementSibling;
+
+      if (label) {
+        label.classList.add('checked-animation');
+        setTimeout(() => {
+          label.classList.remove('checked-animation');
+          label.classList.toggle('checked', this.checked);
+        }, 800);
+      }
+
+      validateForm();
+    });
+  };
+
+  // "None" checkbox logic
+  elements.noneCheckbox.addEventListener('change', function() {
+    if (this.checked) {
+      config.options.forEach(option => {
+        if (elements[option.key]) {
+          elements[option.key].checked = false;
+          const label = elements[option.key].nextElementSibling;
+          if (label) label.classList.remove('checked');
+        }
+      });
+    }
     validateForm();
+  });
+
+  // Set up event listeners for all checkboxes
+  config.options.forEach(option => {
+    if (elements[option.key]) {
+      handleCheckboxChange(elements[option.key]);
+    }
+  });
+
+  // Load previously selected values
+  if (state.formData[config.dataKey] && Array.isArray(state.formData[config.dataKey])) {
+    state.formData[config.dataKey].forEach(value => {
+      if (value === 'none') {
+        if (elements.noneCheckbox) {
+          elements.noneCheckbox.checked = true;
+          const label = elements.noneCheckbox.nextElementSibling;
+          if (label) label.classList.add('checked');
+        }
+      } else {
+        const option = config.options.find(opt => opt.key === value);
+        if (option && elements[option.key]) {
+          elements[option.key].checked = true;
+          const label = elements[option.key].nextElementSibling;
+          if (label) label.classList.add('checked');
+        }
+      }
+    });
+  }
+
+  validateForm();
 };
 
 window.setupActivitySelection = function(currentStep) {
-    if (currentStep !== STEPS.ACTIVITY) return;
+    if (currentStep !== window.STEPS.ACTIVITY) return;
 
     const activityOptions = document.querySelectorAll('.activity-option');
     
@@ -433,7 +614,7 @@ window.setupFoodLimitationsSelection = function(currentStep) {
 };
 
 window.setupWaterIntakeSelection = function(currentStep) {
-    if (currentStep !== STEPS.WATER_INTAKE) return;
+    if (currentStep !== window.STEPS.WATER_INTAKE) return;
 
     const waterCups = document.querySelectorAll('.water-cup');
     const waterAmountDisplay = document.getElementById('water-amount');
@@ -516,7 +697,7 @@ window.setupWaterIntakeSelection = function(currentStep) {
 };
 
 window.setupTermsAgreement = function(currentStep) {
-    if (currentStep !== STEPS.TERMS_AGREEMENT) return;
+    if (currentStep !== window.STEPS.TERMS_AGREEMENT) return;
 
     const nextButton = document.querySelector(".next-step");
     const agreeCheckbox = document.getElementById("agree-terms");
@@ -546,7 +727,7 @@ window.setupConfirmationCheckbox = function(currentStep) {
     const submitButton = document.querySelector(".submit-form");
     const confirmCheckbox = document.getElementById("confirm-info");
     
-    if (currentStep !== STEPS.CONFIRMATION) return;
+    if (currentStep !== window.STEPS.CONFIRMATION) return;
 
     submitButton.disabled = !confirmCheckbox.checked;
     if (confirmCheckbox.checked) {
@@ -578,7 +759,7 @@ window.setupConfirmationCheckbox = function(currentStep) {
 
 // در تابع setupExerciseSelection
 window.setupExerciseSelection = function(currentStep) {
-    if (currentStep !== STEPS.EXERCISE) return;
+    if (currentStep !== window.STEPS.EXERCISE) return;
 
     const exerciseOptions = document.querySelectorAll('.exercise-option');
     
@@ -621,7 +802,7 @@ window.setupExerciseSelection = function(currentStep) {
 
 // به‌روزرسانی setupHeightWeightInput برای مرحله ترکیبی
 window.setupHeightWeightInput = function(currentStep) {
-    if (currentStep !== STEPS.HEIGHT_WEIGHT) return;
+    if (currentStep !== window.STEPS.HEIGHT_WEIGHT) return;
     
     const heightInput = document.getElementById('height-input');
     const weightInput = document.getElementById('weight-input');
@@ -644,24 +825,27 @@ window.setupHeightWeightInput = function(currentStep) {
 
 
 window.showStep = function(step) {
+
     const stepElements = [
-        "gender-selection-step",        // 1
-        "personal-info-step",           // 2
-        "goal-selection-step",          // 3
-        "height-weight-input-step",     // 4
-        "target-weight-step",           // 5
-        "chronic-conditions-step",      // 6
-        "medications-step",             // 7
-        "digestive-conditions-step",    // 8
-        "surgery-step",                 // 9
-        "water-intake-step",            // 10
-        "activity-selection-step",      // 11
-        "exercise-activity-step",       // 12
-        "diet-style-step",              // 13
-        "food-limitations-step",        // 14
-        "diet-type-selection-step",     // 16
-        "terms-agreement-step",         // 17
-        "confirm-submit-step"           // 18
+        "",                             // index 0 (unused - padding)
+        "gender-selection-step",        // index 1 = step 1
+        "menstrual-status-step",        // index 2 = step 2
+        "personal-info-step",           // index 3 = step 3
+        "goal-selection-step",          // index 4 = step 4
+        "height-weight-input-step",     // index 5 = step 5
+        "target-weight-step",           // index 6 = step 6
+        "chronic-conditions-step",      // index 7 = step 7
+        "medications-step",             // index 8 = step 8
+        "digestive-conditions-step",    // index 9 = step 9
+        "surgery-step",                 // index 10 = step 10
+        "water-intake-step",            // index 11 = step 11
+        "activity-selection-step",      // index 12 = step 12
+        "exercise-activity-step",       // index 13 = step 13
+        "diet-style-step",              // index 14 = step 14
+        "food-limitations-step",        // index 15 = step 15
+        "diet-type-selection-step",     // index 16 = step 16
+        "terms-agreement-step",         // index 17 = step 17
+        "confirm-submit-step"           // index 18 = step 18
     ];
     
     document.querySelectorAll(".step").forEach(el => {
@@ -674,7 +858,7 @@ window.showStep = function(step) {
         }
     });
     
-    const currentStepElement = document.getElementById(stepElements[step - 1]);
+    const currentStepElement = document.getElementById(stepElements[step]);
     if (currentStepElement) {
         currentStepElement.classList.add("active");
         if (currentStepElement.id === "goal-weight-display") {
@@ -687,11 +871,11 @@ window.showStep = function(step) {
     if (nextButtonContainer) {
         // مخفی کردن دکمه "گام بعد" در مراحل خاص
         const hideNextButtonSteps = [
-            STEPS.GENDER, 
-            STEPS.GOAL,
-            STEPS.WATER_INTAKE,
-            STEPS.ACTIVITY, 
-            STEPS.EXERCISE
+            window.STEPS.GENDER, 
+            window.STEPS.GOAL,
+            window.STEPS.WATER_INTAKE,
+            window.STEPS.ACTIVITY, 
+            window.STEPS.EXERCISE
         ];
         
         nextButtonContainer.style.display = hideNextButtonSteps.includes(step) ? "none" : "block";
@@ -706,18 +890,18 @@ window.showStep = function(step) {
     const submitButtonContainer = document.getElementById("submit-button-container");
     if (submitButtonContainer) {
         // نمایش دکمه ارسال فقط در مرحله تأیید نهایی
-        submitButtonContainer.style.display = (step === STEPS.CONFIRMATION) ? "block" : "none";
+        submitButtonContainer.style.display = (step === window.STEPS.CONFIRMATION) ? "block" : "none";
     }
     
     // فوکوس خودکار برای input های خاص
-    if ([STEPS.PERSONAL_INFO, STEPS.TARGET_WEIGHT].includes(step)) {
+    if ([window.STEPS.PERSONAL_INFO, window.STEPS.TARGET_WEIGHT].includes(step)) {
         setTimeout(() => {
             let inputElement = null;
             
-            if (step === STEPS.PERSONAL_INFO) {
+            if (step === window.STEPS.PERSONAL_INFO) {
                 // فوکوس روی first-name-input
                 inputElement = document.getElementById('first-name-input');
-            } else if (step === STEPS.TARGET_WEIGHT) {
+            } else if (step === window.STEPS.TARGET_WEIGHT) {
                 // فوکوس روی target-weight-input
                 inputElement = document.getElementById('target-weight-input');
             }
@@ -738,52 +922,62 @@ window.showStep = function(step) {
         }
         validateStep(step);
     }
-  
     
-    if (step === STEPS.HEIGHT_WEIGHT) {
+    if (step === window.STEPS.HEIGHT_WEIGHT) {
         setupHeightWeightInput(step);
         document.getElementById('next-button-container').style.display = 'block';
     }
-    else if (step === STEPS.WATER_INTAKE) {
+    else if (step === window.STEPS.WATER_INTAKE) {
         setupWaterIntakeSelection(step);
         document.getElementById("next-button-container").style.display = "block";
     } 
-    else if (step === STEPS.DIGESTIVE_CONDITIONS) {
+    else if (step === window.STEPS.DIGESTIVE_CONDITIONS) {
         setupDigestiveConditionsSelection(step);
     }
-    else if (step === STEPS.SURGERY) {
+    else if (step === window.STEPS.SURGERY) {
         setupSurgerySelection(step);
     }
-    else if (step === STEPS.EXERCISE) {
+    else if (step === window.STEPS.EXERCISE) {
         setupExerciseSelection(step);
     }
-    else if (step === STEPS.DIET_STYLE) {
+    else if (step === window.STEPS.DIET_STYLE) {
         setupDietStyleSelection(step);
         document.getElementById("next-button-container").style.display = "block";
     } 
-    else if (step === STEPS.CHRONIC_CONDITIONS) {
+    else if (step === window.STEPS.MENSTRUAL_STATUS) {
+        const currentGender = state.formData.userInfo.gender;
+        
+        if (currentGender !== 'female') {
+            // ❌ مردان: redirect خودکار
+            navigateToStep(window.STEPS.PERSONAL_INFO);
+            return;  // ← خروج! مرحله نمایش نمی‌یابد
+        }        
+        window.setupMenstrualStatusSelection(step);    
+        document.getElementById("next-button-container").style.display = "block";
+    } 
+    else if (step === window.STEPS.CHRONIC_CONDITIONS) {
         setupChronicConditionsSelection(step);
     } 
-    else if (step === STEPS.MEDICATIONS) {
+    else if (step === window.STEPS.MEDICATIONS) {
         setupMedicationsSelection(step);
     } 
-    else if (step === STEPS.ACTIVITY) {
+    else if (step === window.STEPS.ACTIVITY) {
         setupActivitySelection(step);
         document.getElementById("next-button-container").style.display = "none";
     }    
-    else if (step === STEPS.FOOD_LIMITATIONS) {
+    else if (step === window.STEPS.FOOD_LIMITATIONS) {
         setupFoodLimitationsSelection(step);
         document.getElementById("next-button-container").style.display = "block";
     } 
-    else if (step === STEPS.DIET_TYPE_SELECTION) {
+    else if (step === window.STEPS.DIET_TYPE_SELECTION) {
         setupDietTypeSelection(step);
         document.getElementById("next-button-container").style.display = "block";
     } 
-    else if (step === STEPS.TERMS_AGREEMENT) {
+    else if (step === window.STEPS.TERMS_AGREEMENT) {
         setupTermsAgreement(step);
         document.getElementById("next-button-container").style.display = "block";
     } 
-    else if (step === STEPS.CONFIRMATION) {
+    else if (step === window.STEPS.CONFIRMATION) {
         showSummary();
         setupConfirmationCheckbox(step);
         document.getElementById("next-button-container").style.display = "none";
@@ -838,13 +1032,13 @@ window.navigateToStep = function(step) {
 
 window.handleNextStep = function() {
     if (state.currentStep === totalSteps) { 
-        navigateToStep(STEPS.DIET_TYPE_SELECTION); 
+        navigateToStep(window.STEPS.DIET_TYPE_SELECTION); 
     }
-    else if (state.currentStep === STEPS.DIET_TYPE_SELECTION) {
-        navigateToStep(STEPS.TERMS_AGREEMENT); 
+    else if (state.currentStep === window.STEPS.DIET_TYPE_SELECTION) {
+        navigateToStep(window.STEPS.TERMS_AGREEMENT); 
     }
-    else if (state.currentStep === STEPS.TERMS_AGREEMENT) {
-        navigateToStep(STEPS.CONFIRMATION); 
+    else if (state.currentStep === window.STEPS.TERMS_AGREEMENT) {
+        navigateToStep(window.STEPS.CONFIRMATION); 
     }
     // در غیر این صورت به مرحله بعدی اصلی برو
     else if (state.currentStep < totalSteps) {
@@ -852,28 +1046,28 @@ window.handleNextStep = function() {
     }
 }
 
-window.handleBackStep = function() {
-    if (state.currentStep > 1) navigateToStep(state.currentStep - 1);
-}
+// window.handleBackStep = function() {
+//     if (state.currentStep > 1) navigateToStep(state.currentStep - 1);
+// }
 
 window.handleEnterKey = function(event) {
     // فقط در مراحل عددی (سن، قد، وزن، وزن هدف) و مرحله نهایی اجازه کار با Enter را بده
     const allowedSteps = [
-        STEPS.HEIGHT_WEIGHT,
-        STEPS.TARGET_WEIGHT,
-        STEPS.PERSONAL_INFO,
-        STEPS.CONFIRMATION
+        window.STEPS.HEIGHT_WEIGHT,
+        window.STEPS.TARGET_WEIGHT,
+        window.STEPS.PERSONAL_INFO,
+        window.STEPS.CONFIRMATION
     ];
     
     if (event.key === "Enter" && 
         allowedSteps.includes(state.currentStep) && 
-        (event.target.matches("input[type='text']") || state.currentStep === STEPS.CONFIRMATION)) {
+        (event.target.matches("input[type='text']") || state.currentStep === window.STEPS.CONFIRMATION)) {
         
         // جلوگیری از رفتار پیش‌فرض Enter
         event.preventDefault();
         
         // در مراحل عددی، رفتن به مرحله بعد
-        if (state.currentStep !== STEPS.CONFIRMATION) {
+        if (state.currentStep !== window.STEPS.CONFIRMATION) {
             document.querySelector(".next-step").click();
         } 
         // در مرحله نهایی، ارسال فرم
@@ -891,7 +1085,7 @@ window.handleEnterKey = function(event) {
 
 // در تابع setupDietTypeSelection، بعد از انتخاب یک کارت
 window.setupDietTypeSelection = function(currentStep) {
-    if (currentStep !== STEPS.DIET_TYPE_SELECTION) return;
+    if (currentStep !== window.STEPS.DIET_TYPE_SELECTION) return;
 
     const dietTypeCards = document.querySelectorAll('.diet-type-card');
     const nextButton = document.querySelector(".next-step");

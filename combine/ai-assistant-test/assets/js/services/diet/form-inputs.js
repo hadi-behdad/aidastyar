@@ -205,6 +205,59 @@ window.setupInput = function(inputId, displayId, field) {
     
 }
 
+// تابع جدید برای gender selection
+window.setupGenderSelection = function() {
+  const genderOptions = document.querySelectorAll(".gender-option");
+  const nextButton = document.querySelector('.next-step');
+  
+  genderOptions.forEach(option => {
+    option.addEventListener("click", () => {
+      const confirmCheckbox = document.getElementById("confirm-terms");
+      if (!confirmCheckbox.checked) {
+        alert("لطفاً ابتدا شرایط استفاده را تأیید کنید");
+        return;
+      }
+
+      // Remove previous selection
+      genderOptions.forEach(opt => {
+        opt.classList.remove("selected");
+        opt.style.transform = "";
+        opt.style.boxShadow = "";
+      });
+
+      // Add selection to clicked option
+      option.classList.add("selected");
+      option.classList.add("selected-with-effect");
+
+      const selectedGender = option.dataset.gender; // 'male' یا 'female'
+      
+      // Update form data
+      state.updateFormData("userInfo.gender", selectedGender);
+
+      setTimeout(() => {
+        option.classList.remove("selected-with-effect");
+        option.style.transform = "translateY(-3px)";
+        option.style.boxShadow = "0 10px 20px rgba(0, 133, 122, 0.2)";
+
+        // ⭐ اینجا منطق جدیدی لازمه:
+        // اگر female است، به MENSTRUAL_STATUS برو (Step 2)
+        // اگر male است، به PERSONALINFO برو (Step 3) و MENSTRUAL_STATUS رو رد کن
+        
+        setTimeout(() => {
+          if (selectedGender === 'female') {
+            // خانم → برو به مرحله menstrual status
+            navigateToStep(window.STEPS.MENSTRUAL_STATUS);
+          } else {
+            // مرد → از menstrual status بپر و برو به personal info
+            navigateToStep(window.STEPS.PERSONAL_INFO);
+          }
+        }, 250);
+
+      }, 150);
+    });
+  });
+};
+
 window.setupOptionSelection = function(selector, key) {
     document.querySelectorAll(selector).forEach(el => {
         el.addEventListener("click", () => {
@@ -281,7 +334,8 @@ document.addEventListener("DOMContentLoaded", () => {
     setupSimpleTextInput('first-name-input', 'firstName');
     setupSimpleTextInput('last-name-input', 'lastName');
 
-    setupOptionSelection(".gender-option", "gender");
+    setupGenderSelection();
+
     setupOptionSelection(".goal-option", "goal");
     setupOptionSelection(".activity-option", "activity");
     setupOptionSelection(".exercise-option", "exercise");
