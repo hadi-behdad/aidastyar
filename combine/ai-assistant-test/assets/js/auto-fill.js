@@ -9,8 +9,7 @@ document.addEventListener('DOMContentLoaded', function() {
     
     const testData = {
         userInfo: {
-            firstName: "ملیحه",
-            lastName: "محمدی", 
+            fullName: "ملیحه محمدی",
             gender: 'female',
             menstrualStatus: 'regular',
             goal: 'weight-loss',
@@ -95,30 +94,17 @@ document.addEventListener('DOMContentLoaded', function() {
                     clickNextButton(NEXT_BUTTON_DELAY);
                 }, SHORT_DELAY);
             }
-            
 
             function fillPersonalInfoStep() {
-                if (state.currentStep === STEPS.PERSONAL_INFO) {
-                    const firstNameInput = document.getElementById('first-name-input');
-                    if (firstNameInput) {
-                        firstNameInput.value = testData.userInfo.firstName;
-                        firstNameInput.dispatchEvent(new Event('input'));
-                    }
-                    
-                    const lastNameInput = document.getElementById('last-name-input');
-                    if (lastNameInput) {
-                        lastNameInput.value = testData.userInfo.lastName;
-                        lastNameInput.dispatchEvent(new Event('input'));
-                    }
-                    
-                    const ageInput = document.getElementById('age-input');
-                    if (ageInput) {
-                        ageInput.value = testData.userInfo.age;
-                        ageInput.dispatchEvent(new Event('input'));
-                    }
-                    
-                    clickNextButton(NEXT_BUTTON_DELAY);
-                }
+                const fullNameInput = document.getElementById("full-name-input");
+                const ageInput = document.getElementById("age-input");
+            
+                if (fullNameInput) fullNameInput.value = testData.userInfo.fullName;
+                if (ageInput) ageInput.value =  testData.userInfo.age;
+            
+                // Trigger events
+                fullNameInput?.dispatchEvent(new Event("input", { bubbles: true }));
+                ageInput?.dispatchEvent(new Event("input", { bubbles: true }));
             }
 
             function fillGoalStep() {

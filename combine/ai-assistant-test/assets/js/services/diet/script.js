@@ -4,8 +4,7 @@ window.state = {
     currentStep: 1,
     formData: {
         userInfo: {
-            firstName: "",
-            lastName: "",
+            fullName: "",
             gender: "",
             age: "",
             height: "",
@@ -87,21 +86,13 @@ window.state = {
                 if (genderOption) genderOption.classList.add('selected');
             }
         
-            if (userInfo.firstName) {
-                const firstNameInput = document.getElementById('first-name-input');
-                if (firstNameInput) {
-                    firstNameInput.value = userInfo.firstName;
-                    firstNameInput.dispatchEvent(new Event('input'));
-                }
+            if (userInfo.fullName) {
+                const fullNameInput = document.getElementById('full-name-input');
+                if (fullNameInput && state.formData.userInfo.fullName) {
+                    fullNameInput.value = state.formData.userInfo.fullName;
+                    fullNameInput.dispatchEvent(new Event('input'));
+                }                
             }
-            
-            if (userInfo.lastName) {
-                const lastNameInput = document.getElementById('last-name-input');
-                if (lastNameInput) {
-                    lastNameInput.value = userInfo.lastName;
-                    lastNameInput.dispatchEvent(new Event('input'));
-                }
-            }    
             
             // به روزرسانی هدف
             if (userInfo.goal) {
@@ -471,8 +462,7 @@ window.VALUE_MAPPING = {
 
 window.KEY_MAPPING = {
     // اطلاعات شخصی
-    'firstName': 'نام',
-    'lastName': 'نام خانوادگی',
+    'fullName': 'نام و نام خانوادگی',
     'gender': 'جنسیت',
     'age': 'سن',
     'height': 'قد',

@@ -44,16 +44,15 @@ window.validateStep = function(step) {
         return validateHeightWeight();    
         
     if (step === STEPS.PERSONAL_INFO) {
-        const firstName = state.formData.userInfo.firstName;
-        const lastName = state.formData.userInfo.lastName;
+        const fullName = state.formData.userInfo.fullName;
         const age = state.formData.userInfo.age;
-        nextButton.disabled = !(firstName && lastName);
+        nextButton.disabled = !(fullName && fullName.trim().length > 0);
         
         if (!age || age < CONSTANTS.MIN_AGE || age > CONSTANTS.MAX_AGE) {
            nextButton.disabled = true;    
         }
-        // return;
-    }    
+    }
+  
     
     if (errorMessages[step]) {
         const { field, min, max, unit, label, errorId, customValidation } = errorMessages[step];

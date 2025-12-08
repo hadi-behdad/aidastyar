@@ -1,22 +1,15 @@
 // /home/aidastya/public_html/test/wp-content/themes/ai-assistant-test/assets/js/services/diet/form-inputs.js
 function addFieldIcons() {
-  const firstNameInput = document.getElementById('first-name-input');
-  if (firstNameInput) {
-    const icon = document.createElement('div');
-    icon.className = 'input-field-icon';
-    icon.innerHTML = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>';
-    
-    firstNameInput.parentNode.appendChild(icon);
-  }
-  
-  // نام خانوادگی (نسخه بهبود یافته)
-  const lastNameInput = document.getElementById('last-name-input');
-  if (lastNameInput) {
-    const icon = document.createElement('div');
-    icon.className = 'input-field-icon';
-    icon.innerHTML = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="8.5" cy="7" r="4"></circle><line x1="20" y1="8" x2="20" y2="14"></line><line x1="23" y1="11" x2="17" y2="11"></line></svg>';
-    lastNameInput.parentNode.appendChild(icon);
-  }
+    const fullNameInput = document.getElementById("full-name-input");
+    if (fullNameInput) {
+        const icon = document.createElement("div");
+        icon.className = "input-field-icon";
+        icon.innerHTML = `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+            <circle cx="12" cy="7" r="4"></circle>
+        </svg>`;
+        fullNameInput.parentNode.appendChild(icon);
+    }
   
   // سن
   const ageInput = document.getElementById('age-input');
@@ -331,8 +324,7 @@ document.addEventListener("DOMContentLoaded", () => {
     setupInput("weight-input", "weight-display", "weight");
     setupInput("target-weight-input", "target-weight-display", "targetWeight");
     
-    setupSimpleTextInput('first-name-input', 'firstName');
-    setupSimpleTextInput('last-name-input', 'lastName');
+    setupFullNameInput('full-name-input');
 
     setupGenderSelection();
 
@@ -513,11 +505,7 @@ if (document.readyState === 'loading') {
 }
 
 
-/**
- * تابع ساده برای فیلدهای نام و نام خانوادگی
- * (بدون span و با placeholder واقعی)
- */
-window.setupSimpleTextInput = function(inputId, field) {
+window.setupFullNameInput = function(inputId) {
     const input = document.getElementById(inputId);
     
     if (!input) {
@@ -525,62 +513,40 @@ window.setupSimpleTextInput = function(inputId, field) {
         return;
     }
 
-    // تنظیم حداکثر طول
-    const maxLengths = {
-        firstName: 30,
-        lastName: 40
-    };
-    const maxLength = maxLengths[field] || 50;
-
-    // متغیر برای مدیریت IME (کیبورد فارسی/عربی)
     let isComposing = false;
 
-    // تابع به‌روزرسانی مقدار
     const updateValue = (value) => {
-        state.updateFormData(field, value);
+        state.updateFormData('userInfo.fullName', value);
         validateStep(state.currentStep);
     };
 
-    // رویداد شروع composition (مثلاً تایپ فارسی)
     input.addEventListener('compositionstart', () => {
         isComposing = true;
     });
 
-    // رویداد پایان composition
     input.addEventListener('compositionend', () => {
         isComposing = false;
         updateValue(input.value);
     });
 
-    // رویداد تغییر متن
     input.addEventListener("input", (e) => {
-        // فقط وقتی composition تمام شده، آپدیت کن
         if (!isComposing) {
             updateValue(e.target.value);
         }
         
-        // محدودیت طول
-        if (input.value.length > maxLength) {
-            input.value = input.value.substring(0, maxLength);
+        if (input.value.length > 70) {
+            input.value = input.value.substring(0, 70);
         }
     });
 
-    // رویداد فشردن کلید
     input.addEventListener("keydown", (e) => {
         if (e.key === "Enter") {
             e.preventDefault();
-            
-            // فوکوس به فیلد بعدی
-            if (inputId === "first-name-input") {
-                const lastNameInput = document.getElementById("last-name-input");
-                if (lastNameInput) lastNameInput.focus();
-            } else if (inputId === "last-name-input") {
-                const ageInput = document.getElementById("age-input");
-                if (ageInput) ageInput.focus();
-            }
+            const ageInput = document.getElementById("age-input");
+            if (ageInput) ageInput.focus();
         }
     });
 
-    // مقدار اولیه
     updateValue(input.value);
 };
+

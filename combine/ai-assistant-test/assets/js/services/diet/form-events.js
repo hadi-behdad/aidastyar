@@ -568,7 +568,7 @@ window.showSummary = function() {
     } = state.formData;
 
     const {
-        firstName, lastName, gender, age, height, weight, targetWeight, goal,
+        fullName, gender, age, height, weight, targetWeight, goal,
         activity, exercise, waterIntake, surgery = [],
         digestiveConditions = [], dietStyle = [],
         foodLimitations = [], chronicConditions, medications,
@@ -579,8 +579,7 @@ window.showSummary = function() {
     const { dietType, selectedSpecialist } = serviceSelection;
 
     const personalInfoText = [];
-    if (firstName) personalInfoText.push(`نام: ${firstName}`);
-    if (lastName) personalInfoText.push(`نام خانوادگی: ${lastName}`);
+    if (fullName) personalInfoText.push(`نام و نام خانوادگی: ${fullName}`);
     
     // ✅ بعد (متغیر جدید):
     let menstrualStatusText = '';

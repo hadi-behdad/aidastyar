@@ -122,36 +122,24 @@ $theme_assets = get_stylesheet_directory_uri();
     <div id="personal-info-step" class="step">
         <h2>اطلاعات شخصی</h2>
         
-        <!-- First Name Input -->
+        <!-- Full Name Input (Combined) -->
         <div class="input-container text-input-simple" style="margin-bottom: 15px;">
             <input 
                 type="text" 
-                id="first-name-input" 
+                id="full-name-input" 
                 dir="rtl" 
-                maxlength="30"
+                maxlength="70"
                 lang="fa"
-                autocomplete="given-name"
-                placeholder="نام">
+                autocomplete="name"
+                placeholder="نام و نام خانوادگی">
         </div>
-        
-        <!-- Last Name Input -->
-        <div class="input-container text-input-simple" style="margin-bottom: 15px;">
-            <input 
-                type="text" 
-                id="last-name-input" 
-                dir="rtl" 
-                maxlength="40"
-                lang="fa"
-                autocomplete="family-name"
-                placeholder="نام خانوادگی">
-        </div>
-
         
         <!-- Age Input -->
         <div class="input-container">
             <input type="text" inputmode="numeric" id="age-input">
             <span id="age-display">سن شما</span>
         </div>
+
         
         <div id="age-validation-container">
             <p id="age-error" class="error-message"></p>

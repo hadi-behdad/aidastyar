@@ -900,7 +900,7 @@ window.showStep = function(step) {
             
             if (step === window.STEPS.PERSONAL_INFO) {
                 // فوکوس روی first-name-input
-                inputElement = document.getElementById('first-name-input');
+                inputElement = document.getElementById('full-name-input');
             } else if (step === window.STEPS.TARGET_WEIGHT) {
                 // فوکوس روی target-weight-input
                 inputElement = document.getElementById('target-weight-input');

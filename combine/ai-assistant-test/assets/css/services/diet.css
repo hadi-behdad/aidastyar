@@ -1900,7 +1900,7 @@ body.dark-mode .scroll-indicator:hover {
     padding-right: 10px;
 }
 
-#first-name-display, #last-name-display, #age-display {
+#age-display {
     color: var(--light-text-color);
     transition: color 0.3s ease;
 }
