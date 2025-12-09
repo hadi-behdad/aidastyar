@@ -191,130 +191,110 @@ window.resetMenstrualStatusSelection = function() {
     console.log('🔄 Menstrual Status Reset');
 };
 
-// ============================================================================
-// SETUP COMPLEX CHECKBOX SELECTION (Original - Modified for gender dependency)
-// ============================================================================
 window.setupComplexCheckboxSelection = function(step, config) {
-  if (state.currentStep !== step) return;
+    if (state.currentStep !== step) return;
 
-  const elements = {
-    noneCheckbox: document.getElementById(config.noneCheckboxId),
-    nextButton: document.querySelector('.next-step')
-  };
+    const elements = {
+        noneCheckbox: document.getElementById(config.noneCheckboxId),
+        nextButton: document.querySelector(".next-step")
+    };
 
-  config.options.forEach(option => {
-    elements[option.key] = document.getElementById(option.id);
-  });
-
-  // Handle gender-dependent options (show/hide for females only)
-  if (config.genderDependent) {
-    const femaleOnlyOptions = document.querySelectorAll('.female-only');
-    
-    if (state.formData.userInfo.gender === 'female') {
-      femaleOnlyOptions.forEach(el => el.style.display = 'block');
-    } else {
-      femaleOnlyOptions.forEach(el => el.style.display = 'none');
-      // Uncheck female-only options if gender changed
-      femaleOnlyOptions.forEach(el => {
-        const checkbox = el.querySelector('.real-checkbox');
-        if (checkbox) checkbox.checked = false;
-      });
-    }
-  }
-
-  // Disable next button initially
-  elements.nextButton.disabled = true;
-
-  // Validation function
-  const validateForm = () => {
-    let anyChecked = false;
-    
+    // ساختاردهی گزینه‌ها
     config.options.forEach(option => {
-      if (elements[option.key]?.checked) {
-        anyChecked = true;
-      }
+        elements[option.key] = document.getElementById(option.id);
     });
 
-    if (elements.noneCheckbox.checked) {
-      anyChecked = true;
+    // مدیریت نمایش گزینه‌های زنانه
+    if (config.genderDependent) {
+        const femaleOnlyOptions = document.querySelectorAll('.female-only');
+        if (state.formData.userInfo.gender === 'female') {
+            femaleOnlyOptions.forEach(el => el.style.display = 'block');
+        } else {
+            femaleOnlyOptions.forEach(el => {
+                el.style.display = 'none';
+                const checkbox = el.querySelector('.real-checkbox');
+                if (checkbox) checkbox.checked = false;
+            });
+        }
     }
 
-    elements.nextButton.disabled = !anyChecked;
+    elements.nextButton.disabled = true;
 
-    // Update state with selected values
-    const selectedValues = [];
+    const validateForm = () => {
+        let anyChecked = false;
+        
+        // بررسی انتخاب‌ها
+        config.options.forEach(option => {
+            if (elements[option.key]?.checked) {
+                anyChecked = true;
+            }
+        });
+
+        if (elements.noneCheckbox.checked) {
+            anyChecked = true;
+        }
+
+        elements.nextButton.disabled = !anyChecked;
+        
+        // به‌روزرسانی state
+        const selectedValues = [];
+        config.options.forEach(option => {
+            if (elements[option.key]?.checked) {
+                selectedValues.push(option.key);
+            }
+        });
+
+        if (elements.noneCheckbox.checked) {
+            selectedValues.push('none');
+        }
+
+        state.updateFormData(config.dataKey, selectedValues);
+    };
+
+    const handleCheckboxChange = (checkbox) => {
+        checkbox.addEventListener('change', function() {
+            const label = this.nextElementSibling;
+            if (label) {
+                label.classList.add('checked-animation');
+                setTimeout(() => {
+                    label.classList.remove('checked-animation');
+                    label.classList.toggle('checked', this.checked);
+                }, 800);
+            }
+            validateForm();
+        });
+    };
+
+    // مدیریت چک‌باکس "هیچکدام"
+    elements.noneCheckbox.addEventListener('change', function() {
+        if (this.checked) {
+            config.options.forEach(option => {
+                if (elements[option.key]) {
+                    elements[option.key].checked = false;
+                    const label = elements[option.key].nextElementSibling;
+                    if (label) label.classList.remove('checked');
+                }
+            });
+        }
+        validateForm();
+    });
+
+    // مدیریت سایر چک‌باکس‌ها
     config.options.forEach(option => {
-      if (elements[option.key]?.checked) {
-        selectedValues.push(option.key);
-      }
-    });
-
-    if (elements.noneCheckbox.checked) {
-      selectedValues.push('none');
-    }
-
-    state.updateFormData(config.dataKey, selectedValues);
-  };
-
-  // Handle individual checkbox changes with animation
-  const handleCheckboxChange = (checkbox) => {
-    checkbox.addEventListener('change', function() {
-      const label = this.nextElementSibling;
-
-      if (label) {
-        label.classList.add('checked-animation');
-        setTimeout(() => {
-          label.classList.remove('checked-animation');
-          label.classList.toggle('checked', this.checked);
-        }, 800);
-      }
-
-      validateForm();
-    });
-  };
-
-  // "None" checkbox logic
-  elements.noneCheckbox.addEventListener('change', function() {
-    if (this.checked) {
-      config.options.forEach(option => {
         if (elements[option.key]) {
-          elements[option.key].checked = false;
-          const label = elements[option.key].nextElementSibling;
-          if (label) label.classList.remove('checked');
+            handleCheckboxChange(elements[option.key]);
+            elements[option.key].addEventListener('change', function() {
+                if (this.checked) {
+                    elements.noneCheckbox.checked = false;
+                    const label = elements.noneCheckbox.nextElementSibling;
+                    if (label) label.classList.remove('checked');
+                }
+                validateForm();
+            });
         }
-      });
-    }
-    validateForm();
-  });
-
-  // Set up event listeners for all checkboxes
-  config.options.forEach(option => {
-    if (elements[option.key]) {
-      handleCheckboxChange(elements[option.key]);
-    }
-  });
-
-  // Load previously selected values
-  if (state.formData[config.dataKey] && Array.isArray(state.formData[config.dataKey])) {
-    state.formData[config.dataKey].forEach(value => {
-      if (value === 'none') {
-        if (elements.noneCheckbox) {
-          elements.noneCheckbox.checked = true;
-          const label = elements.noneCheckbox.nextElementSibling;
-          if (label) label.classList.add('checked');
-        }
-      } else {
-        const option = config.options.find(opt => opt.key === value);
-        if (option && elements[option.key]) {
-          elements[option.key].checked = true;
-          const label = elements[option.key].nextElementSibling;
-          if (label) label.classList.add('checked');
-        }
-      }
     });
-  }
 
-  validateForm();
+    validateForm();
 };
 
 window.setupActivitySelection = function(currentStep) {

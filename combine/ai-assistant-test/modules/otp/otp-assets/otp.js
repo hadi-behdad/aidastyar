@@ -69,6 +69,10 @@ jQuery(document).ready(function($) {
         $('#step2').show();
         $('#verify-mobile').val(mobile);
         $('#mobile-display').text(mobile);
+        
+        // 🎯 شروع Web OTP API
+        initializeWebOTP();
+        
         startCountdown(120);
         
         if((otp_vars.is_sandbox || otp_vars.is_bypass) && response.data && response.data.debug_code) {
@@ -214,7 +218,47 @@ jQuery(document).ready(function($) {
         });
     }
 
-    // اضافه کردن این کد در انتهای فایل (قبل از بسته شدن document.ready)
+
+    // 🎯 تابع Web OTP API
+    function initializeWebOTP() {
+        // بررسی پشتیبانی مرورگر
+        if (!navigator.credentials) {
+            console.log('ℹ️ Web OTP API پشتیبانی نشده است');
+            return;
+        }
+
+        // درخواست OTP از مرورگر
+        navigator.credentials.get({
+            otp: { 
+                transport: ['sms'] 
+            },
+            signal: AbortSignal.timeout(10 * 60 * 1000) // ۱۰ دقیقه timeout
+        })
+        .then(result => {
+            // اگر کاربر اجازه داد و کد دریافت شد
+            if (result) {
+                console.log('✅ Web OTP دریافت شد:', result.code);
+                
+                // کد را در فیلد بگذار
+                $('#otp-code').val(result.code);
+                
+                // پیام نمایش بده
+                showMessage(`کد تایید خودکار وارد شد: ${result.code}`, 'success');
+                
+                // اختیاری: فرم را خودکار submit کن (uncomment کن اگر می‌خوای)
+                setTimeout(() => {
+                    $('#otp-verify-form').trigger('submit');
+                }, 200);
+            }
+        })
+        .catch(err => {
+            // خطاهای معمولی (کاربر reject کرد، timeout، etc)
+            console.log('ℹ️ Web OTP خطا یا لغو شد:', err.name);
+            // کد ادامه دهد - کاربر می‌تواند دستی وارد کند
+        });
+    }
+
+    
     $(document).on('click', 'a[href*="action=logout"], .logout-link', function(e) {
         e.preventDefault();
         

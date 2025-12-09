@@ -42,7 +42,16 @@ get_header(); ?>
         <div id="step2" class="otp-step" style="display:none;">
             <form id="otp-verify-form">
                 <div class="form-group floating-label">
-                    <input type="text" id="otp-code" name="otp_code" placeholder=" " required>
+                    <input 
+                        type="text" 
+                        id="otp-code" 
+                        name="otp_code" 
+                        placeholder=" " 
+                        required
+                        autocomplete="one-time-code"
+                        inputmode="numeric"
+                        maxlength="5"
+                    >
                     <label for="otp-code">کد تایید</label>
                 </div>
                 <input type="hidden" id="verify-mobile" name="mobile">
