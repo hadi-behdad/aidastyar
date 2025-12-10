@@ -55,8 +55,8 @@
         },
         
         saveAcceptance: function() {
-            console.log('Sending acknowledgment...');
-        
+            console.log('🔵 درخواست AJAX ارسال می‌شود');
+            
             jQuery.ajax({
                 url: aidastyarTerms.ajaxurl,
                 type: 'POST',
@@ -66,19 +66,32 @@
                     nonce: aidastyarTerms.nonce
                 },
                 success: function(response) {
+                    console.log('✅ پاسخ دریافت شد:', response);
+                    
                     if (response.success) {
-                        console.log('✅ Proceeding to next step');
+                        console.log('✅ موفق - مرحله بعد');
+                        // کلیک روی دکمه next
                         document.querySelector('.next-step')?.click();
                     } else {
-                        alert('Error: ' + response.data.message);
+                        console.error('❌ خطا:', response.data.message);
+                        alert('خطا: ' + response.data.message);
                     }
                 },
                 error: function(xhr, status, error) {
-                    alert('Connection error: ' + error);
+                    console.error('❌ خطای AJAX:', xhr.status, error);
+                    console.log('Response:', xhr.responseText);
+                    
+                    // ✅ نمایش جزئیات خطا
+                    if (xhr.status === 401) {
+                        alert('لطفاً ابتدا وارد شوید');
+                    } else if (xhr.status === 403) {
+                        alert('نشست نامعتبر است. صفحه را تازه‌سازی کنید');
+                    } else {
+                        alert('خطای ارتباطی: ' + xhr.status);
+                    }
                 }
             });
         }
-
     };
     
     // راه‌اندازی
