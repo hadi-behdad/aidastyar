@@ -19,11 +19,26 @@ get_header(); ?>
         <div id="step1" class="otp-step">
             <form id="otp-request-form">
                 <div class="form-group floating-label">
-                    <input type="text" id="mobile" name="mobile" required>
+                    <input type="tel"           
+                        id="mobile" 
+                        name="mobile"
+                        inputmode="numeric"     
+                        pattern="[0-9]*"        
+                        autocomplete="tel"      
+                        required
+                    >
                     <label for="mobile">شماره موبایل</label>
                 </div>
                 <div class="form-group floating-label" style="margin-top: 15px;">
-                    <input type="text" id="referral-code" name="referral_code" placeholder=" ">
+                    <input 
+                        type="tel"
+                        inputmode="numeric"
+                        pattern="[0-9]*"
+                        autocomplete="tel"
+                        id="referral-code" 
+                        name="referral_code" 
+                        placeholder=" "
+                    >
                     <label for="referral-code">شماره موبایل معرف (اختیاری)</label>
                     <small class="form-hint">اگر موبایل معرف را دارید، وارد کنید</small>
                 </div>

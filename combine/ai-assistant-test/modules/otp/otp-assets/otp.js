@@ -84,7 +84,7 @@ jQuery(document).ready(function($) {
         }
     }
     
-    // تایید OTP
+    // تایید OTP - نسخه اصلاح‌شده
     $('#otp-verify-form').on('submit', function(e) {
         e.preventDefault();
         var $form = $(this);
@@ -100,6 +100,7 @@ jQuery(document).ready(function($) {
         $form.find('.btn-text').text('در حال بررسی...');
         $form.find('.btn-loader').show();
         $form.find('button').prop('disabled', true);
+        $('#otp-code').prop('disabled', true); // ✅ غیر فعال کردن فیلد
         $('#message').hide();
         
         $.ajax({
@@ -117,6 +118,9 @@ jQuery(document).ready(function($) {
                 // در قسمت موفقیت‌آمیز بودن ورود OTP
                 if(response.success) {
                     showMessage('ورود موفقیت‌آمیز! در حال انتقال...', 'success');
+                    
+                    // ✅ اضافه کردن flag برای جلوگیری از فعال کردن دوباره
+                    $form.data('success', true);
                     
                     // بررسی وجود redirect_url در sessionStorage
                     let redirectUrl = sessionStorage.getItem('diet_form_redirect_url') || otp_vars.home_url;
@@ -152,9 +156,13 @@ jQuery(document).ready(function($) {
                 showMessage(errorMsg, 'error');
             },
             complete: function() {
-                $form.find('.btn-text').text('تایید و ورود');
-                $form.find('.btn-loader').hide();
-                $form.find('button').prop('disabled', false);
+                // ✅ فقط اگر موفق نبود، دکمه را دوباره فعال کن
+                if (!$form.data('success')) {
+                    $form.find('.btn-text').text('تایید و ورود');
+                    $form.find('.btn-loader').hide();
+                    $form.find('button').prop('disabled', false);
+                    $('#otp-code').prop('disabled', false); // ✅ فیلد را فعال کن
+                }
             }
         });
     });
@@ -218,15 +226,15 @@ jQuery(document).ready(function($) {
         });
     }
 
-
-    // 🎯 تابع Web OTP API
+    
+    // 🎯 تابع Web OTP API - نسخه بهبود یافته
     function initializeWebOTP() {
         // بررسی پشتیبانی مرورگر
         if (!navigator.credentials) {
             console.log('ℹ️ Web OTP API پشتیبانی نشده است');
             return;
         }
-
+    
         // درخواست OTP از مرورگر
         navigator.credentials.get({
             otp: { 
@@ -242,13 +250,21 @@ jQuery(document).ready(function($) {
                 // کد را در فیلد بگذار
                 $('#otp-code').val(result.code);
                 
-                // پیام نمایش بده
+                // ✅ غیر فعال کردن فیلد OTP
+                $('#otp-code').prop('disabled', true);
+                
+                // ✅ غیر فعال کردن دکمه تایید
+                const $submitBtn = $('#otp-verify-form button[type="submit"]');
+                $submitBtn.prop('disabled', true);
+                
+                // نمایش پیام موفقیت
                 showMessage(`کد تایید خودکار وارد شد: ${result.code}`, 'success');
                 
-                // اختیاری: فرم را خودکار submit کن (uncomment کن اگر می‌خوای)
+                // ✅ ارسال خودکار فرم بعد از کمی تاخیر
                 setTimeout(() => {
+                    console.log('🚀 ارسال خودکار فرم OTP...');
                     $('#otp-verify-form').trigger('submit');
-                }, 200);
+                }, 500);
             }
         })
         .catch(err => {
