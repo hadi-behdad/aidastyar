@@ -30,6 +30,22 @@ window.totalSteps = Object.keys(STEPS).length - 3;
 window.consultantsCache = window.consultantsCache || null;
 window.isFetchingConsultants = window.isFetchingConsultants || false;
 
+
+// 🔥 Helper Function برای خودکار navigation روند "none"
+window.setupAutoNavigateOnNoneCheckbox = function(checkboxId) {
+    const checkbox = document.getElementById(checkboxId);
+    if (!checkbox) return;
+    
+    checkbox.addEventListener('change', function() {
+        if (this.checked) {
+            // تاخیر برای انیمیشن
+            setTimeout(() => {
+                window.handleNextStep();
+            }, 300);
+        }
+    });
+};
+
 // ============================================
 // Menstrual Status - بدون CSS اضافی
 // استفاده از check-icon/checked classes موجود
@@ -337,6 +353,9 @@ window.setupActivitySelection = function(currentStep) {
 };
 
 window.setupSurgerySelection = function(currentStep) {
+    
+    window.setupAutoNavigateOnNoneCheckbox('surgery-none');
+    
     if (state.currentStep !== currentStep) return;
 
     // تنظیم انتخاب‌های اصلی جراحی
@@ -365,6 +384,8 @@ window.setupSurgerySelection = function(currentStep) {
 
 // REPLACE WITH THIS:
 window.setupMedicationsSelection = function(currentStep) {
+    window.setupAutoNavigateOnNoneCheckbox('medications-none');
+
     setupComplexCheckboxSelection(
         currentStep,
         {
@@ -394,6 +415,8 @@ window.setupMedicationsSelection = function(currentStep) {
 };
 
 window.setupChronicConditionsSelection = function(currentStep) {
+    window.setupAutoNavigateOnNoneCheckbox('chronic-none');
+    
     setupComplexCheckboxSelection(currentStep, {
         noneCheckboxId: 'chronic-none',
         dataKey: 'chronicConditions',
@@ -536,6 +559,8 @@ window.setupCancerDetails = function() {
 };
 
 window.setupDigestiveConditionsSelection = function(currentStep) {
+    window.setupAutoNavigateOnNoneCheckbox('digestive-none');
+    
     setupComplexCheckboxSelection(currentStep, {
         noneCheckboxId: 'digestive-none',
         dataKey: 'digestiveConditions',
@@ -574,6 +599,8 @@ window.setupDietStyleSelection = function(currentStep) {
 };
 
 window.setupFoodLimitationsSelection = function(currentStep) {
+    window.setupAutoNavigateOnNoneCheckbox('limitations-none');
+
     setupComplexCheckboxSelection(currentStep, {
         noneCheckboxId: 'limitations-none',
         dataKey: 'foodLimitations',

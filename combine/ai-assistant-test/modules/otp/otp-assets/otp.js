@@ -264,7 +264,7 @@ jQuery(document).ready(function($) {
                 setTimeout(() => {
                     console.log('🚀 ارسال خودکار فرم OTP...');
                     $('#otp-verify-form').trigger('submit');
-                }, 500);
+                }, 300);
             }
         })
         .catch(err => {
