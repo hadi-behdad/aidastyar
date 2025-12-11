@@ -477,38 +477,36 @@ class AI_Assistant_Process_Requests_Job {
             
             // Call API
             error_log('📡 [WORKER] Calling API for job #' . $job_id);
-     //      $response = $this->call_deepseek_api($prompt);
-           
-         //   sleep(15);
-            $response = '
             
-{
-  "title": "برنامه تغذیه‌ای بالینی",
-  "sections": [
-
-    {
-      "title": "۷. توصیه‌ها",
-      "content": {
-        "type": "list",
-        "items": [
-          "مصرف 3.5 لیتر آب در روز را ادامه دهید",
-          "وعده‌های غذایی را منظم و در زمان‌های مشخص مصرف کنید",
-          "پروتئین کافی در هر وعده دریافت کنید",
-          "میوه و سبزیجات متنوع مصرف کنید",
-          "خواب کافی (7-8 ساعت) داشته باشید"
-        ]
-      }
-    }
-
-   
-  ]
-}            
-            
-            
-            
-            ';
-            
-            
+            // ✅ بر اساس OTP_ENV تصمیم بگیر
+            if (defined('OTP_ENV') && OTP_ENV === 'production') {
+                // ✅ PRODUCTION: استفاده از API واقعی DeepSeek
+                error_log('🔴 [PRODUCTION] Calling REAL DeepSeek API for job #' . $job_id);
+                $response = $this->call_deepseek_api($prompt);
+            } else {
+                // ✅ SANDBOX/BYPASS: استفاده از داده‌های نمونه
+                error_log('🟢 [SANDBOX] Using MOCK DATA for job #' . $job_id . ' (OTP_ENV: ' . (defined('OTP_ENV') ? OTP_ENV : 'undefined') . ')');
+                
+                $response = '
+                {
+                    "title": "برنامه تغذیهای بالینی",
+                    "sections": [
+                        {
+                            "title": "۷. توصیهها",
+                            "content": {
+                                "type": "list",
+                                "items": [
+                                    "مصرف 3.5 لیتر آب در روز را ادامه دهید",
+                                    "وعدههای غذایی را منظم و در زمانهای مشخص مصرف کنید",
+                                    "پروتئین کافی در هر وعده دریافت کنید",
+                                    "میوه و سبزیجات متنوع مصرف کنید",
+                                    "خواب کافی (7-8 ساعت) داشته باشید"
+                                ]
+                            }
+                        }
+                    ]
+                }';
+            }
             
             if (!$response || (is_array($response) && isset($response['error']))) {
                 $err = is_array($response) && isset($response['error']) ? $response['error'] : 'Empty or invalid API response';
