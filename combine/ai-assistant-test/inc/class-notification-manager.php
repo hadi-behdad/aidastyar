@@ -120,4 +120,187 @@ class AI_Assistant_Notification_Manager {
 
         return $result;
     }
+    
+    /**
+     * دریافت متن terms برای یک کاربر و سرویس
+     * @param int $user_id
+     * @param string $service_id
+     * @return array|null
+     */
+    private function get_user_terms_acceptance($user_id, $service_id = 'diet') {
+        $terms_db = Terms_Acceptance_DB::get_instance();
+        
+        // دریافت آخرین terms acceptance برای این کاربر و سرویس
+        $acceptance = $terms_db->get_latest_acceptance($user_id, $service_id);
+        
+        if (!$acceptance) {
+            error_log('[Notification] No terms acceptance found for user: ' . $user_id);
+            return null;
+        }
+        
+        return $acceptance;
+    }
+    
+    /**
+     * ارسال ایمیل به کاربر: رژیم + قوانین پذیرفته‌شده
+     * @param int $user_id
+     * @param int $request_id
+     * @param string $diet_content (محتوای رژیم)
+     */
+    public function send_result_ready_with_terms($user_id, $request_id, $diet_content = '') {
+        $user = get_user_by('id', $user_id);
+        if (!$user) {
+            error_log('[Notification] User not found: ' . $user_id);
+            return false;
+        }
+    
+        $history_url = home_url("/page-user-history/");
+        
+        // دریافت متن terms که کاربر تائید کرده
+        $terms_acceptance = $this->get_user_terms_acceptance($user_id, 'diet');
+        
+        // ساخت بخش terms در ایمیل
+        $terms_section = '';
+        if ($terms_acceptance) {
+            $terms_content = $terms_acceptance->terms_content ?? '';
+            
+            // برای ایمیل، فقط خلاصه‌ای از terms (اولین ۵۰۰ کاراکتر)
+            $terms_preview = substr(strip_tags($terms_content), 0, 500) . '...';
+            
+            $terms_section = "
+                " . AI_Assistant_Email_Template::create_deadline_box("
+                    <strong>📋 قوانین و شرایط پذیرفته‌شده:</strong><br>
+                    <div style='background: #f5f5f5; padding: 15px; border-radius: 8px; margin-top: 10px; font-size: 12px; direction: rtl;'>
+                        " . nl2br(htmlspecialchars($terms_preview)) . "
+                    </div>
+                    <p style='margin-top: 10px; font-size: 12px; color: #666;'>
+                        <a href='" . $history_url . "'>برای مشاهده قوانین کامل اینجا را کلیک کنید</a>
+                    </p>
+                ") . "
+            ";
+        }
+        
+        // ساخت محتوای ایمیل
+        $email_content = "
+            <p>سلام <strong>{$user->display_name}</strong> عزیز،</p>
+            
+            <div style='text-align: center; margin: 30px 0;'>
+                <div style='background: #d4edda; color: #155724; padding: 20px; border-radius: 10px; display: inline-block;'>
+                    <h3 style='margin: 0; color: #155724;'>🎉 رژیم غذایی شما آماده است!</h3>
+                </div>
+            </div>
+            
+            <p>رژیم غذایی شما آماده شده و قابل مشاهده است</p>
+            <p>هم اکنون می‌توانید رژیم نهایی و توصیه‌ها را در بخش تاریخچه مشاهده کنید.</p>            
+            
+            " . AI_Assistant_Email_Template::create_button($history_url, '📋 مشاهده رژیم آماده‌شده') . "
+            
+            " . $terms_section . "
+            
+            " . AI_Assistant_Email_Template::create_deadline_box("
+                <strong>📅 تاریخ تکمیل:</strong><br>
+                " . date_i18n('j F Y - H:i') . "
+            ") . "
+            
+            " . AI_Assistant_Email_Template::create_info_box("
+                <strong>💡 نکته:</strong><br>
+                برای رفع ابهام‌ها یا درخواست بازنگری، می‌توانید از طریق صفحه تاریخچه با مشاور تماس بگیرید.
+            ") . "
+        ";
+        
+        $subject = '🎉 رژیم غذایی شما آماده است!';
+        $message = AI_Assistant_Email_Template::get_email_template($email_content, $subject);
+        
+        return $this->send_email($user->user_email, $subject, $message);
+    }
+    
+    
+    /**
+     * ارسال ایمیل به کاربر: درخواست ثبت شد
+     * فراخوانی هنگام ثبت درخواست جدید
+     */
+    public function send_request_received($user_id, $request_id) {
+        $user = get_user_by('id', $user_id);
+        if (!$user) {
+            error_log('[Notification] User not found: ' . $user_id);
+            return false;
+        }
+    
+        $history_url = home_url("/page-user-history/");
+        
+        $email_content = "
+            <p>سلام <strong>{$user->display_name}</strong> عزیز،</p>
+            
+            <div style='text-align: center; margin: 30px 0;'>
+                <div style='background: #cce5ff; color: #004085; padding: 20px; border-radius: 10px; display: inline-block;'>
+                    <h3 style='margin: 0; color: #004085;'>✓ درخواست شما با موفقیت ثبت شد</h3>
+                </div>
+            </div>
+            
+            
+            <p>درخواست تهیه رژیم غذایی شما با موفقیت ثبت گردید.</p>            
+            <p>تا زمانی که رژیم نهایی شما آماده شود، ایمیل اطلاع‌رسانی برای شما ارسال خواهد شد.</p>
+            
+            " . AI_Assistant_Email_Template::create_info_box("
+                <strong>⏳ وضعیت:</strong><br>
+                درخواست شما در لیست انتظار است. با تکمیل بررسی، فوری‌ترین طریق ممکن اطلاع دهیم.
+            ") . "
+            
+            " . AI_Assistant_Email_Template::create_button($history_url, '📊 مشاهده وضعیت درخواست') . "
+            
+            <p style='margin-top: 30px; color: #666;'>
+                برای پیگیری درخواست‌های خود می‌توانید هر زمان به بخش تاریخچه مراجعه کنید.
+            </p>
+        ";
+        
+        $subject = '✓ درخواست رژیم غذایی شما ثبت شد';
+        $message = AI_Assistant_Email_Template::get_email_template($email_content, $subject);
+        
+        return $this->send_email($user->user_email, $subject, $message);
+    }
+    
+    /**
+     * ارسال ایمیل به کاربر: رژیم آماده شد
+     * فراخوانی هنگام تایید نهایی رژیم توسط مشاور
+     */
+    public function send_result_ready($user_id, $request_id) {
+        $user = get_user_by('id', $user_id);
+        if (!$user) {
+            error_log('[Notification] User not found: ' . $user_id);
+            return false;
+        }
+    
+        $history_url = home_url("/page-user-history/");
+        
+        $email_content = "
+            <p>سلام <strong>{$user->display_name}</strong> عزیز،</p>
+            
+            <div style='text-align: center; margin: 30px 0;'>
+                <div style='background: #d4edda; color: #155724; padding: 20px; border-radius: 10px; display: inline-block;'>
+                    <h3 style='margin: 0; color: #155724;'>🎉 رژیم غذایی شما آماده است!</h3>
+                </div>
+            </div>
+            
+            <p>رژیم غذایی شما آماده شده و قابل مشاهده است</p>
+            <p>هم اکنون می‌توانید رژیم نهایی و توصیه‌ها را در بخش تاریخچه مشاهده کنید.</p>            
+            
+            " . AI_Assistant_Email_Template::create_button($history_url, '📋 مشاهده رژیم آماده‌شده') . "
+            
+            " . AI_Assistant_Email_Template::create_deadline_box("
+                <strong>📅 تاریخ تکمیل:</strong><br>
+                " . date_i18n('j F Y - H:i') . "
+            ") . "
+            
+            " . AI_Assistant_Email_Template::create_info_box("
+                <strong>💡 نکته:</strong><br>
+                برای رفع ابهام‌ها یا درخواست بازنگری، می‌توانید از طریق صفحه تاریخچه با مشاور تماس بگیرید.
+            ") . "
+        ";
+        
+        $subject = '🎉 رژیم غذایی شما آماده است!';
+        $message = AI_Assistant_Email_Template::get_email_template($email_content, $subject);
+        
+        return $this->send_email($user->user_email, $subject, $message);
+    }
+    
 }

@@ -588,13 +588,36 @@ class AI_Assistant_Process_Requests_Job {
                     error_log('✅ [DISCOUNT] Usage incremented for code: ' . $discount_code);
                 }
                 
-                // Handle diet consultation if needed
-                $consultation_handled = $this->handle_diet_consultation(
-                    $service_id,
-                    $serviceSelection,
-                    $history_id,
-                    $history_manager
-                );
+                                
+                $dietType = $serviceSelection['dietType'] ?? null;
+                
+                if ($dietType !== 'with-specialist') {
+                    // ✅ ارسال ایمیل با شامل کردن Terms Acceptance
+                    $notification_manager = AI_Assistant_Notification_Manager::get_instance();
+                    
+                    // دریافت محتوای رژیم (اختیاری)
+                    $diet_content = $cleaned_response ?? '';
+                    
+                    // ارسال ایمیل با terms
+                    $notification_manager->send_result_ready_with_terms(
+                        $user_id, 
+                        $history_id, 
+                        $diet_content
+                    );
+                    
+                    error_log('✅ [EMAIL] Result ready email sent with terms acceptance for user: ' . $user_id);
+                }
+                elseif($dietType === 'with-specialist') {
+                    error_log('$dietType......dont send email...............------' . $dietType );
+                    // Handle diet consultation if needed
+                    $consultation_handled = $this->handle_diet_consultation(
+                        $service_id,
+                        $serviceSelection,
+                        $history_id,
+                        $history_manager
+                    );
+                    
+                }
                 
                 // Commit transaction
                 $wpdb->query('COMMIT');

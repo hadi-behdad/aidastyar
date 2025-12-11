@@ -874,3 +874,6 @@ function ai_assistant_get_current_user_info() {
         'phone' => get_user_meta($user_id, 'billing_phone', true)
     ]);
 }
+
+// بارگذاری استایل‌های Service Info
+require_once get_template_directory() . '/functions/service-info-styles.php';
