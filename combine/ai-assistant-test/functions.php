@@ -853,3 +853,24 @@ add_action('init', function() {
 
 // Load Terms Content (Single Source of Truth)
 require_once get_template_directory() . '/inc/terms-content.php';
+
+
+add_action('wp_ajax_get_current_user_info', 'ai_assistant_get_current_user_info');
+
+function ai_assistant_get_current_user_info() {
+    if (!is_user_logged_in()) {
+        wp_send_json_error(['message' => 'وارد شوید'], 401);
+    }
+
+    $user_id = get_current_user_id();
+    $current_user = get_user_by('ID', $user_id);
+
+    wp_send_json_success([
+        'user_id' => $user_id,
+        'email' => $current_user->user_email,
+        'email_is_valid' => !empty($current_user->user_email) && is_email($current_user->user_email),
+        'first_name' => get_user_meta($user_id, 'first_name', true),
+        'last_name' => get_user_meta($user_id, 'last_name', true),
+        'phone' => get_user_meta($user_id, 'billing_phone', true)
+    ]);
+}

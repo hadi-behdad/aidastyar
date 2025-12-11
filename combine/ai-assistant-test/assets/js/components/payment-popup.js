@@ -776,6 +776,8 @@ class PaymentPopup {
     }
 
 
+
+    // جایگزین کردن updateBalanceUI:
     updateBalanceUI(balance, servicePrice) {
         const balanceElement = document.getElementById('current-balance');
         const confirmBtn = document.getElementById('confirm-payment');
@@ -791,42 +793,109 @@ class PaymentPopup {
             confirmBtn.textContent = 'افزایش موجودی';
             confirmBtn.onclick = () => {
                 const baseUrl = window.location.origin;
-                const shortfall = Math.ceil(servicePrice - balance); // مقدار کمبود
+                const shortfall = Math.ceil(servicePrice - balance);
                 window.open(baseUrl + "/wallet-charge/?needed_amount=" + shortfall, "_blank");
             };
         } else {
             balanceElement.style.color = '#333';
-            // حالت اول: موجودی کافی است
             confirmBtn.textContent = 'تأیید پرداخت';
-            // ✅ راه حل: استفاده از arrow function برای حفظ this
+            // ✅ تغییر: اضافه کردن بررسی ایمیل
             confirmBtn.onclick = () => {
-                if (this.options.onConfirm) {
-                    // 1. دریافت داده‌های کامل از state
-                    const completeFormData = {
-                        userInfo: { ...window.state.formData.userInfo },
-                        serviceSelection: { ...window.state.formData.serviceSelection },
-                        discountInfo: window.state.formData.discountInfo ? { ...window.state.formData.discountInfo } : {}
-                    };
-                    
-                    // 2. اضافه کردن کد تخفیف از input اگر وجود دارد
-                    const discountCodeInput = document.getElementById('discount-code-input');
-                    if (discountCodeInput && discountCodeInput.value.trim() && completeFormData.discountInfo) {
-                        completeFormData.discountInfo.discountCode = discountCodeInput.value.trim();
-                    }
-                    
-                    // 3. ارسال داده‌های کامل
-                    this.options.onConfirm(completeFormData, this.finalPrice, {
-                        discountApplied: this.discountApplied,
-                        finalPrice: this.finalPrice,
-                        originalPrice: this.originalPrice
-                    });
-                }
-                this.hide();
+                this.checkUserEmailAndProceed();
             };
         }
         
         confirmBtn.disabled = false;
     }
+    
+    // ✅ متد جدید 1: بررسی ایمیل
+    async checkUserEmailAndProceed() {
+        try {
+            const response = await fetch(aiAssistantVars.ajaxurl, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: new URLSearchParams({
+                    'action': 'get_current_user_info',
+                    'security': aiAssistantVars.nonce
+                })
+            });
+    
+            const data = await response.json();
+    
+            if (data.success) {
+                const userData = data.data;
+                console.log('📧 اطلاعات کاربر دریافت شد:', userData);
+    
+                // ✅ اگر ایمیل خالی است
+                if (!userData.email || userData.email === '') {
+                    this.showEmailRequiredMessage();
+                    return;
+                }
+    
+                // ✅ اگر ایمیل معتبر است
+                this.proceedWithPayment();
+            } else {
+                throw new Error(data.data?.message || 'خطا در دریافت اطلاعات');
+            }
+        } catch (error) {
+            console.error('❌ خطا:', error);
+            alert('خطا: ' + error.message);
+        }
+    }
+    
+
+    // ✅ متد جدید 2: نمایش پیغام و انتقال
+    async showEmailRequiredMessage() {
+        console.log('⚠️ ایمیل معتبر نیست - نیاز به تکمیل پروفایل');
+        
+        // ✅ استفاده از aidastyar-loader
+        const loader = new AiDastyarLoader({
+            message: 'لطفا اطلاعات کاربری خود را تکمیل کنید',
+            persistent: true,
+            closable: true,
+            overlay: true
+        });
+    
+        loader.show();
+    
+        setTimeout(() => {
+            const redirectUrl = window.location.origin + '/profile/';
+            
+            // ✅ باز کردن در تب جدید
+            window.open(redirectUrl, '_blank');
+            
+            // ✅ بستن loader
+            loader.hide();
+        }, 1500);
+
+    }
+    
+    // ✅ متد جدید 3: انجام پرداخت
+    proceedWithPayment() {
+        console.log('✅ تمام بررسی‌ها انجام شد - شروع پرداخت');
+        
+        if (this.options.onConfirm) {
+            const completeFormData = {
+                userInfo: { ...window.state.formData.userInfo },
+                serviceSelection: { ...window.state.formData.serviceSelection },
+                discountInfo: window.state.formData.discountInfo ? { ...window.state.formData.discountInfo } : {}
+            };
+            
+            const discountCodeInput = document.getElementById('discount-code-input');
+            if (discountCodeInput && discountCodeInput.value.trim() && completeFormData.discountInfo) {
+                completeFormData.discountInfo.discountCode = discountCodeInput.value.trim();
+            }
+            
+            this.options.onConfirm(completeFormData, this.finalPrice, {
+                discountApplied: this.discountApplied,
+                finalPrice: this.finalPrice,
+                originalPrice: this.originalPrice
+            });
+        }
+        this.hide();
+    }    
     
     hide() {
         this.isOpen = false;
