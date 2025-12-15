@@ -11,6 +11,16 @@ if (!defined('ABSPATH')) {
     require_once $wp_path . 'wp-load.php';
 }
 
+// غیرفعال کردن کش قبل از هر خروجی
+if (!defined('DONOTCACHEPAGE')) {
+    define('DONOTCACHEPAGE', true);
+}
+
+// غیرفعال کردن کش برای این صفحه
+header("Cache-Control: no-cache, no-store, must-revalidate");
+header("Pragma: no-cache");
+header("Expires: 0");
+
 get_header();
 $theme_assets = get_stylesheet_directory_uri();
 
@@ -49,13 +59,9 @@ $final_price = $service_price;
 
 $best_discount = AI_Assistant_Discount_Manager::find_best_discount($service_id,get_current_user_id(), '');
 
-$service_discount = $best_discount->amount;
+$service_discount = intval($best_discount->amount);
 if ($best_discount) {
     $final_price = AI_Assistant_Discount_Manager::calculate_discounted_price($service_price, $best_discount);
-    
-    error_log("✅ تخفیف اعمال شد: {$best_discount->name} - نوع: {$best_discount->type} - مقدار: {$best_discount->amount}");
-    error_log("💰 قیمت اصلی: {$service_price} - - قیمت نهایی: {$final_price}");
-    
 
 }
 

@@ -395,6 +395,112 @@ margin: 0 auto;
     border-radius: 8px;
 }
 
+
+
+
+/* ترکیب Diagonal Stripe با Minimalist Badge */
+.main-ai-service-card-wrapper.inactive-service {
+    position: relative;
+    overflow: hidden;
+}
+
+.main-ai-service-card-wrapper.inactive-service .main-ai-service-card {
+    pointer-events: none;
+    border: 2px dashed rgba(102, 126, 234, 0.4);
+}
+
+.main-ai-service-card-wrapper.inactive-service .main-ai-service-image {
+    filter: grayscale(80%) brightness(1) blur(1px);
+}
+
+/* Diagonal Stripe Pattern */
+.main-ai-service-card-wrapper.inactive-service::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: repeating-linear-gradient(
+        45deg,
+        transparent,
+        transparent 15px,
+        rgba(102, 126, 234, 0.08) 15px,
+        rgba(102, 126, 234, 0.08) 30px
+    );
+    pointer-events: none;
+    z-index: 1;
+}
+/* Minimalist Badge - اصلاح شده */
+.coming-soon-overlay {
+    position: absolute;
+    bottom: 25px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(74, 111, 165, 0.35);  /* ✅ اصلاح: درصد به اعشار تبدیل شد */
+    color: white;
+    padding: 5px 18px;
+    border-radius: 25px;
+    font-size: 12px;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 5px;    
+    backdrop-filter: blur(5px);
+    -webkit-backdrop-filter: blur(5px);  /* ✅ اضافه: برای Safari */
+    border: 1px solid rgba(74, 111, 165, 0.3);  /* ✅ اصلاح: درصد به اعشار */
+    z-index: 10;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+    white-space: nowrap;  /* ✅ اضافه: جلوگیری از شکستن متن */
+    display: flex;  /* ✅ اضافه: برای تراز بهتر */
+    align-items: center;  /* ✅ اضافه */
+    justify-content: center;  /* ✅ اضافه */
+}
+
+.coming-soon-text {
+    display: inline-flex;  /* ✅ اضافه: برای کنترل بهتر */
+    align-items: center;  /* ✅ اضافه */
+}
+
+.coming-soon-text::before {
+    content: '🚀 ';
+    margin-right: 5px;  /* ✅ اصلاح: از left به right تغییر یافت */
+    display: inline-block;  /* ✅ اضافه */
+}
+
+@media (max-width: 768px) {
+    .coming-soon-overlay {
+        bottom: 12px;
+        padding: 5px 14px;  /* ✅ اصلاح: padding یکنواخت‌تر */
+        font-size: 11px;
+        letter-spacing: 1.5px;  /* ✅ اضافه: letter-spacing کمتر برای موبایل */
+    }
+}
+
+@media (max-width: 480px) {  /* ✅ اضافه: برای موبایل‌های کوچک */
+    .coming-soon-overlay {
+        bottom: 10px;
+        padding: 4px 12px;
+        font-size: 10px;
+        letter-spacing: 1px;
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 /* حالت دسکتاپ - همان طرح قبلی */
 @media (min-width: 769px) {
     /* طرح عمودی با تصویر در پایین */
@@ -406,7 +512,7 @@ margin: 0 auto;
         display: flex;
         align-items: center;
         justify-content: space-between;
-        gap: 10px;
+        /*gap: 10px;*/
        /* margin-top: 15px; */
     }    
     
@@ -416,11 +522,13 @@ margin: 0 auto;
     display: flex;
     align-items: center;
     gap: 10px;
-    padding: 8px 12px;
-    background-color: #f8f9fa;
-    border-radius: 25px;
+    padding: 6px 12px;
+    /*background-color: #f8f9fa;*/
+    background: linear-gradient(135deg, #ecf7e9, #f8f9fa);
+    border-radius: 10px;
     border: 1px solid #e9ecef;
     position: relative;
+    width: 200%;
 }
 
 .user-profile-summary img {
@@ -443,7 +551,8 @@ margin: 0 auto;
 
 .user-credit {
     font-size: 12px;
-    color: #6b47dc;
+    /*color: #6b47dc;*/
+    color: #4a6fa5;
     font-weight: 500;
 }
 
@@ -563,12 +672,11 @@ margin: 0 auto;
     
     
     .menu-active {
-     
-        border-left: 4px solid #6b47dc;
-        
-  background: #f0f0f0;
-  font-weight: bold;
-  border-radius: 8px;        
+        /*border-left: 4px solid #6b47dc;*/
+        border-left: 4px solid #4a6fa5;
+        background: #f0f0f0;
+        font-weight: bold;
+        border-radius: 8px;        
     }
     
     
@@ -626,7 +734,8 @@ margin: 0 auto;
     }
     
     .btn-primary {
-        background-color: #6b47dc;
+        /*background-color: #6b47dc;*/
+        background-color: #4a6fa5;
         color: #ffffff;
         margin-bottom: 12px;
         justify-content: center;
@@ -713,7 +822,7 @@ margin: 0 auto;
     }
     
     .login-btn {
-        background: linear-gradient(135deg, #6b47dc, #8a63d2);
+        background: linear-gradient(135deg, #4a6fa5, #4a6fa5);
         color: #ffffff;
         position: relative;
         overflow: hidden;
@@ -802,7 +911,8 @@ margin: 0 auto;
     
     /* استایل برای آیتم‌های منوی مهمان */
     .menu-item-card .dashicons {
-        color: #6b47dc;
+        /*color: #6b47dc;*/
+        color: #4a6fa5;
         font-size: 20px;
         width: 20px;
         height: 20px;
@@ -1682,5 +1792,58 @@ margin: 0 auto;
     }
 }
 
+
+/* استایل نمادهای اعتماد و پرداخت */
+.payment-trust-icons {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 15px;
+    margin: 15px 0 20px;
+    padding: 10px;
+}
+
+.payment-trust-icons a {
+    display: inline-block;
+    transition: all 0.3s ease;
+    border-radius: 8px;
+    overflow: hidden;
+    background: white;
+    padding: 5px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+
+.payment-trust-icons a:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 5px 15px rgba(0,0,0,0.15);
+}
+
+.payment-trust-icons img {
+    width: 60px !important;
+    height: 60px !important;
+    object-fit: contain;
+    display: block;
+}
+
+/* برای صفحه‌نمایش موبایل */
+@media (max-width: 768px) {
+    .payment-trust-icons {
+        gap: 10px;
+        margin: 10px 0 15px;
+    }
+    
+    .payment-trust-icons img {
+        width: 50px !important;
+        height: 50px !important;
+    }
+}
+
+/* برای صفحه‌نمایش خیلی کوچک */
+@media (max-width: 480px) {
+    .payment-trust-icons img {
+        width: 45px !important;
+        height: 45px !important;
+    }
+}
 
 

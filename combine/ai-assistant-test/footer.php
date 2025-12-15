@@ -3,7 +3,28 @@
 
 <footer class="simple-footer">
     <div class="footer-content">
-        <!-- نماد اعتماد -->
+        <!-- نماد اعتماد و پرداخت امن -->
+        <div class="payment-trust-icons">
+            <!-- نماد اعتماد الکترونیکی -->
+
+            
+            
+            <a href="https://trustseal.internet.ir/?id=XXXXX&code=XXXXX" target="_blank" rel="noopener" title="نماد اعتماد الکترونیکی">
+                <img src="<?php echo get_template_directory_uri(); ?>/assets/images/enamad.png" alt="نماد اعتماد الکترونیکی" width="60" height="60">
+            </a>
+            
+            <a href="https://www.zarinpal.com" target="_blank" rel="noopener" title="پرداخت امن زرین‌پال">
+                <img src="<?php echo get_template_directory_uri(); ?>/assets/images/zarinpal.png" alt="زرین پال" width="60" height="60">
+            </a>
+            
+            <a href="https://www.zinbal.com" target="_blank" rel="noopener" title="پرداخت امن زرین‌پال">
+                <img src="<?php echo get_template_directory_uri(); ?>/assets/images/zarinpal.png" alt="زرین پال" width="60" height="60">
+            </a>            
+            
+        </div>
+
+
+
 
 
         <!-- شبکه‌های اجتماعی -->

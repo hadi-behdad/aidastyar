@@ -106,6 +106,15 @@ class AI_Job_Queue {
             ];
         }
         
+        // هر 3 روز
+        if (!isset($schedules['every_3_days'])) {
+            $schedules['every_3_days'] = [
+                'interval' => 259200,  // 3 روز × 24 ساعت × 3600 ثانیه = 259200 ثانیه
+                'display'  => __('Every 3 Days')
+            ];
+        }
+        
+        
         return $schedules;
     }
     
@@ -125,27 +134,15 @@ class AI_Job_Queue {
         }
         
         // بررسی و schedule کردن article_generator_job
-        // ⏱️ هر 24 ساعت یکبار (ساعت 2 بامداد)
+        // ⏱️ هر 3 روز یکبار (ساعت 2 بامداد)
         if (!wp_next_scheduled(self::HOOK_ARTICLE_GENERATOR)) {
-            // محاسبه زمان: فردا ساعت 2 بامداد
-            $tomorrow_2am = strtotime('tomorrow 2:00am');
+            // محاسبه زمان: 3 روز بعد ساعت 2 بامداد
+            $in_3_days_2am = strtotime('+3 days 2:00am');
             
-            // اگر الان بعد از ساعت 2 صبح نیست، از امروز شروع کن
-            $now = time();
-            $today_2am = strtotime('today 2:00am');
-            
-            if ($now < $today_2am) {
-                // هنوز ساعت 2 صبح امروز نشده، از امروز شروع کن
-                $start_time = $today_2am;
-            } else {
-                // ساعت 2 صبح امروز گذشته، از فردا شروع کن
-                $start_time = $tomorrow_2am;
-            }
-            
-            $scheduled = wp_schedule_event($start_time, 'every_24_hours', self::HOOK_ARTICLE_GENERATOR);
-            
+            $scheduled = wp_schedule_event($in_3_days_2am, 'every_3_days', self::HOOK_ARTICLE_GENERATOR);
+
             if ($scheduled !== false) {
-                error_log('✅ [JOB_QUEUE] Scheduled ' . self::HOOK_ARTICLE_GENERATOR . ' for ' . date('Y-m-d H:i:s', $start_time) . ' (every 24 hours)');
+                error_log('✅ [JOB_QUEUE] Scheduled ' . self::HOOK_ARTICLE_GENERATOR . ' for ' . date('Y-m-d H:i:s', $start_time) . ' (every  3_days)');
             } else {
                 error_log('❌ [JOB_QUEUE] Failed to schedule ' . self::HOOK_ARTICLE_GENERATOR);
             }
@@ -232,8 +229,8 @@ class AI_Job_Queue {
         
         try {
             // اجرای job
-            $job = new ai_article_generator_job();
-            $job->handle();
+        //    $job = new ai_article_generator_job();
+         //   $job->handle();
             
             // ذخیره زمان آخرین اجرا
             update_option(self::OPTION_LAST_ARTICLE, time());

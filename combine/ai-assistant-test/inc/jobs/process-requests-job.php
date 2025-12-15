@@ -487,6 +487,8 @@ class AI_Assistant_Process_Requests_Job {
                 // ✅ SANDBOX/BYPASS: استفاده از داده‌های نمونه
                 error_log('🟢 [SANDBOX] Using MOCK DATA for job #' . $job_id . ' (OTP_ENV: ' . (defined('OTP_ENV') ? OTP_ENV : 'undefined') . ')');
                 
+              
+                
                 $response = '
                 {
                     "title": "برنامه تغذیهای بالینی",
@@ -859,7 +861,7 @@ class AI_Assistant_Process_Requests_Job {
                 'Accept' => 'application/json'
             ],
             'body' => json_encode([
-                'model' => 'deepseek-chat',
+                'model' => 'deepseek-coder',
                 'messages' => [
                     ['role' => 'system', 'content' => 'You are a helpful assistant.'],
                     ['role' => 'user', 'content' => $prompt]
@@ -867,7 +869,7 @@ class AI_Assistant_Process_Requests_Job {
                 'temperature' => 0.2,
                 'max_tokens' => 8000
             ]),
-            'timeout' => 180,
+            'timeout' => 300,
             'httpversion' => '1.1',
             'sslverify' => true
         ];

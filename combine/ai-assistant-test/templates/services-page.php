@@ -8,57 +8,57 @@ $theme_assets = get_stylesheet_directory_uri();
 ?>
 
 <div class="ai-container">
-    <div class="ai-services-grid">
-        <?php 
-        $services = AI_Assistant_Service_Manager::get_instance()->get_active_services();
-        foreach ($services as $service_id => $service): 
-            $service_url = add_query_arg('service', $service_id, home_url('/service/'));
-            
-            // گرفتن تعداد اجرا از پست‌های history
-            $run_count = new WP_Query([
-                'post_type'      => 'ai_service_history',
-                'post_status'    => 'publish',
-                'meta_query'     => [
-                    [
-                        'key'     => 'service_id',
-                        'value'   => $service_id,
-                        'compare' => '=',
-                    ],
-                ],
-                'fields' => 'ids',
-                'nopaging' => true,
-            ]);
-            $total_runs = $run_count->found_posts;
-            
-            // گرفتن امتیاز متوسط از دیتابیس نظرات
-            $comments_db = AI_Assistant_Comments_DB::get_instance();
-            $average_rating = $comments_db->get_average_rating($service_id);
-            $average_rating = $average_rating ? round($average_rating, 1) : 0;
-        ?>
-        <div class="main-ai-service-card-wrapper">
-            <a href="<?php echo esc_url(home_url('/service/' . $service_id . '/')); ?>" class="main-ai-service-card" target="_blank">
-                <div class="main-ai-service-info">
-                    <h3><?php echo esc_html($service['name']); ?></h3>
-                    <p><?php echo esc_html($service['description']); ?></p>
+<div class="ai-services-grid">
+    <?php 
+    $services = AI_Assistant_Service_Manager::get_instance()->get_all_services();
+    
+    // مرتب‌سازی سرویس‌ها: ابتدا فعال‌ها، سپس غیرفعال‌ها
+    uasort($services, function($a, $b) {
+        return ($b['active'] ?? 0) - ($a['active'] ?? 0);
+    });
+    
+    foreach ($services as $service_id => $service): 
+        $service_url = add_query_arg('service', $service_id, home_url('/service/'));
+        
+        $is_active_service = $service['active'];
+        // گرفتن امتیاز متوسط از دیتابیس نظرات
+        $comments_db = AI_Assistant_Comments_DB::get_instance();
+        $average_rating = $comments_db->get_average_rating($service_id);
+        $average_rating = $average_rating ? round($average_rating, 1) : 0;
+        
+        // کلاس غیرفعال
+        $inactive_class = ($is_active_service == 0) ? ' inactive-service' : '';
+    ?>
+    <div class="main-ai-service-card-wrapper<?php echo $inactive_class; ?>">
+        <a href="<?php echo esc_url(home_url('/service-info/' . $service_id . '/')); ?>" class="main-ai-service-card" target="_blank">
+            <div class="main-ai-service-info">
+                <h3><?php echo esc_html($service['name']); ?></h3>
+                <p><?php echo esc_html($service['description']); ?></p>
+            </div>
+            <div class="main-ai-service-image" style="background-image: url('<?= $theme_assets ?>/assets/images/<?= $service_id ?>.jpg')">
+                <!-- اضافه کردن نشان امتیاز -->
+                <?php if ($average_rating > 0 && $is_active_service == 1): ?>
+                <div class="service-rating-badge">
+                    <span class="rating-value"><?php echo esc_html($average_rating); ?></span>
+                    <span class="rating-star">★</span>
                 </div>
-                <div class="main-ai-service-image" style="background-image: url('<?= $theme_assets ?>/assets/images/<?= $service_id ?>.jpg')">
-                    <!-- اضافه کردن نشان امتیاز -->
-                    <?php if ($average_rating > 0): ?>
-                    <div class="service-rating-badge">
-                        <span class="rating-value"><?php echo esc_html($average_rating); ?></span>
-                        <span class="rating-star">★</span>
-                    </div>
-                    <?php endif; ?>
-                </div>
-            </a>
-            
-            <!-- آیکن اطلاعات سرویس -->
-            <a href="<?php echo esc_url(home_url('/service-info/' . $service_id . '/')); ?>" class="service-info-icon" title="اطلاعات سرویس">
-                <i class="fas fa-info-circle"></i>
-            </a>
-        </div>
-        <?php endforeach; ?>
+                <?php endif; ?>
+                
+
+            </div>
+            <!-- نمایش Coming Soon برای سرویس‌های غیرفعال -->
+            <?php if ($is_active_service == 0): ?>
+            <div class="coming-soon-overlay">
+                <span class="coming-soon-text">Coming Soon</span>
+            </div>
+            <?php endif; ?>            
+        </a>
     </div>
+    <?php endforeach; ?>
+</div>
+
+
+
 </div><!-- .ai-services-grid -->
 
 
@@ -122,60 +122,6 @@ $theme_assets = get_stylesheet_directory_uri();
     </div>
 </div>
 
-<!-- بعد از اسلایدر نظرات، فرم ثبت نظر را اضافه کنید -->
-<div class="user-comment-section">
-    <?php if (is_user_logged_in()) : ?>
-        <div class="comment-form-container">
-            <h3>ثبت نظر جدید</h3>
-            
-            <!-- بخش انتخاب سرویس -->
-            <div class="service-selection-section">
-                <div class="service-selection-cards">
-                    <?php 
-                    $services = AI_Assistant_Service_Manager::get_instance()->get_active_services();
-                    foreach ($services as $service_id => $service): 
-                    ?>
-                    <div class="service-selection-card" data-service-id="<?php echo esc_attr($service_id); ?>">
-                        <div class="service-selection-info">
-                            <h5><?php echo esc_html($service['name']); ?></h5>
-                        </div>
-                        <div class="selection-checkmark">
-                            <i class="fas fa-check"></i>
-                        </div>
-                    </div>
-                    <?php endforeach; ?>
-                </div>
-                <div class="service-selection-required">لطفاً یک سرویس انتخاب کنید</div>
-            </div>
-            
-            <form class="service-comment-form" method="post">
-                <input type="hidden" name="service_id" id="selected-service-id" value="">
-                
-                <div class="rating-input">
-                    <label>امتیاز شما:</label>
-                    <div class="stars-input">
-                        <i class="fas fa-star" data-value="1"></i>
-                        <i class="fas fa-star" data-value="2"></i>
-                        <i class="fas fa-star" data-value="3"></i>
-                        <i class="fas fa-star" data-value="4"></i>
-                        <i class="fas fa-star" data-value="5"></i>
-                    </div>
-                    <input type="hidden" name="rating" value="0">
-                </div>
-                <div class="comment-textarea-container">
-                    <textarea name="comment_text" class="comment-textarea" placeholder="نظر خود را اینجا بنویسید..." required></textarea>
-                </div>
-                <div class="form-submit">
-                    <button type="submit" class="comment-submit-btn">ثبت نظر</button>
-                </div>
-            </form>
-        </div>
-    <?php else : ?>
-        <div class="login-to-comment">
-            <p>برای ثبت نظر باید <a href="<?php echo wp_login_url(get_permalink()); ?>">وارد حساب کاربری</a> خود شوید.</p>
-        </div>
-    <?php endif; ?>
-</div>
 
 <style>
 .main-ai-service-image {

@@ -1,0 +1,4 @@
+[11-Dec-2025 15:42:06 UTC] PHP Fatal error:  Uncaught Error: Call to undefined function get_header() in /home/aidastya/public_html/test/wp-content/themes/ai-assistant-test/index.php:7
+Stack trace:
+#0 {main}
+  thrown in /home/aidastya/public_html/test/wp-content/themes/ai-assistant-test/index.php on line 7

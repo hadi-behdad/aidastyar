@@ -184,7 +184,13 @@ class AI_Assistant_Api_Handler {
                 // ============================================
                 $wpdb->query('COMMIT');
                 $transaction_started = false;
-                
+
+
+                // در کلاس یا فایلی که درخواست را ثبت می‌کنید
+                $notification_manager = AI_Assistant_Notification_Manager::get_instance();
+                // بعد از ثبت درخواست
+                $notification_manager->send_request_received($user_id, $history_id);
+                                
                 error_log('✅ [TRANSACTION] Committed successfully - History: ' . $history_id . ', Job: ' . $job_id);
                 
                 // Log discount info if exists (optional, after successful commit)
