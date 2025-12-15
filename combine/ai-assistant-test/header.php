@@ -1,14 +1,23 @@
 <!DOCTYPE html>
-<html <?php language_attributes(); ?> dir="rtl">
+<html <?php language_attributes(); 
+$theme_assets = get_stylesheet_directory_uri();?> dir="rtl">
 <head>
+    <script>
+        var home_url = '<?php echo home_url(); ?>';
+    </script>  
+    
+    <meta property="og:title" content="aidastyar - رژیم شخصی‌سازی‌شده با هوش مصنوعی">
+    <meta property="og:description" content="اولین رژیم غذایی‌ات را به‌صورت موقت با ۱۰۰٪ تخفیف بگیر.">
+    <meta property="og:image" content="<?php echo $theme_assets; ?>/assets/images/png/advertisment.jpg">
+    <meta property="og:url" content="<?php echo home_url('/'); ?>">
+    <meta property="og:type" content="website">
+    
     <meta charset="<?php bloginfo('charset'); ?>">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?php wp_title('|', true, 'right'); ?></title>
     <?php wp_head(); ?>
     
-    <script>
-        var home_url = '<?php echo home_url(); ?>';
-    </script>   
+ 
     
 </head>
 <body <?php body_class('ai-assistant-body'); ?>>
