@@ -85,7 +85,7 @@ class AI_Job_Queue {
             require_once(ABSPATH . 'wp-admin/includes/upgrade.php');
             dbDelta($sql);
 
-            error_log('✅ [JOB_QUEUE] Table created successfully');
+            // error_log('✅ [JOB_QUEUE] Table created successfully');
 
         } finally {
             flock($lock_handle, LOCK_UN);
@@ -126,7 +126,7 @@ class AI_Job_Queue {
         }
 
         $job_id = $wpdb->insert_id;
-        error_log('✅ [ENQUEUE] Job #' . $job_id . ' added - Service: ' . $service_id);
+        // error_log('✅ [ENQUEUE] Job #' . $job_id . ' added - Service: ' . $service_id);
 
         // try to spawn processing immediately (async)
         $this->maybe_spawn_processing();
@@ -185,12 +185,12 @@ class AI_Job_Queue {
     public function process_pending_jobs() {
         global $wpdb;
 
-        error_log('🔄 [MASTER] Processing cycle started at: ' . current_time('mysql'));
+        // error_log('🔄 [MASTER] Processing cycle started at: ' . current_time('mysql'));
 
         $this->cleanup_stuck_jobs();
 
         $processing_count = $wpdb->get_var("SELECT COUNT(*) FROM {$this->table_name} WHERE status = 'processing'");
-        error_log('📊 [MASTER] Currently processing: ' . $processing_count . '/' . $this->max_concurrent_jobs);
+        // error_log('📊 [MASTER] Currently processing: ' . $processing_count . '/' . $this->max_concurrent_jobs);
 
         if ($processing_count >= $this->max_concurrent_jobs) {
             error_log('⏸️ [MASTER] Max concurrent jobs reached');
@@ -325,7 +325,7 @@ class AI_Job_Queue {
     private function process_single_job_direct_internal($job_id) {
         global $wpdb;
 
-        error_log('🎯 [WORKER] Starting processing for job #' . $job_id);
+        // error_log('🎯 [WORKER] Starting processing for job #' . $job_id);
 
         // load job row
         $job = $wpdb->get_row($wpdb->prepare("SELECT * FROM {$this->table_name} WHERE id = %d", $job_id));
@@ -362,7 +362,7 @@ class AI_Job_Queue {
             $this->validate_job($job);
 
             // simulate / call API
-            error_log('📡 [WORKER] Calling API for job #' . $job_id);
+            // error_log('📡 [WORKER] Calling API for job #' . $job_id);
             $start_time = microtime(true);
 
             // you had sleep(30) previously; keep a short sleep for testing if needed
@@ -383,7 +383,7 @@ class AI_Job_Queue {
             $wpdb->query('START TRANSACTION');
 
             // payment
-            error_log('💰 [WORKER] Deducting credit for job #' . $job_id);
+            // error_log('💰 [WORKER] Deducting credit for job #' . $job_id);
             $payment_handler = AI_Assistant_Payment_Handler::get_instance();
             $credit_success = $payment_handler->deduct_credit(
                 $job->user_id,
@@ -398,7 +398,7 @@ class AI_Job_Queue {
             }
 
             // save history
-            error_log('📝 [WORKER] Saving history for job #' . $job_id);
+            // error_log('📝 [WORKER] Saving history for job #' . $job_id);
             $history_manager = AI_Assistant_History_Manager::get_instance();
             $history_success = $history_manager->save_history(
                 $job->user_id,
@@ -428,7 +428,7 @@ class AI_Job_Queue {
             );
 
             if ($update_success) {
-                error_log('✅ [WORKER] Job #' . $job_id . ' completed successfully in ' . $api_time . 's');
+                // error_log('✅ [WORKER] Job #' . $job_id . ' completed successfully in ' . $api_time . 's');
                 return true;
             } else {
                 throw new Exception('Failed to update job status');

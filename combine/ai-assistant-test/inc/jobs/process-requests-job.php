@@ -49,7 +49,7 @@ class AI_Assistant_Process_Requests_Job {
         $lock = get_transient($this->lock_option_key);
         
         if ($lock !== false) {
-            error_log('⏸️ [PROCESS_REQUESTS] Processing already in progress, skipping');
+            //error_log('⏸️ [PROCESS_REQUESTS] Processing already in progress, skipping');
             return;
         }
         
@@ -115,7 +115,7 @@ class AI_Assistant_Process_Requests_Job {
             require_once(ABSPATH . 'wp-admin/includes/upgrade.php');
             dbDelta($sql);
             
-            error_log('✅ [JOB_QUEUE] Table created/verified successfully');
+            //error_log('✅ [JOB_QUEUE] Table created/verified successfully');
             
         } finally {
             flock($lock_handle, LOCK_UN);
@@ -143,7 +143,7 @@ class AI_Assistant_Process_Requests_Job {
         ));
         
         if ($existing) {
-            error_log('⚠️ [ENQUEUE] Job already exists for history_id: ' . $history_id);
+            //error_log('⚠️ [ENQUEUE] Job already exists for history_id: ' . $history_id);
             return $existing;
         }
         
@@ -165,7 +165,7 @@ class AI_Assistant_Process_Requests_Job {
         }
         
         $job_id = $wpdb->insert_id;
-        error_log('✅ [ENQUEUE] Job #' . $job_id . ' added for history_id: ' . $history_id);
+        //error_log('✅ [ENQUEUE] Job #' . $job_id . ' added for history_id: ' . $history_id);
         
         return $job_id;
     }
@@ -176,7 +176,7 @@ class AI_Assistant_Process_Requests_Job {
     public function process_jobs_sequentially() {
         global $wpdb;
         
-        error_log('🔄 [SEQUENTIAL] Processing cycle started at: ' . current_time('mysql'));
+        //error_log('🔄 [SEQUENTIAL] Processing cycle started at: ' . current_time('mysql'));
         
         // First, cleanup any stuck jobs
         $this->cleanup_stuck_jobs();
@@ -191,7 +191,7 @@ class AI_Assistant_Process_Requests_Job {
             ));
             
             if ($current_job && $current_job->status === 'processing') {
-                error_log('⏸️ [SEQUENTIAL] Job #' . $current_job_id . ' is still processing, waiting...');
+                //error_log('⏸️ [SEQUENTIAL] Job #' . $current_job_id . ' is still processing, waiting...');
                 return;
             } else {
                 // Current job is done or failed, clear it
@@ -208,11 +208,11 @@ class AI_Assistant_Process_Requests_Job {
         );
         
         if (!$pending_job) {
-            error_log('📭 [SEQUENTIAL] No pending jobs found');
+            //error_log('📭 [SEQUENTIAL] No pending jobs found');
             return;
         }
         
-        error_log('🎯 [SEQUENTIAL] Starting processing for job #' . $pending_job->id);
+        //error_log('🎯 [SEQUENTIAL] Starting processing for job #' . $pending_job->id);
         
         // Claim the job (atomic operation using WHERE clause)
         $now = current_time('mysql');
@@ -286,7 +286,7 @@ class AI_Assistant_Process_Requests_Job {
                     ['%d']
                 );
                 
-                error_log('🔄 [CLEANUP] Job #' . $job->id . ' reset for retry (' . ($job->retry_count + 1) . '/2)');
+                //error_log('🔄 [CLEANUP] Job #' . $job->id . ' reset for retry (' . ($job->retry_count + 1) . '/2)');
             } else {
                 // Mark as error after 2 retries
                 $wpdb->update(
@@ -318,17 +318,17 @@ class AI_Assistant_Process_Requests_Job {
                 $current_job->status === 'processing' && 
                 strtotime($current_job->started_at) < time() - $this->processing_timeout) {
                 delete_transient($this->current_job_option_key);
-                error_log('🔄 [CLEANUP] Cleared stuck current job #' . $current_job_id);
+                //error_log('🔄 [CLEANUP] Cleared stuck current job #' . $current_job_id);
             }
         }
     }
     
     private function recordTermsAcceptanceInTransaction($userid, $service_id = 'diet', $history_id = null) {
         try {
-            error_log("🔍 [DEBUG] recordTermsAcceptanceInTransaction called");
-            error_log("  - userid: $userid");
-            error_log("  - service_id: $service_id");
-            error_log("  - history_id: $history_id");
+            //error_log("🔍 [DEBUG] recordTermsAcceptanceInTransaction called");
+            //error_log("  - userid: $userid");
+            //error_log("  - service_id: $service_id");
+            //error_log("  - history_id: $history_id");
             
             $terms_db = Terms_Acceptance_DB::get_instance();
             $terms_content = $this->getFullTermsContent();
@@ -337,7 +337,7 @@ class AI_Assistant_Process_Requests_Job {
                 throw new Exception( 'Terms content empty' );
             }
             
-            error_log("🔍 [DEBUG] Before saveAcceptanceInTransaction - history_id: $history_id");
+            //error_log("🔍 [DEBUG] Before saveAcceptanceInTransaction - history_id: $history_id");
             
             $acceptance_id = $terms_db->saveAcceptanceInTransaction( 
                 $userid, 
@@ -346,7 +346,7 @@ class AI_Assistant_Process_Requests_Job {
                 $history_id
             );
             
-            error_log("🔍 [DEBUG] After saveAcceptanceInTransaction - acceptance_id: $acceptance_id");
+            //error_log("🔍 [DEBUG] After saveAcceptanceInTransaction - acceptance_id: $acceptance_id");
             
             if ( ! $acceptance_id ) {
                 throw new Exception( 'Failed to record terms acceptance' );
@@ -367,17 +367,17 @@ class AI_Assistant_Process_Requests_Job {
      * @throws Exception
      */
     private function getFullTermsContent() {
-        error_log('WORKER: Getting terms from central source');
+        //error_log('WORKER: Getting terms from central source');
         
         // ✅ استفاده از تابع مرکزی
         $terms_content = aidastyar_get_terms_with_title();
         
         if (empty($terms_content)) {
-            error_log('Terms content is EMPTY');
+            //error_log('Terms content is EMPTY');
             throw new Exception('Terms content is empty');
         }
         
-        error_log('Content length: ' . strlen($terms_content));
+        //error_log('Content length: ' . strlen($terms_content));
         return $terms_content;
     }
 
@@ -388,7 +388,7 @@ class AI_Assistant_Process_Requests_Job {
     private function process_single_job($job_id) {
         global $wpdb;
         
-        error_log('🎯 [WORKER] Starting processing for job #' . $job_id);
+        //error_log('🎯 [WORKER] Starting processing for job #' . $job_id);
         
         // Load job
         $job = $wpdb->get_row($wpdb->prepare(
@@ -397,7 +397,7 @@ class AI_Assistant_Process_Requests_Job {
         ));
         
         if (!$job) {
-            error_log('❌ [WORKER] Job #' . $job_id . ' not found');
+            //error_log('❌ [WORKER] Job #' . $job_id . ' not found');
             delete_transient($this->current_job_option_key);
             return false;
         }
@@ -423,7 +423,7 @@ class AI_Assistant_Process_Requests_Job {
             }
             
             // Update history to processing
-            error_log('📝 [WORKER] Updating history to processing for job #' . $job_id);
+            //error_log('📝 [WORKER] Updating history to processing for job #' . $job_id);
             $update_result = $history_manager->update_history($history_id, 'processing');
             
             if (!$update_result) {
@@ -465,7 +465,7 @@ class AI_Assistant_Process_Requests_Job {
             list($final_price, $discount_applied, $discount_code, $discount_data) = 
                 $this->calculate_final_price($original_price, $discountDetails, $discountInfo, $service_id, $user_id);
             
-            error_log('💰 [WORKER] Price calculation - Original: ' . $original_price . ', Final: ' . $final_price . ', Discount: ' . ($discount_applied ? 'YES' : 'NO'));
+            //error_log('💰 [WORKER] Price calculation - Original: ' . $original_price . ', Final: ' . $final_price . ', Discount: ' . ($discount_applied ? 'YES' : 'NO'));
             
             // Prepare prompt
             $userInfoString = is_array($userInfo) ? json_encode($userInfo, JSON_UNESCAPED_UNICODE) : $userInfo;
@@ -476,16 +476,16 @@ class AI_Assistant_Process_Requests_Job {
             $this->validate_request($prompt, $service_id, $user_id, $final_price, $payment_handler);
             
             // Call API
-            error_log('📡 [WORKER] Calling API for job #' . $job_id);
+            //error_log('📡 [WORKER] Calling API for job #' . $job_id);
             
             // ✅ بر اساس OTP_ENV تصمیم بگیر
             if (defined('OTP_ENV') && OTP_ENV === 'production') {
                 // ✅ PRODUCTION: استفاده از API واقعی DeepSeek
-                error_log('🔴 [PRODUCTION] Calling REAL DeepSeek API for job #' . $job_id);
+                //error_log('🔴 [PRODUCTION] Calling REAL DeepSeek API for job #' . $job_id);
                 $response = $this->call_deepseek_api($prompt);
             } else {
                 // ✅ SANDBOX/BYPASS: استفاده از داده‌های نمونه
-                error_log('🟢 [SANDBOX] Using MOCK DATA for job #' . $job_id . ' (OTP_ENV: ' . (defined('OTP_ENV') ? OTP_ENV : 'undefined') . ')');
+                //error_log('🟢 [SANDBOX] Using MOCK DATA for job #' . $job_id . ' (OTP_ENV: ' . (defined('OTP_ENV') ? OTP_ENV : 'undefined') . ')');
                 
               
                 
@@ -526,7 +526,7 @@ class AI_Assistant_Process_Requests_Job {
                 $this->recordTermsAcceptanceInTransaction( $user_id, $service_id, $job->history_id );
                 
                 // Deduct credit
-                error_log('💰 [WORKER] Deducting credit for job #' . $job_id);
+                //error_log('💰 [WORKER] Deducting credit for job #' . $job_id);
                 $credit_success = $payment_handler->deduct_credit(
                     $user_id,
                     $final_price,
@@ -540,7 +540,7 @@ class AI_Assistant_Process_Requests_Job {
                 }
                 
                 // Update history with response
-                error_log('📝 [WORKER] Updating history with response for job #' . $job_id);
+                //error_log('📝 [WORKER] Updating history with response for job #' . $job_id);
                 $update_result = $history_manager->update_history(
                     $history_id,
                     'completed',
@@ -552,14 +552,14 @@ class AI_Assistant_Process_Requests_Job {
                 }
                 
                 // Update history with response
-                error_log("📝 [WORKER] Updating history with response for job #$job_id");
+                //error_log("📝 [WORKER] Updating history with response for job #$job_id");
                 $update_result = $history_manager->update_history($history_id, 'completed', $cleaned_response);
                 if (!$update_result) {
                     throw new Exception("Failed to update history with response");
                 }
                 
                 // ✅ پردازش referral - داخل Transaction فعلی
-                error_log("🎯 [REFERRAL] Checking if this is first purchase for user: $user_id");
+                //error_log("🎯 [REFERRAL] Checking if this is first purchase for user: $user_id");
                 
                 // بررسی اینکه آیا این اولین خرید است
                 $previous_jobs = $wpdb->get_var($wpdb->prepare(
@@ -569,17 +569,17 @@ class AI_Assistant_Process_Requests_Job {
                     $job_id
                 ));
                 
-                error_log("🎯 [REFERRAL] Previous completed jobs: $previous_jobs");
+                //error_log("🎯 [REFERRAL] Previous completed jobs: $previous_jobs");
                 
                 if ($previous_jobs == 0) {
-                    error_log("🎯 [REFERRAL] This is the FIRST purchase! Triggering referral reward...");
+                    //error_log("🎯 [REFERRAL] This is the FIRST purchase! Triggering referral reward...");
                     
                     // فراخوانی هوک - همه Query ها داخل Transaction فعلی هستند
                     do_action('ai_assistant_first_purchase_completed', $user_id, $history_id, $final_price);
                     
-                    error_log("🎯 [REFERRAL] Referral processing completed");
+                    //error_log("🎯 [REFERRAL] Referral processing completed");
                 } else {
-                    error_log("🎯 [REFERRAL] Not first purchase (count: $previous_jobs), skipping referral");
+                    //error_log("🎯 [REFERRAL] Not first purchase (count: $previous_jobs), skipping referral");
                 }
 
                 
@@ -587,7 +587,7 @@ class AI_Assistant_Process_Requests_Job {
                 if ($discount_applied && isset($discount_data['discount']) && $discount_data['discount']->scope === 'coupon') {
                     $discount_db = AI_Assistant_Discount_DB::get_instance();
                     $discount_db->increment_usage($discount_data['discount']->id);
-                    error_log('✅ [DISCOUNT] Usage incremented for code: ' . $discount_code);
+                    //error_log('✅ [DISCOUNT] Usage incremented for code: ' . $discount_code);
                 }
                 
                                 
@@ -607,10 +607,10 @@ class AI_Assistant_Process_Requests_Job {
                         $diet_content
                     );
                     
-                    error_log('✅ [EMAIL] Result ready email sent with terms acceptance for user: ' . $user_id);
+                    //error_log('✅ [EMAIL] Result ready email sent with terms acceptance for user: ' . $user_id);
                 }
                 elseif($dietType === 'with-specialist') {
-                    error_log('$dietType......dont send email...............------' . $dietType );
+                    //error_log('$dietType......dont send email...............------' . $dietType );
                     // Handle diet consultation if needed
                     $consultation_handled = $this->handle_diet_consultation(
                         $service_id,
@@ -624,7 +624,7 @@ class AI_Assistant_Process_Requests_Job {
                 // Commit transaction
                 $wpdb->query('COMMIT');
                 $transaction_started = false;
-                error_log('✅ [TRANSACTION] Committed for job #' . $job_id);
+                //error_log('✅ [TRANSACTION] Committed for job #' . $job_id);
                 
                 // Calculate processing time
                 $api_time = round(microtime(true) - $start_time, 2);
@@ -644,10 +644,10 @@ class AI_Assistant_Process_Requests_Job {
                 );
                 
                 if (!$update_success) {
-                    error_log('⚠️ [WORKER] Failed to update job status to done, but job completed successfully');
+                    //error_log('⚠️ [WORKER] Failed to update job status to done, but job completed successfully');
                 }
                 
-                error_log('✅ [WORKER] Job #' . $job_id . ' completed successfully in ' . $api_time . 's');
+                //error_log('✅ [WORKER] Job #' . $job_id . ' completed successfully in ' . $api_time . 's');
                 
                 // Clear current job
                 delete_transient($this->current_job_option_key);
@@ -658,7 +658,7 @@ class AI_Assistant_Process_Requests_Job {
                 // Rollback transaction if it was started
                 if (isset($transaction_started) && $transaction_started) {
                     $wpdb->query('ROLLBACK');
-                    error_log('🔄 [TRANSACTION] Rolled back for job #' . $job_id);
+                    //error_log('🔄 [TRANSACTION] Rolled back for job #' . $job_id);
                 }
                 throw $inner_e; // Re-throw to outer catch
             }
@@ -673,7 +673,7 @@ class AI_Assistant_Process_Requests_Job {
             if (isset($transaction_started) && $transaction_started) {
                 try {
                     $wpdb->query('ROLLBACK');
-                    error_log('🔄 [TRANSACTION] Rolled back for job #' . $job_id);
+                    //error_log('🔄 [TRANSACTION] Rolled back for job #' . $job_id);
                 } catch (Exception $rollback_e) {
                     error_log('❌ [ROLLBACK] Failed: ' . $rollback_e->getMessage());
                 }
@@ -699,7 +699,7 @@ class AI_Assistant_Process_Requests_Job {
             if ($history_manager && isset($history_id)) {
                 try {
                     $history_manager->update_history($history_id, 'error');
-                    error_log('📝 [WORKER] History updated to error status');
+                    //error_log('📝 [WORKER] History updated to error status');
                 } catch (Exception $history_e) {
                     error_log('❌ [WORKER] Failed to update history: ' . $history_e->getMessage());
                 }
@@ -728,7 +728,7 @@ class AI_Assistant_Process_Requests_Job {
                 $original_price = floatval($discountDetails['originalPrice'] ?? $final_price);
                 $discount_applied = ($final_price < $original_price);
                 
-                error_log('✅ [DISCOUNT] Using discountDetails - Final: ' . $final_price . ', Discount: ' . ($discount_applied ? 'YES' : 'NO'));
+                //error_log('✅ [DISCOUNT] Using discountDetails - Final: ' . $final_price . ', Discount: ' . ($discount_applied ? 'YES' : 'NO'));
             }
             // Fallback to discountInfo validation
             else if (!empty($discountInfo)) {
@@ -753,15 +753,15 @@ class AI_Assistant_Process_Requests_Job {
                         $discount_applied = true;
                         $discount_data = $validation_result;
                         
-                        error_log('✅ [DISCOUNT] Code validated - ' . $discount_code . ', Final: ' . $final_price);
+                        //error_log('✅ [DISCOUNT] Code validated - ' . $discount_code . ', Final: ' . $final_price);
                     } else {
-                        error_log('⚠️ [DISCOUNT] Invalid code: ' . $discount_code . ' - ' . $validation_result['message']);
+                        //error_log('⚠️ [DISCOUNT] Invalid code: ' . $discount_code . ' - ' . $validation_result['message']);
                     }
                 }
             }
             
             if (!$discount_applied) {
-                error_log('ℹ️ [DISCOUNT] No discount applied, using original price: ' . $original_price);
+                //error_log('ℹ️ [DISCOUNT] No discount applied, using original price: ' . $original_price);
             }
             
         } catch (Exception $e) {
@@ -787,7 +787,7 @@ class AI_Assistant_Process_Requests_Job {
             return false;
         }
         
-        error_log('📝 [CONSULTATION] Processing diet consultation request');
+        //error_log('📝 [CONSULTATION] Processing diet consultation request');
         
         $selectedSpecialist = $serviceSelection['selectedSpecialist'] ?? null;
         
@@ -798,7 +798,7 @@ class AI_Assistant_Process_Requests_Job {
         $specialist_id = $selectedSpecialist['id'];
         $specialist_name = $selectedSpecialist['name'] ?? 'Unknown';
         
-        error_log('📝 [CONSULTATION] Specialist: ' . $specialist_name . ' (ID: ' . $specialist_id . ')');
+        //error_log('📝 [CONSULTATION] Specialist: ' . $specialist_name . ' (ID: ' . $specialist_id . ')');
         
         // Get consultant and contract
         $consultation_db = AI_Assistant_Diet_Consultation_DB::get_instance();
@@ -835,7 +835,7 @@ class AI_Assistant_Process_Requests_Job {
             throw new Exception('Failed to update history to consultant_queue status');
         }
         
-        error_log('✅ [CONSULTATION] Request submitted successfully for history #' . $history_id);
+        //error_log('✅ [CONSULTATION] Request submitted successfully for history #' . $history_id);
         
         return true;
     }
@@ -884,7 +884,7 @@ class AI_Assistant_Process_Requests_Job {
         $body = wp_remote_retrieve_body($response);
         
         if ($response_code !== 200) {
-            error_log('DeepSeek API Error - Code: ' . $response_code . ', Body: ' . substr($body, 0, 500));
+            //error_log('DeepSeek API Error - Code: ' . $response_code . ', Body: ' . substr($body, 0, 500));
             throw new Exception('خطا از سمت DeepSeek API. کد وضعیت: ' . $response_code);
         }
         
@@ -1017,7 +1017,7 @@ class AI_Assistant_Process_Requests_Job {
         ));
         
         if ($deleted) {
-            error_log('🧹 [CLEANUP] Deleted ' . $deleted . ' old completed jobs');
+            //error_log('🧹 [CLEANUP] Deleted ' . $deleted . ' old completed jobs');
         }
         
         return $deleted;

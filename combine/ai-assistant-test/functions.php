@@ -315,10 +315,6 @@ add_action('wp_ajax_delete_history_item', function() {
 
 //---------------------------------------------------------
 
-//require_once get_template_directory() . '/inc/class-wallet-history-manager.php';
-
-
-
 add_action('pre_get_posts', function($query) {
     if (!is_admin() && $query->is_main_query() && isset($query->query['post_type']) && $query->query['post_type'] === 'ai_wallet_history') {
         $query->set('post_type', 'ai_wallet_history');
@@ -390,17 +386,14 @@ function clear_auth_cookies_completely() {
 }
 
 function ai_assistant_load_test_scripts() {
-    error_log('🔧 [DEBUG] ai_assistant_load_test_scripts() executed');
-    
     // همیشه در محیط تست اسکریپت را لود کنیم، اما رفتار آن با کلیک دکمه کنترل شود
     if (defined('OTP_ENV') && OTP_ENV === 'sandbox') {
-        error_log('🔧 [DEBUG] Sandbox environment detected - loading auto-fill.js');
         
         $js_path = '/assets/js/auto-fill.js';
         $full_path = get_template_directory() . $js_path;
         
         if (file_exists($full_path)) {
-            error_log('🔧 [DEBUG] File exists: ' . $full_path);
+
             wp_enqueue_script(
                 'ai-assistant-auto-fill',
                 get_template_directory_uri() . $js_path,

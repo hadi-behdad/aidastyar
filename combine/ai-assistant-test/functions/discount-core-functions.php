@@ -65,7 +65,7 @@ class AI_Assistant_Discount_Manager {
         switch ($discount->scope) {
             case 'global':
                 // تخفیف عمومی برای همه سرویس‌ها و کاربران
-                error_log("💰 تخفیف عمومی اعمال شد: {$discount->name} - {$discount->amount}");
+                // error_log("💰 تخفیف عمومی اعمال شد: {$discount->name} - {$discount->amount}");
                 return true;
                 
             case 'service':
@@ -73,7 +73,7 @@ class AI_Assistant_Discount_Manager {
                 $services = $discount_db->get_discount_services($discount->id);
                 $is_applicable = in_array($service_id, $services);
                 if ($is_applicable) {
-                    error_log("💰 تخفیف سرویس اعمال شد: {$discount->name} - برای سرویس: {$service_id}");
+                    // error_log("💰 تخفیف سرویس اعمال شد: {$discount->name} - برای سرویس: {$service_id}");
                 }
                 return $is_applicable;
                 
@@ -84,7 +84,7 @@ class AI_Assistant_Discount_Manager {
                     // اگر سرویس خاصی تعریف نشده یا سرویس مطابقت دارد
                     $is_applicable = empty($services) || in_array($service_id, $services);
                     if ($is_applicable) {
-                        error_log("💰 تخفیف کد کوپن اعمال شد: {$discount->name} - کد: {$coupon_code}");
+                        // error_log("💰 تخفیف کد کوپن اعمال شد: {$discount->name} - کد: {$coupon_code}");
                     }
                     return $is_applicable;
                 }
@@ -97,7 +97,7 @@ class AI_Assistant_Discount_Manager {
                         $users = $discount_db->get_discount_users($discount->id);
                         $is_applicable = in_array($user_id, $users);
                         if ($is_applicable) {
-                            error_log("💰 تخفیف کاربری اعمال شد: {$discount->name} - برای کاربر: {$user_id}");
+                            // error_log("💰 تخفیف کاربری اعمال شد: {$discount->name} - برای کاربر: {$user_id}");
                         }
                         return $is_applicable;
                     } elseif ($discount->user_restriction === 'first_time') {
@@ -106,9 +106,9 @@ class AI_Assistant_Discount_Manager {
                         $is_applicable = !$has_previous_purchase;
                         
                         if ($is_applicable) {
-                            error_log("💰 تخفیف اولین خرید اعمال شد: {$discount->name} - برای کاربر: {$user_id} و سرویس: {$service_id}");
+                            // error_log("💰 تخفیف اولین خرید اعمال شد: {$discount->name} - برای کاربر: {$user_id} و سرویس: {$service_id}");
                         } else {
-                            error_log("⚠️ کاربر قبلاً از سرویس {$service_id} خرید کرده است، بنابراین تخفیف اولین خرید اعمال نمی‌شود.");
+                            // error_log("⚠️ کاربر قبلاً از سرویس {$service_id} خرید کرده است، بنابراین تخفیف اولین خرید اعمال نمی‌شود.");
                         }
                         
                         return $is_applicable;
@@ -131,12 +131,12 @@ class AI_Assistant_Discount_Manager {
         
         foreach ($user_history as $history_item) {
             if (isset($history_item->service_id) && $history_item->service_id === $service_id) {
-                error_log("✅ کاربر {$user_id} قبلاً از سرویس {$service_id} خرید کرده است");
+                // error_log("✅ کاربر {$user_id} قبلاً از سرویس {$service_id} خرید کرده است");
                 return true; // کاربر قبلاً از این سرویس خرید کرده
             }
         }
         
-        error_log("✅ کاربر {$user_id} اولین خرید از سرویس {$service_id} را دارد");
+        // error_log("✅ کاربر {$user_id} اولین خرید از سرویس {$service_id} را دارد");
         return false; // کاربر اولین خرید از این سرویس را دارد
     }
 
@@ -228,7 +228,7 @@ class AI_Assistant_Discount_Manager {
             return 0;
         }
         
-        error_log("💰 محاسبه قیمت نهایی - سرویس: {$service_id}, کاربر: {$user_id}, قیمت اصلی: {$original_price}");
+        // error_log("💰 محاسبه قیمت نهایی - سرویس: {$service_id}, کاربر: {$user_id}, قیمت اصلی: {$original_price}");
         
         // یافتن بهترین تخفیف قابل اعمال
         $best_discount = self::find_best_discount($service_id, $user_id, $coupon_code);
@@ -237,8 +237,8 @@ class AI_Assistant_Discount_Manager {
             $final_price = self::calculate_discounted_price($original_price, $best_discount);
             $discount_amount = $original_price - $final_price;
             
-            error_log("✅ تخفیف اعمال شد: {$best_discount->name} - نوع: {$best_discount->type} - مقدار: {$best_discount->amount}");
-            error_log("💰 قیمت اصلی: {$original_price} - تخفیف: {$discount_amount} - قیمت نهایی: {$final_price}");
+            // error_log("✅ تخفیف اعمال شد: {$best_discount->name} - نوع: {$best_discount->type} - مقدار: {$best_discount->amount}");
+            // error_log("💰 قیمت اصلی: {$original_price} - تخفیف: {$discount_amount} - قیمت نهایی: {$final_price}");
             
             return [
                 'original_price' => floatval($original_price),
@@ -249,7 +249,7 @@ class AI_Assistant_Discount_Manager {
             ];
         }
         
-        error_log("ℹ️ هیچ تخفیفی اعمال نشد - قیمت نهایی: {$original_price}");
+        // error_log("ℹ️ هیچ تخفیفی اعمال نشد - قیمت نهایی: {$original_price}");
         return [
             'original_price' => floatval($original_price),
             'final_price' => floatval($original_price),
@@ -286,7 +286,7 @@ class AI_Assistant_Discount_Manager {
             $final_price = $discount_data['finalPrice'];
             $discount_amount = $discount_data['discountAmount'];
             
-            error_log("✅ تخفیف از کلاینت اعمال شد: {$discount->name} - مقدار: {$discount_amount}");
+            // error_log("✅ تخفیف از کلاینت اعمال شد: {$discount->name} - مقدار: {$discount_amount}");
             
             return [
                 'original_price' => floatval($original_price),
@@ -299,7 +299,7 @@ class AI_Assistant_Discount_Manager {
         }
         
         // اگر تخفیف اعمال نشده، محاسبه تخفیف خودکار
-        error_log("ℹ️ هیچ تخفیفی از کلاینت دریافت نشد - محاسبه تخفیف خودکار");
+        // error_log("ℹ️ هیچ تخفیفی از کلاینت دریافت نشد - محاسبه تخفیف خودکار");
         return self::calculate_final_price($service_id, $user_id, $discount_data['discountCode'] ?? '');
     }    
     
@@ -311,7 +311,7 @@ class AI_Assistant_Discount_Manager {
     }
         
     public static function calculate_discounted_price($original_price, $discount) {
-        error_log("🔢 محاسبه تخفیف - اصلی: {$original_price}, نوع: {$discount->type}, مقدار: {$discount->amount}");
+        // error_log("🔢 محاسبه تخفیف - اصلی: {$original_price}, نوع: {$discount->type}, مقدار: {$discount->amount}");
         
         if ($discount->type === 'percentage') {
             $discounted = $original_price - ($original_price * ($discount->amount / 100));
@@ -319,7 +319,7 @@ class AI_Assistant_Discount_Manager {
             $discounted = max(0, $original_price - $discount->amount);
         }
         
-        error_log("🔢 قیمت پس از تخفیف: {$discounted}");
+        // error_log("🔢 قیمت پس از تخفیف: {$discounted}");
         return $discounted;
     }
 }  
@@ -330,7 +330,7 @@ add_action('wp_ajax_nopriv_get_service_price_with_discount', 'handle_get_service
 
 function handle_get_service_price_with_discount() {
     // لاگ برای دیباگ
-    error_log('🔧 [DEBUG] handle_get_service_price_with_discount called');
+    // error_log('🔧 [DEBUG] handle_get_service_price_with_discount called');
     
     // بررسی nonce با روش ایمن‌تر
     $nonce = $_POST['nonce'] ?? '';
@@ -343,7 +343,7 @@ function handle_get_service_price_with_discount() {
     $service_id = sanitize_text_field($_POST['service_id'] ?? '');
     $user_id = get_current_user_id();
     
-    error_log('🔧 [DEBUG] Service ID: ' . $service_id . ', User ID: ' . $user_id);
+    // error_log('🔧 [DEBUG] Service ID: ' . $service_id . ', User ID: ' . $user_id);
     
     if (empty($service_id)) {
         error_log('❌ [ERROR] Service ID is empty');
@@ -365,12 +365,12 @@ function handle_get_service_price_with_discount() {
     }
     
     try {
-        error_log('🔧 [DEBUG] Calculating final price...');
+        // error_log('🔧 [DEBUG] Calculating final price...');
         
         // محاسبه قیمت نهایی با اعمال تخفیف‌های خودکار
         $price_data = AI_Assistant_Discount_Manager::calculate_final_price($service_id, $user_id);
         
-        error_log('✅ [SUCCESS] Price calculated: ' . print_r($price_data, true));
+        // error_log('✅ [SUCCESS] Price calculated: ' . print_r($price_data, true));
         
         wp_send_json_success($price_data);
         

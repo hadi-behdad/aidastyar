@@ -55,11 +55,11 @@ function send_otp_request() {
             ])
         ]);
 
-        error_log('📤 OTP API REQUEST: Request => ' . print_r([
-            'url' => 'https://api.sms.ir/v1/send/verify',
-            'headers' => ['x-api-key' => '...' . substr(SMS_API_KEY, -4)],
-            'body' => ['mobile' => $mobile, 'templateId' => SMS_TEMPLATE_ID]
-        ], true));
+        // error_log('📤 OTP API REQUEST: Request => ' . print_r([
+        //     'url' => 'https://api.sms.ir/v1/send/verify',
+        //     'headers' => ['x-api-key' => '...' . substr(SMS_API_KEY, -4)],
+        //     'body' => ['mobile' => $mobile, 'templateId' => SMS_TEMPLATE_ID]
+        // ], true));
 
         if (is_wp_error($response)) {
             throw new Exception('خطا در ارتباط با سرویس پیامک: ' . $response->get_error_message());
@@ -67,7 +67,7 @@ function send_otp_request() {
 
         $http_code = wp_remote_retrieve_response_code($response);
         $body = wp_remote_retrieve_body($response);
-        error_log("📥 OTP API RESPONSE: HTTP Code={$http_code}, Body={$body}");
+        //error_log("📥 OTP API RESPONSE: HTTP Code={$http_code}, Body={$body}");
 
         if ($http_code != 200) {
             throw new Exception("خطای سرور پیامک (کد {$http_code})");
@@ -85,7 +85,7 @@ function send_otp_request() {
             throw new Exception($error);
         }
     } catch (Exception $e) {
-        error_log('❌ OTP ERROR: Mobile=' . $mobile . ', Error: ' . $e->getMessage());
+        //error_log('❌ OTP ERROR: Mobile=' . $mobile . ', Error: ' . $e->getMessage());
         wp_send_json_error('خطا در ارسال کد: ' . $e->getMessage());
     }
 }
@@ -102,7 +102,7 @@ function verify_otp_request() {
         $otp_code = sanitize_text_field($_POST['otp_code']);
         $referral_code = isset($_POST['referral_code']) ? sanitize_text_field($_POST['referral_code']) : '';
 
-        error_log("🔐 OTP VERIFY START: Mobile={$mobile}, OTP={$otp_code}, ReferralCode={$referral_code}");
+        //error_log("🔐 OTP VERIFY START: Mobile={$mobile}, OTP={$otp_code}, ReferralCode={$referral_code}");
 
         if (empty($mobile) || empty($otp_code)) {
             throw new Exception('شماره موبایل و کد تایید الزامی است');
@@ -136,7 +136,7 @@ function verify_otp_request() {
         if (!$user) {
             // ✅ ایجاد کاربر جدید
             $is_new_user = true;
-            error_log("👤 [OTP] ایجاد کاربر جدید: {$mobile}");
+            //error_log("👤 [OTP] ایجاد کاربر جدید: {$mobile}");
 
             $userdata = array(
                 'user_login' => $mobile,
@@ -148,26 +148,26 @@ function verify_otp_request() {
             $user_id = wp_insert_user($userdata);
 
             if (is_wp_error($user_id)) {
-                error_log("❌ [OTP] خطا در ایجاد کاربر: " . $user_id->get_error_message());
+                //error_log("❌ [OTP] خطا در ایجاد کاربر: " . $user_id->get_error_message());
                 throw new Exception('خطا در ایجاد حساب کاربری: ' . $user_id->get_error_message());
             }
 
             // ✅ ذخیره شماره موبایل
             update_user_meta($user_id, 'mobile', $mobile);
-            error_log("✅ [OTP] کاربر جدید ایجاد شد: user_id={$user_id}");
+            //error_log("✅ [OTP] کاربر جدید ایجاد شد: user_id={$user_id}");
 
             // ✅ پردازش کد معرف برای کاربر جدید
             if (!empty($referral_code)) {
-                error_log("🔗 [REFERRAL] شروع پردازش کد معرف: {$referral_code} برای کاربر {$user_id}");
+                //error_log("🔗 [REFERRAL] شروع پردازش کد معرف: {$referral_code} برای کاربر {$user_id}");
 
                 if (class_exists('AI_Assistant_Referral_System')) {
                     $referral_system = AI_Assistant_Referral_System::get_instance();
                     $referral_result = $referral_system->register_referral($user_id, $referral_code);
 
                     if ($referral_result) {
-                        error_log("✅ [REFERRAL] کد معرف با موفقیت ثبت شد");
+                        //error_log("✅ [REFERRAL] کد معرف با موفقیت ثبت شد");
                     } else {
-                        error_log("⚠️ [REFERRAL] کد معرف ثبت نشد (ممکن است نامعتبر باشد)");
+                        //error_log("⚠️ [REFERRAL] کد معرف ثبت نشد (ممکن است نامعتبر باشد)");
                     }
                 } else {
                     error_log("❌ [REFERRAL] کلاس AI_Assistant_Referral_System یافت نشد");
@@ -180,7 +180,7 @@ function verify_otp_request() {
         } else {
             // ✅ کاربر موجود
             $user_id = $user->ID;
-            error_log("✅ [OTP] کاربر موجود وارد شد: user_id={$user_id}");
+            //error_log("✅ [OTP] کاربر موجود وارد شد: user_id={$user_id}");
         }
 
         // ✅ بررسی نهایی
@@ -211,7 +211,7 @@ function verify_otp_request() {
             $redirect_url = esc_url_raw($_POST['redirect_to']);
         }
 
-        error_log("✅ [OTP] لاگین موفق: user_id={$user_id}, redirect={$redirect_url}");
+        //error_log("✅ [OTP] لاگین موفق: user_id={$user_id}, redirect={$redirect_url}");
 
         wp_send_json_success([
             'message' => $is_new_user ? 'حساب کاربری شما با موفقیت ایجاد شد' : 'خوش آمدید',

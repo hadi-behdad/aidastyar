@@ -62,7 +62,7 @@ class AI_Job_Queue {
             return;
         }
         
-        error_log('🔄 [JOB_QUEUE] Initializing v2.0...');
+        // error_log('🔄 [JOB_QUEUE] Initializing v2.0...');
         
         // اضافه کردن schedule های سفارشی
         add_filter('cron_schedules', [$this, 'add_custom_schedules']);
@@ -83,7 +83,7 @@ class AI_Job_Queue {
         }
         
         self::$initialized = true;
-        error_log('✅ [JOB_QUEUE] Initialized successfully');
+        // error_log('✅ [JOB_QUEUE] Initialized successfully');
     }
     
     /**
@@ -127,7 +127,7 @@ class AI_Job_Queue {
         if (!wp_next_scheduled(self::HOOK_PROCESS_REQUESTS)) {
             $scheduled = wp_schedule_event(time(), 'every_minute', self::HOOK_PROCESS_REQUESTS);
             if ($scheduled !== false) {
-                error_log('✅ [JOB_QUEUE] Scheduled ' . self::HOOK_PROCESS_REQUESTS . ' (every minute)');
+                //error_log('✅ [JOB_QUEUE] Scheduled ' . self::HOOK_PROCESS_REQUESTS . ' (every minute)');
             } else {
                 error_log('❌ [JOB_QUEUE] Failed to schedule ' . self::HOOK_PROCESS_REQUESTS);
             }
@@ -142,7 +142,7 @@ class AI_Job_Queue {
             $scheduled = wp_schedule_event($in_3_days_2am, 'every_3_days', self::HOOK_ARTICLE_GENERATOR);
 
             if ($scheduled !== false) {
-                error_log('✅ [JOB_QUEUE] Scheduled ' . self::HOOK_ARTICLE_GENERATOR . ' for ' . date('Y-m-d H:i:s', $start_time) . ' (every  3_days)');
+                //error_log('✅ [JOB_QUEUE] Scheduled ' . self::HOOK_ARTICLE_GENERATOR . ' for ' . date('Y-m-d H:i:s', $start_time) . ' (every  3_days)');
             } else {
                 error_log('❌ [JOB_QUEUE] Failed to schedule ' . self::HOOK_ARTICLE_GENERATOR);
             }
@@ -158,7 +158,7 @@ class AI_Job_Queue {
         $start_time = microtime(true);
         $current_time = current_time('mysql');
         
-        error_log('🎯 [PROCESS_JOB] Starting at ' . $current_time);
+        //error_log('🎯 [PROCESS_JOB] Starting at ' . $current_time);
         
         // بررسی کلاس
         if (!class_exists('AI_Assistant_Process_Requests_Job')) {
@@ -171,7 +171,7 @@ class AI_Job_Queue {
         $lock = get_transient($lock_key);
         
         if ($lock) {
-            error_log('⏸️ [PROCESS_JOB] Already running (locked), skipping...');
+            //error_log('⏸️ [PROCESS_JOB] Already running (locked), skipping...');
             return;
         }
         
@@ -187,7 +187,7 @@ class AI_Job_Queue {
             update_option(self::OPTION_LAST_PROCESS, time());
             
             $elapsed = round(microtime(true) - $start_time, 2);
-            error_log("✅ [PROCESS_JOB] Completed in {$elapsed}s");
+            //error_log("✅ [PROCESS_JOB] Completed in {$elapsed}s");
             
         } catch (Exception $e) {
             error_log('❌ [PROCESS_JOB] Error: ' . $e->getMessage());
@@ -207,7 +207,7 @@ class AI_Job_Queue {
         $start_time = microtime(true);
         $current_time = current_time('mysql');
         
-        error_log('🎯 [ARTICLE_JOB] Starting at ' . $current_time);
+        //error_log('🎯 [ARTICLE_JOB] Starting at ' . $current_time);
         
         // بررسی کلاس
         if (!class_exists('ai_article_generator_job')) {
@@ -215,12 +215,14 @@ class AI_Job_Queue {
             return;
         }
         
+         
         // Lock برای جلوگیری از اجرای همزمان
         $lock_key = 'ai_article_job_lock';
         $lock = get_transient($lock_key);
-        
+       
         if ($lock) {
-            error_log('⏸️ [ARTICLE_JOB] Already running (locked), skipping...');
+            
+            //error_log('⏸️ [ARTICLE_JOB] Already running (locked), skipping...:' . $lock);
             return;
         }
         
@@ -236,7 +238,7 @@ class AI_Job_Queue {
             update_option(self::OPTION_LAST_ARTICLE, time());
             
             $elapsed = round(microtime(true) - $start_time, 2);
-            error_log("✅ [ARTICLE_JOB] Completed in {$elapsed}s");
+            //error_log("✅ [ARTICLE_JOB] Completed in {$elapsed}s");
             
         } catch (Exception $e) {
             error_log('❌ [ARTICLE_JOB] Error: ' . $e->getMessage());
@@ -263,7 +265,7 @@ class AI_Job_Queue {
             wp_die('❌ Invalid secret key', 'Unauthorized', ['response' => 401]);
         }
         
-        error_log('🔧 [JOB_QUEUE] Manual execution requested');
+        //error_log('🔧 [JOB_QUEUE] Manual execution requested');
         
         // اجرای هر دو job
         $this->execute_process_requests_job();
@@ -303,7 +305,7 @@ class AI_Job_Queue {
         $process_cleared = wp_clear_scheduled_hook(self::HOOK_PROCESS_REQUESTS);
         $article_cleared = wp_clear_scheduled_hook(self::HOOK_ARTICLE_GENERATOR);
         
-        error_log('🗑️ [JOB_QUEUE] Cleared schedules: process=' . ($process_cleared ? 'yes' : 'no') . ', article=' . ($article_cleared ? 'yes' : 'no'));
+        //error_log('🗑️ [JOB_QUEUE] Cleared schedules: process=' . ($process_cleared ? 'yes' : 'no') . ', article=' . ($article_cleared ? 'yes' : 'no'));
         
         return [
             'process_requests' => $process_cleared,
@@ -366,7 +368,7 @@ class AI_Job_Queue {
 add_action('init', function() {
     if (isset($_GET['clear_ai_schedules']) && $_GET['clear_ai_schedules'] === '1') {
         $cleared = AI_Job_Queue::get_instance()->clear_schedules();
-        error_log('🗑️ Cleared schedules manually');
+        //error_log('🗑️ Cleared schedules manually');
         wp_die('✅ Schedules cleared! Reload the page to reschedule.');
     }
 });
