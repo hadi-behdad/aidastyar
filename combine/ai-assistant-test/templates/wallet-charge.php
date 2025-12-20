@@ -851,6 +851,11 @@ if ($needed_amount > 0 && $needed_amount >= $minimum_charge) {
     transform: translateY(-1px);
 }
 
+.wall-chrg-ai-gateway-card:has(input[name="gateway"]:checked) {
+    box-shadow: 0 4px 16px rgba(0, 101, 92, 0.2);
+    border: solid 1px;
+    border-color: var(--primary-medium);
+}
 
 </style>
 

@@ -12,17 +12,17 @@ class AI_Assistant_Wallet_Checkout_Handler {
     
     public function connect_to_zarinpal($amount) {
         $amount_int = (int) $amount * 10;
-        error_log('🔵 [WALLET] Connecting to ZarinPal, Amount: ' . $amount);
+        //error_log('🔵 [WALLET] Connecting to ZarinPal, Amount: ' . $amount);
         
         // اضافه کردن این خط - دریافت user_id
         $user_id = get_current_user_id();
-        error_log('🔵 [WALLET] User ID: ' . $user_id);
+        //error_log('🔵 [WALLET] User ID: ' . $user_id);
         
         $merchant_id = ai_assistant_get_zarinpal_merchant_id();
         $callback_url = home_url('/wallet-checkout?payment_verify=1');
         
-        error_log('🔵 [WALLET] Merchant ID: ' . $merchant_id);
-        error_log('🔵 [WALLET] Callback URL: ' . $callback_url);
+        //error_log('🔵 [WALLET] Merchant ID: ' . $merchant_id);
+        //error_log('🔵 [WALLET] Callback URL: ' . $callback_url);
         
         $data = array(
             'merchant_id' => $merchant_id,
@@ -55,7 +55,7 @@ class AI_Assistant_Wallet_Checkout_Handler {
             error_log('❌ [WALLET] cURL Error: ' . $err);
             return array('status' => false, 'message' => $err);
         } else {
-            error_log('🔵 [WALLET] ZarinPal Response: ' . $result);
+            //error_log('🔵 [WALLET] ZarinPal Response: ' . $result);
             $result = json_decode($result, true);
             
             if (isset($result['errors']) && !empty($result['errors'])) {
@@ -67,7 +67,7 @@ class AI_Assistant_Wallet_Checkout_Handler {
             }
             
             if ($result['data']['code'] == 100) {
-                error_log('✅ [WALLET] Payment request successful, Authority: ' . $result['data']["authority"]);
+                //error_log('✅ [WALLET] Payment request successful, Authority: ' . $result['data']["authority"]);
                 
                 $this->save_payment_authority($user_id, $amount, $result['data']["authority"]);
                 
@@ -91,10 +91,10 @@ class AI_Assistant_Wallet_Checkout_Handler {
     // تابع برای تأیید پرداخت
     public function verify_payment($authority, $amount) {
         $amount_int = (int) $amount * 10;
-        error_log('🔵 [WALLET] Verifying payment, Authority: ' . $authority . ', Amount: ' . $amount);
+        //error_log('🔵 [WALLET] Verifying payment, Authority: ' . $authority . ', Amount: ' . $amount);
         
         $merchant_id = ai_assistant_get_zarinpal_merchant_id();
-        error_log('🔵 [WALLET] Merchant ID for verify: ' . $merchant_id);
+        //error_log('🔵 [WALLET] Merchant ID for verify: ' . $merchant_id);
         
         $data = array(
             'merchant_id' => $merchant_id,
@@ -126,7 +126,7 @@ class AI_Assistant_Wallet_Checkout_Handler {
             error_log('❌ [WALLET] Verify cURL Error: ' . $err);
             return array('status' => false, 'message' => $err);
         } else {
-            error_log('🔵 [WALLET] Verify Response: ' . $result);
+            //error_log('🔵 [WALLET] Verify Response: ' . $result);
             $result = json_decode($result, true);
             
             if (isset($result['errors']) && !empty($result['errors'])) {
@@ -137,10 +137,10 @@ class AI_Assistant_Wallet_Checkout_Handler {
                 );
             }
             
-            error_log('🔵 [WALLET] Verify Code: ' . $result['data']['code']);
+            //error_log('🔵 [WALLET] Verify Code: ' . $result['data']['code']);
             
             if ($result['data']['code'] == 100) {
-                error_log('✅ [WALLET] Payment verified successfully, Ref ID: ' . $result['data']['ref_id']);
+                //error_log('✅ [WALLET] Payment verified successfully, Ref ID: ' . $result['data']['ref_id']);
                 return array(
                     'status' => true,
                     'ref_id' => $result['data']['ref_id']
@@ -174,10 +174,10 @@ class AI_Assistant_Wallet_Checkout_Handler {
         
         $amount_int = (int) $amount; // تبدیل به integer
         
-        error_log('🔵 [WALLET] Saving payment authority: ' . $authority);
+        //error_log('🔵 [WALLET] Saving payment authority: ' . $authority);
         
         if ($wpdb->get_var($wpdb->prepare("SHOW TABLES LIKE %s", $table_name)) != $table_name) {
-            error_log('🔵 [WALLET] Creating table: ' . $table_name);
+            //error_log('🔵 [WALLET] Creating table: ' . $table_name);
             
             $charset_collate = $wpdb->get_charset_collate();
             $sql = "CREATE TABLE $table_name (
@@ -195,7 +195,7 @@ class AI_Assistant_Wallet_Checkout_Handler {
             require_once(ABSPATH . 'wp-admin/includes/upgrade.php');
             dbDelta($sql);
             
-            error_log('✅ [WALLET] Table created successfully');
+            //error_log('✅ [WALLET] Table created successfully');
         } else {
             // اگر جدول وجود دارد اما ستون status وجود ندارد، آن را اضافه کنید
             $column_check = $wpdb->get_var($wpdb->prepare(
@@ -205,7 +205,7 @@ class AI_Assistant_Wallet_Checkout_Handler {
             ));
             
             if (!$column_check) {
-                error_log('🔵 [WALLET] Adding status column to existing table');
+                //error_log('🔵 [WALLET] Adding status column to existing table');
                 $wpdb->query("ALTER TABLE $table_name ADD COLUMN status varchar(20) DEFAULT 'pending'");
             }
         }
@@ -221,7 +221,7 @@ class AI_Assistant_Wallet_Checkout_Handler {
             error_log('❌ [WALLET] Failed to save authority: ' . $wpdb->last_error);
             return false;
         } else {
-            error_log('✅ [WALLET] Authority saved successfully, ID: ' . $wpdb->insert_id);
+            //error_log('✅ [WALLET] Authority saved successfully, ID: ' . $wpdb->insert_id);
             return true;
         }
     }
@@ -230,7 +230,7 @@ class AI_Assistant_Wallet_Checkout_Handler {
         global $wpdb;
         $table_name = $wpdb->prefix . 'wallet_pending_payments';
         
-        error_log('🔵 [WALLET] Looking for authority: ' . $authority . ' in table: ' . $table_name);
+        //error_log('🔵 [WALLET] Looking for authority: ' . $authority . ' in table: ' . $table_name);
         
         // بررسی وجود جدول
         if ($wpdb->get_var($wpdb->prepare("SHOW TABLES LIKE %s", $table_name)) != $table_name) {
@@ -246,7 +246,7 @@ class AI_Assistant_Wallet_Checkout_Handler {
         if ($result) {
             // تبدیل amount به integer برای اطمینان
             $result->amount = (int) $result->amount;
-            error_log('✅ [WALLET] Record found: UserID=' . $result->user_id . ', Amount=' . $result->amount);
+            //error_log('✅ [WALLET] Record found: UserID=' . $result->user_id . ', Amount=' . $result->amount);
             return $result;
         }
         
