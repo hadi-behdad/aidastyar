@@ -143,44 +143,6 @@ if ($needed_amount > 0 && $needed_amount >= $minimum_charge) {
 
         <form method="POST" action="" class="ai-charge-form">
             <div class="wall-chrg-ai-form-section">
-                <h3 class="wall-chrg-ai-form-title">انتخاب درگاه پرداخت</h3>
-            
-                <div class="wall-chrg-ai-gateways">
-                    <label class="wall-chrg-ai-gateway-card">
-                        <input type="radio"
-                               name="gateway"
-                               value="zibal"
-                               class="wall-chrg-ai-gateway-radio"
-                               checked>
-                        <div class="wall-chrg-ai-gateway-content">
-                            <div class="wall-chrg-ai-gateway-header">
-                                <span class="wall-chrg-ai-gateway-name">زیبال</span>
-                                <span class="wall-chrg-ai-gateway-badge">پیش‌فرض</span>
-                            </div>
-                            <p class="wall-chrg-ai-gateway-desc">
-                                پرداخت سریع و امن از طریق درگاه زیبال.
-                            </p>
-                        </div>
-                    </label>
-            
-                    <label class="wall-chrg-ai-gateway-card">
-                        <input type="radio"
-                               name="gateway"
-                               value="zarinpal"
-                               class="wall-chrg-ai-gateway-radio">
-                        <div class="wall-chrg-ai-gateway-content">
-                            <div class="wall-chrg-ai-gateway-header">
-                                <span class="wall-chrg-ai-gateway-name">زرین‌پال</span>
-                            </div>
-                            <p class="wall-chrg-ai-gateway-desc">
-                                پرداخت از طریق درگاه زرین‌پال.
-                            </p>
-                        </div>
-                    </label>
-                </div>
-            </div>
-            
-            <div class="wall-chrg-ai-form-section">
                 <h3 class="wall-chrg-ai-form-title">مبلغ مورد نظر برای شارژ را انتخاب کنید</h3>
                 
                 <div class="wall-chrg-ai-amount-presets">
@@ -239,6 +201,43 @@ if ($needed_amount > 0 && $needed_amount >= $minimum_charge) {
                 </ul>
             </div>
 
+            <div class="wall-chrg-ai-form-section">
+                <h3 class="wall-chrg-ai-form-title">انتخاب درگاه پرداخت</h3>
+            
+                <div class="wall-chrg-ai-gateways">
+                    <label class="wall-chrg-ai-gateway-card">
+                        <input type="radio"
+                               name="gateway"
+                               value="zibal"
+                               class="wall-chrg-ai-gateway-radio"
+                               checked>
+                        <div class="wall-chrg-ai-gateway-content">
+                            <div class="wall-chrg-ai-gateway-header">
+                                <span class="wall-chrg-ai-gateway-name">زیبال</span>
+                                <span class="wall-chrg-ai-gateway-badge">پیش‌فرض</span>
+                            </div>
+                            <p class="wall-chrg-ai-gateway-desc">
+                                پرداخت سریع و امن از طریق درگاه زیبال.
+                            </p>
+                        </div>
+                    </label>
+            
+                    <label class="wall-chrg-ai-gateway-card">
+                        <input type="radio"
+                               name="gateway"
+                               value="zarinpal"
+                               class="wall-chrg-ai-gateway-radio">
+                        <div class="wall-chrg-ai-gateway-content">
+                            <div class="wall-chrg-ai-gateway-header">
+                                <span class="wall-chrg-ai-gateway-name">زرین‌پال</span>
+                            </div>
+                            <p class="wall-chrg-ai-gateway-desc">
+                                پرداخت از طریق درگاه زرین‌پال.
+                            </p>
+                        </div>
+                    </label>
+                </div>
+            </div>
             <div class="wall-chrg-ai-form-actions">
                 <button type="submit" name="wallet_charge_submit" class="wall-chrg-ai-payment-button">
                     پرداخت و شارژ کیف پول
@@ -822,6 +821,36 @@ if ($needed_amount > 0 && $needed_amount >= $minimum_charge) {
     color: var(--text-light);
     line-height: 1.6;
 }
+
+/* 1) خنثی کردن استایل انتخاب قبلی روی content */
+.wall-chrg-ai-gateway-radio:checked + .wall-chrg-ai-gateway-content {
+    box-shadow: none;
+    background: transparent;
+}
+
+/* 2) استایل حالت انتخاب‌شده روی خود کارت */
+.wall-chrg-ai-gateway-radio:checked + .wall-chrg-ai-gateway-content .wall-chrg-ai-gateway-card {
+    border-color: var(--primary-medium);
+    box-shadow: 0 0 0 2px rgba(0, 133, 122, 0.35);
+    background: linear-gradient(135deg, #f0faf9 0, #ffffff 100%);
+    transform: translateY(-2px);
+}
+
+/* 3) کمی لطیف‌تر کردن کارت‌ها (بدون بزرگ شدن زیاد) */
+.wall-chrg-ai-gateway-card {
+    padding: 0.85rem 1rem;
+    border-radius: 12px;
+    border: 1px solid var(--border-color);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
+}
+
+/* 4) هاور کارت‌ها کمی نرم‌تر */
+.wall-chrg-ai-gateway-card:hover {
+    border-color: var(--primary-medium);
+    box-shadow: 0 4px 12px rgba(0, 101, 92, 0.12);
+    transform: translateY(-1px);
+}
+
 
 </style>
 
