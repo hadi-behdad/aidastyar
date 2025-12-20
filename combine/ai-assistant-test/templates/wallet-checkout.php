@@ -39,9 +39,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['wallet_checkout_submi
     if ($amount < $minimum_charge || $amount > $maximum_charge) {
         $error_message = 'مبلغ پرداخت معتبر نیست.';
     } else {
-        // انتقال به درگاه پرداخت
-        $payment_handler = AI_Assistant_Wallet_Checkout_Handler::get_instance();
-        $payment_result = $payment_handler->connect_to_zarinpal($amount);
+        // $payment_handler = AI_Assistant_Wallet_Checkout_Handler::get_instance();
+        // $payment_result = $payment_handler->connect_to_zarinpal($amount);
+        
+        $gateway_manager = AI_Payment_Gateway_Manager::get_instance();
+        $payment_result = $gateway_manager->request_payment(
+            get_current_user_id(),
+            $amount,
+            home_url('/wallet-charge')
+        );
+        
         
         if ($payment_result['status']) {
             // ذخیره اطلاعات پرداخت در session

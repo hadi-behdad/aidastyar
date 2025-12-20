@@ -107,6 +107,24 @@ if (!defined('ZARINPAL_SANDBOX')) {
 }
 define('ZARINPAL_SANDBOX_MERCHANT_ID', 'd05ca4ae-fab1-49b3-8da8-2e2d07b32fc9'); // مرچنت کد sandbox
 
+// Zibal
+if (!defined( 'ZIBAL_MERCHANT_ID' ) ) {
+    define( 'ZIBAL_MERCHANT_ID', '693f9298666ab90031afcc6e' );
+}
+
+if (!defined( 'ZIBAL_SANDBOX' ) ) {
+    define( 'ZIBAL_SANDBOX', defined( 'OTP_ENV' ) && OTP_ENV === 'sandbox' );
+}
+
+// اگر زیبال هم محیط سندباکس جدا دارد، می‌توانی یک ثابت جدا برایش بگذاری
+if (!defined( 'ZIBAL_SANDBOX_MERCHANT_ID' ) ) {
+    define( 'ZIBAL_SANDBOX_MERCHANT_ID', 'zibal' );
+}
+
+function aiassistant_get_zibal_merchant_id() {
+    return ZIBAL_SANDBOX ? ZIBAL_SANDBOX_MERCHANT_ID : ZIBAL_MERCHANT_ID;
+}
+
 // تابع برای دریافت مرچنت آیدی مناسب
 function ai_assistant_get_zarinpal_merchant_id() {
     return ZARINPAL_SANDBOX ? ZARINPAL_SANDBOX_MERCHANT_ID : ZARINPAL_MERCHANT_ID;
@@ -128,12 +146,22 @@ function ai_assistant_get_zarinpal_gateway_url() {
 
 function ai_assistant_process_payment_return() {
     if (isset($_GET['payment_verify']) && $_GET['payment_verify'] == '1') {
-        error_log('🔵 [WALLET] Payment return detected');
+        //error_log('🔵 [WALLET] Payment return detected');
         
         $authority = isset($_GET['Authority']) ? sanitize_text_field($_GET['Authority']) : '';
         $status = isset($_GET['Status']) ? sanitize_text_field($_GET['Status']) : 'NOK';
         
-        error_log('🔵 [WALLET] Authority: ' . $authority . ', Status: ' . $status);
+        //error_log('🔵 [WALLET] Authority: ' . $authority . ', Status: ' . $status);
+        
+        // اگر پارامترهای زرین‌پال نبود، سعی کن الگوی زیبال را بخوانی
+        if ( empty($authority) && isset($_GET['trackId']) ) {
+            $authority = sanitize_text_field($_GET['trackId']); // در سیستم تو authority همان trackId است
+            // در زیبال معمولا success=1 یا چیزی مشابه است، پس وضعیت را OK در نظر می‌گیریم
+            $status = 'OK';
+            //error_log('🔵 [WALLET] Detected Zibal callback, TrackId as Authority: ' . $authority);
+        }
+
+        //error_log('🔵 [WALLET] Authority: ' . $authority . ', Status: ' . $status);
         
         if ($status == 'OK' && !empty($authority)) {
             $payment_handler = AI_Assistant_Wallet_Checkout_Handler::get_instance();
@@ -142,31 +170,52 @@ function ai_assistant_process_payment_return() {
             $payment_data = $payment_handler->get_payment_by_authority($authority);
             
             if ($payment_data) {
-                error_log('🔵 [WALLET] Payment data found: ' . print_r($payment_data, true));
+                //error_log('🔵 [WALLET] Payment data found: ' . print_r($payment_data, true));
                 
                 $amount = $payment_data->amount;
                 $user_id = $payment_data->user_id;
                 
-                error_log('🔵 [WALLET] Verifying payment: Amount=' . $amount . ', UserID=' . $user_id);
+                //error_log('🔵 [WALLET] Verifying payment: Amount=' . $amount . ', UserID=' . $user_id);
                 
-                // تأیید پرداخت
-                $verification_result = $payment_handler->verify_payment($authority, $amount);
+                // از این:
+                // $verification_result = $payment_handler->verify_payment($authority, $amount);
                 
-                error_log('🔵 [WALLET] Verification result: ' . print_r($verification_result, true));
+                // به این:
+                $gateway_manager = AI_Payment_Gateway_Manager::get_instance();
+                
+                // اگر authority به‌صورت trackId زیبال است (مثلاً فقط عددی و طول کوتاه‌تر از 36 کاراکتر)
+                // یا اگر می‌خواهی ساده باشی، بر اساس عدم وجود Authority/Status اولیه تشخیص بده:
+                if ( isset($_GET['trackId']) ) {
+                    // برگشت از زیبال
+                    $gateway_manager->set_active_gateway( 'zibal' );
+                } else {
+                    // برگشت از زرین‌پال
+                    $gateway_manager->set_active_gateway( 'zarinpal' );
+                }         
+                
+                $verification_result = $gateway_manager->verify_payment($authority, $amount);
+
+                
+                //error_log('🔵 [WALLET] Verification result: ' . print_r($verification_result, true));
                 
                 if ($verification_result['status']) {
-                    // شارژ کیف پول
                     $wallet_handler = AI_Assistant_Payment_Handler::get_instance();
+                
+                    // اگر ref_id خالی بود، از authority (trackId) استفاده کن
+                    $ref_id = ! empty( $verification_result['ref_id'] )
+                        ? $verification_result['ref_id']
+                        : $authority;
+                
                     $success = $wallet_handler->add_credit(
-                        $user_id, 
-                        $amount, 
-                        'شارژ کیف پول از طریق درگاه پرداخت - کد پیگیری: ' . $verification_result['ref_id'],
-                        'zarinpal_' . $verification_result['ref_id']
+                        $user_id,
+                        $amount,
+                        'شارژ کیف پول از طریق درگاه پرداخت - کد پیگیری: ' . $ref_id,
+                        $verification_result['gateway_id'] . '_' . $ref_id
                     );
-                    
-                    if ($success) {
-                        error_log('✅ [WALLET] Wallet charged successfully');
-                        wp_redirect(home_url('/wallet-charge?payment=success&ref_id=' . $verification_result['ref_id']));
+                
+                    if ( $success ) {
+                        //error_log('✅ [WALLET] Wallet charged successfully, RefID used: ' . $ref_id);
+                        wp_redirect( home_url( '/wallet-charge?payment=success&ref_id=' . $ref_id ) );
                     } else {
                         error_log('❌ [WALLET] Wallet charge failed');
                         wp_redirect(home_url('/wallet-charge?payment=failed&reason=wallet_charge_failed'));

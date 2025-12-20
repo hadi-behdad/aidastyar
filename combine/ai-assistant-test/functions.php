@@ -17,6 +17,16 @@ if (!defined('DEEPSEEK_API_KEY')) {
 define('DISABLE_WP_CRON', true);
 
 
+/**
+ * Fix for ob_end_flush() notice
+ * Replaces wp_ob_end_flush_all() with a safer version
+ */
+remove_action( 'shutdown', 'wp_ob_end_flush_all', 1 );
+
+add_action( 'shutdown', function() {
+    while ( @ob_end_flush() );
+} );
+
 
 // 1. تنظیمات پایه قالب
 function ai_assistant_setup() {
@@ -50,6 +60,12 @@ require_once get_template_directory() . '/inc/jobs/class-ai-job-queue.php';
 require_once get_template_directory() . '/inc/class-service-db.php';
 require_once get_template_directory() . '/inc/class-service-manager.php';
 require_once get_template_directory() . '/inc/class-payment-handler.php';
+
+// درگاه‌های پرداخت (جدید)
+require_once get_template_directory() . '/inc/payment-gateways/interface-payment-gateway.php';
+require_once get_template_directory() . '/inc/payment-gateways/class-payment-gateway-manager.php';
+require_once get_template_directory() . '/inc/payment-gateways/gateways/class-zarinpal-gateway.php';
+require_once get_template_directory() . '/inc/payment-gateways/gateways/class-zibal-gateway.php';
 
 
 require_once get_template_directory() . '/inc/class-history-manager.php';

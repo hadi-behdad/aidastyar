@@ -141,7 +141,45 @@ if ($needed_amount > 0 && $needed_amount >= $minimum_charge) {
         </style>
         <?php endif; ?>        
 
-        <form method="POST" action="<?php echo home_url('/wallet-checkout'); ?>" class="ai-charge-form">
+        <form method="POST" action="" class="ai-charge-form">
+            <div class="wall-chrg-ai-form-section">
+                <h3 class="wall-chrg-ai-form-title">انتخاب درگاه پرداخت</h3>
+            
+                <div class="wall-chrg-ai-gateways">
+                    <label class="wall-chrg-ai-gateway-card">
+                        <input type="radio"
+                               name="gateway"
+                               value="zibal"
+                               class="wall-chrg-ai-gateway-radio"
+                               checked>
+                        <div class="wall-chrg-ai-gateway-content">
+                            <div class="wall-chrg-ai-gateway-header">
+                                <span class="wall-chrg-ai-gateway-name">زیبال</span>
+                                <span class="wall-chrg-ai-gateway-badge">پیش‌فرض</span>
+                            </div>
+                            <p class="wall-chrg-ai-gateway-desc">
+                                پرداخت سریع و امن از طریق درگاه زیبال.
+                            </p>
+                        </div>
+                    </label>
+            
+                    <label class="wall-chrg-ai-gateway-card">
+                        <input type="radio"
+                               name="gateway"
+                               value="zarinpal"
+                               class="wall-chrg-ai-gateway-radio">
+                        <div class="wall-chrg-ai-gateway-content">
+                            <div class="wall-chrg-ai-gateway-header">
+                                <span class="wall-chrg-ai-gateway-name">زرین‌پال</span>
+                            </div>
+                            <p class="wall-chrg-ai-gateway-desc">
+                                پرداخت از طریق درگاه زرین‌پال.
+                            </p>
+                        </div>
+                    </label>
+                </div>
+            </div>
+            
             <div class="wall-chrg-ai-form-section">
                 <h3 class="wall-chrg-ai-form-title">مبلغ مورد نظر برای شارژ را انتخاب کنید</h3>
                 
@@ -722,6 +760,69 @@ if ($needed_amount > 0 && $needed_amount >= $minimum_charge) {
 .wall-chrg-ai-form-input:not(:placeholder-shown) + .input-currency-hint {
     opacity: 1;
 }
+
+
+.wall-chrg-ai-gateways {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.wall-chrg-ai-gateway-card {
+    position: relative;
+    display: block;
+    background: var(--card-bg);
+    border-radius: 10px;
+    padding: 1rem 1.25rem;
+    border: 2px solid var(--border-color);
+    cursor: pointer;
+    transition: all 0.25s ease;
+}
+
+.wall-chrg-ai-gateway-radio {
+    display: none;
+}
+
+.wall-chrg-ai-gateway-card:hover {
+    border-color: var(--primary-medium);
+    box-shadow: 0 4px 12px rgba(0, 101, 92, 0.15);
+    transform: translateY(-2px);
+}
+
+.wall-chrg-ai-gateway-radio:checked + .wall-chrg-ai-gateway-content {
+    border-radius: 8px;
+    box-shadow: 0 0 0 2px rgba(0, 133, 122, 0.25);
+    background: linear-gradient(135deg, #e6f7f5 0, #ffffff 100%);
+}
+
+.wall-chrg-ai-gateway-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: .5rem;
+}
+
+.wall-chrg-ai-gateway-name {
+    font-weight: 700;
+    color: var(--primary-dark);
+}
+
+.wall-chrg-ai-gateway-badge {
+    font-size: 0.75rem;
+    padding: 0.15rem 0.5rem;
+    border-radius: 999px;
+    background: var(--primary-medium);
+    color: #fff;
+}
+
+.wall-chrg-ai-gateway-desc {
+    margin: 0;
+    font-size: 0.85rem;
+    color: var(--text-light);
+    line-height: 1.6;
+}
+
 </style>
 
 <script>
@@ -808,67 +909,59 @@ document.addEventListener('DOMContentLoaded', function() {
 </script>
 
 <?php
-// پردازش فرم شارژ
-if (isset($_POST['wallet_charge_submit']) && !empty($_POST['charge_amount'])) {
-    $amount = (int) $_POST['charge_amount'];
+if ( isset($_POST['wallet_charge_submit']) && ! empty($_POST['charge_amount']) ) {
+    $amount         = (int) $_POST['charge_amount'];
     $minimum_charge = ai_wallet_get_minimum_charge();
     $maximum_charge = ai_wallet_get_maximum_charge();
 
-    if ($amount >= $minimum_charge && $amount <= $maximum_charge) {
-        $user_id = get_current_user_id();
-        $wallet = AI_Assistant_Payment_Handler::get_instance();
-
-        // ساخت شناسه منحصر به‌فرد
-        $unique_id = 'wallet_' . $user_id . '_' . time();
-
-        // اطمینان از فعال بودن session ووکامرس
-        if (!WC()->session) {
-            WC()->session = new WC_Session_Handler();
-            WC()->session->init();
-        }
-
-        // ذخیره اطلاعات شارژ در session
-        WC()->session->set('ai_wallet_charge_data', [
-            'unique_id' => $unique_id,
-            'amount' => $amount,
-            'user_id' => $user_id,
-            'timestamp' => time()
-        ]);
-
-        // دریافت محصول ثابت کیف پول
-        $product_id = $wallet->get_wallet_product_id();
-
-        if ($product_id) {
-            // پاک کردن سبد خرید قبلی
-            WC()->cart->empty_cart();
-            
-            // افزودن محصول به سبد خرید با داده‌های اضافی
-            $cart_item_data = [
-                'ai_wallet_charge' => [
-                    'unique_id' => $unique_id,
-                    'amount' => $amount,
-                    'user_id' => $user_id,
-                    'timestamp' => time()
-                ]
-            ];
-            
-            $added = WC()->cart->add_to_cart($product_id, 1, 0, [], $cart_item_data);
-
-            if ($added) {
-                // ذخیره فوری سبد خرید
-                WC()->cart->set_session();
-                WC()->cart->calculate_totals();
-                
-                wp_redirect(wc_get_checkout_url());
-                exit;
-            } else {
-                echo '<div class="ai-alert ai-alert-error">خطا در افزودن به سبد خرید. لطفا مجددا تلاش کنید.</div>';
-            }
-        } else {
-            echo '<div class="ai-alert ai-alert-error">خطا در ایجاد محصول پرداخت. لطفا مجددا تلاش کنید.</div>';
-        }
+    if ( $amount < $minimum_charge || $amount > $maximum_charge ) {
+        echo '<div class="ai-alert ai-alert-error">مبلغ وارد شده معتبر نیست.</div>';
     } else {
-        echo '<div class="ai-alert ai-alert-error">مبلغ وارد شده معتبر نیست. حداقل مبلغ شارژ ' . ai_wallet_format_minimum_charge_fa() . ' تومان می‌باشد.</div>';
+        $user_id        = get_current_user_id();
+        $gatewaymanager = AI_Payment_Gateway_Manager::get_instance();
+
+        // خواندن درگاه انتخاب‌شده (پیش‌فرض: zibal)
+        $selected_gateway = isset($_POST['gateway']) ? sanitize_text_field($_POST['gateway']) : 'zibal';
+
+        // ست‌کردن درگاه فعال بر اساس انتخاب کاربر
+        $gatewaymanager->set_active_gateway( $selected_gateway );
+
+        $paymentresult = $gatewaymanager->request_payment(
+            $user_id,
+            $amount,
+            home_url('wallet-charge')
+        );
+
+        if ( $paymentresult && ! empty( $paymentresult['status'] ) && $paymentresult['status'] ) {
+
+            if ( ! session_id() && ! headers_sent() ) {
+                session_start();
+            }
+            $_SESSION['wallet_payment_amount']    = $amount;
+            $_SESSION['wallet_payment_authority'] = $paymentresult['authority'];
+
+            wp_redirect( $paymentresult['url'] );
+            exit;
+
+        } else {
+            $reason = isset( $paymentresult['message'] )
+                ? $paymentresult['message']
+                : 'متأسفانه در اتصال به درگاه پرداخت مشکلی به وجود آمد. لطفاً چند دقیقه دیگر دوباره تلاش کنید.';
+
+            wp_redirect(
+                add_query_arg(
+                    [
+                        'payment' => 'failed',
+                        'reason'  => urlencode( $reason ),
+                    ],
+                    home_url( 'wallet-charge' )
+                )
+            );
+            exit;
+        }
     }
 }
+
+
 get_footer();
+?>
