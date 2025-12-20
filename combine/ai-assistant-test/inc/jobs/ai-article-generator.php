@@ -1,630 +1,663 @@
 <?php
 /**
- * AI Article Generator Job - نسخه بهبود یافته با جلوگیری از تکرار
+ * AI Article Generator v5.2 - PRODUCTION READY
  * 
- * ویژگی‌های جدید:
- * - چک کردن مقالات قبلی و جلوگیری از تکرار
- * - پرامپت‌های بهینه شده SEO
- * - اضافه کردن Schema Markup
- * - Internal Linking خودکار
- * - تولید Alt Text برای تصاویر
- * - Permalink بهینه
- * 
- * @version 3.0.0
+ * ✅ نسخه نهایی - تمام مشکلات حل شده:
+ * 1. JSON extraction از backticks
+ * 2. فارسی handling
+ * 3. Timeout handling
+ * 4. دیباگ کامل
+ * 5. Required fields validation
  */
 
-if (!defined('ABSPATH')) {
-    exit;
-}
-
 class ai_article_generator_job {
-    
 
-    
+    private $api_endpoint = 'https://api.deepseek.com/v1/chat/completions';
+    private $api_key;
+    private $lock_key = 'ai_article_generator_lock';
+    private $generation_log_file;
+
+    private $trusted_sources = [
+        'WHO' => 'https://www.who.int/',
+        'NIH' => 'https://www.nih.gov/',
+        'Harvard Nutrition' => 'https://www.hsph.harvard.edu/nutritionsource/',
+        'Mayo Clinic' => 'https://www.mayoclinic.org/',
+        'Cleveland Clinic' => 'https://health.clevelandclinic.org/',
+        'Johns Hopkins' => 'https://www.hopkinsmedicine.org/',
+        'Stanford Health' => 'https://stanfordhealthcare.org/',
+        'CDC Nutrition' => 'https://www.cdc.gov/nutrition/'
+    ];
+
+    private $pillars = [
+        [
+            'key' => 'macronutrients',
+            'title' => 'مواد مغذی بزرگ (ماکروها)',
+            'slug' => 'macronutrients',
+            'description' => 'درمورد کربوهیدرات، پروتئین و چربی و نقش آن‌ها',
+            'seo_keyword' => 'ماکروها',
+            'category' => 'ماکروها',
+            'cta_text' => 'شناخت ماکروها برای رژیم بهتر',
+            'cta_button' => 'آموزش مکمل',
+            'clusters' => [
+                ['title' => 'پروتئین و منابع پروتئینی', 'keyword' => 'پروتئین حیوانی گیاهی'],
+                ['title' => 'کربوهیدرات ساده و مختلط', 'keyword' => 'کربوهیدرات صحیح'],
+                ['title' => 'چربی‌های سالم و غیرسالم', 'keyword' => 'چربی اشباع غیراشباع'],
+                ['title' => 'نسبت‌های صحیح ماکروها', 'keyword' => 'توازن ماکروها'],
+            ]
+        ],
+        [
+            'key' => 'micronutrients',
+            'title' => 'مواد مغذی کوچک (میکروها)',
+            'slug' => 'micronutrients',
+            'description' => 'درمورد ویتامین‌ها، مواد معدنی و نقش آن‌ها',
+            'seo_keyword' => 'میکروها',
+            'category' => 'میکروها',
+            'cta_text' => 'تکمیل میکروها برای سلامتی',
+            'cta_button' => 'مشاوره تغذیه',
+            'clusters' => [
+                ['title' => 'ویتامین‌های ضروری بدن', 'keyword' => 'کمبود ویتامین'],
+                ['title' => 'معادن و نقش آن‌ها', 'keyword' => 'کلسیم آهن منیزیم'],
+                ['title' => 'آنتی‌اکسیدان‌های طبیعی', 'keyword' => 'ویتامین C E'],
+                ['title' => 'مکمل‌های رایج و فواید', 'keyword' => 'مکمل تغذیه'],
+            ]
+        ],
+        [
+            'key' => 'weight-loss',
+            'title' => 'کاهش وزن سالم',
+            'slug' => 'weight-loss',
+            'description' => 'روشهای ثابت شده برای کاهش وزن پایدار',
+            'seo_keyword' => 'کاهش وزن',
+            'category' => 'کاهش وزن',
+            'cta_text' => 'برنامه شخصی کاهش وزن',
+            'cta_button' => 'شروع برنامه',
+            'clusters' => [
+                ['title' => 'کالری و سوخت و ساز', 'keyword' => 'کالری حرق بدن'],
+                ['title' => 'رژیم‌های محبوب و اثربخشی', 'keyword' => 'رژیم کتو کم کربوهیدرات'],
+                ['title' => 'ورزش برای کاهش وزن', 'keyword' => 'ورزش و تغذیه'],
+                ['title' => 'اشتباهات رایج در کاهش وزن', 'keyword' => 'اشتباه رژیم'],
+            ]
+        ],
+        [
+            'key' => 'chronic-diseases',
+            'title' => 'تغذیه و بیماریهای مزمن',
+            'slug' => 'nutrition-chronic-diseases',
+            'description' => 'نقش تغذیه در مدیریت بیماریهای مزمن',
+            'seo_keyword' => 'تغذیه بیماری مزمن',
+            'category' => 'بیماریهای مزمن',
+            'cta_text' => 'مشاوره تغذیه پزشکی',
+            'cta_button' => 'درخواست مشاوره',
+            'clusters' => [
+                ['title' => 'دیابت و کنترل قند خون', 'keyword' => 'دیابت تغذیه'],
+                ['title' => 'فشارخون و کاهش سدیم', 'keyword' => 'فشارخون نمک'],
+                ['title' => 'بیماری قلبی و کلسترول', 'keyword' => 'کلسترول چربی'],
+                ['title' => 'هضم و مشکلات گوارشی', 'keyword' => 'گوارش سالم'],
+            ]
+        ]
+    ];
+
     public function __construct() {
-        // تنظیمات API - از wp-config.php یا functions.php
-        $this->api_endpoint = 'https://api.deepseek.com/v1/chat/completions';
-        $this->api_key = DEEPSEEK_API_KEY;
-        
-    }
-    
-    public function handle() {
-        $lock_key = 'ai_article_generator_lock';
-        
-        // جلوگیری از اجرای همزمان
-        if (get_option($lock_key) && get_option($lock_key) > time() - 3600) {
-            error_log('⏸️ Article generator already running. Skip.');
-            return;
-        }
-        
-        update_option($lock_key, time());
-        
-        try {
-            $this->generate_full_article_process();
-        } finally {
-            delete_option($lock_key);
+        $this->api_key = defined('DEEPSEEK_API_KEY') ? DEEPSEEK_API_KEY : '';
+        $upload_dir = wp_upload_dir();
+        $this->generation_log_file = $upload_dir['basedir'] . '/ai-article-generation.log';
+
+        if (!$this->api_key) {
+            $this->log('❌ DEEPSEEK_API_KEY is not defined in wp-config.php');
         }
     }
-    
-    private function generate_full_article_process() {
-        error_log('🚀 Starting AI SEO Article Generation Process v3.0');
-        
-        // 1) دریافت لیست مقالات موجود
-        $existing_articles = $this->get_existing_articles_list();
-        error_log('📚 Found ' . count($existing_articles) . ' existing articles');
-        
-        // 2) تولید موضوع جدید (با در نظر گرفتن مقالات قبلی)
-        $topic_data = $this->generate_trending_topic($existing_articles);
-        if (!$topic_data) {
-            error_log('❌ Failed to generate topic');
-            return;
-        }
-        
-        $topic = $topic_data['topic'];
-        $category = $topic_data['category'];
-        $primary_keyword = $topic_data['primary_keyword'];
-        
-        error_log('✅ Topic: ' . $topic);
-        error_log('📁 Category: ' . $category);
-        error_log('🔑 Keyword: ' . $primary_keyword);
-        
-        // 3) تولید مقاله کامل با SEO
-        $article = $this->generate_seo_optimized_article($topic, $primary_keyword, $existing_articles);
-        if (!$article || empty($article['content'])) {
-            error_log('❌ Failed to generate article content');
-            return;
-        }
-        
-        // 4) بهینه‌سازی محتوا
-        $optimized_content = $this->optimize_content($article['content'], $primary_keyword);
-        
-        // 5) ایجاد پست در وردپرس
-        $post_slug = $this->generate_seo_slug($article['title'], $primary_keyword);
-        
-        $post_id = wp_insert_post([
-            'post_title'    => $article['title'],
-            'post_content'  => $optimized_content,
-            'post_excerpt'  => $article['meta_description'],
-            'post_status'   => 'publish',
-            'post_author'   => 1,
-            'post_type'     => 'post',
-            'post_name'     => $post_slug,
-            'post_category' => [$this->get_or_create_category($category)]
-        ]);
-        
-        if (is_wp_error($post_id)) {
-            error_log('❌ WordPress Insert Error: ' . $post_id->get_error_message());
-            return;
-        }
-        
-        // 6) اضافه کردن متادیتای SEO
-        $this->add_seo_metadata($post_id, $article, $primary_keyword);
-        
-        // 7) اضافه کردن Schema Markup
-        $this->add_schema_markup($post_id, $article);
-        
-        // 8) Internal Linking خودکار
-        $this->add_internal_links($post_id, $primary_keyword);
-        
-        error_log("✅ Article published successfully! Post ID: $post_id");
-        error_log("🔗 URL: " . get_permalink($post_id));
+
+    private function get_health_safety_preamble() {
+        return "⚠️ این محتوا فقط آموزشی است و جایگزین مشاوره پزشک نمی‌شود.\n- هیچ توصیه درمانی قطعی ندهید\n- عبارات احتیاطی استفاده کنید\n- دوز و دارو توصیه نکنید";
     }
-    
-    /**
-     * دریافت لیست مقالات موجود برای جلوگیری از تکرار
-     */
-    private function get_existing_articles_list() {
-        $articles = get_posts([
-            'post_type'      => 'post',
-            'post_status'    => 'publish',
-            'numberposts'    => 200, // آخرین 200 مقاله
-            'orderby'        => 'date',
-            'order'          => 'DESC'
-        ]);
-        
-        $article_list = [];
-        foreach ($articles as $post) {
-            $article_list[] = [
-                'title'    => $post->post_title,
-                'category' => wp_get_post_categories($post->ID, ['fields' => 'names'])[0] ?? 'عمومی',
-                'date'     => get_the_date('Y-m-d', $post->ID)
-            ];
-        }
-        
-        return $article_list;
+
+    private function get_medical_disclaimer() {
+        return '<div style="background:#f0f8ff; border-left:4px solid #0066cc; padding:15px; margin:20px 0; border-radius:4px; direction:rtl;"><strong>⚠️ دیسکلیمر:</strong><p>این مقاله فقط برای اطلاع است و جایگزین مشاوره حرفه‌ای پزشک یا متخصص تغذیه نیست. قبل از هر تغییری در رژیم غذایی یا سبک زندگی، با پزشک خود مشورت کنید.</p></div>';
     }
-    
-    /**
-     * تولید موضوع ترندینگ با چک کردن مقالات قبلی
-     */
-    private function generate_trending_topic($existing_articles) {
-        error_log('🎯 Generating unique trending topic...');
-        
-        // تبدیل لیست مقالات به متن خوانا
-        $articles_summary = $this->format_articles_for_prompt($existing_articles);
-        
-        $prompt = "شما یک متخصص SEO و تولید محتوا هستید. 
 
-**لیست مقالات موجود در سایت:**
-$articles_summary
+    private function format_trusted_sources_for_prompt() {
+        $formatted = "منابع: ";
+        foreach ($this->trusted_sources as $name => $url) {
+            $formatted .= $name . ", ";
+        }
+        return rtrim($formatted, ', ');
+    }
 
-**وظیفه شما:**
-یک موضوع کاملاً جدید، ترندینگ و قابل رتبه‌گیری در گوگل در حوزه‌های زیر پیشنهاد دهید:
-- سلامت و تندرستی
-- تغذیه و رژیم درمانی  
-- سبک زندگی سالم
-- تناسب اندام و ورزش
-- پزشکی و درمان
-- سلامت روان
+    private function generate_cluster_topic($pillar, $existing_articles) {
+        $this->log('🎯 Generate cluster for: ' . $pillar['title']);
 
-**معیارهای انتخاب موضوع:**
-1. موضوع باید کاملاً متفاوت از مقالات قبلی باشد
-2. حجم جستجوی بالا در گوگل داشته باشد
-3. رقابت پایین تا متوسط داشته باشد
-4. کاربرد عملی و مفید برای کاربران ایرانی داشته باشد
-5. قابلیت رتبه‌گیری در 3-6 ماه آینده را داشته باشد
-
-**خروجی دقیقاً به این فرمت JSON باشد:**
-{
-  \"topic\": \"موضوع دقیق و جذاب مقاله\",
-  \"category\": \"دسته‌بندی مناسب\",
-  \"primary_keyword\": \"کلمه کلیدی اصلی با حجم جستجوی بالا\",
-  \"search_intent\": \"informational/transactional/navigational\",
-  \"reason\": \"دلیل انتخاب این موضوع در یک خط\"
-}
-
-فقط JSON خروجی بده، بدون توضیح اضافه.";
-
-        $response = $this->call_api($prompt, 0.7); // temperature پایین‌تر برای خروجی دقیق‌تر
-        
-        if (!$response) {
-            error_log('❌ API Error in generate_trending_topic');
+        if (empty($pillar['clusters']) || !is_array($pillar['clusters'])) {
+            $this->log('⚠️ No clusters defined for pillar: ' . $pillar['key']);
             return null;
         }
-        
-        $result = json_decode($response, true);
-        
-        if (!$result || !isset($result['topic'])) {
-            error_log('❌ Invalid JSON response: ' . $response);
+
+        $used_keywords = array_map(function($a) {
+            return get_post_meta($a['ID'], '_primary_keyword', true);
+        }, $existing_articles);
+
+        $available_clusters = array_filter($pillar['clusters'], function($c) use ($used_keywords) {
+            return !in_array($c['keyword'], $used_keywords);
+        });
+
+        if (empty($available_clusters)) {
+            $this->log('⚠️ All clusters used for pillar: ' . $pillar['key']);
             return null;
         }
-        
-        return $result;
+
+        $cluster = $available_clusters[array_rand($available_clusters)];
+
+        return [
+            'topic' => $cluster['title'],
+            'primary_keyword' => $cluster['keyword'],
+            'cluster_category' => $pillar['category'],
+            'lsi_keywords' => [],
+            'user_intent' => 'informational'
+        ];
     }
-    
-    /**
-     * فرمت کردن لیست مقالات برای پرامپت
-     */
-    private function format_articles_for_prompt($articles) {
-        if (empty($articles)) {
-            return "هنوز مقاله‌ای منتشر نشده است.";
-        }
-        
-        $formatted = "تعداد کل: " . count($articles) . " مقاله\n\n";
-        
-        // فقط 50 مقاله آخر را نمایش می‌دهیم (برای کوتاه‌تر شدن پرامپت)
-        $recent_articles = array_slice($articles, 0, 50);
-        
-        foreach ($recent_articles as $index => $article) {
-            $formatted .= sprintf(
-                "%d. %s [%s] - %s\n",
-                $index + 1,
-                $article['title'],
-                $article['category'],
-                $article['date']
-            );
-        }
-        
-        return $formatted;
-    }
-    
-    /**
-     * تولید مقاله بهینه شده SEO
-     */
-    private function generate_seo_optimized_article($topic, $primary_keyword, $existing_articles) {
-        error_log('📝 Generating SEO optimized article...');
-        
-        $prompt = "شما یک نویسنده حرفه‌ای محتوای SEO هستید.
 
-**موضوع مقاله:** $topic
-**کلمه کلیدی اصلی:** $primary_keyword
+    private function generate_seo_optimized_article($topic, $primary_keyword, $pillar, $cluster_topic) {
+        $this->log('📝 Generating article: ' . $topic);
 
-**وظیفه شما:**
-یک مقاله کامل و بهینه شده SEO با مشخصات زیر تولید کنید:
+        $sources = $this->format_trusted_sources_for_prompt();
 
-**1. عنوان (Title Tag):**
-- حداکثر 60 کاراکتر
-- شامل کلمه کلیدی اصلی
-- جذاب و کلیک‌پذیر
-- منحصر به فرد
+        $prompt = "{$this->get_health_safety_preamble()}
 
-**2. Meta Description:**
-- دقیقاً 150-160 کاراکتر
-- شامل کلمه کلیدی اصلی
-- دارای Call-to-Action
-- خلاصه‌ای جذاب از محتوا
+شما یک نویسنده محتوای پزشکی و تغذیه متخصص هستید.
 
-**3. کلمات کلیدی:**
-- 5 کلمه کلیدی اصلی (high volume, low competition)
-- 5 کلمه کلیدی LSI و semantic
-- کلمات long-tail مرتبط
+موضوع: {$topic}
+کلمه کلیدی: {$primary_keyword}
+Pillar: {$pillar['title']}
+منابع: {$sources}
 
-**4. محتوای مقاله (حداقل 1500 کلمه):**
+یک مقاله 1500-2000 کلمه‌ای تولید کن با:
+- H1 شامل کلمه کلیدی
+- مقدمه جذاب
+- 3-4 بخش H2 منظم
+- سوالات متداول
+- جمع‌بندی
 
-ساختار HTML دقیق:
-
-<h1>عنوان اصلی شامل کلمه کلیدی</h1>
-
-<p><strong>مقدمه جذاب:</strong> توضیح مختصر موضوع در 2-3 پاراگراف که کاربر را به ادامه مطالعه ترغیب کند.</p>
-
-<h2>بخش اول: [عنوان با کلمه کلیدی LSI]</h2>
-<p>محتوای کامل و مفید با جملات کوتاه و خوانا...</p>
-<ul>
-  <li>نکته کلیدی 1</li>
-  <li>نکته کلیدی 2</li>
-  <li>نکته کلیدی 3</li>
-</ul>
-
-<h2>بخش دوم: [عنوان دیگر]</h2>
-<p>محتوا...</p>
-
-<h3>زیربخش 2-1</h3>
-<p>جزئیات بیشتر...</p>
-
-<h3>زیربخش 2-2</h3>
-<p>توضیحات...</p>
-
-<h2>بخش سوم: نکات عملی و کاربردی</h2>
-<ol>
-  <li>راهنمای گام به گام 1</li>
-  <li>راهنمای گام به گام 2</li>
-  <li>راهنمای گام به گام 3</li>
-</ol>
-
-<h2>سوالات متداول (FAQ)</h2>
-<h3>سوال 1؟</h3>
-<p>پاسخ کامل...</p>
-
-<h3>سوال 2؟</h3>
-<p>پاسخ کامل...</p>
-
-<h2>نتیجه‌گیری</h2>
-<p>خلاصه کلیدی‌ترین نکات و Call-to-Action...</p>
-
-**الزامات SEO:**
-- کلمه کلیدی در 100 کلمه اول
-- تراکم کلمه کلیدی 1-2%
-- استفاده از bold و italic برای تاکید
-- پاراگراف‌های کوتاه (3-4 جمله)
-- استفاده از عبارات انتقالی
-- محتوای E-E-A-T (تخصص، اعتبار، اعتماد)
-
-**خروجی JSON:**
+**خروجی JSON فقط این فرمت:**
 {
-  \"title\": \"عنوان کامل مقاله\",
-  \"meta_description\": \"توضیحات متا\",
-  \"keywords\": [\"keyword1\", \"keyword2\", \"keyword3\", \"keyword4\", \"keyword5\"],
-  \"lsi_keywords\": [\"lsi1\", \"lsi2\", \"lsi3\", \"lsi4\", \"lsi5\"],
-  \"content\": \"<h1>...</h1><p>...</p>...کل محتوای HTML\",
-  \"word_count\": 1500,
-  \"reading_time\": 7
+  \"title\": \"عنوان مقاله (شامل کلمه کلیدی)\",
+  \"meta_description\": \"توضیح 150-160 کاراکتری برای گوگل\",
+  \"content\": \"محتوای HTML کامل\"
 }
 
-فقط JSON خروجی بده.";
+**مهم: فقط JSON ارسال کن، هیچ متن اضافی نه!**";
 
         $response = $this->call_api($prompt, 0.6);
-        
         if (!$response) {
-            error_log('❌ API Error in generate_seo_optimized_article');
+            $this->log('❌ Failed to generate article');
             return null;
         }
-        
+
         $result = json_decode($response, true);
-        
         if (!$result || !isset($result['content'])) {
-            error_log('❌ Invalid article JSON: ' . substr($response, 0, 200));
+            $this->log('❌ Invalid article JSON: ' . json_last_error_msg());
             return null;
         }
-        
+
+        $this->log('✅ Article: ' . substr($result['title'] ?? '', 0, 80));
         return $result;
     }
     
-    /**
-     * بهینه‌سازی محتوا
-     */
-    private function optimize_content($content, $primary_keyword) {
-        // اضافه کردن Table of Contents
-        $toc = $this->generate_table_of_contents($content);
-        
-        // اضافه کردن خلاصه در ابتدا
-        $summary_box = "<div class='article-summary' style='background:#f9f9f9;padding:20px;border-left:4px solid #0073aa;margin:20px 0;'>
-            <h4>📌 خلاصه مطلب</h4>
-            <p>در این مقاله با <strong>$primary_keyword</strong> آشنا می‌شوید و نکات کاربردی و عملی را یاد می‌گیرید.</p>
-        </div>";
-        
-        // ترکیب محتوا
-        $optimized = $summary_box . "\n\n" . $toc . "\n\n" . $content;
-        
-        // اضافه کردن دکمه اشتراک‌گذاری
-        $share_buttons = "
-        <div class='share-buttons' style='margin:30px 0;padding:20px;background:#f5f5f5;text-align:center;'>
-            <p><strong>این مطلب را با دوستان خود به اشتراک بگذارید:</strong></p>
-            <!-- اینجا دکمه‌های شبکه‌های اجتماعی اضافه می‌شود -->
-        </div>";
-        
-        $optimized .= "\n\n" . $share_buttons;
-        
-        return $optimized;
-    }
     
-    /**
-     * تولید فهرست مطالب خودکار
-     */
-    private function generate_table_of_contents($content) {
-        preg_match_all('/<h2>(.*?)<\/h2>/', $content, $matches);
-        
-        if (empty($matches[1])) {
-            return '';
-        }
-        
-        $toc = "<div class='table-of-contents' style='background:#f0f8ff;padding:20px;margin:20px 0;border-radius:8px;'>
-            <h3>📑 فهرست مطالب</h3>
-            <ul style='list-style:none;padding-right:0;'>";
-        
-        foreach ($matches[1] as $index => $heading) {
-            $anchor = 'section-' . ($index + 1);
-            $toc .= "<li style='margin:8px 0;'><a href='#$anchor' style='text-decoration:none;color:#0073aa;'>▸ " . strip_tags($heading) . "</a></li>";
-            
-            // اضافه کردن anchor به محتوا
-            $content = preg_replace(
-                '/<h2>' . preg_quote($heading, '/') . '<\/h2>/',
-                "<h2 id='$anchor'>$heading</h2>",
-                $content,
-                1
-            );
-        }
-        
-        $toc .= "</ul></div>";
-        
-        return $toc;
-    }
     
-    /**
-     * تولید اسلاگ بهینه شده SEO
-     */
-    private function generate_seo_slug($title, $keyword) {
-        // استفاده از کلمه کلیدی در URL
-        $slug = sanitize_title($keyword);
-        
-        // اگر خیلی کوتاه بود، از عنوان استفاده کن
-        if (strlen($slug) < 10) {
-            $slug = sanitize_title($title);
-        }
-        
-        // محدود کردن طول URL
-        $slug = substr($slug, 0, 60);
-        
-        return $slug;
-    }
-    
-    /**
-     * اضافه کردن متادیتای SEO
-     */
-    private function add_seo_metadata($post_id, $article, $primary_keyword) {
-        // Yoast SEO
-        update_post_meta($post_id, '_yoast_wpseo_title', $article['title']);
-        update_post_meta($post_id, '_yoast_wpseo_metadesc', $article['meta_description']);
-        update_post_meta($post_id, '_yoast_wpseo_focuskw', $primary_keyword);
-        update_post_meta($post_id, '_yoast_wpseo_meta-robots-noindex', '0');
-        update_post_meta($post_id, '_yoast_wpseo_meta-robots-nofollow', '0');
-        
-        // Rank Math SEO
-        update_post_meta($post_id, 'rank_math_title', $article['title']);
-        update_post_meta($post_id, 'rank_math_description', $article['meta_description']);
-        update_post_meta($post_id, 'rank_math_focus_keyword', $primary_keyword);
-        
-        // All in One SEO
-        update_post_meta($post_id, '_aioseo_title', $article['title']);
-        update_post_meta($post_id, '_aioseo_description', $article['meta_description']);
-        
-        // کلمات کلیدی سفارشی
-        $all_keywords = array_merge($article['keywords'], $article['lsi_keywords'] ?? []);
-        update_post_meta($post_id, '_seo_keywords', implode(', ', $all_keywords));
-        
-        // زمان مطالعه
-        if (isset($article['reading_time'])) {
-            update_post_meta($post_id, '_reading_time', $article['reading_time']);
-        }
-        
-        error_log('✅ SEO metadata added for post ' . $post_id);
-    }
-    
-    /**
-     * اضافه کردن Schema Markup (JSON-LD)
-     */
-    private function add_schema_markup($post_id, $article) {
-        $post_url = get_permalink($post_id);
-        $post_date = get_the_date('c', $post_id);
-        $modified_date = get_the_modified_date('c', $post_id);
-        
-        $schema = [
-            '@context' => 'https://schema.org',
-            '@type' => 'Article',
-            'headline' => $article['title'],
-            'description' => $article['meta_description'],
-            'datePublished' => $post_date,
-            'dateModified' => $modified_date,
-            'author' => [
-                '@type' => 'Organization',
-                'name' => get_bloginfo('name'),
-                'url' => home_url()
-            ],
-            'publisher' => [
-                '@type' => 'Organization',
-                'name' => get_bloginfo('name'),
-                'logo' => [
-                    '@type' => 'ImageObject',
-                    'url' => get_site_icon_url()
-                ]
-            ],
-            'mainEntityOfPage' => [
-                '@type' => 'WebPage',
-                '@id' => $post_url
-            ]
-        ];
-        
-        // اضافه کردن FAQ Schema اگر سوالات داشته باشیم
-        if (strpos($article['content'], '<h2>سوالات متداول') !== false) {
-            $faq_schema = [
-                '@context' => 'https://schema.org',
-                '@type' => 'FAQPage',
-                'mainEntity' => []
-            ];
-            
-            // استخراج سوالات و جواب‌ها
-            preg_match_all('/<h3>(.*?)<\/h3>\s*<p>(.*?)<\/p>/s', $article['content'], $faqs);
-            
-            if (!empty($faqs[1])) {
-                foreach ($faqs[1] as $index => $question) {
-                    $faq_schema['mainEntity'][] = [
-                        '@type' => 'Question',
-                        'name' => strip_tags($question),
-                        'acceptedAnswer' => [
-                            '@type' => 'Answer',
-                            'text' => strip_tags($faqs[2][$index] ?? '')
-                        ]
-                    ];
-                }
+
+    private function add_article_categories($post_id, $pillar) {
+        $this->log('📁 Adding categories...');
+
+        $category_name = $pillar['category'] ?? 'تغذیه';
+        $category = get_term_by('name', $category_name, 'category');
+
+        if (!$category) {
+            $cat_result = wp_insert_term($category_name, 'category', [
+                'slug' => sanitize_title($category_name)
+            ]);
+
+            if (is_wp_error($cat_result)) {
+                $this->log('❌ Category error: ' . $cat_result->get_error_message());
+                return;
             }
-            
-            update_post_meta($post_id, '_schema_faq', json_encode($faq_schema, JSON_UNESCAPED_UNICODE));
+
+            $category_id = $cat_result['term_id'];
+        } else {
+            $category_id = $category->term_id;
         }
-        
-        update_post_meta($post_id, '_schema_article', json_encode($schema, JSON_UNESCAPED_UNICODE));
-        
-        error_log('✅ Schema markup added');
+
+        wp_set_post_terms($post_id, [$category_id], 'category');
+        $this->log('✅ Categories added');
     }
-    
-    /**
-     * اضافه کردن لینک‌های داخلی خودکار
-     */
-    private function add_internal_links($post_id, $primary_keyword) {
-        // پیدا کردن مقالات مرتبط
-        $related_posts = get_posts([
-            'post_type' => 'post',
-            'post_status' => 'publish',
-            'numberposts' => 5,
-            'post__not_in' => [$post_id],
-            's' => $primary_keyword,
-            'orderby' => 'relevance'
-        ]);
-        
-        if (empty($related_posts)) {
+
+    private function add_strategic_internal_links($post_id, $pillar) {
+        $this->log('🔗 Adding internal links...');
+
+        $article_content = get_post_field('post_content', $post_id);
+        if (!$article_content) {
+            $this->log('⚠️ No content to link');
             return;
         }
-        
-        $current_content = get_post_field('post_content', $post_id);
-        
-        // اضافه کردن بخش مقالات مرتبط در انتهای مقاله
-        $related_section = "\n\n<div class='related-articles' style='background:#f9f9f9;padding:20px;margin:30px 0;border-radius:8px;'>
-            <h3>📚 مقالات مرتبط:</h3>
-            <ul style='list-style:none;padding-right:0;'>";
-        
-        foreach ($related_posts as $related) {
-            $related_section .= "<li style='margin:10px 0;'><a href='" . get_permalink($related->ID) . "' style='color:#0073aa;text-decoration:none;font-weight:500;'>▸ " . $related->post_title . "</a></li>";
+
+        $pillar_post = $this->get_pillar_post($pillar['key']);
+        if (!$pillar_post) {
+            $this->log('⚠️ Pillar post not found');
+            return;
         }
-        
-        $related_section .= "</ul></div>";
-        
-        // بروزرسانی محتوا
-        wp_update_post([
-            'ID' => $post_id,
-            'post_content' => $current_content . $related_section
+
+        $pillar_link = get_permalink($pillar_post);
+        $pillar_title = get_the_title($pillar_post);
+
+        if (preg_match_all('/<\/p>/', $article_content, $matches, PREG_OFFSET_CAPTURE)) {
+            $last_p_pos = end($matches[0])[1];
+            $link_html = ' <a href="' . esc_url($pillar_link) . '" title="' . esc_attr($pillar_title) . '">' . esc_html($pillar_title) . '</a>';
+
+            $article_content = substr_replace(
+                $article_content,
+                $link_html . '</p>',
+                $last_p_pos,
+                4
+            );
+
+            wp_update_post([
+                'ID' => $post_id,
+                'post_content' => $article_content
+            ]);
+
+            $this->log('✅ Internal link added: ' . $pillar_title);
+        }
+    }
+
+    private function check_keyword_cannibalization($primary_keyword) {
+        $this->log('🔍 Check cannibalization...');
+
+        $existing = get_posts([
+            'post_type'   => 'post',
+            'post_status' => 'publish',
+            'meta_key'    => '_primary_keyword',
+            'meta_value'  => $primary_keyword,
+            'numberposts' => 1
         ]);
-        
-        error_log('✅ Internal links added (' . count($related_posts) . ' links)');
-    }
-    
-    /**
-     * دریافت یا ساخت دسته‌بندی
-     */
-    private function get_or_create_category($category_name) {
-        $category = get_term_by('name', $category_name, 'category');
-        
-        if ($category) {
-            return $category->term_id;
+
+        if (!empty($existing)) {
+            $this->log('⚠️ Keyword exists: ' . $primary_keyword);
+            return false;
         }
-        
-        // ساخت دسته جدید
-        $new_category = wp_insert_term($category_name, 'category');
-        
-        if (is_wp_error($new_category)) {
-            error_log('❌ Category creation error: ' . $new_category->get_error_message());
-            return 1; // دسته پیش‌فرض
-        }
-        
-        return $new_category['term_id'];
+
+        $this->log('✅ Keyword unique');
+        return true;
     }
-    
-    /**
-     * فراخوانی API هوش مصنوعی
-     */
-    private function call_api($prompt , $temperature) {
-        
-        $api_key = DEEPSEEK_API_KEY;
-        $api_url = 'https://api.deepseek.com/v1/chat/completions';
+
+    private function add_schema_markup($post_id, $article) {
+        $schema = [
+            '@context'      => 'https://schema.org',
+            '@type'         => 'MedicalWebPage',
+            'headline'      => $article['title'] ?? '',
+            'description'   => $article['meta_description'] ?? '',
+            'datePublished' => current_time('c'),
+            'dateModified'  => current_time('c'),
+        ];
+        update_post_meta($post_id, '_schema_markup_json_ld', wp_json_encode($schema));
+        $this->log('✅ Schema added');
+    }
+
+    private function add_seo_metadata($post_id, $article, $pillar, $cluster_topic) {
+        update_post_meta($post_id, '_seo_title', $article['title'] ?? '');
+        update_post_meta($post_id, '_seo_description', $article['meta_description'] ?? '');
+        update_post_meta($post_id, '_seo_meta_description', $article['meta_description'] ?? '');
+        update_post_meta($post_id, '_primary_keyword', $cluster_topic['primary_keyword'] ?? '');
+        update_post_meta($post_id, '_pillar_key', $pillar['key']);
+        update_post_meta($post_id, '_cluster_category', $cluster_topic['cluster_category'] ?? '');
+        $this->log('✅ Metadata added');
+    }
+
+    private function add_pillar_specific_cta($post_id, $pillar) {
+        update_post_meta($post_id, '_cta_text', $pillar['cta_text'] ?? '');
+        update_post_meta($post_id, '_cta_button', $pillar['cta_button'] ?? '');
+        $this->log('✅ CTA added');
+    }
+
+    private function get_pillar_post($pillar_key) {
+        $posts = get_posts([
+            'post_type'  => 'page',
+            'meta_key'   => '_is_pillar_page',
+            'meta_value' => $pillar_key,
+            'numberposts'=> 1
+        ]);
+        return $posts[0] ?? null;
+    }
+
+    private function get_existing_articles_list() {
+        $articles = get_posts([
+            'post_type'   => 'post',
+            'post_status' => 'publish',
+            'numberposts' => 100
+        ]);
+        $list = [];
+        foreach ($articles as $post) {
+            $list[] = [
+                'ID'              => $post->ID,
+                'title'           => $post->post_title,
+                'pillar_key'      => get_post_meta($post->ID, '_pillar_key', true) ?: '',
+                'primary_keyword' => get_post_meta($post->ID, '_primary_keyword', true) ?: ''
+            ];
+        }
+        return $list;
+    }
+
+    private function call_api($prompt, $temperature) {
+        if (!$this->api_key) {
+            $this->log('❌ API Key missing');
+            return null;
+        }
+
+        $this->log('🌐 API call (temp: ' . $temperature . ')');
+
+        $max_tokens = 3000;
 
         $args = [
             'headers' => [
-                'Content-Type' => 'application/json',
-                'Authorization' => 'Bearer ' . $api_key,
-                'Accept' => 'application/json'
+                'Content-Type'  => 'application/json',
+                'Authorization' => 'Bearer ' . $this->api_key,
             ],
-            'body' => json_encode([
-                'model' => 'deepseek-chat',
-                'messages' => [
-                    ['role' => 'system', 'content' => 'You are a professional content writer specializing in health and nutrition.'],
+            'body'    => json_encode([
+                'model'       => 'deepseek-chat',
+                'messages'    => [
+                    ['role' => 'system', 'content' => 'You are a professional health and nutrition content writer. Always respond with valid JSON only.'],
                     ['role' => 'user', 'content' => $prompt]
                 ],
                 'temperature' => $temperature,
-                'max_tokens' => 4000
+                'max_tokens'  => $max_tokens
             ]),
-            'timeout' => 180,
-            'httpversion' => '1.1'
+            'timeout'  => 240,
+            'sslverify' => true
+
         ];
 
-        $response = wp_remote_post($api_url, $args);
+        try {
+            $response = wp_remote_post($this->api_endpoint, $args);
+        } catch (Exception $e) {
+            $this->log('❌ Exception: ' . substr($e->getMessage(), 0, 200));
+            return null;
+        }
 
         if (is_wp_error($response)) {
-            throw new Exception('خطا در ارتباط با سرور DeepSeek: ' . $response->get_error_message());
+            $this->log('❌ WP Error: ' . substr($response->get_error_message(), 0, 200));
+            return null;
         }
 
-        $response_code = wp_remote_retrieve_response_code($response);
+        $code = wp_remote_retrieve_response_code($response);
+        $this->log('📊 HTTP Status: ' . $code);
+
+        if ($code !== 200) {
+            $this->log('❌ HTTP Error ' . $code);
+            return null;
+        }
+
         $body = wp_remote_retrieve_body($response);
-
-        if ($response_code !== 200) {
-            throw new Exception('خطا از سمت DeepSeek API. کد وضعیت: ' . $response_code);
+        if (empty($body)) {
+            $this->log('❌ Empty response body');
+            return null;
         }
 
-        $decoded_body = json_decode($body, true);
-
-        if (empty($decoded_body['choices'][0]['message']['content'])) {
-            throw new Exception('پاسخ نامعتبر از API دریافت شد');
+        $decoded = json_decode($body, true);
+        if (json_last_error() !== JSON_ERROR_NONE) {
+            $this->log('❌ API Response not JSON: ' . json_last_error_msg());
+            return null;
         }
 
-        $content = $decoded_body['choices'][0]['message']['content'];
+        if (!isset($decoded['choices'][0]['message']['content'])) {
+            $this->log('❌ No content in API response');
+            return null;
+        }
+
+        $raw_content = $decoded['choices'][0]['message']['content'];
+        $this->log('📥 Raw content length: ' . strlen($raw_content) . ' bytes');
+
+        $response =  $this->extract_json_from_response($raw_content);
         
-        // پاکسازی خروجی و استخراج فقط JSON
-        $clean_json = trim($content);
         
-        // اگر متن اضافی قبل/بعد داشت → حذف می‌کنیم
-        $clean_json = preg_replace('/^[^{]*/', '', $clean_json);   // حذف هرچیزی قبل از {
-        $clean_json = preg_replace('/[^}]*$/', '', $clean_json);   // حذف هرچیزی بعد از }
-        
-        return $clean_json;
-               
-                
+        return $this->clean_api_response($response);        
     }
+
+    private function extract_json_from_response($raw_response) {
+        $clean = $raw_response;
+        
+        // حذف backticks
+        $clean = preg_replace('/```json\s*/i', '', $clean);
+        $clean = preg_replace('/```\s*/i', '', $clean);
+        $clean = preg_replace('/\s*```\s*/i', '', $clean);
+        $clean = trim($clean);
+
+        // پیدا کردن { و }
+        $open_brace = strpos($clean, '{');
+        $close_brace = strrpos($clean, '}');
+
+        if ($open_brace === false || $close_brace === false || $close_brace <= $open_brace) {
+            $this->log('❌ No JSON boundaries found');
+            $this->log('🔍 First 500 chars: ' . substr($raw_response, 0, 500));
+            return null;
+        }
+
+        $json_string = substr($clean, $open_brace, $close_brace - $open_brace + 1);
+        $json_string = trim($json_string);
+
+        $decoded = json_decode($json_string, true);
+        
+        if (json_last_error() !== JSON_ERROR_NONE) {
+            $this->log('❌ JSON Decode Error: ' . json_last_error_msg());
+            return null;
+        }
+
+        if (!isset($decoded['title']) || !isset($decoded['meta_description']) || !isset($decoded['content'])) {
+            $this->log('❌ Missing required fields: ' . implode(', ', array_keys($decoded)));
+            return null;
+        }
+
+        $this->log('✅ JSON extracted (' . strlen($json_string) . ' bytes)');
+        return $json_string;
+    }
+    
+    
+    /**
+     * Clean API response
+     */
+    private function clean_api_response($response_content) {
+        if (empty($response_content)) {
+            return '';
+        }
+        
+        // Remove markdown code blocks
+        $patterns = [
+            '/^```json\s*/',
+            '/\s*```$/',
+            '/^```\s*/',
+            '/\s*```$/',
+        ];
+        
+        $cleaned_response = preg_replace($patterns, '', $response_content);
+        $cleaned_response = trim($cleaned_response);
+        
+        // Remove control characters
+        $cleaned_response = preg_replace('/[\x00-\x1F\x7F]/u', '', $cleaned_response);
+        
+        return $cleaned_response;
+    }    
+
+    private function log($message) {
+        $ts = current_time('Y-m-d H:i:s');
+        error_log("[$ts] $message");
+        @file_put_contents($this->generation_log_file, "[$ts] $message\n", FILE_APPEND);
+    }
+
+    public function handle() {
+        ignore_user_abort(true);
+        if (function_exists('set_time_limit')) {
+            @set_time_limit(300);
+        }
+
+        $lock_value = get_option($this->lock_key);
+
+        if ($lock_value) {
+            $lock_age = time() - (int)$lock_value;
+
+            if ($lock_age > 10 * 60) {
+                $this->log('🔓 Stale lock removed (age: ' . $lock_age . 's)');
+                delete_option($this->lock_key);
+            } else {
+                $this->log('⏸️ Already running');
+                return;
+            }
+        }
+
+        update_option($this->lock_key, time());
+
+        try {
+            $this->generate_full_article_process();
+        } catch (Exception $e) {
+            $this->log('❌ Exception: ' . substr($e->getMessage(), 0, 200));
+        } finally {
+            delete_option($this->lock_key);
+        }
+    }
+
+    private function generate_full_article_process() {
+        $this->log('🚀 Start v5.2 - Production Ready');
+
+        // $existing = $this->get_existing_articles_list();
+        // $this->log('📊 Found ' . count($existing) . ' articles');
+
+        // $pillar = $this->pillars[array_rand($this->pillars)];
+        // $this->log('🏛️ Pillar: ' . $pillar['title']);
+
+        // 1) دریافت اطلاعات موجود
+        $existing_articles = $this->get_existing_articles_list();
+        error_log('📚 Found ' . count($existing_articles) . ' existing articles');
+
+        // 2) انتخاب Pillar برای این دور
+        $selected_pillar = $this->select_pillar_for_generation($existing_articles);
+        if (!$selected_pillar) {
+            error_log('❌ Failed to select pillar');
+            return;
+        }
+
+        error_log('📁 Selected Pillar: ' . $selected_pillar['title']);
+
+        // 3) تولید Cluster Topic (زیر مجموعه Pillar)
+        $cluster = $this->generate_cluster_topic($selected_pillar, $existing_articles);
+        if (!$cluster) {
+            error_log('❌ Failed to generate cluster topic');
+            return;
+        }
+
+        error_log('✅ Cluster Topic: ' . $cluster['topic']);
+
+
+        if (!$this->check_keyword_cannibalization($cluster['primary_keyword'])) return;
+
+        $article = $this->generate_seo_optimized_article(
+            $cluster['topic'],
+            $cluster['primary_keyword'],
+            $selected_pillar,
+            $cluster
+        );
+        if (!$article) return;
+
+        $article['content'] .= $this->get_medical_disclaimer();
+
+        $post_id = wp_insert_post([
+            'post_title'   => $article['title'],
+            'post_content' => $article['content'],
+            'post_status'  => 'draft',
+            'post_type'    => 'post',
+            'post_excerpt' => $article['meta_description'] ?? ''
+        ]);
+
+        if (is_wp_error($post_id)) {
+            $this->log('❌ Post error: ' . $post_id->get_error_message());
+            return;
+        }
+
+        $this->log('📄 Post ID: ' . $post_id);
+
+        $this->add_seo_metadata($post_id, $article, $selected_pillar, $cluster);
+        $this->add_schema_markup($post_id, $article);
+        $this->add_pillar_specific_cta($post_id, $selected_pillar);
+        $this->add_article_categories($post_id, $selected_pillar);
+        $this->add_strategic_internal_links($post_id, $selected_pillar);
+
+        wp_update_post([
+            'ID'        => $post_id,
+            'post_name' => sanitize_title($article['title'] ?? '')
+        ]);
+
+        $this->log('✅ COMPLETE! ' . get_permalink($post_id));
+    }
+    
+
+    /**
+     * انتخاب Pillar برای تولید (Round-robin واقعی)
+     * کم‌محتواترین Pillar انتخاب می‌شود
+     */
+    private function select_pillar_for_generation($existing_articles) {
+    
+        // 1️⃣ شمارش مقاله‌ها برای هر pillar_key
+        $pillar_counts = [];
+    
+        foreach ($this->pillars as $pillar) {
+            $pillar_key = $pillar['key'];
+            $pillar_counts[$pillar_key] = 0;
+    
+            foreach ($existing_articles as $article) {
+                if (
+                    !empty($article['pillar_key']) &&
+                    $article['pillar_key'] === $pillar_key
+                ) {
+                    $pillar_counts[$pillar_key]++;
+                }
+            }
+        }
+    
+        // 2️⃣ مرتب‌سازی بر اساس کمترین تعداد مقاله
+        asort($pillar_counts); // ascending
+    
+        // 3️⃣ انتخاب pillar با کمترین مقاله
+        $selected_pillar_key = array_key_first($pillar_counts);
+    
+        // 4️⃣ برگرداندن آبجکت کامل pillar
+        foreach ($this->pillars as $pillar) {
+            if ($pillar['key'] === $selected_pillar_key) {
+                return $pillar;
+            }
+        }
+    
+        // fallback (نباید به اینجا برسد)
+        return null;
+    }
+   
 }
 
-// اجرای خودکار توسط AI_Job_Queue
+add_action('init', function() {
+    add_filter('cron_schedules', function($schedules) {
+        $schedules['every_three_days'] = [
+            'interval' => 3 * DAY_IN_SECONDS,
+            'display'  => 'Every 3 Days'
+        ];
+        return $schedules;
+    });
+
+    if (!wp_next_scheduled('ai_article_generator_event')) {
+        wp_schedule_event(time(), 'every_three_days', 'ai_article_generator_event');
+    }
+});
+
+add_action('ai_article_generator_event', function() {
+    $generator = new ai_article_generator_job();
+    $generator->handle();
+});
+
+add_action('admin_init', function() {
+    if (isset($_GET['unlock_ai_gen']) && current_user_can('manage_options')) {
+        delete_option('ai_article_generator_lock');
+        wp_die('✅ Lock removed!');
+    }
+});
+
+?>

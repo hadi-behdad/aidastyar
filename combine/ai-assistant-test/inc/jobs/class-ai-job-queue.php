@@ -98,6 +98,14 @@ class AI_Job_Queue {
             ];
         }
         
+        // هر 5 دقیقه
+        if (!isset($schedules['every_5_minute'])) {
+            $schedules['every_5_minute'] = [
+                'interval' => 300,
+                'display'  => __('Every 5 Minute')
+            ];
+        }        
+        
         // هر 24 ساعت
         if (!isset($schedules['every_24_hours'])) {
             $schedules['every_24_hours'] = [
@@ -140,6 +148,8 @@ class AI_Job_Queue {
             $in_3_days_2am = strtotime('+3 days 2:00am');
             
             $scheduled = wp_schedule_event($in_3_days_2am, 'every_3_days', self::HOOK_ARTICLE_GENERATOR);
+            
+        //    $scheduled = wp_schedule_event(time(), 'every_5_minute', self::HOOK_ARTICLE_GENERATOR);
 
             if ($scheduled !== false) {
                 //error_log('✅ [JOB_QUEUE] Scheduled ' . self::HOOK_ARTICLE_GENERATOR . ' for ' . date('Y-m-d H:i:s', $start_time) . ' (every  3_days)');
@@ -231,8 +241,8 @@ class AI_Job_Queue {
         
         try {
             // اجرای job
-        //    $job = new ai_article_generator_job();
-         //   $job->handle();
+            $job = new ai_article_generator_job();
+            $job->handle();
             
             // ذخیره زمان آخرین اجرا
             update_option(self::OPTION_LAST_ARTICLE, time());
