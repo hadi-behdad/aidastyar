@@ -13,6 +13,10 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
+if ( !class_exists( 'AI_Assistant_Logger' ) ) {
+    require_once WP_CONTENT_DIR . '/themes/ai-assistant-test/inc/ai-assistant-api/class-logger.php'; // مسیر واقعی‌ات را بگذار
+}
+
 /**
  * Class ZarinPal_Payment_Gateway
  * 
@@ -26,7 +30,7 @@ class AI_ZarinPal_Payment_Gateway implements AI_Payment_Gateway_Interface {
      * @var AI_Assistant_Wallet_Checkout_Handler
      */
     private $zarinpal_handler;
-
+    private $logger;
     /**
      * سازنده
      */
@@ -34,8 +38,9 @@ class AI_ZarinPal_Payment_Gateway implements AI_Payment_Gateway_Interface {
         if (class_exists('AI_Assistant_Wallet_Checkout_Handler')) {
             $this->zarinpal_handler = AI_Assistant_Wallet_Checkout_Handler::get_instance();
         }
+        $this->logger           = AI_Assistant_Logger::get_instance();
     }
-
+    
     /**
      * ارسال درخواست پرداخت
      * 
@@ -47,27 +52,80 @@ class AI_ZarinPal_Payment_Gateway implements AI_Payment_Gateway_Interface {
      * @return array نتیجه درخواست
      */
     public function request_payment($user_id, $amount, $return_url, $extra_data = array()) {
-        //error_log('🔵 [ZARINPAL_ADAPTER] Requesting payment: User=' . $user_id . ', Amount=' . $amount);
 
-        if (!$this->zarinpal_handler) {
+        if ( ! $this->zarinpal_handler ) {
+            $this->logger->log_error(
+                'ZarinPal handler not available in request_payment',
+                array(
+                    'user_id'    => $user_id,
+                    'amount'     => $amount,
+                    'return_url' => $return_url,
+                    'extra'      => $extra_data,
+                )
+            );
+
             return array(
-                'status' => false,
-                'message' => 'ZarinPal handler not available',
-                'url' => '',
-                'authority' => ''
+                'status'    => false,
+                'message'   => 'درگاه پرداخت موقتا در دسترس نیست',
+                'url'       => '',
+                'authority' => '',
             );
         }
 
-        // استفاده از متد موجود
-        $result = $this->zarinpal_handler->connect_to_zarinpal($amount);
 
-        // تبدیل خروجی
-        return array(
-            'status'    => $result['status'] ?? false,
-            'url'       => $result['url'] ?? '',
-            'message'   => $result['message'] ?? 'Unknown error',
-            'authority' => $result['authority'] ?? ''
-        );
+        try {
+            // 2) لاگ شروع درخواست
+            $this->logger->log(
+                'ZarinPal request_payment called',
+                array(
+                    'user_id'    => $user_id,
+                    'amount'     => $amount,
+                    'return_url' => $return_url,
+                )
+            );
+
+            // استفاده از متد موجود
+            $result = $this->zarinpal_handler->connect_to_zarinpal( $amount );
+
+            // 3) لاگ نتیجه خام
+            $this->logger->log_debug(
+                'ZarinPal connect_to_zarinpal response',
+                array(
+                    'user_id'   => $user_id,
+                    'amount'    => $amount,
+                    'raw_result'=> $result,
+                )
+            );
+
+            // تبدیل خروجی
+            return array(
+                'status'    => $result['status']    ?? false,
+                'url'       => $result['url']       ?? '',
+                'message'   => $result['message']   ?? 'خطای نامشخص در ارتباط با درگاه',
+                'authority' => $result['authority'] ?? '',
+            );
+
+        } catch ( Exception $e ) {
+
+            // 4) لاگ خطا
+            $this->logger->log_error(
+                'ZarinPal request_payment exception',
+                array(
+                    'user_id'    => $user_id,
+                    'amount'     => $amount,
+                    'return_url' => $return_url,
+                    'extra'      => $extra_data,
+                    'exception'  => $e->getMessage(),
+                )
+            );
+
+            return array(
+                'status'    => false,
+                'message'   => 'در فرآیند اتصال به درگاه خطایی رخ داد',
+                'url'       => '',
+                'authority' => '',
+            );
+        }
     }
 
     /**
@@ -78,28 +136,71 @@ class AI_ZarinPal_Payment_Gateway implements AI_Payment_Gateway_Interface {
      * 
      * @return array نتیجه تأیید
      */
-    public function verify_payment($authority, $amount) {
-        //error_log('🔵 [ZARINPAL_ADAPTER] Verifying payment: Authority=' . $authority . ', Amount=' . $amount);
+    public function verify_payment( $authority, $amount ) {
 
-        if (!$this->zarinpal_handler) {
+        if ( ! $this->zarinpal_handler ) {
+            $this->logger->log_error(
+                'ZarinPal handler not available in verify_payment',
+                array(
+                    'authority' => $authority,
+                    'amount'    => $amount,
+                )
+            );
+
             return array(
                 'status'     => false,
                 'ref_id'     => '',
-                'message'    => 'ZarinPal handler not available',
-                'gateway_id' => $this->get_gateway_id()
+                'message'    => 'درگاه پرداخت موقتا در دسترس نیست',
+                'gateway_id' => $this->get_gateway_id(),
             );
         }
 
-        // استفاده از متد موجود
-        $result = $this->zarinpal_handler->verify_payment($authority, $amount);
+        try {
+            $this->logger->log(
+                'ZarinPal verify_payment called',
+                array(
+                    'authority' => $authority,
+                    'amount'    => $amount,
+                )
+            );
 
-        // تبدیل خروجی
-        return array(
-            'status'     => $result['status'] ?? false,
-            'ref_id'     => $result['ref_id'] ?? '',
-            'message'    => $result['message'] ?? 'Unknown error',
-            'gateway_id' => $this->get_gateway_id()
-        );
+            // استفاده از متد موجود
+            $result = $this->zarinpal_handler->verify_payment( $authority, $amount );
+
+            $this->logger->log_debug(
+                'ZarinPal verify_payment response',
+                array(
+                    'authority' => $authority,
+                    'amount'    => $amount,
+                    'raw_result'=> $result,
+                )
+            );
+
+            return array(
+                'status'     => $result['status']   ?? false,
+                'ref_id'     => $result['ref_id']   ?? '',
+                'message'    => $result['message']  ?? 'خطای نامشخص در تایید پرداخت',
+                'gateway_id' => $this->get_gateway_id(),
+            );
+
+        } catch ( Exception $e ) {
+
+            $this->logger->log_error(
+                'ZarinPal verify_payment exception',
+                array(
+                    'authority' => $authority,
+                    'amount'    => $amount,
+                    'exception' => $e->getMessage(),
+                )
+            );
+
+            return array(
+                'status'     => false,
+                'ref_id'     => '',
+                'message'    => 'در تایید پرداخت خطایی رخ داد',
+                'gateway_id' => $this->get_gateway_id(),
+            );
+        }
     }
 
     /**
