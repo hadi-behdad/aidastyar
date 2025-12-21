@@ -121,7 +121,7 @@ if (!defined( 'ZIBAL_SANDBOX_MERCHANT_ID' ) ) {
     define( 'ZIBAL_SANDBOX_MERCHANT_ID', 'zibal' );
 }
 
-function aiassistant_get_zibal_merchant_id() {
+function ai_assistant_get_zibal_merchant_id() {
     return ZIBAL_SANDBOX ? ZIBAL_SANDBOX_MERCHANT_ID : ZIBAL_MERCHANT_ID;
 }
 

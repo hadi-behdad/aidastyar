@@ -53,7 +53,7 @@ class AI_ZarinPal_Payment_Gateway implements AI_Payment_Gateway_Interface {
      */
     public function request_payment($user_id, $amount, $return_url, $extra_data = array()) {
 
-        if ( ! $this->zarinpal_handler ) {
+        if ( !$this->zarinpal_handler ) {
             $this->logger->log_error(
                 'ZarinPal handler not available in request_payment',
                 array(
@@ -138,7 +138,7 @@ class AI_ZarinPal_Payment_Gateway implements AI_Payment_Gateway_Interface {
      */
     public function verify_payment( $authority, $amount ) {
 
-        if ( ! $this->zarinpal_handler ) {
+        if ( !$this->zarinpal_handler ) {
             $this->logger->log_error(
                 'ZarinPal handler not available in verify_payment',
                 array(

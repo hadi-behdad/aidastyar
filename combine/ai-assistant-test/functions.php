@@ -433,7 +433,7 @@ function ai_assistant_load_test_scripts() {
             error_log('🔧 [ERROR] File does NOT exist: ' . $full_path);
         }
     } else {
-        error_log('🔧 [DEBUG] Production environment or OTP_ENV not set');
+        // error_log('🔧 [DEBUG] Production environment or OTP_ENV not set');
     }
 }
 add_action('wp_enqueue_scripts', 'ai_assistant_load_test_scripts', 20);

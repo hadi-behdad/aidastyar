@@ -9,8 +9,12 @@
  * @subpackage Payment_Gateways
  */
 
-if (!defined('ABSPATH')) {
+if ( !defined( 'ABSPATH' ) ) {
     exit;
+}
+
+if ( !class_exists( 'AI_Assistant_Logger' ) ) {
+    require_once WP_CONTENT_DIR . '/themes/ai-assistant-test/inc/ai-assistant-api/class-logger.php';
 }
 
 /**
@@ -24,22 +28,19 @@ class AI_Zibal_Payment_Gateway implements AI_Payment_Gateway_Interface {
      * Zibal Merchant ID
      */
     private $merchant;
-
-    /**
-     * Zibal API Base URL
-     */
+    private $logger;
     private $api_url = 'https://gateway.zibal.ir';
 
-    /**
-     * سازنده
-     */
     public function __construct() {
-        if ( function_exists( 'aiassistant_get_zibal_merchant_id' ) ) {
-            $this->merchant = aiassistant_get_zibal_merchant_id();
+        if ( function_exists( 'ai_assistant_get_zibal_merchant_id' ) ) {
+            $this->merchant = ai_assistant_get_zibal_merchant_id();
         } else {
             $this->merchant = '';
         }
+    
+        $this->logger = AI_Assistant_Logger::get_instance();
     }
+
 
     /**
      * ارسال درخواست پرداخت
@@ -52,11 +53,24 @@ class AI_Zibal_Payment_Gateway implements AI_Payment_Gateway_Interface {
      * @return array نتیجه درخواست
      */
     public function request_payment($user_id, $amount, $return_url, $extra_data = array()) {
-        //error_log('🟣 [ZIBAL_ADAPTER] Requesting payment: User=' . $user_id . ', Amount=' . $amount);
+        
+        $this->logger->log(
+            'ZIBAL_ADAPTER Requesting payment',
+            [
+                'user_id'  => $user_id,
+                'amount'   => $amount,
+                'merchant' => $this->merchant,
+            ]
+        );
 
         // بررسی Merchant ID
         if (empty($this->merchant)) {
-            error_log('❌ [ZIBAL_ADAPTER] Merchant ID not configured');
+            
+            $this->logger->log_error(
+                'ZIBAL_ADAPTER Merchant ID not configured in request_payment',
+                [ 'user_id' => $user_id ]
+            );
+            
             return array(
                 'status'    => false,
                 'url'       => '',
@@ -86,9 +100,16 @@ class AI_Zibal_Payment_Gateway implements AI_Payment_Gateway_Interface {
             if (!empty($extra_data['mobile'])) {
                 $request_body['mobile'] = $extra_data['mobile'];
             }
-
-            //error_log('🔵 [ZIBAL_ADAPTER] Request Body: ' . json_encode($request_body));
-
+            
+            $this->logger->log_debug(
+                'ZIBAL_ADAPTER Request Body',
+                [
+                    'user_id'      => $user_id,
+                    'amount'       => $amount,
+                    'request_body' => $request_body,
+                ]
+            );
+            
             // ارسال درخواست
             $response = wp_remote_post($this->api_url . '/v1/request', array(
                 'method'      => 'POST',
@@ -103,7 +124,16 @@ class AI_Zibal_Payment_Gateway implements AI_Payment_Gateway_Interface {
             // بررسی خطای HTTP
             if (is_wp_error($response)) {
                 $error_message = $response->get_error_message();
-                error_log('❌ [ZIBAL_ADAPTER] HTTP Error: ' . $error_message);
+            
+                $this->logger->log_error(
+                    'ZIBAL_ADAPTER HTTP Error in request_payment',
+                    [
+                        'user_id' => $user_id,
+                        'amount'  => $amount,
+                        'error'   => $error_message,
+                    ]
+                );                
+                
                 return array(
                     'status'    => false,
                     'url'       => '',
@@ -116,14 +146,31 @@ class AI_Zibal_Payment_Gateway implements AI_Payment_Gateway_Interface {
             $response_body = wp_remote_retrieve_body($response);
             $response_data = json_decode($response_body, true);
 
-            //error_log('🔵 [ZIBAL_ADAPTER] Response: ' . $response_body);
+            $this->logger->log_debug(
+                'ZIBAL_ADAPTER Response',
+                [
+                    'user_id'       => $user_id,
+                    'amount'        => $amount,
+                    'raw_response'  => $response_body,
+                    'response_data' => $response_data,
+                ]
+            );
 
             // بررسی نتیجه
             if (isset($response_data['result']) && $response_data['result'] == 100) {
                 $track_id = $response_data['trackId'] ?? null;
 
                 if (!$track_id) {
-                    error_log('❌ [ZIBAL_ADAPTER] No trackId in response');
+                    $this->logger->log_error(
+                        'ZIBAL_ADAPTER No trackId in response',
+                        [
+                            'user_id'       => $user_id,
+                            'amount'        => $amount,
+                            'response_data' => $response_data,
+                        ]
+                    );
+                    
+                    
                     return array(
                         'status'    => false,
                         'url'       => '',
@@ -134,12 +181,16 @@ class AI_Zibal_Payment_Gateway implements AI_Payment_Gateway_Interface {
 
                 // ساخت URL درگاه
                 $payment_url = $this->api_url . '/start/' . $track_id;
-
-                //error_log('✅ [ZIBAL_ADAPTER] Payment request successful, TrackId: ' . $track_id);
-
-                // ساخت URL درگاه
-                $payment_url = $this->api_url . '/start/' . $track_id;
-                //error_log('✅ [ZIBAL_ADAPTER] Payment request successful, TrackId: ' . $track_id);
+                
+                $this->logger->log(
+                    'ZIBAL_ADAPTER Payment request successful',
+                    array(
+                        'user_id'    => $user_id,
+                        'amount'     => $amount,
+                        'track_id'   => $track_id,
+                        'payment_url'=> $payment_url,
+                    )
+                );
                 
                 // ذخیره تراکنش در جدول pending مثل زرین‌پال
                 global $wpdb;
@@ -159,10 +210,35 @@ class AI_Zibal_Payment_Gateway implements AI_Payment_Gateway_Interface {
                         ),
                         array( '%d', '%d', '%s', '%s' )
                     );
-                    //error_log('🔵 [ZIBAL_ADAPTER] Pending payment saved: UserID=' . $user_id . ', Amount=' . $amount_int . ', TrackId=' . $track_id);
+                    
+                    $this->logger->log(
+                        'ZIBAL_ADAPTER Pending payment saved',
+                        array(
+                            'user_id'  => $user_id,
+                            'amount'   => $amount_int,
+                            'track_id' => $track_id,
+                            'table'    => $table_name,
+                        )
+                    );                    
                 } else {
-                    error_log('❌ [ZIBAL_ADAPTER] Pending payments table does not exist: ' . $table_name);
+                    $this->logger->log_error(
+                        'ZIBAL_ADAPTER Pending payments table does not exist',
+                        array(
+                            'user_id' => $user_id,
+                            'amount'  => $amount_int,
+                            'table'   => $table_name,
+                        )
+                    );
                 }
+                
+                $this->logger->log(
+                    'ZIBAL_ADAPTER Pending payment saved',
+                    [
+                        'user_id'  => $user_id,
+                        'amount'   => $amount_int,
+                        'track_id' => $track_id,
+                    ]
+                );
                 
                 return array(
                     'status'    => true,
@@ -172,9 +248,17 @@ class AI_Zibal_Payment_Gateway implements AI_Payment_Gateway_Interface {
                 );
 
             } else {
-                // خطای Zibal
-                $error_message = $response_data['message'] ?? 'Unknown error';
-                error_log('❌ [ZIBAL_ADAPTER] Zibal Error: ' . $error_message);
+                $error_message = isset( $response_data['message'] ) ? $response_data['message'] : 'Unknown error';
+
+                $this->logger->log_error(
+                    'ZIBAL_ADAPTER Zibal Error in request_payment',
+                    array(
+                        'user_id'       => $user_id,
+                        'amount'        => $amount,
+                        'response_data' => $response_data,
+                        'error'         => $error_message,
+                    )
+                );
 
                 return array(
                     'status'    => false,
@@ -185,7 +269,15 @@ class AI_Zibal_Payment_Gateway implements AI_Payment_Gateway_Interface {
             }
 
         } catch (Exception $e) {
-            error_log('❌ [ZIBAL_ADAPTER] Exception: ' . $e->getMessage());
+            $this->logger->log_error(
+                'ZIBAL_ADAPTER Exception in request_payment',
+                array(
+                    'user_id' => $user_id,
+                    'amount'  => $amount,
+                    'error'   => $e->getMessage(),
+                )
+            );
+            
             return array(
                 'status'    => false,
                 'url'       => '',
@@ -204,11 +296,26 @@ class AI_Zibal_Payment_Gateway implements AI_Payment_Gateway_Interface {
      * @return array نتیجه تأیید
      */
     public function verify_payment($authority, $amount) {
-        //error_log('🟣 [ZIBAL_ADAPTER] Verifying payment: TrackId=' . $authority . ', Amount=' . $amount);
 
+        $this->logger->log(
+            'ZIBAL_ADAPTER Verifying payment',
+            array(
+                'authority' => $authority,
+                'amount'    => $amount,
+                'merchant'  => $this->merchant,
+            )
+        );
+        
         // بررسی Merchant ID
         if (empty($this->merchant)) {
-            error_log('❌ [ZIBAL_ADAPTER] Merchant ID not configured');
+            $this->logger->log_error(
+                'ZIBAL_ADAPTER Merchant ID not configured in verify_payment',
+                array(
+                    'authority' => $authority,
+                    'amount'    => $amount,
+                )
+            );
+            
             return array(
                 'status'     => false,
                 'ref_id'     => '',
@@ -224,8 +331,15 @@ class AI_Zibal_Payment_Gateway implements AI_Payment_Gateway_Interface {
                 'trackId'  => (int)$authority,
             );
 
-            //error_log('🔵 [ZIBAL_ADAPTER] Verify Request Body: ' . json_encode($request_body));
-
+            $this->logger->log_debug(
+                'ZIBAL_ADAPTER Verify Request Body',
+                array(
+                    'authority'    => $authority,
+                    'amount'       => $amount,
+                    'request_body' => $request_body,
+                )
+            );
+            
             // ارسال درخواست تأیید
             $response = wp_remote_post($this->api_url . '/v1/verify', array(
                 'method'      => 'POST',
@@ -240,7 +354,16 @@ class AI_Zibal_Payment_Gateway implements AI_Payment_Gateway_Interface {
             // بررسی خطای HTTP
             if (is_wp_error($response)) {
                 $error_message = $response->get_error_message();
-                error_log('❌ [ZIBAL_ADAPTER] HTTP Error: ' . $error_message);
+
+                $this->logger->log_error(
+                    'ZIBAL_ADAPTER HTTP Error in verify_payment',
+                    array(
+                        'authority' => $authority,
+                        'amount'    => $amount,
+                        'error'     => $error_message,
+                    )
+                );
+                
                 return array(
                     'status'     => false,
                     'ref_id'     => '',
@@ -252,9 +375,17 @@ class AI_Zibal_Payment_Gateway implements AI_Payment_Gateway_Interface {
             // پارس کردن پاسخ
             $response_body = wp_remote_retrieve_body($response);
             $response_data = json_decode($response_body, true);
-
-            //error_log('🔵 [ZIBAL_ADAPTER] Verify Response: ' . $response_body);
-
+            
+            $this->logger->log_debug(
+                'ZIBAL_ADAPTER Verify Response',
+                array(
+                    'authority'     => $authority,
+                    'amount'        => $amount,
+                    'raw_response'  => $response_body,
+                    'response_data' => $response_data,
+                )
+            );
+            
             // بررسی نتیجه
             if (isset($response_data['result']) && $response_data['result'] == 100) {
                 $ref_number = $response_data['refNumber'] ?? '';
@@ -262,8 +393,16 @@ class AI_Zibal_Payment_Gateway implements AI_Payment_Gateway_Interface {
 
                 // وضعیت 1 = پرداخت شده و تایید شده
                 if ($status == 1) {
-                    //error_log('✅ [ZIBAL_ADAPTER] Payment verified successfully, RefNumber: ' . $ref_number);
-
+                    $this->logger->log(
+                        'ZIBAL_ADAPTER Payment verified successfully',
+                        array(
+                            'authority'  => $authority,
+                            'amount'     => $amount,
+                            'ref_number' => $ref_number,
+                            'status'     => $status,
+                        )
+                    );
+                    
                     return array(
                         'status'     => true,
                         'ref_id'     => $ref_number,
@@ -271,8 +410,14 @@ class AI_Zibal_Payment_Gateway implements AI_Payment_Gateway_Interface {
                         'gateway_id' => $this->get_gateway_id()
                     );
                 } else {
-                    //error_log('⚠️  [ZIBAL_ADAPTER] Payment status is not completed: ' . $status);
-
+                    $this->logger->log_warning(
+                        'ZIBAL_ADAPTER Payment status is not completed',
+                        array(
+                            'authority' => $authority,
+                            'amount'    => $amount,
+                            'status'    => $status,
+                        )
+                    );                    
                     return array(
                         'status'     => false,
                         'ref_id'     => '',
@@ -281,9 +426,19 @@ class AI_Zibal_Payment_Gateway implements AI_Payment_Gateway_Interface {
                     );
                 }
             } else {
-                // خطای Zibal
-                $error_message = $response_data['message'] ?? 'Unknown verification error';
-                error_log('❌ [ZIBAL_ADAPTER] Zibal Verification Error: ' . $error_message);
+
+                $error_message = isset( $response_data['message'] ) ? $response_data['message'] : 'Unknown verification error';
+    
+                $this->logger->log_error(
+                    'ZIBAL_ADAPTER Zibal Verification Error in verify_payment',
+                    array(
+                        'authority'     => $authority,
+                        'amount'        => $amount,
+                        'response_data' => $response_data,
+                        'error'         => $error_message,
+                    )
+                );
+
 
                 return array(
                     'status'     => false,
@@ -294,7 +449,15 @@ class AI_Zibal_Payment_Gateway implements AI_Payment_Gateway_Interface {
             }
 
         } catch (Exception $e) {
-            error_log('❌ [ZIBAL_ADAPTER] Exception: ' . $e->getMessage());
+            $this->logger->log_error(
+                'ZIBAL_ADAPTER Exception in verify_payment',
+                array(
+                    'authority' => $authority,
+                    'amount'    => $amount,
+                    'error'     => $e->getMessage(),
+                )
+            );
+            
             return array(
                 'status'     => false,
                 'ref_id'     => '',
