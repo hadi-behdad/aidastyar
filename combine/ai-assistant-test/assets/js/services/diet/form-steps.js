@@ -31,20 +31,34 @@ window.consultantsCache = window.consultantsCache || null;
 window.isFetchingConsultants = window.isFetchingConsultants || false;
 
 
-// 🔥 Helper Function برای خودکار navigation روند "none"
+window.autoNextTimeout = window.autoNextTimeout || null;
+
 window.setupAutoNavigateOnNoneCheckbox = function(checkboxId) {
     const checkbox = document.getElementById(checkboxId);
     if (!checkbox) return;
-    
-    checkbox.addEventListener('change', function() {
+
+    checkbox.addEventListener('change', function () {
+        // هر بار قبلی را لغو کن
+        if (autoNextTimeout) {
+            clearTimeout(autoNextTimeout);
+            autoNextTimeout = null;
+        }
+
         if (this.checked) {
-            // تاخیر برای انیمیشن
-            setTimeout(() => {
-                window.handleNextStep();
+            const stepAtSchedule = state.currentStep; // همین لحظه
+
+            autoNextTimeout = setTimeout(() => {
+                autoNextTimeout = null;
+
+                // فقط اگر هنوز در همان step هستیم، برو جلو
+                if (state.currentStep === stepAtSchedule) {
+                    window.handleNextStep();
+                }
             }, 300);
         }
     });
 };
+
 
 // ============================================
 // Menstrual Status - بدون CSS اضافی
@@ -588,6 +602,9 @@ window.setupDigestiveConditionsSelection = function(currentStep) {
 };
 
 window.setupDietStyleSelection = function(currentStep) {
+    // فعال‌کردن رفتن خودکار به مرحله بعد روی none
+    window.setupAutoNavigateOnNoneCheckbox('diet-style-none');
+
     setupComplexCheckboxSelection(currentStep, {
         noneCheckboxId: 'diet-style-none',
         dataKey: 'dietStyle',
@@ -597,6 +614,7 @@ window.setupDietStyleSelection = function(currentStep) {
         ]
     });
 };
+
 
 window.setupFoodLimitationsSelection = function(currentStep) {
     window.setupAutoNavigateOnNoneCheckbox('limitations-none');

@@ -478,7 +478,7 @@ $theme_assets = get_stylesheet_directory_uri();
             </label>
         </div>
         
-        <div class="separator-dotted"></div>
+        <div class="separator"></div>
         
         <div id="medications-selection" class="checkbox-selection-container checkbox-list-container scrollable-container">
             
