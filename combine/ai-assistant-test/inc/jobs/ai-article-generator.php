@@ -199,7 +199,125 @@ Pillar: {$pillar['title']}
         return $result;
     }
     
+    /**
+     * ===== UPDATE FEATURE: بروزرسانی مقالات قدیمی =====
+     */
+    private function get_article_for_update() {
+        $this->log('🔍 Finding old article for update...');
+        $posts = get_posts([
+            'post_type'   => 'post',
+            'post_status' => 'publish',
+            'numberposts' => 1,
+            'orderby'     => 'modified',
+            'order'       => 'ASC',
+            'date_query'  => [
+                [
+                    'before' => date('Y-m-d', strtotime('-45 days'))
+                ]
+            ]
+        ]);
+        if (empty($posts)) {
+            $this->log('⚠️ No old articles found for update');
+            return null;
+        }
+        return $posts[0];
+    }
     
+    private function update_article_content($post) {
+        $this->log('📝 Updating article: ' . $post->post_title);
+        $old_content = $post->post_content;
+        $old_title = $post->post_title;
+        
+        $pillar_key = get_post_meta($post->ID, '_pillar_key', true);
+        $primary_keyword = get_post_meta($post->ID, '_primary_keyword', true);
+        $current_content = mb_substr(
+            wp_strip_all_tags($old_content),
+            0,
+            3000
+        );
+                        
+        
+        // استخراج موضوع از عنوان
+        $topic = $old_title;
+        $prompt = "{$this->get_health_safety_preamble()}
+شما یک نویسنده محتوای پزشکی و تغذیه متخصص هستید.
+این مقاله قدیمی است و نیاز به بروزرسانی دارد:
+عنوان: {$old_title} 
+Pillar: {$pillar_key}
+Primary Keyword: {$primary_keyword}
+محتوای فعلی (خلاصه):
+{$current_content}
+ 
+لطفا این مقاله را بروزرسانی کن:
+- اطلاعات جدید اضافه کن
+- آمار و تحقیقات جدید شامل کن
+- ساختار و فرمت یکسان نگاه دار
+- حجم حدود 1500-2000 کلمه
+- عنوان را فقط در صورت بهبود جزئی SEO تغییر بده
+- ساختار کلی عنوان حفظ شود
+- کلمه کلیدی اصلی را تغییر نده
+** فرمت خروجی JSON بشکل زیر باشد و مطابق استاندارد جیسون با کروشه باز شروع و کروشه بسته تمام شود: **
+{
+  \"title\": \"عنوان (ممکن است تغییر کند)\",
+  \"meta_description\": \"توضیح 150-160 کاراکتری\",
+  \"content\": \"محتوای HTML بروزرسانی شده\"
+}
+**مهم: فقط JSON ارسال کن!**";
+        $response = $this->call_api($prompt, 0.5);
+        if (!$response) {
+            $this->log('❌ Failed to update article');
+            return null;
+        }
+        $result = json_decode($response, true);
+        if (!$result || !isset($result['content'])) {
+            $this->log('❌ Invalid update JSON: ' . json_last_error_msg());
+            return null;
+        }
+        $this->log('✅ Article updated: ' . substr($result['title'] ?? '', 0, 80));
+        return $result;
+    }
+    
+    private function apply_updated_article($post_id, $updated_article) {
+        $this->log('💾 Applying updates to post ' . $post_id);
+        $old_title = get_the_title($post_id);
+        $new_title = $updated_article['title'] ?? $old_title;
+        
+        if (mb_strlen($new_title) < 10) {
+            $new_title = $old_title;
+        }
+        
+        wp_update_post([
+            'ID'           => $post_id,
+            'post_title'   => $new_title,
+            'post_content' => $updated_article['content'] . $this->get_medical_disclaimer(),
+            'post_excerpt' => $updated_article['meta_description'] ?? ''
+        ]);
+
+        // بروزرسانی metadata
+        update_post_meta($post_id, '_seo_title', $updated_article['title'] ?? '');
+        update_post_meta($post_id, '_seo_description', $updated_article['meta_description'] ?? '');
+        update_post_meta($post_id, '_last_ai_update', current_time('mysql'));
+        $this->log('✅ Post updated: ' . $post_id);
+        
+        $pillar_key = get_post_meta($post_id, '_pillar_key', true);
+        $pillar = null;
+        
+        foreach ($this->pillars as $p) {
+            if ($p['key'] === $pillar_key) {
+                $pillar = $p;
+                break;
+            }
+        }
+        
+        if ($pillar) {
+            $this->add_strategic_internal_links($post_id, $pillar);
+            $this->add_pillar_specific_cta($post_id, $pillar);
+        }
+
+
+    }
+    
+    // ===== ORIGINAL FEATURES (NO CHANGES) =====    
     
 
     private function add_article_categories($post_id, $pillar) {
@@ -285,14 +403,23 @@ Pillar: {$pillar['title']}
         return true;
     }
 
-    private function add_schema_markup($post_id, $article) {
+    private function add_schema_markup($post_id, $article) {  
+        
+        $date_published = get_the_date('c', $post_id);
+
         $schema = [
             '@context'      => 'https://schema.org',
-            '@type'         => 'MedicalWebPage',
+            '@type' => 'Article',
+            'about' => 'Nutrition and Health',
+            'audience' => [
+                '@type' => 'Audience',
+                'audienceType' => 'General Public'
+            ],
             'headline'      => $article['title'] ?? '',
             'description'   => $article['meta_description'] ?? '',
-            'datePublished' => current_time('c'),
+            'datePublished' => $date_published,
             'dateModified'  => current_time('c'),
+
         ];
         update_post_meta($post_id, '_schema_markup_json_ld', wp_json_encode($schema));
         $this->log('✅ Schema added');
@@ -350,7 +477,7 @@ Pillar: {$pillar['title']}
 
         $this->log('🌐 API call (temp: ' . $temperature . ')');
 
-        $max_tokens = 3000;
+        $max_tokens = 6000;
 
         $args = [
             'headers' => [
@@ -366,7 +493,7 @@ Pillar: {$pillar['title']}
                 'temperature' => $temperature,
                 'max_tokens'  => $max_tokens
             ]),
-            'timeout'  => 240,
+            'timeout'  => 300,
             'sslverify' => true
 
         ];
@@ -411,49 +538,75 @@ Pillar: {$pillar['title']}
         $raw_content = $decoded['choices'][0]['message']['content'];
         $this->log('📥 Raw content length: ' . strlen($raw_content) . ' bytes');
 
-        $response =  $this->extract_json_from_response($raw_content);
+
+        // ⛔ Detect truncated JSON
+        if (substr_count($raw_content, '{') > substr_count($raw_content, '}')) {
+            $this->log('⚠️ Truncated JSON detected — retrying with higher token limit');
+            return null;
+        }
+  
+     //   $response =  $this->extract_json_from_response($raw_content);
         
-        
-        return $this->clean_api_response($response);        
+    //    return $this->clean_api_response($response);        
+    
+          return $this->extract_json_from_response($raw_content); 
     }
 
-    private function extract_json_from_response($raw_response) {
-        $clean = $raw_response;
-        
-        // حذف backticks
-        $clean = preg_replace('/```json\s*/i', '', $clean);
-        $clean = preg_replace('/```\s*/i', '', $clean);
-        $clean = preg_replace('/\s*```\s*/i', '', $clean);
-        $clean = trim($clean);
+private function extract_json_from_response($raw_response) {
 
-        // پیدا کردن { و }
-        $open_brace = strpos($clean, '{');
-        $close_brace = strrpos($clean, '}');
+    if (empty($raw_response) || !is_string($raw_response)) {
+        $this->log('❌ Empty or invalid raw response');
+        return null;
+    }
 
-        if ($open_brace === false || $close_brace === false || $close_brace <= $open_brace) {
+    $text = $raw_response;
+
+    // 1️⃣ حذف BOM
+    $text = preg_replace('/^\xEF\xBB\xBF/', '', $text);
+
+    // 2️⃣ اگر داخل ```json ``` بود، فقط همون رو بکش بیرون
+    if (preg_match('/```json\s*(\{[\s\S]*?\})\s*```/i', $text, $m)) {
+        $json_string = trim($m[1]);
+    }
+    // 3️⃣ اگر ```json نبود ولی ``` بود
+    elseif (preg_match('/```\s*(\{[\s\S]*?\})\s*```/i', $text, $m)) {
+        $json_string = trim($m[1]);
+    }
+    // 4️⃣ fallback نهایی: از اولین { تا آخرین }
+    else {
+        $start = strpos($text, '{');
+        $end   = strrpos($text, '}');
+
+        if ($start === false || $end === false || $end <= $start) {
             $this->log('❌ No JSON boundaries found');
             $this->log('🔍 First 500 chars: ' . substr($raw_response, 0, 500));
             return null;
         }
 
-        $json_string = substr($clean, $open_brace, $close_brace - $open_brace + 1);
-        $json_string = trim($json_string);
-
-        $decoded = json_decode($json_string, true);
-        
-        if (json_last_error() !== JSON_ERROR_NONE) {
-            $this->log('❌ JSON Decode Error: ' . json_last_error_msg());
-            return null;
-        }
-
-        if (!isset($decoded['title']) || !isset($decoded['meta_description']) || !isset($decoded['content'])) {
-            $this->log('❌ Missing required fields: ' . implode(', ', array_keys($decoded)));
-            return null;
-        }
-
-        $this->log('✅ JSON extracted (' . strlen($json_string) . ' bytes)');
-        return $json_string;
+        $json_string = substr($text, $start, $end - $start + 1);
     }
+
+    // 5️⃣ decode
+    $decoded = json_decode($json_string, true);
+
+    if (json_last_error() !== JSON_ERROR_NONE) {
+        $this->log('❌ JSON Decode Error: ' . json_last_error_msg());
+        $this->log('🔍 JSON preview: ' . substr($json_string, 0, 300));
+        return null;
+    }
+
+    // 6️⃣ validate fields
+    foreach (['title', 'meta_description', 'content'] as $field) {
+        if (!isset($decoded[$field])) {
+            $this->log('❌ Missing required field: ' . $field);
+            return null;
+        }
+    }
+
+    $this->log('✅ JSON extracted successfully (' . strlen($json_string) . ' bytes)');
+    return $json_string;
+}
+
     
     
     /**
@@ -486,6 +639,15 @@ Pillar: {$pillar['title']}
         error_log("[$ts] $message");
         @file_put_contents($this->generation_log_file, "[$ts] $message\n", FILE_APPEND);
     }
+    
+    
+    /**
+     * ===== DECISION LAYER: 30% UPDATE / 70% CREATE =====
+     */
+    private function decide_job_type() {
+        return (rand(1, 100) <= 30) ? 'update' : 'create';
+     
+    }    
 
     public function handle() {
         ignore_user_abort(true);
@@ -510,13 +672,45 @@ Pillar: {$pillar['title']}
         update_option($this->lock_key, time());
 
         try {
-            $this->generate_full_article_process();
+            $job_type = $this->decide_job_type();
+            
+            if ($job_type === 'update') {
+                $this->update_old_article_process();
+            } else {
+                $this->generate_full_article_process();
+            }
         } catch (Exception $e) {
             $this->log('❌ Exception: ' . substr($e->getMessage(), 0, 200));
         } finally {
             delete_option($this->lock_key);
         }
     }
+    
+    
+    /**
+     * ===== UPDATE PROCESS (30%) =====
+     */
+    private function update_old_article_process() {
+        $this->log('♻️ UPDATE MODE - Refreshing old article');
+
+        $post = $this->get_article_for_update();
+        if (!$post) {
+            $this->log('ℹ️ No old article found for update');
+            return;
+        }
+
+        $updated_article = $this->update_article_content($post);
+        if (!$updated_article) {
+            return;
+        }
+
+        $this->apply_updated_article($post->ID, $updated_article);
+        $this->log('✅ UPDATE COMPLETE! ' . get_permalink($post->ID));
+    }   
+    
+    /**
+     * ===== CREATE PROCESS (70%) =====
+     */    
 
     private function generate_full_article_process() {
         $this->log('🚀 Start v5.2 - Production Ready');
@@ -565,7 +759,7 @@ Pillar: {$pillar['title']}
         $post_id = wp_insert_post([
             'post_title'   => $article['title'],
             'post_content' => $article['content'],
-            'post_status'  => 'draft',
+            'post_status'  => 'publish',
             'post_type'    => 'post',
             'post_excerpt' => $article['meta_description'] ?? ''
         ]);
