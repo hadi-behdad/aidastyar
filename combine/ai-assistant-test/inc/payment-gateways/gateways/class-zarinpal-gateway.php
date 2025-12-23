@@ -84,8 +84,13 @@ class AI_ZarinPal_Payment_Gateway implements AI_Payment_Gateway_Interface {
                 )
             );
 
-            // استفاده از متد موجود
-            $result = $this->zarinpal_handler->connect_to_zarinpal( $amount );
+            // مبلغ در کل سیستم بر حسب تومان است؛ زرین‌پال ریال می‌خواهد
+            $amount_toman = (int) $amount;
+            $amount_rial  = $amount_toman * 10;
+            
+            // استفاده از متد موجود با مبلغ ریالی
+            $result = $this->zarinpal_handler->connect_to_zarinpal( $amount_rial );
+
 
             // 3) لاگ نتیجه خام
             $this->logger->log_debug(

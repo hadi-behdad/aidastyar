@@ -54,13 +54,18 @@ class AI_Zibal_Payment_Gateway implements AI_Payment_Gateway_Interface {
      */
     public function request_payment($user_id, $amount, $return_url, $extra_data = array()) {
         
+        // مبلغ در سیستم شما به تومان است؛ زیبال بر حسب ریال می‌خواهد
+        $amount_toman = (int) $amount;
+        $amount_rial  = $amount_toman * 10;
+        
         $this->logger->log(
             'ZIBAL_ADAPTER Requesting payment',
-            [
-                'user_id'  => $user_id,
-                'amount'   => $amount,
-                'merchant' => $this->merchant,
-            ]
+            array(
+                'user_id'     => $user_id,
+                'amount_toman'=> $amount_toman,
+                'amount_rial' => $amount_rial,
+                'merchant'    => $this->merchant,
+            )
         );
 
         // بررسی Merchant ID
@@ -89,7 +94,7 @@ class AI_Zibal_Payment_Gateway implements AI_Payment_Gateway_Interface {
             
             $request_body = array(
                 'merchant'    => $this->merchant,
-                'amount'      => (int)$amount,
+                'amount'      => (int) $amount_rial,  
                 'callbackUrl' => $callback_url,
                 'description' => 'شارژ کیف پول',
                 'orderId'     => 'wallet_' . $user_id . '_' . time()
@@ -103,11 +108,12 @@ class AI_Zibal_Payment_Gateway implements AI_Payment_Gateway_Interface {
             
             $this->logger->log_debug(
                 'ZIBAL_ADAPTER Request Body',
-                [
+                array(
                     'user_id'      => $user_id,
-                    'amount'       => $amount,
+                    'amount_toman' => $amount_toman,
+                    'amount_rial'  => $amount_rial,
                     'request_body' => $request_body,
-                ]
+                )
             );
             
             // ارسال درخواست
@@ -196,7 +202,7 @@ class AI_Zibal_Payment_Gateway implements AI_Payment_Gateway_Interface {
                 global $wpdb;
                 $table_name = $wpdb->prefix . 'wallet_pending_payments';
                 
-                $amount_int = (int) $amount; // مبلغ به همان فرمتی که در زرین‌پال ذخیره می‌شود
+                $amount_int = (int) $amount_rial;
                 
                 // اطمینان از وجود جدول (در صورت نیاز، ولی چون قبلاً برای زرین‌پال ساخته شده، معمولاً وجود دارد)
                 if ( $wpdb->get_var( $wpdb->prepare( "SHOW TABLES LIKE %s", $table_name ) ) == $table_name ) {
