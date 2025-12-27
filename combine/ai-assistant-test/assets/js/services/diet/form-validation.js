@@ -40,6 +40,19 @@ window.validateStep = function(step) {
         }
     };
     
+    if (step === STEPS.TARGET_WEIGHT) {
+        const toggle = document.getElementById('enable-target-weight');
+        if (toggle && !toggle.checked) {
+            const errorElement = document.getElementById('targetWeight-error');
+            if (errorElement) {
+                errorElement.textContent = '';
+                errorElement.classList.remove('valid');
+            }
+            if (nextButton) nextButton.disabled = false;
+            return true; // استپ معتبر در نظر گرفته شود
+        }
+    }    
+    
     if (step === STEPS.HEIGHT_WEIGHT) 
         return validateHeightWeight();    
         

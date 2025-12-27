@@ -848,6 +848,57 @@ window.setupHeightWeightInput = function(currentStep) {
     validateHeightWeight();
 };
 
+window.setupTargetWeightToggle = function () {
+    const toggle    = document.getElementById('enable-target-weight');
+    const container = document.querySelector('.target-weight-container');
+    const input     = document.getElementById('target-weight-input');
+    const display   = document.getElementById('target-weight-display');
+    const nextButton = document.querySelector('.next-step');
+    if (!toggle || !container || !input || !nextButton || !display) return;
+
+    const originalDisplayText = display.dataset.originalText || display.textContent;
+
+    const resetTargetWeight = () => {
+        input.value = '';
+        display.textContent = originalDisplayText;
+        display.style.color = 'var(--light-text-color)';
+        if (window.state && window.state.updateFormData) {
+            window.state.updateFormData('targetWeight', null);
+        }
+    };
+
+    const updateState = () => {
+        if (toggle.checked) { // ON
+            container.classList.remove('disabled');
+            input.disabled = false;
+
+            if (input.value.trim().length === 0) {
+                nextButton.disabled = false;
+            } else {
+                nextButton.disabled = true;
+            }
+
+            // این را اضافه کن: فوکوس اتومات روی input
+            setTimeout(() => {
+                input.focus();
+                // اگر خواستی کرسر برود آخر مقدار:
+                const len = input.value.length;
+                try {
+                    input.setSelectionRange(len, len);
+                } catch (e) {}
+            }, 50);
+        } else {              // OFF
+            container.classList.add('disabled');
+            input.disabled = true;
+            resetTargetWeight();
+            nextButton.disabled = false;
+        }
+    };
+
+    toggle.addEventListener('change', updateState);
+    updateState();
+};
+
 
 window.showStep = function(step) {
 
@@ -919,17 +970,14 @@ window.showStep = function(step) {
     }
     
     // فوکوس خودکار برای input های خاص
-    if ([window.STEPS.PERSONAL_INFO, window.STEPS.TARGET_WEIGHT].includes(step)) {
+    if ([window.STEPS.PERSONAL_INFO].includes(step)) {
         setTimeout(() => {
             let inputElement = null;
             
             if (step === window.STEPS.PERSONAL_INFO) {
                 // فوکوس روی first-name-input
                 inputElement = document.getElementById('full-name-input');
-            } else if (step === window.STEPS.TARGET_WEIGHT) {
-                // فوکوس روی target-weight-input
-                inputElement = document.getElementById('target-weight-input');
-            }
+            } 
             
             if (inputElement) {
                 inputElement.focus();
@@ -951,6 +999,9 @@ window.showStep = function(step) {
     if (step === window.STEPS.HEIGHT_WEIGHT) {
         setupHeightWeightInput(step);
         document.getElementById('next-button-container').style.display = 'block';
+    }
+    else if (step === window.STEPS.TARGET_WEIGHT) {
+        setupTargetWeightToggle();
     }
     else if (step === window.STEPS.WATER_INTAKE) {
         setupWaterIntakeSelection(step);
@@ -1071,15 +1122,9 @@ window.handleNextStep = function() {
     }
 }
 
-// window.handleBackStep = function() {
-//     if (state.currentStep > 1) navigateToStep(state.currentStep - 1);
-// }
-
 window.handleEnterKey = function(event) {
     // فقط در مراحل عددی (سن، قد، وزن، وزن هدف) و مرحله نهایی اجازه کار با Enter را بده
     const allowedSteps = [
-        window.STEPS.HEIGHT_WEIGHT,
-        window.STEPS.TARGET_WEIGHT,
         window.STEPS.PERSONAL_INFO,
         window.STEPS.CONFIRMATION
     ];
@@ -1087,7 +1132,7 @@ window.handleEnterKey = function(event) {
     if (event.key === "Enter" && 
         allowedSteps.includes(state.currentStep) && 
         (event.target.matches("input[type='text']") || state.currentStep === window.STEPS.CONFIRMATION)) {
-        
+        console.log('handleEnterKey: ' + state.currentStep);
         // جلوگیری از رفتار پیش‌فرض Enter
         event.preventDefault();
         

@@ -256,27 +256,44 @@ $theme_assets = get_stylesheet_directory_uri();
         </div>
     </div>
 
-    <!-- Step 6: Target Weight -->
     <div id="target-weight-step" class="step">
-        <h2>وزن هدف شما چقدر است؟</h2>
-        <div class="input-container">
-            <input type="text" inputmode="numeric" id="target-weight-input">
-            <span id="target-weight-display">وزن هدف شما</span>
+        <h2>وزن هدف</h2>
+    
+        <div class="target-weight-toggle">
+            <label class="toggle-label">
+                <input type="checkbox" id="enable-target-weight" class="real-checkbox">
+                <span class="toggle-slider"></span>
+                <span class="toggle-text">می‌خواهم خودم وزن هدف را مشخص کنم</span>
+            </label>
         </div>
+    
+        <div class="input-container target-weight-container disabled">
+            <input
+                type="text"
+                inputmode="numeric"
+                id="target-weight-input"
+                disabled
+            >
+            <span id="target-weight-display">وزن هدف (اختیاری)</span>
+        </div>
+    
         <div id="target-weight-validation-container">
             <p id="targetWeight-error" class="error-message"></p>
-            <div class="separator-dotted"></div>
-            <div class="info-box">
-                <div class="info-content">
-                    <img src="<?php echo $theme_assets; ?>/assets/images/png/gain-weight-min.png" width="30" height="30" alt="وزن هدف">
-                    <div class="info-text">
-                        <span class="first-line">وزن هدف شما را می‌پرسیم تا برنامه مناسب برای رسیدن به آن را طراحی کنیم.</span>
-                        <span class="second-line">لطفاً وزن واقع‌بینانه‌ای را وارد کنید که با قد و ساختار بدنی شما تناسب داشته باشد</span>
-                    </div>
+        </div>
+    
+        <div class="separator-dotted"></div>
+    
+        <div class="info-box">
+            <div class="info-content">
+                <img src="<?php echo $theme_assets; ?>/assets/images/png/gain-weight-min.png" width="30" height="30" alt="">
+                <div class="info-text">
+                    <span class="first-line">اگر مطمئن نیستید، این قسمت را خالی بگذارید</span>
+                    <span class="second-line">Aidastyar با توجه به قد، وزن و هدف شما، وزن هدف منطقی را پیشنهاد می‌دهد</span>
                 </div>
             </div>
         </div>
     </div>
+
 
     <!-- Step 9: Chronic Conditions (بیماری‌های مزمن اصلی) -->
     <div id="chronic-conditions-step" class="step checkbox-step-container">
