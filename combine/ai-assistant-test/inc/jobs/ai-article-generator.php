@@ -425,15 +425,107 @@ Primary Keyword: {$primary_keyword}
         $this->log('✅ Schema added');
     }
 
-    private function add_seo_metadata($post_id, $article, $pillar, $cluster_topic) {
-        update_post_meta($post_id, '_seo_title', $article['title'] ?? '');
-        update_post_meta($post_id, '_seo_description', $article['meta_description'] ?? '');
-        update_post_meta($post_id, '_seo_meta_description', $article['meta_description'] ?? '');
-        update_post_meta($post_id, '_primary_keyword', $cluster_topic['primary_keyword'] ?? '');
-        update_post_meta($post_id, '_pillar_key', $pillar['key']);
-        update_post_meta($post_id, '_cluster_category', $cluster_topic['cluster_category'] ?? '');
-        $this->log('✅ Metadata added');
+    private function add_seo_metadata($post_id, $article, $primary_keyword) {
+    
+        // 1. ذخیره هسته SEO (fallback دائمی)
+        $this->save_core_seo_meta($post_id, $article, $primary_keyword);
+    
+        // 2. Sync خودکار با پلاگین فعال
+        $this->sync_seo_to_active_plugin($post_id);
+    
+        // 3. SEO Audit خودکار
+        $this->run_seo_audit($post_id);
+    
+        error_log('✅ SEO pipeline completed for post ' . $post_id);
     }
+    
+    
+    private function save_core_seo_meta($post_id, $article, $primary_keyword) {
+    
+        update_post_meta($post_id, '_seo_title', trim($article['title']));
+        update_post_meta($post_id, '_seo_description', trim($article['meta_description']));
+        update_post_meta($post_id, '_primary_keyword', $primary_keyword);
+    
+        // برای AI و تحلیل داخلی (نه SEO کلاسیک)
+        if (!empty($article['keywords'])) {
+            update_post_meta($post_id, '_ai_keywords', $article['keywords']);
+        }
+    
+        if (!empty($article['lsi_keywords'])) {
+            update_post_meta($post_id, '_ai_lsi_keywords', $article['lsi_keywords']);
+        }
+    }
+    
+    private function sync_seo_to_active_plugin($post_id) {
+    
+        $title = get_post_meta($post_id, '_seo_title', true);
+        $desc  = get_post_meta($post_id, '_seo_description', true);
+        $focus = get_post_meta($post_id, '_primary_keyword', true);
+    
+        // Yoast SEO
+        if (defined('WPSEO_VERSION')) {
+            update_post_meta($post_id, '_yoast_wpseo_title', $title);
+            update_post_meta($post_id, '_yoast_wpseo_metadesc', $desc);
+            update_post_meta($post_id, '_yoast_wpseo_focuskw', $focus);
+            return;
+        }
+    
+        // Rank Math
+        if (defined('RANK_MATH_VERSION')) {
+            update_post_meta($post_id, 'rank_math_title', $title);
+            update_post_meta($post_id, 'rank_math_description', $desc);
+            update_post_meta($post_id, 'rank_math_focus_keyword', $focus);
+            return;
+        }
+    
+        // All in One SEO
+        if (defined('AIOSEO_VERSION')) {
+            update_post_meta($post_id, '_aioseo_title', $title);
+            update_post_meta($post_id, '_aioseo_description', $desc);
+            return;
+        }
+    
+        // اگر هیچ پلاگینی فعال نبود
+        error_log('ℹ️ No SEO plugin detected – using fallback meta only');
+    }
+       
+       
+    private function run_seo_audit($post_id) {
+    
+        $title = get_post_meta($post_id, '_seo_title', true);
+        $desc  = get_post_meta($post_id, '_seo_description', true);
+        $focus = get_post_meta($post_id, '_primary_keyword', true);
+        $content = get_post_field('post_content', $post_id);
+    
+        $issues = [];
+    
+        if (mb_strlen($title) < 30 || mb_strlen($title) > 60) {
+            $issues[] = 'Title length not optimal';
+        }
+    
+        if (mb_strlen($desc) < 70 || mb_strlen($desc) > 160) {
+            $issues[] = 'Meta description length not optimal';
+        }
+    
+        if ($focus && substr_count(mb_strtolower($content), mb_strtolower($focus)) < 2) {
+            $issues[] = 'Primary keyword usage is low';
+        }
+    
+        update_post_meta($post_id, '_seo_audit', [
+            'status' => empty($issues) ? 'pass' : 'warning',
+            'issues' => $issues,
+            'checked_at' => current_time('mysql')
+        ]);
+    
+        if (!empty($issues)) {
+            error_log('⚠️ SEO Audit warnings for post ' . $post_id . ': ' . implode(' | ', $issues));
+        } else {
+            error_log('✅ SEO Audit passed for post ' . $post_id);
+        }
+    }
+            
+        
+
 
     private function add_pillar_specific_cta($post_id, $pillar) {
         update_post_meta($post_id, '_cta_text', $pillar['cta_text'] ?? '');
@@ -645,6 +737,25 @@ private function extract_json_from_response($raw_response) {
      * ===== DECISION LAYER: 30% UPDATE / 70% CREATE =====
      */
     private function decide_job_type() {
+        
+        
+        $posts = get_posts([
+            'post_type'   => 'post',
+            'post_status' => 'publish',
+            'numberposts' => 1,
+            'orderby'     => 'modified',
+            'order'       => 'ASC',
+            'date_query'  => [
+                [
+                    'before' => date('Y-m-d', strtotime('-45 days'))
+                ]
+            ]
+        ]);
+        if (empty($posts)) {
+            $this->log('⚠️ No old articles found for update');
+            return 'create';
+        }
+        
         return (rand(1, 100) <= 30) ? 'update' : 'create';
      
     }    
@@ -763,6 +874,9 @@ private function extract_json_from_response($raw_response) {
             'post_type'    => 'post',
             'post_excerpt' => $article['meta_description'] ?? ''
         ]);
+        
+        update_post_meta($post_id, '_pillar_key', $selected_pillar['key']);
+
 
         if (is_wp_error($post_id)) {
             $this->log('❌ Post error: ' . $post_id->get_error_message());
@@ -771,7 +885,11 @@ private function extract_json_from_response($raw_response) {
 
         $this->log('📄 Post ID: ' . $post_id);
 
-        $this->add_seo_metadata($post_id, $article, $selected_pillar, $cluster);
+        $this->add_seo_metadata(
+            $post_id,
+            $article,
+            $cluster['primary_keyword']
+        );
         $this->add_schema_markup($post_id, $article);
         $this->add_pillar_specific_cta($post_id, $selected_pillar);
         $this->add_article_categories($post_id, $selected_pillar);
