@@ -77,121 +77,168 @@ document.addEventListener('DOMContentLoaded', () => {
     setupScrollIndicator('medications-selection');
 });
 
+/**
+ * تابع جدید: Refresh کردن nonce
+ * وقتی nonce منقضی شده، این تابع یک nonce جدید از سرور می‌گیره
+ */
+async function refreshNonce() {
+    const response = await fetch(aiAssistantVars.ajaxurl, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: new URLSearchParams({
+            action: 'refresh_ajax_nonce'
+        })
+    });
+    
+    const data = await response.json();
+    if (data.success && data.data.nonce) {
+        aiAssistantVars.nonce = data.data.nonce;
+        console.log('✅ Nonce با موفقیت refresh شد');
+    } else {
+        throw new Error('نتوانستیم nonce جدید دریافت کنیم');
+    }
+}
+
+/**
+ * تابع جدید: انجام عملیات اصلی بارگذاری قیمت‌ها
+ * این تابع منطق اصلی دریافت قیمت‌ها رو داره
+ */
+async function performLoadServicePrices() {
+    // دریافت قیمت با تخفیف برای سرویس ai-only
+    const aiOnlyResponse = await fetch(aiAssistantVars.ajaxurl, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: new URLSearchParams({
+            action: 'get_service_price_with_discount',
+            service_id: 'diet',
+            include_consultant_fee: '0',
+            consultant_fee: '0',
+            nonce: aiAssistantVars.nonce
+        })
+    });
+
+    const aiOnlyData = await aiOnlyResponse.json();
+    if (!aiOnlyData.success) {
+        throw new Error(aiOnlyData.data?.message || 'خطا در دریافت قیمت');
+    }
+
+    // دریافت هزینه مشاور از endpoint قبلی
+    const consultantResponse = await fetch(aiAssistantVars.ajaxurl, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: new URLSearchParams({
+            action: 'get_diet_service_prices',
+            security: aiAssistantVars.nonce
+        })
+    });
+
+    const consultantData = await consultantResponse.json();
+    if (!consultantData.success) {
+        throw new Error(consultantData.data?.message || 'خطا در دریافت قیمت مشاور');
+    }
+
+    const aiOnlyFinalPrice = aiOnlyData.data.final_price;
+    const aiOnlyOriginalPrice = aiOnlyData.data.original_price;
+    const hasAiOnlyDiscount = aiOnlyData.data.has_discount;
+    const consultantFee = consultantData.data.consultant_price;
+
+    // نمایش قیمت ai-only با تخفیف
+    const aiOnlyPriceElement = document.getElementById('ai-only-price');
+    if (aiOnlyPriceElement) {
+        if (hasAiOnlyDiscount) {
+            aiOnlyPriceElement.innerHTML = `
+                <span style="text-decoration: line-through; color: #999; font-size: 0.9em; margin-left: 8px;">
+                    ${new Intl.NumberFormat('fa-IR').format(aiOnlyOriginalPrice)}
+                </span>
+                <span style="color: #00857a; font-weight: bold;">
+                    ${new Intl.NumberFormat('fa-IR').format(aiOnlyFinalPrice)}
+                </span>
+            `;
+        } else {
+            aiOnlyPriceElement.textContent = new Intl.NumberFormat('fa-IR').format(aiOnlyFinalPrice);
+        }
+    }
+
+    // نمایش قیمت with-specialist با تخفیف
+    const specialistPriceElement = document.getElementById('with-specialist-price');
+    if (specialistPriceElement) {
+        const specialistFinalPrice = aiOnlyFinalPrice + consultantFee;
+        const specialistOriginalPrice = aiOnlyOriginalPrice + consultantFee;
+
+        if (hasAiOnlyDiscount) {
+            specialistPriceElement.innerHTML = `
+                <span style="text-decoration: line-through; color: #999; font-size: 0.9em; margin-left: 8px;">
+                    ${new Intl.NumberFormat('fa-IR').format(specialistOriginalPrice)}
+                </span>
+                <span style="color: #00857a; font-weight: bold;">
+                    ${new Intl.NumberFormat('fa-IR').format(specialistFinalPrice)}
+                </span>
+            `;
+        } else {
+            specialistPriceElement.textContent = new Intl.NumberFormat('fa-IR').format(specialistFinalPrice);
+        }
+    }
+
+    // ذخیره در state
+    if (window.state && window.state.formData) {
+        window.state.formData.servicePrices = {
+            aiOnly: aiOnlyFinalPrice,
+            aiOnlyOriginal: aiOnlyOriginalPrice,
+            consultantFee: consultantFee,
+            withSpecialist: aiOnlyFinalPrice + consultantFee,
+            withSpecialistOriginal: aiOnlyOriginalPrice + consultantFee,
+            hasDiscount: hasAiOnlyDiscount,
+            loaded: true,
+            error: false
+        };
+        
+        console.log('✅ قیمت‌ها با تخفیف بارگذاری شد:', {
+            aiOnlyFinal: aiOnlyFinalPrice,
+            aiOnlyOriginal: aiOnlyOriginalPrice,
+            hasDiscount: hasAiOnlyDiscount,
+            consultantFee: consultantFee
+        });
+    }
+}
+
+/**
+ * تابع اصلاح شده: بارگذاری قیمت‌های سرویس
+ * تغییرات: اضافه شدن منطق retry با nonce جدید در صورت خطا
+ */
 async function loadServicePrices() {
     try {
-        // دریافت قیمت با تخفیف برای سرویس ai-only
-        const aiOnlyResponse = await fetch(aiAssistantVars.ajaxurl, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/x-www-form-urlencoded',
-            },
-            body: new URLSearchParams({
-                action: 'get_service_price_with_discount',
-                service_id: 'diet', // یا ID مربوط به ai-only
-                include_consultant_fee: '0',
-                consultant_fee: '0',
-                nonce: aiAssistantVars.nonce
-            })
-        });
-
-        const aiOnlyData = await aiOnlyResponse.json();
-        
-        if (!aiOnlyData.success) {
-            throw new Error(aiOnlyData.data?.message || 'خطا در دریافت قیمت');
-        }
-
-        // دریافت هزینه مشاور از endpoint قبلی
-        const consultantResponse = await fetch(aiAssistantVars.ajaxurl, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/x-www-form-urlencoded',
-            },
-            body: new URLSearchParams({
-                action: 'get_diet_service_prices',
-                security: aiAssistantVars.nonce
-            })
-        });
-
-        const consultantData = await consultantResponse.json();
-        
-        if (!consultantData.success) {
-            throw new Error(consultantData.data?.message || 'خطا در دریافت قیمت مشاور');
-        }
-
-        const aiOnlyFinalPrice = aiOnlyData.data.final_price;
-        const aiOnlyOriginalPrice = aiOnlyData.data.original_price;
-        const hasAiOnlyDiscount = aiOnlyData.data.has_discount;
-        const consultantFee = consultantData.data.consultant_price;
-
-        // نمایش قیمت ai-only با تخفیف
-        const aiOnlyPriceElement = document.getElementById('ai-only-price');
-        if (aiOnlyPriceElement) {
-            if (hasAiOnlyDiscount) {
-                aiOnlyPriceElement.innerHTML = `
-                    <span style="text-decoration: line-through; color: #999; font-size: 0.9em; margin-left: 8px;">
-                        ${new Intl.NumberFormat('fa-IR').format(aiOnlyOriginalPrice)}
-                    </span>
-                    <span style="color: #00857a; font-weight: bold;">
-                        ${new Intl.NumberFormat('fa-IR').format(aiOnlyFinalPrice)}
-                    </span>
-                `;
-            } else {
-                aiOnlyPriceElement.textContent = new Intl.NumberFormat('fa-IR').format(aiOnlyFinalPrice);
-            }
-        }
-
-        // نمایش قیمت with-specialist با تخفیف
-        const specialistPriceElement = document.getElementById('with-specialist-price');
-        if (specialistPriceElement) {
-            const specialistFinalPrice = aiOnlyFinalPrice + consultantFee;
-            const specialistOriginalPrice = aiOnlyOriginalPrice + consultantFee;
-            
-            if (hasAiOnlyDiscount) {
-                specialistPriceElement.innerHTML = `
-                    <span style="text-decoration: line-through; color: #999; font-size: 0.9em; margin-left: 8px;">
-                        ${new Intl.NumberFormat('fa-IR').format(specialistOriginalPrice)}
-                    </span>
-                    <span style="color: #00857a; font-weight: bold;">
-                        ${new Intl.NumberFormat('fa-IR').format(specialistFinalPrice)}
-                    </span>
-                `;
-            } else {
-                specialistPriceElement.textContent = new Intl.NumberFormat('fa-IR').format(specialistFinalPrice);
-            }
-        }
-
-        // ذخیره در state
-        if (window.state && window.state.formData) {
-            window.state.formData.servicePrices = {
-                aiOnly: aiOnlyFinalPrice,
-                aiOnlyOriginal: aiOnlyOriginalPrice,
-                consultantFee: consultantFee,
-                withSpecialist: aiOnlyFinalPrice + consultantFee,
-                withSpecialistOriginal: aiOnlyOriginalPrice + consultantFee,
-                hasDiscount: hasAiOnlyDiscount,
-                loaded: true,
-                error: false
-            };
-
-            console.log('قیمت‌ها با تخفیف بارگذاری شد:', {
-                aiOnlyFinal: aiOnlyFinalPrice,
-                aiOnlyOriginal: aiOnlyOriginalPrice,
-                hasDiscount: hasAiOnlyDiscount,
-                consultantFee: consultantFee
-            });
-        }
-
+        // تلاش اول برای بارگذاری قیمت‌ها
+        await performLoadServicePrices();
     } catch (error) {
-        console.error('خطا در بارگذاری قیمت‌های سرویس:', error);
+        console.error('❌ خطا در بارگذاری قیمت‌های سرویس:', error);
         
-        const errorMessage = 'خطا در دریافت قیمت‌ها';
+        // اگر خطای nonce بود، یکبار دیگه با nonce جدید تلاش کن
+        if (error.message && error.message.includes('Nonce verification failed')) {
+            console.log('🔄 تلاش برای refresh کردن nonce...');
+            try {
+                await refreshNonce();
+                await performLoadServicePrices();
+                console.log('✅ قیمت‌ها با nonce جدید بارگذاری شد');
+                return; // موفقیت‌آمیز بود، خارج شو
+            } catch (retryError) {
+                console.error('❌ خطا بعد از refresh nonce:', retryError);
+            }
+        }
         
+        // نمایش خطا به کاربر
+        const errorMessage = 'خطا در بارگذاری قیمت‌ها';
         const aiOnlyPriceElement = document.getElementById('ai-only-price');
         const specialistPriceElement = document.getElementById('with-specialist-price');
         
         if (aiOnlyPriceElement) aiOnlyPriceElement.textContent = errorMessage;
         if (specialistPriceElement) specialistPriceElement.textContent = errorMessage;
-
+        
         // ذخیره خطا در state
         if (window.state && window.state.formData) {
             window.state.formData.servicePrices = {
@@ -200,9 +247,9 @@ async function loadServicePrices() {
                 errorMessage: errorMessage
             };
         }
-
+        
         if (typeof showNotification === 'function') {
-            showNotification('خطا در بارگذاری قیمت‌ها، لطفا صفحه را رفرش کنید', 'error');
+            showNotification('خطا در بارگذاری قیمت‌ها، لطفاً صفحه را رفرش کنید', 'error');
         } else {
             console.warn(errorMessage);
         }

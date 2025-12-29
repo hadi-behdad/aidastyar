@@ -24,11 +24,17 @@ add_action('wp_ajax_get_nutrition_consultants', 'get_nutrition_consultants');
 add_action('wp_ajax_nopriv_get_nutrition_consultants', 'get_nutrition_consultants');
 
 
-// اضافه کردن این تابع به consultant-users-functions.php
+/**
+ * تابع اصلاح شده: دریافت قیمت سرویس با تخفیف
+ * تغییرات: پیام خطای بهتر برای nonce و بازگشت structured error
+ */
 function get_service_price_with_discount() {
-    // بررسی nonce
+    // بررسی nonce - اگر منقضی شده، خطا برمیگردونه
     if (!wp_verify_nonce($_POST['nonce'], 'ai_assistant_nonce')) {
-        wp_send_json_error('خطای امنیتی');
+        wp_send_json_error([
+            'message' => 'Nonce verification failed'
+        ]);
+        return;
     }
     
     $service_id = sanitize_text_field($_POST['service_id']);
@@ -36,7 +42,7 @@ function get_service_price_with_discount() {
     $consultant_fee = isset($_POST['consultant_fee']) ? floatval($_POST['consultant_fee']) : 0;
     
     // دریافت قیمت پایه سرویس
-    $base_price = get_diet_service_base_price(); // تابع فرضی برای دریافت قیمت پایه
+    $base_price = get_diet_service_base_price();
     
     // محاسبه قیمت اصلی (با در نظر گرفتن هزینه مشاور)
     $original_price = $base_price;
@@ -44,7 +50,7 @@ function get_service_price_with_discount() {
         $original_price += $consultant_fee;
     }
     
-    // اعمال تخفیف‌های خودکار (کد مربوط به تخفیف خودکار)
+    // اعمال تخفیفهای خودکار
     $discount_result = apply_auto_discounts($service_id, $original_price);
     
     wp_send_json_success([
@@ -58,3 +64,19 @@ function get_service_price_with_discount() {
 
 add_action('wp_ajax_get_service_price_with_discount', 'get_service_price_with_discount');
 add_action('wp_ajax_nopriv_get_service_price_with_discount', 'get_service_price_with_discount');
+
+
+
+
+/**
+ * تابع جدید: Refresh کردن nonce وقتی منقضی شده
+ * این تابع یک nonce جدید تولید و برمیگردونه
+ */
+function refresh_ajax_nonce() {
+    wp_send_json_success([
+        'nonce' => wp_create_nonce('ai_assistant_nonce')
+    ]);
+}
+
+add_action('wp_ajax_refresh_ajax_nonce', 'refresh_ajax_nonce');
+add_action('wp_ajax_nopriv_refresh_ajax_nonce', 'refresh_ajax_nonce');
