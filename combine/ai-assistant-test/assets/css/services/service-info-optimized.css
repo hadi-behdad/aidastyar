@@ -362,9 +362,9 @@ a {
   transition: color var(--duration-fast) var(--ease-standard);
 }
 
-a:hover {
-  color: var(--color-primary-hover);
-}
+/*a:hover {*/
+/*  color: var(--color-primary-hover);*/
+/*}*/
 
 code,
 pre {

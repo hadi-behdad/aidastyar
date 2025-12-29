@@ -13,14 +13,15 @@
                 <img src="<?php echo get_template_directory_uri(); ?>/assets/images/enamad.png" alt="نماد اعتماد الکترونیکی" width="60" height="60">
             </a>
             
-            <a href="https://www.zarinpal.com" target="_blank" rel="noopener" title="پرداخت امن زرین‌پال">
-                <img src="<?php echo get_template_directory_uri(); ?>/assets/images/zarinpal.png" alt="زرین پال" width="60" height="60">
-            </a>
             
-            <a href="https://www.zinbal.com" target="_blank" rel="noopener" title="پرداخت امن زرین‌پال">
-                <img src="<?php echo get_template_directory_uri(); ?>/assets/images/zarinpal.png" alt="زرین پال" width="60" height="60">
-            </a>            
-            
+          <div id='zibal'>
+            <script src="https://zibal.ir/trust/scripts/zibal-trust-v4.js" type="text/javascript"></script>
+          </div>   
+              
+            <div id="zarinpal">
+            <script src="https://www.zarinpal.com/webservice/TrustCode" type="text/javascript"></script>
+            </div>              
+                        
         </div>
 
 
