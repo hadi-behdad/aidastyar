@@ -476,7 +476,220 @@ window.setupChronicConditionsSelection = function(currentStep) {
     });
     
     setupChronicDiabetesDetails();
+    setupChronicKidneyDetails();
+    
+  // ⭐ listener کلی برای kidney checkbox
+  const kidneyCheckbox = document.getElementById('chronic-kidney');
+  if (kidneyCheckbox) {
+    kidneyCheckbox.addEventListener('change', validateChronicKidneyStep);
+  }
 };
+
+function setupChronicDiabetesDetails() {
+  const diabetesCheckbox = document.getElementById('chronic-diabetes');
+  const diabetesDetails = document.getElementById('chronic-diabetes-details');
+  const diabetesAdditional = document.getElementById('chronic-diabetes-additional');
+  const nextButton = document.querySelector('.next-step');
+  
+  if (!diabetesCheckbox || !diabetesDetails) return;
+  
+  diabetesCheckbox.addEventListener('change', function() {
+    diabetesDetails.style.display = this.checked ? 'block' : 'none';
+    if (!this.checked) {
+      state.updateFormData('userInfo.chronicDiabetesType', null);
+      state.updateFormData('userInfo.chronicFastingBloodSugar', null);
+      state.updateFormData('userInfo.chronicHba1c', null);
+      if (diabetesAdditional) diabetesAdditional.style.display = 'none';
+      resetChronicDiabetesSelections();
+      validateChronicDiabetesStep();
+    }
+  });
+  
+  // ⭐ تم kidney برای diabetes-options
+  document.querySelectorAll('.diabetes-option').forEach(option => {
+    option.style.cssText = `
+      cursor: pointer; padding: 8px; border-radius: 4px; 
+      border: 1px solid transparent; transition: all 0.2s ease;
+      font-size: 14px; display: flex; align-items: center; gap: 8px;
+    `;
+    
+    option.addEventListener('mouseenter', function() {
+      if (!this.classList.contains('selected')) {
+        this.style.backgroundColor = '#f0f8f0';
+        this.style.borderColor = '#a5d6a7';
+      }
+    });
+    
+    option.addEventListener('mouseleave', function() {
+      if (!this.classList.contains('selected')) {
+        this.style.backgroundColor = ''; this.style.borderColor = 'transparent';
+      }
+    });
+    
+    option.addEventListener('click', function(e) {
+      e.preventDefault(); e.stopPropagation();
+      
+      document.querySelectorAll('.diabetes-option').forEach(opt => {
+        opt.classList.remove('selected');
+        opt.style.backgroundColor = ''; opt.style.border = '1px solid transparent';
+      });
+      
+      this.classList.add('selected');
+      this.style.backgroundColor = '#e8f5e8';
+      this.style.border = '2px solid #4CAF50';
+      this.style.boxShadow = '0 2px 4px rgba(76, 175, 80, 0.2)';
+      
+      const diabetesType = this.dataset.value;
+      state.updateFormData('userInfo.chronicDiabetesType', diabetesType);
+      
+      // ⭐ نمایش/مخفی input fields (عملکرد قبلی)
+      if (diabetesType !== 'prediabetes' && diabetesAdditional) {
+        diabetesAdditional.style.display = 'block';
+      } else if (diabetesAdditional) {
+        diabetesAdditional.style.display = 'none';
+      }
+      
+      validateChronicDiabetesStep();
+    });
+  });
+  
+  // ⭐ input fields (قند خون + HbA1c) - کامل حفظ شد
+  const fastingInput = document.getElementById('chronic-fasting-blood-sugar');
+  const hba1cInput = document.getElementById('chronic-hba1c-level');
+  
+  if (fastingInput) {
+    fastingInput.addEventListener('input', function() {
+      state.updateFormData('userInfo.chronicFastingBloodSugar', this.value);
+    });
+    // مقدار قبلی
+    if (state.formData.userInfo.chronicFastingBloodSugar) {
+      fastingInput.value = state.formData.userInfo.chronicFastingBloodSugar;
+    }
+  }
+  
+  if (hba1cInput) {
+    hba1cInput.addEventListener('input', function() {
+      state.updateFormData('userInfo.chronicHba1c', this.value);
+    });
+    // مقدار قبلی
+    if (state.formData.userInfo.chronicHba1c) {
+      hba1cInput.value = state.formData.userInfo.chronicHba1c;
+    }
+  }
+  
+  // Highlight انتخاب قبلی
+  if (state.formData.userInfo.chronicDiabetesType) {
+    const selectedOption = document.querySelector(`.diabetes-option[data-value="${state.formData.userInfo.chronicDiabetesType}"]`);
+    if (selectedOption) {
+      selectedOption.classList.add('selected');
+      selectedOption.style.backgroundColor = '#e8f5e8';
+      selectedOption.style.border = '2px solid #4CAF50';
+      selectedOption.style.boxShadow = '0 2px 4px rgba(76, 175, 80, 0.2)';
+      if (state.formData.userInfo.chronicDiabetesType !== 'prediabetes' && diabetesAdditional) {
+        diabetesAdditional.style.display = 'block';
+      }
+    }
+  }
+}
+
+function validateChronicDiabetesStep() {
+  const nextButton = document.querySelector('.next-step');
+  if (!nextButton) return;
+  
+  const diabetesCheckbox = document.getElementById('chronic-diabetes');
+  if (diabetesCheckbox?.checked && !state.formData.userInfo.chronicDiabetesType) {
+    nextButton.disabled = true;
+  }
+}
+
+// جایگزین کامل validateChronicKidneyStep + اضافه کردن به setupChronicConditionsSelection
+function validateChronicKidneyStep() {
+  const nextButton = document.querySelector('.next-step');
+  const kidneyCheckbox = document.getElementById('chronic-kidney');
+  const kidneyDetails = document.getElementById('chronic-kidney-details');
+  
+  if (!nextButton) return;
+  
+  if (kidneyCheckbox?.checked && !state.formData.userInfo.chronicKidneyStage) {
+    // ⭐ Next غیرفعال + Warning
+    nextButton.disabled = true;
+    nextButton.style.backgroundColor = '#f44336';
+    nextButton.textContent = 'لطفاً مرحله بیماری کلیوی را انتخاب کنید';
+    
+    // Highlight kidney section
+    if (kidneyDetails) {
+      kidneyDetails.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      kidneyDetails.style.border = '2px solid #f44336';
+      kidneyDetails.style.boxShadow = '0 0 10px rgba(244, 67, 54, 0.3)';
+      setTimeout(() => {
+        kidneyDetails.style.border = '';
+        kidneyDetails.style.boxShadow = '';
+      }, 3000);
+    }
+  } else {
+    // حالت عادی
+    nextButton.disabled = false;
+    nextButton.style.backgroundColor = '';
+    nextButton.textContent = 'ادامه';
+  }
+}
+
+// اصلاح setupChronicKidneyDetails - فراخوانی مداوم validation
+function setupChronicKidneyDetails() {
+  const kidneyCheckbox = document.getElementById('chronic-kidney');
+  const kidneyDetails = document.getElementById('chronic-kidney-details');
+  const nextButton = document.querySelector('.next-step');
+  
+  if (!kidneyCheckbox || !kidneyDetails) return;
+  
+  kidneyCheckbox.addEventListener('change', function() {
+    kidneyDetails.style.display = this.checked ? 'block' : 'none';
+    if (!this.checked) {
+      state.updateFormData('userInfo.chronicKidneyStage', null);
+    }
+    // ⭐ هر بار validation
+    validateChronicKidneyStep();
+  });
+  
+  // هر انتخاب kidney-option → validation
+  document.querySelectorAll('.kidney-option').forEach(option => {
+    option.style.cursor = 'pointer';
+    option.style.padding = '8px';
+    option.style.borderRadius = '4px';
+    option.style.transition = 'all 0.2s';
+    
+    option.addEventListener('click', function() {
+      document.querySelectorAll('.kidney-option').forEach(opt => {
+        opt.classList.remove('selected');
+        opt.style.backgroundColor = '';
+        opt.style.border = '1px solid transparent';
+      });
+      
+      this.classList.add('selected');
+      this.style.backgroundColor = '#e8f5e8';
+      this.style.border = '2px solid #4CAF50';
+      this.style.boxShadow = '0 2px 4px rgba(76, 175, 80, 0.2)';
+      
+      state.updateFormData('userInfo.chronicKidneyStage', this.dataset.value);
+      // ⭐ هر بار validation
+      validateChronicKidneyStep();
+    });
+  });
+  
+  // Highlight قبلی
+  if (state.formData.userInfo.chronicKidneyStage) {
+    const selectedOption = document.querySelector(`.kidney-option[data-value="${state.formData.userInfo.chronicKidneyStage}"]`);
+    if (selectedOption) {
+      selectedOption.classList.add('selected');
+      selectedOption.style.backgroundColor = '#e8f5e8';
+      selectedOption.style.border = '2px solid #4CAF50';
+      selectedOption.style.boxShadow = '0 2px 4px rgba(76, 175, 80, 0.2)';
+    }
+  }
+  
+  // ⭐ validation اولیه
+  validateChronicKidneyStep();
+}
 
 window.setupCancerDetails = function() {
     const cancerCheckbox = document.getElementById('cancer-history');

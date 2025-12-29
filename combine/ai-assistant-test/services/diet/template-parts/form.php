@@ -320,42 +320,43 @@ $theme_assets = get_stylesheet_directory_uri();
                 </label>
             </div>
             
-            <!-- جزئیات دیابت -->
-            <div id="chronic-diabetes-details" style="display: none; margin: 15px 0 20px 25px; padding: 15px; background: #f8f9fa; border-radius: 8px; border-right: 3px solid #4CAF50;">
-                <h4 style="margin: 0 0 15px 0; color: #333; font-size: 14px;">نوع دیابت:</h4>
-                <div class="diabetes-options" style="display: flex; flex-direction: column; gap: 10px;">
-                    <div class="diabetes-option" data-value="type1">
-                        <div class="diabetes-icon" style="display: inline-block; width: 24px; text-align: center;">💉</div>
-                        <div class="diabetes-text" style="display: inline-block; margin-right: 8px;">دیابت نوع 1</div>
-                    </div>
-                    <div class="diabetes-option" data-value="type2">
-                        <div class="diabetes-icon" style="display: inline-block; width: 24px; text-align: center;">🩺</div>
-                        <div class="diabetes-text" style="display: inline-block; margin-right: 8px;">دیابت نوع 2</div>
-                    </div>
-                    <div class="diabetes-option" data-value="gestational">
-                        <div class="diabetes-icon" style="display: inline-block; width: 24px; text-align: center;">🤰</div>
-                        <div class="diabetes-text" style="display: inline-block; margin-right: 8px;">دیابت بارداری</div>
-                    </div>
-                    <div class="diabetes-option" data-value="prediabetes">
-                        <div class="diabetes-icon" style="display: inline-block; width: 24px; text-align: center;">⚠️</div>
-                        <div class="diabetes-text" style="display: inline-block; margin-right: 8px;">پیش‌دیابت</div>
-                    </div>
-                </div>
-                
-                <!-- اطلاعات تکمیلی -->
-                <div id="chronic-diabetes-additional" style="margin-top: 15px; display: none;">
-                    <div style="margin-bottom: 10px;">
-                        <label style="display: block; margin-bottom: 5px; font-size: 13px; color: #666;">میزان قند خون ناشتا (اختیاری):</label>
-                        <input type="number" id="chronic-fasting-blood-sugar" placeholder="مثلاً 120" style="width: 100px; padding: 5px; border: 1px solid #ddd; border-radius: 4px; text-align: center;">
-                        <span style="margin-right: 5px; font-size: 13px;">mg/dL</span>
-                    </div>
-                    <div>
-                        <label style="display: block; margin-bottom: 5px; font-size: 13px; color: #666;">HbA1c (اختیاری):</label>
-                        <input type="number" id="chronic-hba1c-level" step="0.1" placeholder="مثلاً 6.5" style="width: 100px; padding: 5px; border: 1px solid #ddd; border-radius: 4px; text-align: center;">
-                        <span style="margin-right: 5px; font-size: 13px;">%</span>
-                    </div>
-                </div>
+        <!-- جایگزین chronic-diabetes-details -->
+        <div id="chronic-diabetes-details" style="display: none; margin: 15px 0 20px 25px; padding: 15px; background: #f8f9fa; border-radius: 8px; border-right: 3px solid #4CAF50;">
+          <h4 style="margin: 0 0 15px 0; color: #333; font-size: 14px;">نوع دیابت</h4>
+          <div class="diabetes-options" style="display: flex; flex-direction: column; gap: 10px;">
+            <div class="diabetes-option" data-value="type1">
+              <div class="diabetes-icon" style="display: inline-block; width: 24px; text-align: center; font-weight: bold; color: #4CAF50;">۱</div>
+              <div class="diabetes-text" style="display: inline-block; margin-right: 8px; font-size: 14px;">نوع ۱</div>
             </div>
+            <div class="diabetes-option" data-value="type2">
+              <div class="diabetes-icon" style="display: inline-block; width: 24px; text-align: center; font-weight: bold; color: #4CAF50;">۲</div>
+              <div class="diabetes-text" style="display: inline-block; margin-right: 8px; font-size: 14px;">نوع ۲</div>
+            </div>
+            <div class="diabetes-option" data-value="gestational">
+              <div class="diabetes-icon" style="display: inline-block; width: 24px; text-align: center; font-weight: bold; color: #4CAF50;">G</div>
+              <div class="diabetes-text" style="display: inline-block; margin-right: 8px; font-size: 14px;">حاملگی</div>
+            </div>
+            <div class="diabetes-option" data-value="prediabetes">
+              <div class="diabetes-icon" style="display: inline-block; width: 24px; text-align: center; font-weight: bold; color: #4CAF50;">P</div>
+              <div class="diabetes-text" style="display: inline-block; margin-right: 8px; font-size: 14px;">پیش‌دیابت</div>
+            </div>
+          </div>
+          
+          <!-- ⭐ قند خون ناشتا + HbA1c (بدون تغییر) -->
+          <div id="chronic-diabetes-additional" style="margin-top: 15px; display: none;">
+            <div style="margin-bottom: 10px;">
+              <label style="display: block; margin-bottom: 5px; font-size: 13px; color: #666;">قند خون ناشتا</label>
+              <input type="number" id="chronic-fasting-blood-sugar" placeholder="120" style="width: 100px; padding: 5px; border: 1px solid #ddd; border-radius: 4px; text-align: center;">
+              <span style="margin-right: 5px; font-size: 13px;">mg/dL</span>
+            </div>
+            <div>
+              <label style="display: block; margin-bottom: 5px; font-size: 13px; color: #666;">HbA1c</label>
+              <input type="number" id="chronic-hba1c-level" step="0.1" placeholder="6.5" style="width: 100px; padding: 5px; border: 1px solid #ddd; border-radius: 4px; text-align: center;">
+              <span style="margin-right: 5px; font-size: 13px;">%</span>
+            </div>
+          </div>
+        </div>
+
     
             <div class="checkbox-container">
                 <input type="checkbox" id="chronic-hypertension" class="real-checkbox">
@@ -462,6 +463,32 @@ $theme_assets = get_stylesheet_directory_uri();
                     <span class="check-icon"></span>
                     <span class="label-text">بیماری کلیوی مزمن</span>
                 </label>
+                <!-- جایگزین کامل chronic-kidney-details -->
+                <div id="chronic-kidney-details" style="display: none; margin: 15px 0 20px 25px; padding: 15px; background: #f8f9fa; border-radius: 8px; border-right: 3px solid #ff9800;">
+                    <h4 style="margin: 0 0 15px 0; color: #333; font-size: 14px;">مرحله بیماری کلیوی</h4>
+                    <div class="kidney-options" style="display: flex; flex-direction: column; gap: 10px;">
+                        <div class="kidney-option" data-value="early">
+                            <div class="kidney-icon" style="display: inline-block; width: 24px; text-align: center; font-weight: bold; color: #4CAF50;">۱</div>
+                            <div class="kidney-text" style="display: inline-block; margin-right: 8px; font-size: 14px;">مراحل اولیه</div>
+                        </div>
+                        <div class="kidney-option" data-value="advanced-no-dialysis">
+                            <div class="kidney-icon" style="display: inline-block; width: 24px; text-align: center; font-weight: bold; color: #4CAF50;">۳-۴</div>
+                            <div class="kidney-text" style="display: inline-block; margin-right: 8px; font-size: 14px;">مراحل پیشرفته (بدون دیالیز)</div>
+                        </div>
+                        <div class="kidney-option" data-value="dialysis">
+                            <div class="kidney-icon" style="display: inline-block; width: 24px; text-align: center; font-weight: bold; color: #4CAF50;">۵</div>
+                            <div class="kidney-text" style="display: inline-block; margin-right: 8px; font-size: 14px;">دیالیز</div>
+                        </div>
+                        <div class="kidney-option" data-value="transplant-less1year">
+                            <div class="kidney-icon" style="display: inline-block; width: 24px; text-align: center; font-weight: bold; color: #4CAF50;">T</div>
+                            <div class="kidney-text" style="display: inline-block; margin-right: 8px; font-size: 14px;">پیوند کمتر از ۱ سال</div>
+                        </div>
+                        <div class="kidney-option" data-value="transplant-more1year">
+                            <div class="kidney-icon" style="display: inline-block; width: 24px; text-align: center; font-weight: bold; color: #4CAF50;">T+</div>
+                            <div class="kidney-text" style="display: inline-block; margin-right: 8px; font-size: 14px;">پیوند بیشتر از ۱ سال</div>
+                        </div>
+                    </div>
+                </div>
             </div>
             
             <div class="checkbox-container">

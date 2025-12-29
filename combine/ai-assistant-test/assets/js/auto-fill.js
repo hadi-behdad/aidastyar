@@ -6,7 +6,8 @@ document.addEventListener('DOMContentLoaded', function() {
     const NEXT_BUTTON_DELAY = 300;
     const LONG_DELAY = 1000 * MUL_VALUE;
     const SHORT_DELAY = 300 * MUL_VALUE;
-    
+    const STEPS = window.STEPS;
+    const state = window.state;    
     const testData = {
         userInfo: {
             fullName: "ملیحه محمدی",
@@ -186,17 +187,18 @@ document.addEventListener('DOMContentLoaded', function() {
                     [STEPS.MEDICATIONS]: {prefix: 'medications', name: 'داروهای مصرفی'},
                     [STEPS.DIGESTIVE_CONDITIONS]: {prefix: 'digestive', name: 'مشکلات گوارشی'}
                 };
+                
+                if (!stepMap[state.currentStep]) return;
 
-                if (stepMap[state.currentStep]) {
-                    const {prefix, name} = stepMap[state.currentStep];
-                    const noneCheckbox = document.getElementById(`${prefix}-none`);
-                    
-                    if (noneCheckbox) {
-                        noneCheckbox.checked = true;
-                        noneCheckbox.dispatchEvent(new Event('change'));
-                        clickNextButton(NEXT_BUTTON_DELAY);
-                    }
+                const {prefix, name} = stepMap[state.currentStep];
+                const noneCheckbox = document.getElementById(`${prefix}-none`);
+                
+                if (noneCheckbox) {
+                    noneCheckbox.checked = true;
+                    noneCheckbox.dispatchEvent(new Event('change'));
+                    clickNextButton(NEXT_BUTTON_DELAY);
                 }
+                
             }
             
             function fillDietTypeStep() {

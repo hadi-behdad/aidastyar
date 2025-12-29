@@ -10,6 +10,7 @@ window.state = {
             height: "",
             weight: "",
             targetWeight: "",
+            chronicKidneyStage: null,
             goal: "",
             activity: "",
             exercise: "",
@@ -299,6 +300,14 @@ window.VALUE_MAPPING = {
         'female': 'زن'
     },
     
+    chronicKidneyStage : {
+      'early': 'مراحل اولیه',
+      'advanced-no-dialysis': 'مراحل پیشرفته',
+      'dialysis': 'دیالیز',
+      'transplant-less1year': 'پیوند <1 سال',
+      'transplant-more1year': 'پیوند >1 سال'
+    },
+
     menstrualStatus: {
         'not-set': 'تنظیم نشده',
         'regular': 'منظم',

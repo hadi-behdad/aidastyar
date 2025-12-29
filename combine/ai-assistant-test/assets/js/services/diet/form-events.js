@@ -397,69 +397,6 @@ window.showPaymentConfirmation = function(formData, finalPrice) {
     }
 };
 
-
-function setupChronicDiabetesDetails() {
-    const diabetesCheckbox = document.getElementById('chronic-diabetes');
-    const diabetesDetails = document.getElementById('chronic-diabetes-details');
-    const diabetesAdditional = document.getElementById('chronic-diabetes-additional');
-    
-    if (!diabetesCheckbox || !diabetesDetails) return;
-
-    diabetesCheckbox.addEventListener('change', function() {
-        diabetesDetails.style.display = this.checked ? 'block' : 'none';
-        
-        if (!this.checked) {
-            state.updateFormData('userInfo.chronicDiabetesType', '');
-            state.updateFormData('userInfo.chronicFastingBloodSugar', '');
-            state.updateFormData('userInfo.chronicHba1c', '');
-            resetChronicDiabetesSelections();
-            diabetesAdditional.style.display = 'none';
-        }
-    });
-
-    const diabetesOptions = document.querySelectorAll('#chronic-diabetes-details .diabetes-option');
-    diabetesOptions.forEach(option => {
-        option.addEventListener('click', function() {
-            diabetesOptions.forEach(opt => {
-                opt.classList.remove('selected');
-                opt.style.backgroundColor = '';
-                opt.style.borderRadius = '4px';
-            });
-            
-            this.classList.add('selected');
-            this.style.backgroundColor = '#e8f5e8';
-            this.style.borderRadius = '4px';
-            this.style.padding = '8px';
-
-            const diabetesType = this.dataset.value;
-            state.updateFormData('userInfo.chronicDiabetesType', diabetesType);
-            
-            if (diabetesType !== 'prediabetes') {
-                diabetesAdditional.style.display = 'block';
-            } else {
-                diabetesAdditional.style.display = 'none';
-            }
-            
-            validateChronicDiabetesStep();
-        });
-    });
-
-    const fastingInput = document.getElementById('chronic-fasting-blood-sugar');
-    const hba1cInput = document.getElementById('chronic-hba1c-level');
-    
-    if (fastingInput) {
-        fastingInput.addEventListener('input', function() {
-            state.updateFormData('userInfo.chronicFastingBloodSugar', this.value);
-        });
-    }
-    
-    if (hba1cInput) {
-        hba1cInput.addEventListener('input', function() {
-            state.updateFormData('userInfo.chronicHba1c', this.value);
-        });
-    }
-}
-
 function handleConflictingConditions(selectedConditionId) {
     const conflictGroups = {
         // تیروئید - فقط یکی قابل انتخاب است
@@ -490,19 +427,6 @@ function handleConflictingConditions(selectedConditionId) {
                 }
             }
         });
-    }
-}
-
-// تابع اعتبارسنجی مرحله دیابت
-function validateChronicDiabetesStep() {
-    const nextButton = document.querySelector(".next-step");
-    if (!nextButton) return;
-
-    const diabetesChecked = document.getElementById('chronic-diabetes').checked;
-    
-    if (diabetesChecked) {
-        const hasDiabetesType = state.formData.diabetesType !== '';
-        nextButton.disabled = !hasDiabetesType;
     }
 }
 
@@ -639,7 +563,22 @@ window.showSummary = function() {
     if (chronicConditions.includes('menopause')) chronicConditionsText.push('یائسگی/پیش یائسگی');
     if (chronicConditions.includes('cortisol')) chronicConditionsText.push('مشکلات کورتیزول');
     if (chronicConditions.includes('growth')) chronicConditionsText.push('اختلال هورمون رشد');
-    if (chronicConditions.includes('kidney')) chronicConditionsText.push('بیماری کلیوی مزمن');
+    
+    if (chronicConditions.includes('kidney')) {
+        let kidneyText = 'کلیه';
+        if (state.formData.userInfo.chronicKidneyStage) {
+            const kidneyStageMap = {
+                'early': 'کلیه - مرحله اولیه',
+                'advanced-no-dialysis': 'کلیه - پیشرفته بدون دیالیز', 
+                'dialysis': 'کلیه - دیالیز',
+                'transplant-less1year': 'کلیه - پیوند کمتر از 1 سال',
+                'transplant-more1year': 'کلیه - پیوند بیش از 1 سال'
+            };
+            kidneyText = kidneyStageMap[state.formData.userInfo.chronicKidneyStage] || kidneyText;
+        }
+        chronicConditionsText.push(kidneyText);
+    }
+    
     if (chronicConditions.includes('heart')) chronicConditionsText.push('بیماری قلبی عروقی');
     if (chronicConditions.includes('autoimmune')) chronicConditionsText.push('بیماری خودایمنی');
     if (chronicConditions.includes('none')) chronicConditionsText.push('ندارم');
@@ -785,6 +724,8 @@ window.showSummary = function() {
         dietTypeText = `نوع رژیم: ${serviceSelection.dietType === 'ai-only' ? 'رژیم هوش مصنوعی' : 'رژیم با تأیید متخصص'} - در حال دریافت قیمت...`;
     }
     
+    const targetWeightDisplay = targetWeight != null && targetWeight.toString().trim() ? `${targetWeight} کیلوگرم` : 'مشخص نشده';    
+    
     summaryContainer.innerHTML = `
         ${personalInfoText.length > 0 ? `
         <div class="summary-section">
@@ -818,10 +759,16 @@ window.showSummary = function() {
             <span class="summary-label">وزن فعلی:</span>
             <span class="summary-value">${weight} کیلوگرم</span>
         </div>
-        <div class="summary-item">
-            <span class="summary-label">وزن هدف:</span>
-            <span class="summary-value">${targetWeight || 'ثبت نشده'} کیلوگرم</span>
-        </div>
+        ${targetWeightDisplay !== 'مشخص نشده' ? 
+            `<div class="summary-item">
+                <span class="summary-label">وزن هدف:</span>
+                <span class="summary-value">${targetWeightDisplay}</span>
+            </div>` : 
+            `<div class="summary-item">
+                <span class="summary-label">وزن هدف:</span>
+                <span class="summary-value">${targetWeightDisplay}</span>
+            </div>`
+        }
         <div class="summary-item">
             <span class="summary-label">هدف:</span>
             <span class="summary-value">${goalText}</span>
