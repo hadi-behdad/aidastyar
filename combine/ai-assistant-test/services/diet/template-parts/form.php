@@ -390,6 +390,33 @@ $theme_assets = get_stylesheet_directory_uri();
                 </label>
             </div>
     
+            <!-- بیماری‌های کبدی -->
+            <h3 class="diffrent-category-titles">بیماری‌های کبدی</h3>
+            
+            <div class="checkbox-container">
+                <input type="checkbox" id="chronic-fatty-liver" class="real-checkbox">
+                <label for="chronic-fatty-liver" class="checkbox-label">
+                    <span class="check-icon"></span>
+                    <span class="label-text">کبد چرب</span>
+                </label>
+            </div>
+            
+            <div class="checkbox-container">
+                <input type="checkbox" id="chronic-cirrhosis" class="real-checkbox">
+                <label for="chronic-cirrhosis" class="checkbox-label">
+                    <span class="check-icon"></span>
+                    <span class="label-text">سیروز کبدی</span>
+                </label>
+            </div>
+            
+            <div class="checkbox-container">
+                <input type="checkbox" id="chronic-hepatitis" class="real-checkbox">
+                <label for="chronic-hepatitis" class="checkbox-label">
+                    <span class="check-icon"></span>
+                    <span class="label-text">هپاتیت مزمن</span>
+                </label>
+            </div>
+
             <!-- اختلالات هورمونی -->
             <h3 class="diffrent-category-titles">اختلالات هورمونی</h3>
             <div class="checkbox-container">

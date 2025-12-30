@@ -603,6 +603,8 @@ window.showSummary = function() {
     if (chronicConditions.includes('hypertension')) chronicConditionsText.push('فشار خون بالا');
     if (chronicConditions.includes('cholesterol')) chronicConditionsText.push('کلسترول/تری گلیسیرید بالا');
     if (chronicConditions.includes('fattyLiver')) chronicConditionsText.push('کبد چرب');
+    if (chronicConditions.includes('cirrhosis')) chronicConditionsText.push('سیروز کبدی');
+    if (chronicConditions.includes('hepatitis')) chronicConditionsText.push('هپاتیت مزمن');
     if (chronicConditions.includes('insulinResistance')) chronicConditionsText.push('مقاومت به انسولین');
     if (chronicConditions.includes('hypothyroidism')) chronicConditionsText.push('کم کاری تیروئید');
     if (chronicConditions.includes('hyperthyroidism')) chronicConditionsText.push('پرکاری تیروئید');

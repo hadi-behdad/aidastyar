@@ -441,6 +441,8 @@ window.setupChronicConditionsSelection = function(currentStep) {
             { key: 'hypertension', id: 'chronic-hypertension' },
             { key: 'cholesterol', id: 'chronic-cholesterol' },
             { key: 'fattyLiver', id: 'chronic-fatty-liver' },
+            { key: 'cirrhosis', id: 'chronic-cirrhosis' },           // ✅ جدید
+            { key: 'hepatitis', id: 'chronic-hepatitis' },           // ✅ جدید            
             { key: 'insulinResistance', id: 'chronic-insulin-resistance' },
             { key: 'hypothyroidism', id: 'chronic-hypothyroidism' },
             { key: 'hyperthyroidism', id: 'chronic-hyperthyroidism' },

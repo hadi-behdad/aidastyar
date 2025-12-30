@@ -27,7 +27,7 @@ document.addEventListener('DOMContentLoaded', function() {
             digestiveConditions: ['none'],
             dietStyle: ['none'],
             foodLimitations: ['none'],
-            chronicConditions: ['none'],
+            chronicConditions: ['fattyLiver', 'cirrhosis'],  // یا هر ترکیبی که میخوای تست کنی
             medications: ['diabetes', 'thyroid', 'immunosuppressants', 'weight-loss']
         },
         serviceSelection: {

@@ -348,6 +348,8 @@ window.VALUE_MAPPING = {
         'hypertension': 'فشار خون بالا',
         'cholesterol': 'کلسترول یا تری گلیسیرید بالا',
         'fattyLiver': 'کبد چرب',
+        'cirrhosis': 'سیروز کبدی',           // ✅ جدید
+        'hepatitis': 'هپاتیت مزمن',           // ✅ جدید        
         'insulinResistance': 'مقاومت به انسولین',
         'hypothyroidism': 'کم کاری تیروئید (هیپوتیروئیدی)',
         'hyperthyroidism': 'پرکاری تیروئید (هیپرتیروئیدی)',
