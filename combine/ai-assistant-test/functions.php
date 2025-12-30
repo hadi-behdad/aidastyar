@@ -886,3 +886,64 @@ function ai_assistant_get_current_user_info() {
 
 // بارگذاری استایل‌های Service Info
 require_once get_template_directory() . '/functions/service-info-styles.php';
+
+
+
+
+// در فایل functions.php اضافه کنید:
+
+// AJAX handler برای آپلود فایل آزمایش
+add_action('wp_ajax_upload_lab_test', 'handle_lab_test_upload');
+add_action('wp_ajax_nopriv_upload_lab_test', 'handle_lab_test_upload');
+
+function handle_lab_test_upload() {
+    check_ajax_referer('diet-form-nonce', 'security');
+
+    if (!isset($_FILES['lab_test_file'])) {
+        wp_send_json_error(['message' => 'فایلی انتخاب نشده است']);
+    }
+
+    $file = $_FILES['lab_test_file'];
+    
+    // بررسی نوع فایل
+    $allowed_types = ['application/pdf'];
+    $file_type = wp_check_filetype($file['name']);
+    
+    if ($file['type'] !== 'application/pdf') {
+        wp_send_json_error(['message' => 'فقط فایل PDF مجاز است']);
+    }
+
+    // بررسی حجم (10MB)
+    if ($file['size'] > 10 * 1024 * 1024) {
+        wp_send_json_error(['message' => 'حجم فایل نباید بیشتر از 10 مگابایت باشد']);
+    }
+
+    // آپلود فایل
+    require_once(ABSPATH . 'wp-admin/includes/file.php');
+    
+    $upload_overrides = [
+        'test_form' => false,
+        'mimes' => ['pdf' => 'application/pdf']
+    ];
+    
+    $uploaded_file = wp_handle_upload($file, $upload_overrides);
+
+    if (isset($uploaded_file['error'])) {
+        wp_send_json_error(['message' => $uploaded_file['error']]);
+    }
+
+    // ذخیره اطلاعات در متادیتای کاربر (اختیاری)
+    $user_id = get_current_user_id();
+    if ($user_id) {
+        update_user_meta($user_id, 'lab_test_file_url', $uploaded_file['url']);
+        update_user_meta($user_id, 'lab_test_file_path', $uploaded_file['file']);
+        update_user_meta($user_id, 'lab_test_upload_date', current_time('mysql'));
+    }
+
+    wp_send_json_success([
+        'fileUrl' => $uploaded_file['url'],
+        'filePath' => $uploaded_file['file'],
+        'fileName' => basename($uploaded_file['file']),
+        'message' => 'فایل با موفقیت آپلود شد'
+    ]);
+}

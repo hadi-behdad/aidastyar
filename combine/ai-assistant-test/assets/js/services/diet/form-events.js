@@ -75,6 +75,7 @@ document.addEventListener('DOMContentLoaded', () => {
     setupScrollIndicator('diet-style-selection');
     setupScrollIndicator('food-limitations-selection');
     setupScrollIndicator('medications-selection');
+    setupScrollIndicator('lab-test-upload-step');
 });
 
 /**

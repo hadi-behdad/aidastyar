@@ -925,6 +925,61 @@ $theme_assets = get_stylesheet_directory_uri();
             </div>
         </div>
     </div>
+    
+    <!-- Step 11: Lab Test Upload -->
+    <div id="lab-test-upload-step" class="step checkbox-list-container scrollable-container" style="max-height:70vh">
+        <h2>آپلود فایل آزمایش (اختیاری)</h2>
+        <p class="step-description">در صورتی که آزمایش خون اخیر دارید، می‌توانید فایل PDF آن را آپلود کنید تا برنامه غذایی دقیق‌تری برای شما تهیه شود.</p>
+    
+        <div class="file-upload-container">
+            <div class="file-upload-area" onclick="document.getElementById('lab-test-file').click()">
+                <div class="upload-icon">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="#00857a" stroke-width="2">
+                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                        <polyline points="17 8 12 3 7 8"></polyline>
+                        <line x1="12" y1="3" x2="12" y2="15"></line>
+                    </svg>
+                </div>
+                <h3>فایل PDF آزمایش خود را اینجا بکشید</h3>
+                <p>یا برای انتخاب فایل کلیک کنید</p>
+                <input type="file" id="lab-test-file" accept="application/pdf" style="display: none;">
+            </div>
+    
+            <div id="file-preview" style="display: none;">
+                <div class="file-info">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="#d32f2f">
+                        <path d="M14,2H6A2,2 0 0,0 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2M18,20H6V4H13V9H18V20Z"/>
+                    </svg>
+                    <span id="file-name">test.pdf</span>
+                </div>
+                <button type="button" id="remove-file" class="remove-file-btn">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="18" y1="6" x2="6" y2="18"></line>
+                        <line x1="6" y1="6" x2="18" y2="18"></line>
+                    </svg>
+                </button>
+            </div>
+    
+            <div class="separator-dotted"></div>
+    
+            <div class="checkbox-container first-option stand-alone-none">
+                <input type="checkbox" id="skip-lab-test" class="real-checkbox">
+                <label for="skip-lab-test" class="checkbox-label">
+                    <span class="check-icon"></span>
+                    <span class="label-text">فایل آزمایش ندارم</span>
+                </label>
+            </div>
+    
+            <div class="info-box">
+                <div class="info-content">
+                    <div class="info-text">
+                        <span class="first-line">آزمایش‌های مفید:</span>
+                        <span class="second-line">CBC، آهن، ویتامین D، ویتامین B12، تیروئید (TSH، T3، T4)، قند خون، چربی خون</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <!-- Step 11: Water Intake -->
     <div id="water-intake-step" class="step">

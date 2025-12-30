@@ -11,14 +11,15 @@ window.STEPS = {
     MEDICATIONS: 8,           // ✅ تغییر: 8 → 7
     DIGESTIVE_CONDITIONS: 9,  // ✅ تغییر: 9 → 8
     SURGERY: 10,               // ✅ تغییر: 10 → 9
-    WATER_INTAKE: 11,         // ✅ تغییر: 11 → 10
-    ACTIVITY: 12,             // ✅ تغییر: 12 → 11
-    EXERCISE: 13,             // ✅ تغییر: 13 → 12
-    DIET_STYLE: 14,           // ✅ تغییر: 14 → 13
-    FOOD_LIMITATIONS: 15,     // ✅ تغییر: 15 → 14
-    DIET_TYPE_SELECTION: 16,
-    TERMS_AGREEMENT: 17,
-    CONFIRMATION: 18
+    LABTESTUPLOAD: 11,
+    WATER_INTAKE: 12,         // ✅ تغییر: 11 → 10
+    ACTIVITY: 13,             // ✅ تغییر: 12 → 11
+    EXERCISE: 14,             // ✅ تغییر: 13 → 12
+    DIET_STYLE: 15,           // ✅ تغییر: 14 → 13
+    FOOD_LIMITATIONS: 16,     // ✅ تغییر: 15 → 14
+    DIET_TYPE_SELECTION: 17,
+    TERMS_AGREEMENT: 18,
+    CONFIRMATION: 19
 };
 
 // تعداد مراحل اصلی (بدون احتساب دو مرحله آخر)
@@ -1127,6 +1128,7 @@ window.showStep = function(step) {
         "medications-step",             // index 8 = step 8
         "digestive-conditions-step",    // index 9 = step 9
         "surgery-step",                 // index 10 = step 10
+        "lab-test-upload-step",
         "water-intake-step",            // index 11 = step 11
         "activity-selection-step",      // index 12 = step 12
         "exercise-activity-step",       // index 13 = step 13
@@ -1226,6 +1228,11 @@ window.showStep = function(step) {
     else if (step === window.STEPS.SURGERY) {
         setupSurgerySelection(step);
     }
+// در تابع showStep، بعد از SURGERY و قبل از WATERINTAKE:
+else if (step === window.STEPS.LABTESTUPLOAD) {
+    setupLabTestUpload(step);
+    document.getElementById('next-button-container').style.display = 'block';
+}
     else if (step === window.STEPS.EXERCISE) {
         setupExerciseSelection(step);
     }
@@ -1689,3 +1696,154 @@ function updateSpecialistTotalPrice(consultationPrice) {
         total: totalPrice
     });
 }
+
+
+
+
+// اضافه کردن setup function برای مرحله جدید
+window.setupLabTestUpload = function(currentStep) {
+    if (currentStep !== window.STEPS.LABTESTUPLOAD) return;
+
+    const fileInput = document.getElementById('lab-test-file');
+    const filePreview = document.getElementById('file-preview');
+    const fileName = document.getElementById('file-name');
+    const removeFile = document.getElementById('remove-file');
+    const skipCheckbox = document.getElementById('skip-lab-test');
+    const nextButton = document.querySelector('.next-step');
+    const uploadArea = document.querySelector('.file-upload-area');
+
+    // مقداردهی اولیه
+    nextButton.disabled = true;
+
+    // بررسی وضعیت قبلی
+    if (state.formData.userInfo.labTestFile) {
+        showFilePreview(state.formData.userInfo.labTestFile);
+        nextButton.disabled = false;
+    } else if (state.formData.userInfo.skipLabTest) {
+        skipCheckbox.checked = true;
+        skipCheckbox.nextElementSibling.classList.add('checked');
+        nextButton.disabled = false;
+    }
+
+    // رویداد Skip
+    skipCheckbox.addEventListener('change', function() {
+        const label = this.nextElementSibling;
+        if (this.checked) {
+            label.classList.add('checked-animation');
+            setTimeout(() => {
+                label.classList.remove('checked-animation');
+                label.classList.add('checked');
+            }, 800);
+            
+            // پاک کردن فایل
+            fileInput.value = '';
+            filePreview.style.display = 'none';
+            state.updateFormData('userInfo.labTestFile', null);
+            state.updateFormData('userInfo.skipLabTest', true);
+            nextButton.disabled = false;
+        } else {
+            label.classList.remove('checked');
+            state.updateFormData('userInfo.skipLabTest', false);
+            nextButton.disabled = true;
+        }
+    });
+
+    // رویداد انتخاب فایل
+    fileInput.addEventListener('change', function() {
+        const file = this.files[0];
+        if (file) {
+            validateAndUploadFile(file);
+            skipCheckbox.checked = false;
+            skipCheckbox.nextElementSibling.classList.remove('checked');
+            state.updateFormData('userInfo.skipLabTest', false);
+        }
+    });
+
+    // Drag & Drop
+    uploadArea.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        uploadArea.classList.add('drag-over');
+    });
+
+    uploadArea.addEventListener('dragleave', () => {
+        uploadArea.classList.remove('drag-over');
+    });
+
+    uploadArea.addEventListener('drop', (e) => {
+        e.preventDefault();
+        uploadArea.classList.remove('drag-over');
+        const file = e.dataTransfer.files[0];
+        if (file) {
+            validateAndUploadFile(file);
+        }
+    });
+
+    // حذف فایل
+    removeFile.addEventListener('click', function() {
+        fileInput.value = '';
+        filePreview.style.display = 'none';
+        state.updateFormData('userInfo.labTestFile', null);
+        nextButton.disabled = skipCheckbox.checked ? false : true;
+    });
+
+    function validateAndUploadFile(file) {
+        // بررسی نوع فایل
+        const allowedTypes = ['application/pdf'];
+        if (!allowedTypes.includes(file.type)) {
+            showNotification('فقط فایل PDF مجاز است', 'error');
+            return;
+        }
+
+        // بررسی حجم (حداکثر 10MB)
+        const maxSize = 10 * 1024 * 1024; // 10MB
+        if (file.size > maxSize) {
+            showNotification('حجم فایل نباید بیشتر از 10 مگابایت باشد', 'error');
+            return;
+        }
+
+        // آپلود فایل
+        uploadFileToServer(file);
+    }
+
+    function uploadFileToServer(file) {
+        const formData = new FormData();
+        formData.append('action', 'upload_lab_test');
+        formData.append('security', aiAssistantVars.nonce);
+        formData.append('lab_test_file', file);
+        formData.append('user_id', aiAssistantVars.userId || 0);
+
+        // نمایش لودینگ
+        nextButton.disabled = true;
+        nextButton.textContent = 'در حال آپلود...';
+
+        fetch(aiAssistantVars.ajaxurl, {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                showFilePreview(data.data);
+                state.updateFormData('userInfo.labTestFile', data.data);
+                nextButton.disabled = false;
+                nextButton.textContent = 'مرحله بعد';
+                showNotification('فایل با موفقیت آپلود شد', 'success');
+            } else {
+                showNotification(data.data.message || 'خطا در آپلود فایل', 'error');
+                nextButton.disabled = true;
+                nextButton.textContent = 'مرحله بعد';
+            }
+        })
+        .catch(error => {
+            console.error('Upload error:', error);
+            showNotification('خطا در آپلود فایل', 'error');
+            nextButton.disabled = true;
+            nextButton.textContent = 'مرحله بعد';
+        });
+    }
+
+    function showFilePreview(fileData) {
+        fileName.textContent = fileData.fileName || fileData.file_name || 'فایل آزمایش';
+        filePreview.style.display = 'flex';
+    }
+};

@@ -3540,3 +3540,88 @@ body.dark-mode .specialist-price-note {
     opacity: 0.6;
     cursor: not-allowed;
 }
+
+
+
+/* Lab Test Upload Styles */
+.file-upload-container {
+    max-width: 600px;
+    margin: 0 auto;
+}
+
+.file-upload-area {
+    border: 2px dashed #00857a;
+    border-radius: 12px;
+    padding: 40px 20px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    background: #f8f9fa;
+    margin-bottom: 2vh;
+}
+
+.file-upload-area:hover {
+    border-color: #006b61;
+    background: #e8f5f3;
+}
+
+.file-upload-area.drag-over {
+    border-color: #006b61;
+    background: #d4edea;
+    transform: scale(1.02);
+}
+
+.upload-icon {
+    margin-bottom: 20px;
+}
+
+.file-upload-area h3 {
+    color: #333;
+    margin: 10px 0;
+    font-size: 18px;
+}
+
+.file-upload-area p {
+    color: #666;
+    font-size: 14px;
+}
+
+#file-preview {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 15px;
+    background: #e8f5e9;
+    border-radius: 8px;
+    margin-top: 20px;
+}
+
+.file-info {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+#file-name {
+    font-weight: 500;
+    color: #333;
+}
+
+.remove-file-btn {
+    background: #f44336;
+    color: white;
+    border: none;
+    border-radius: 50%;
+    width: 32px;
+    height: 32px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+}
+
+.remove-file-btn:hover {
+    background: #d32f2f;
+    transform: scale(1.1);
+}
