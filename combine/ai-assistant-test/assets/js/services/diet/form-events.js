@@ -545,7 +545,7 @@ window.showSummary = function() {
         digestiveConditions = [], dietStyle = [],
         foodLimitations = [], chronicConditions, medications,
         chronicDiabetesType, chronicFastingBloodSugar, chronicHba1c,
-        cancerTreatment, cancerType, menstrualStatus
+        cancerTreatment, cancerType, menstrualStatus, labTestFile, skipLabTest
     } = userInfo;
 
     const { dietType, selectedSpecialist } = serviceSelection;
@@ -774,6 +774,16 @@ window.showSummary = function() {
     
     const targetWeightDisplay = targetWeight != null && targetWeight.toString().trim() ? `${targetWeight} کیلوگرم` : 'مشخص نشده';    
     
+    
+    let labTestText = "";
+    if (skipLabTest) {
+        labTestText = "رد شده";
+    } else if (labTestFile && labTestFile.fileName) {
+        labTestText = `آپلود شده: ${labTestFile.fileName}`;
+    } else {
+        labTestText = "آپلود نشده";
+    }
+    
     summaryContainer.innerHTML = `
         ${personalInfoText.length > 0 ? `
         <div class="summary-section">
@@ -840,6 +850,10 @@ window.showSummary = function() {
         <div class="summary-item">
             <span class="summary-label">مصرف آب روزانه:</span>
             <span class="summary-value">${waterText}</span>
+        </div>        
+        <div class="summary-item">
+            <span class="summary-label">آزمایش آزمایشگاهی:</span>
+            <span class="summary-value">${labTestText}</span>
         </div>        
         <div class="summary-item">
             <span class="summary-label">فعالیت روزانه:</span>

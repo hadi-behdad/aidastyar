@@ -16,6 +16,8 @@ window.state = {
             exercise: "",
             waterIntake: "",
             surgery: [],
+            labTestFile: null,
+            skipLabTest: false,            
             chronicConditions: [],
             digestiveConditions: [],
             medications: [],
@@ -494,6 +496,8 @@ window.KEY_MAPPING = {
     'medications': 'داروهای منظمی که به طور مستمر مصرف می‌کنید',
     'digestiveConditions': 'مشکلات گوارشی',
     'surgery': 'سابقه جراحی و اقدامات پزشکی',
+    'labTestFile': 'فایل آزمایش آزمایشگاهی',
+    'skipLabTest': 'رد کردن آزمایش',
     'cancerTreatment': 'نوع درمان سرطان',
     'cancerType': 'نوع سرطان',
     

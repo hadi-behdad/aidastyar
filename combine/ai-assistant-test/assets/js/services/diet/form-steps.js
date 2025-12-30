@@ -1228,11 +1228,10 @@ window.showStep = function(step) {
     else if (step === window.STEPS.SURGERY) {
         setupSurgerySelection(step);
     }
-// در تابع showStep، بعد از SURGERY و قبل از WATERINTAKE:
-else if (step === window.STEPS.LABTESTUPLOAD) {
-    setupLabTestUpload(step);
-    document.getElementById('next-button-container').style.display = 'block';
-}
+    else if (step === window.STEPS.LABTESTUPLOAD) {
+        setupLabTestUpload(step);
+        document.getElementById('next-button-container').style.display = 'block';
+    }
     else if (step === window.STEPS.EXERCISE) {
         setupExerciseSelection(step);
     }
@@ -1697,10 +1696,6 @@ function updateSpecialistTotalPrice(consultationPrice) {
     });
 }
 
-
-
-
-// اضافه کردن setup function برای مرحله جدید
 window.setupLabTestUpload = function(currentStep) {
     if (currentStep !== window.STEPS.LABTESTUPLOAD) return;
 

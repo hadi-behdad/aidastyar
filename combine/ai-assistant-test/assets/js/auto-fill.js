@@ -22,6 +22,8 @@ document.addEventListener('DOMContentLoaded', function() {
             exercise: 'medium',
             waterIntake: 14,
             surgery: ['none'],
+            labTestFile: null, // یا یک آبجکت شبیه { fileName: 'test.pdf', fileUrl: '...' }
+            skipLabTest: true, // true یا false            
             digestiveConditions: ['none'],
             dietStyle: ['none'],
             foodLimitations: ['none'],
@@ -176,7 +178,20 @@ document.addEventListener('DOMContentLoaded', function() {
                     }
                 }
             }
-
+            
+            function fillLabTestStep() {
+                if (state.currentStep === STEPS.LABTESTUPLOAD) {
+                    const skipCheckbox = document.getElementById('skip-lab-test');
+                    
+                    if (skipCheckbox && testData.userInfo.skipLabTest) {
+                        skipCheckbox.checked = true;
+                        skipCheckbox.dispatchEvent(new Event('change', { bubbles: true }));
+                    }
+                    
+                    clickNextButton(NEXT_BUTTON_DELAY);
+                }
+            }
+            
             // به‌روزرسانی توابع چک‌باکسی برای مراحل جدید
             function fillCheckboxSteps() {
                 const stepMap = {
@@ -286,6 +301,9 @@ document.addEventListener('DOMContentLoaded', function() {
                         break;
                     case STEPS.SURGERY:
                         fillCheckboxSteps();
+                        break;
+                    case STEPS.LABTESTUPLOAD:
+                        fillLabTestStep();
                         break;
                     case STEPS.DIGESTIVE_CONDITIONS:
                         fillCheckboxSteps();
