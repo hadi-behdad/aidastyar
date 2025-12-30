@@ -566,8 +566,8 @@ Primary Keyword: {$primary_keyword}
             $this->log('❌ API Key missing');
             return null;
         }
-
-        $this->log('🌐 API call (temp: ' . $temperature . ')');
+ 
+        $this->log('🌐 API call for AI Article Generator' );
 
         $max_tokens = 6000;
 
@@ -946,7 +946,30 @@ private function extract_json_from_response($raw_response) {
    
 }
 
+add_action('init', function() {
+    add_filter('cron_schedules', function($schedules) {
+        $schedules['every_three_days'] = [
+            'interval' => 3 * DAY_IN_SECONDS,
+            'display'  => 'Every 3 Days'
+        ];
+        return $schedules;
+    });
 
+    if (!wp_next_scheduled('ai_article_generator_event')) {
+        wp_schedule_event(time(), 'every_three_days', 'ai_article_generator_event');
+    }
+});
 
+add_action('ai_article_generator_event', function() {
+    $generator = new ai_article_generator_job();
+    $generator->handle();
+});
+
+add_action('admin_init', function() {
+    if (isset($_GET['unlock_ai_gen']) && current_user_can('manage_options')) {
+        delete_option('ai_article_generator_lock');
+        wp_die('✅ Lock removed!');
+    }
+});
 
 ?>

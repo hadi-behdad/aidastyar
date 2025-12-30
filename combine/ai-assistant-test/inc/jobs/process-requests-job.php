@@ -34,6 +34,10 @@ class AI_Assistant_Process_Requests_Job {
         global $wpdb;
         $this->table_name = $wpdb->prefix . 'job_queue';
         
+        
+        $upload_dir = wp_upload_dir();
+        $this->generation_log_file = $upload_dir['basedir'] . '/ai-article-generation.log';
+
         // Register actions
      //   add_action('ai_process_job_queue', [$this, 'run']);
         
@@ -850,6 +854,8 @@ class AI_Assistant_Process_Requests_Job {
         if (!defined('DEEPSEEK_API_KEY') || empty(DEEPSEEK_API_KEY)) {
             throw new Exception('DEEPSEEK_API_KEY is not defined');
         }
+        
+        $this->log('🌐 API call for Process Requests' );        
         
         $api_key = DEEPSEEK_API_KEY;
         $api_url = 'https://api.deepseek.com/v1/chat/completions';
