@@ -635,7 +635,8 @@ window.showSummary = function() {
 
     
     const medicationsText = [];
-    if (medications.includes('diabetes')) medicationsText.push('داروهای دیابت');
+    if (medications.includes('diabetesOral')) medicationsText.push('داروهای خوراکی دیابت');
+    if (medications.includes('insulin')) medicationsText.push('انسولین');
     if (medications.includes('thyroid')) medicationsText.push('داروهای تیروئید');
     if (medications.includes('corticosteroids')) medicationsText.push('کورتیکواستروئیدها');
     if (medications.includes('anticoagulants')) medicationsText.push('داروهای ضدانعقاد');

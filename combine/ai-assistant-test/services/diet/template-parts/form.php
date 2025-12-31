@@ -555,12 +555,21 @@ $theme_assets = get_stylesheet_directory_uri();
             
             <!-- Original Medications -->
             <div class="checkbox-container">
-                <input type="checkbox" id="medication-diabetes" class="real-checkbox">
-                <label for="medication-diabetes" class="checkbox-label">
+                <input type="checkbox" id="medication-diabetes-oral" class="real-checkbox">
+                <label for="medication-diabetes-oral" class="checkbox-label">
                     <span class="check-icon"></span>
-                    <span class="label-text">داروهای دیابت</span>
+                    <span class="label-text">داروهای خوراکی دیابت</span>
                 </label>
             </div>
+            
+            <div class="checkbox-container">
+                <input type="checkbox" id="medication-insulin" class="real-checkbox">
+                <label for="medication-insulin" class="checkbox-label">
+                    <span class="check-icon"></span>
+                    <span class="label-text">انسولین</span>
+                </label>
+            </div>
+
     
             <div class="checkbox-container">
                 <input type="checkbox" id="medication-thyroid" class="real-checkbox">
@@ -574,7 +583,7 @@ $theme_assets = get_stylesheet_directory_uri();
                 <input type="checkbox" id="medication-corticosteroids" class="real-checkbox">
                 <label for="medication-corticosteroids" class="checkbox-label">
                     <span class="check-icon"></span>
-                    <span class="label-text">کورتیکواستروئیدها (سیستمی)</span>
+                    <span class="label-text">کورتیکواستروئیدها (کورتون)</span>
                 </label>
             </div>
     

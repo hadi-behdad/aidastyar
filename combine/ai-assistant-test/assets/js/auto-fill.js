@@ -28,7 +28,7 @@ document.addEventListener('DOMContentLoaded', function() {
             dietStyle: ['none'],
             foodLimitations: ['none'],
             chronicConditions: ['fattyLiver', 'cirrhosis'],  // یا هر ترکیبی که میخوای تست کنی
-            medications: ['diabetes', 'thyroid', 'immunosuppressants', 'weight-loss']
+            medications: ['diabetesOral', 'insulin', 'thyroid', 'immunosuppressants', 'weight-loss']
         },
         serviceSelection: {
             dietType: "ai-only",

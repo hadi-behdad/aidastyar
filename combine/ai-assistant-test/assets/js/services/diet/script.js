@@ -366,7 +366,8 @@ window.VALUE_MAPPING = {
     
     // داروها
     medications: {
-        'diabetes': 'داروهای دیابت (متفورمین، انسولین و...)',
+        'diabetesOral': 'داروهای خوراکی دیابت',                 
+        'insulin': 'انسولین',                                   
         'thyroid': 'داروهای تیروئید (لووتیروکسین و...)',
         'corticosteroids': 'کورتون‌ها (پردنیزولون و...)',
         'anticoagulants': 'داروهای ضد انعقاد (وارفارین و ...)',

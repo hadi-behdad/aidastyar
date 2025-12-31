@@ -408,7 +408,8 @@ window.setupMedicationsSelection = function(currentStep) {
             dataKey: 'medications',
             options: [
                 // Original medications
-                { key: 'diabetes', id: 'medication-diabetes' },
+                { key: 'diabetesOral', id: 'medication-diabetes-oral' },     // ✅ تغییر
+                { key: 'insulin', id: 'medication-insulin' },                 // ✅ جدید
                 { key: 'thyroid', id: 'medication-thyroid' },
                 { key: 'corticosteroids', id: 'medication-corticosteroids' },
                 { key: 'anticoagulants', id: 'medication-anticoagulants' },
