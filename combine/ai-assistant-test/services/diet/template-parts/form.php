@@ -996,8 +996,6 @@ $theme_assets = get_stylesheet_directory_uri();
                 </button>
             </div>
     
-            <div class="separator-dotted"></div>
-    
             <div class="checkbox-container first-option stand-alone-none">
                 <input type="checkbox" id="skip-lab-test" class="real-checkbox">
                 <label for="skip-lab-test" class="checkbox-label">
@@ -1527,8 +1525,9 @@ $theme_assets = get_stylesheet_directory_uri();
     };
     </script>
 
-</form>
-    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+    <script> pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';</script>
+    <script src="<?php echo get_stylesheet_directory_uri(); ?>/assets/js/services/diet/pdf-processor.js"></script>
 </form>
 
 <link rel="stylesheet" href="<?php echo $theme_assets; ?>/assets/css/components/payment-popup.css">
@@ -1539,8 +1538,8 @@ $theme_assets = get_stylesheet_directory_uri();
 <script src="<?php echo $theme_assets; ?>/assets/js/services/<?php echo esc_attr($service_id); ?>/form-events.js"></script>
 <script src="<?php echo $theme_assets; ?>/assets/js/services/<?php echo esc_attr($service_id); ?>/form-validation.js"></script>
 <script src="<?php echo $theme_assets; ?>/assets/js/services/<?php echo esc_attr($service_id); ?>/form-steps.js"></script>
-<script src="<?php echo $theme_assets; ?>/assets/js/services/<?php echo esc_attr($service_id); ?>/form-inputs.js"></script>
 
+<script src="<?php echo $theme_assets; ?>/assets/js/services/<?php echo esc_attr($service_id); ?>/form-inputs.js"></script>
 <script src="<?php echo $theme_assets; ?>/assets/js/services/<?php echo esc_attr($service_id); ?>/terms-acceptance.js"></script>
 
 <script>

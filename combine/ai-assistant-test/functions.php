@@ -9,7 +9,8 @@ if (!defined('ABSPATH')) {
 }
 
 if (!defined('DEEPSEEK_API_KEY')) {
-   define('DEEPSEEK_API_KEY', 'sk-658cb47fedcb4f178c402a088da40ba7');
+   //define('DEEPSEEK_API_KEY', 'sk-658cb47fedcb4f178c402a088da40ba7');
+   define('DEEPSEEK_API_KEY', 'sk-20076ccbacdb4b7c8ae7e12c91c044ba');
 }
 
    

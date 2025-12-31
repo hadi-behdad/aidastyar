@@ -1699,6 +1699,9 @@ function updateSpecialistTotalPrice(consultationPrice) {
     });
 }
 
+// Flag برای جلوگیری از setup مکرر
+window._labTestUploadInitialized = false;
+
 window.setupLabTestUpload = function(currentStep) {
     if (currentStep !== window.STEPS.LABTESTUPLOAD) return;
 
@@ -1710,138 +1713,226 @@ window.setupLabTestUpload = function(currentStep) {
     const nextButton = document.querySelector('.next-step');
     const uploadArea = document.querySelector('.file-upload-area');
 
-    // مقداردهی اولیه
+    // Reset state
     nextButton.disabled = true;
 
-    // بررسی وضعیت قبلی
+    // بررسی state قبلی
     if (state.formData.userInfo.labTestFile) {
         showFilePreview(state.formData.userInfo.labTestFile);
         nextButton.disabled = false;
     } else if (state.formData.userInfo.skipLabTest) {
         skipCheckbox.checked = true;
-        skipCheckbox.nextElementSibling.classList.add('checked');
+        const label = skipCheckbox.nextElementSibling;
+        if (label) label.classList.add('checked');
         nextButton.disabled = false;
     }
 
-    // رویداد Skip
-    skipCheckbox.addEventListener('change', function() {
-        const label = this.nextElementSibling;
-        if (this.checked) {
-            label.classList.add('checked-animation');
-            setTimeout(() => {
-                label.classList.remove('checked-animation');
-                label.classList.add('checked');
-            }, 800);
+    // فقط یک بار setup کن
+    if (window._labTestUploadInitialized) {
+        console.log('⏭️ Lab test upload قبلاً initialize شده');
+        return;
+    }
+
+    console.log('🔧 Lab test upload در حال initialize...');
+    window._labTestUploadInitialized = true;
+
+    // ========== رویداد تغییر فایل ==========
+    fileInput.addEventListener('change', async function(e) {
+        const file = e.target.files[0];
+        
+        if (!file) return;
+    
+        // بررسی نوع فایل
+        if (file.type !== 'application/pdf') {
+            alert('❌ لطفاً فقط فایل PDF آپلود کنید');
+            fileInput.value = '';
+            return;
+        }
+    
+        // بررسی حجم فایل (5MB)
+        const maxSize = 5 * 1024 * 1024;
+        if (file.size > maxSize) {
+            alert('❌ حجم فایل نباید بیشتر از 5 مگابایت باشد');
+            fileInput.value = '';
+            return;
+        }
+    
+        // ✅ بررسی وجود PDFProcessor
+        if (!window.PDFProcessor) {
+            console.error('❌ PDFProcessor لود نشده است!');
+            alert('⚠️ خطا: ماژول پردازش PDF لود نشده. لطفاً صفحه را رفرش کنید.');
+            return;
+        }
+    
+        // ✅ بررسی وجود PDF.js
+        if (typeof pdfjsLib === 'undefined') {
+            console.error('❌ PDF.js لود نشده است!');
+            alert('⚠️ خطا: کتابخانه PDF لود نشده. لطفاً صفحه را رفرش کنید.');
+            return;
+        }
+    
+        console.log('📎 فایل انتخاب شد:', file.name);
+    
+        // 🎯 نمایش لودر
+        let loader = null;
+        if (typeof AiDastyarLoader !== 'undefined') {
+            loader = new AiDastyarLoader({
+                message: 'در حال خواندن فایل PDF...',
+                theme: 'light',
+                size: 'medium',
+                closable: false,
+                overlay: true,
+                persistent: true
+            });
+            loader.show();
+        }
+    
+        try {
+            // 🔥 پردازش PDF
+            const extractedData = await window.PDFProcessor.processPDF(file);
             
-            // پاک کردن فایل
+            // 🎯 چاپ JSON در کنسول
+            console.log('📊 JSON استخراج شده:');
+            console.log(JSON.stringify(extractedData, null, 2));
+            
+            // ذخیره
+            const fileData = {
+                fileName: file.name,
+                fileSize: file.size,
+                fileType: file.type,
+                lastModified: file.lastModified,
+                extractedData: extractedData
+            };
+    
+            state.updateFormData('userInfo.labTestFile', fileData);
+            state.updateFormData('userInfo.skipLabTest', false);
+            
+            showFilePreview(fileData);
+            nextButton.disabled = false;
+            
+            if (skipCheckbox.checked) {
+                skipCheckbox.checked = false;
+                const label = skipCheckbox.nextElementSibling;
+                if (label) label.classList.remove('checked');
+            }
+    
+            console.log('✅ فایل با موفقیت پردازش و ذخیره شد');
+
+            if (loader) {
+                loader.hide();
+            }
+    
+        } catch (error) {
+            console.error('❌ خطا:', error);
+            
+            // ❌ بستن لودر با خطا
+            if (loader) {
+                // 1️⃣ پنهان کردن لودر فعلی
+                loader.hide();
+                
+                // 2️⃣ نمایش لودر خطا
+                const errorLoader = new AiDastyarLoader({
+                    message: '❌ خطا در پردازش PDF',
+                    theme: 'light',
+                    size: 'medium',
+                    closable: true,
+                    overlay: false,
+                    autoHide: 3000  // 👈 خودکار بسته میشه بعد از 3 ثانیه
+                });
+                errorLoader.show();
+            } else {
+                alert('⚠️ خطا در پردازش PDF');
+            }
+            
+            fileInput.value = '';
+        }
+    });
+
+
+    // ========== رویداد حذف فایل ==========
+    if (removeFile) {
+        removeFile.addEventListener('click', function() {
             fileInput.value = '';
             filePreview.style.display = 'none';
             state.updateFormData('userInfo.labTestFile', null);
-            state.updateFormData('userInfo.skipLabTest', true);
-            nextButton.disabled = false;
-        } else {
-            label.classList.remove('checked');
-            state.updateFormData('userInfo.skipLabTest', false);
-            nextButton.disabled = true;
-        }
-    });
-
-    // رویداد انتخاب فایل
-    fileInput.addEventListener('change', function() {
-        const file = this.files[0];
-        if (file) {
-            validateAndUploadFile(file);
-            skipCheckbox.checked = false;
-            skipCheckbox.nextElementSibling.classList.remove('checked');
-            state.updateFormData('userInfo.skipLabTest', false);
-        }
-    });
-
-    // Drag & Drop
-    uploadArea.addEventListener('dragover', (e) => {
-        e.preventDefault();
-        uploadArea.classList.add('drag-over');
-    });
-
-    uploadArea.addEventListener('dragleave', () => {
-        uploadArea.classList.remove('drag-over');
-    });
-
-    uploadArea.addEventListener('drop', (e) => {
-        e.preventDefault();
-        uploadArea.classList.remove('drag-over');
-        const file = e.dataTransfer.files[0];
-        if (file) {
-            validateAndUploadFile(file);
-        }
-    });
-
-    // حذف فایل
-    removeFile.addEventListener('click', function() {
-        fileInput.value = '';
-        filePreview.style.display = 'none';
-        state.updateFormData('userInfo.labTestFile', null);
-        nextButton.disabled = skipCheckbox.checked ? false : true;
-    });
-
-    function validateAndUploadFile(file) {
-        // بررسی نوع فایل
-        const allowedTypes = ['application/pdf'];
-        if (!allowedTypes.includes(file.type)) {
-            showNotification('فقط فایل PDF مجاز است', 'error');
-            return;
-        }
-
-        // بررسی حجم (حداکثر 10MB)
-        const maxSize = 10 * 1024 * 1024; // 10MB
-        if (file.size > maxSize) {
-            showNotification('حجم فایل نباید بیشتر از 10 مگابایت باشد', 'error');
-            return;
-        }
-
-        // آپلود فایل
-        uploadFileToServer(file);
-    }
-
-    function uploadFileToServer(file) {
-        const formData = new FormData();
-        formData.append('action', 'upload_lab_test');
-        formData.append('security', aiAssistantVars.nonce);
-        formData.append('lab_test_file', file);
-        formData.append('user_id', aiAssistantVars.userId || 0);
-
-        // نمایش لودینگ
-        nextButton.disabled = true;
-        nextButton.textContent = 'در حال آپلود...';
-
-        fetch(aiAssistantVars.ajaxurl, {
-            method: 'POST',
-            body: formData
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                showFilePreview(data.data);
-                state.updateFormData('userInfo.labTestFile', data.data);
-                nextButton.disabled = false;
-                nextButton.textContent = 'مرحله بعد';
-                showNotification('فایل با موفقیت آپلود شد', 'success');
-            } else {
-                showNotification(data.data.message || 'خطا در آپلود فایل', 'error');
+            
+            if (!skipCheckbox.checked) {
                 nextButton.disabled = true;
-                nextButton.textContent = 'مرحله بعد';
             }
-        })
-        .catch(error => {
-            console.error('Upload error:', error);
-            showNotification('خطا در آپلود فایل', 'error');
-            nextButton.disabled = true;
-            nextButton.textContent = 'مرحله بعد';
+            
+            console.log('🗑️ فایل حذف شد');
         });
     }
 
-    function showFilePreview(fileData) {
-        fileName.textContent = fileData.fileName || fileData.file_name || 'فایل آزمایش';
-        filePreview.style.display = 'flex';
+    // ========== رویداد checkbox رد کردن ==========
+    if (skipCheckbox) {
+        skipCheckbox.addEventListener('change', function() {
+            const label = this.nextElementSibling;
+            
+            if (this.checked) {
+                if (label) {
+                    label.classList.add('checked-animation');
+                    setTimeout(() => {
+                        label.classList.remove('checked-animation');
+                        label.classList.add('checked');
+                    }, 800);
+                }
+                
+                state.updateFormData('userInfo.skipLabTest', true);
+                state.updateFormData('userInfo.labTestFile', null);
+                nextButton.disabled = false;
+                
+                fileInput.value = '';
+                filePreview.style.display = 'none';
+                
+                console.log('⏭️ آزمایش خون رد شد');
+            } else {
+                if (label) label.classList.remove('checked');
+                state.updateFormData('userInfo.skipLabTest', false);
+                
+                if (!state.formData.userInfo.labTestFile) {
+                    nextButton.disabled = true;
+                }
+            }
+        });
     }
+
+    // ========== Drag & Drop ==========
+    if (uploadArea) {
+        uploadArea.addEventListener('dragover', function(e) {
+            e.preventDefault();
+            this.style.borderColor = '#00857a';
+            this.style.backgroundColor = '#f0f8f7';
+        });
+
+        uploadArea.addEventListener('dragleave', function(e) {
+            e.preventDefault();
+            this.style.borderColor = '';
+            this.style.backgroundColor = '';
+        });
+
+        uploadArea.addEventListener('drop', function(e) {
+            e.preventDefault();
+            this.style.borderColor = '';
+            this.style.backgroundColor = '';
+            
+            const files = e.dataTransfer.files;
+            if (files.length > 0) {
+                fileInput.files = files;
+                fileInput.dispatchEvent(new Event('change'));
+            }
+        });
+    }
+
+    // ========== تابع نمایش پیش‌نمایش ==========
+    function showFilePreview(fileData) {
+        if (fileName) {
+            fileName.textContent = fileData.fileName;
+        }
+        if (filePreview) {
+            filePreview.style.display = 'flex';
+        }
+    }
+
+    console.log('✅ Lab test upload با موفقیت initialize شد');
 };
