@@ -489,6 +489,9 @@ window.setupChronicConditionsSelection = function(currentStep) {
   }
 };
 
+/**
+ * اعتبارسنجی مقادیر آزمایش
+ */
 function validateLabTestValue(testName, value) {
     const numericValue = parseFloat(value);
     
@@ -496,17 +499,34 @@ function validateLabTestValue(testName, value) {
         return { valid: false, reason: 'مقدار باید عدد مثبت باشد' };
     }
     
-    // محدوده‌های منطقی
+    // محدوده‌های منطقی برای آزمایش‌ها
     const ranges = {
+        // قند خون
         'fasting blood sugar': { min: 50, max: 400, name: 'قند خون ناشتا' },
         'fbs': { min: 50, max: 400, name: 'قند خون ناشتا' },
         'blood sugar': { min: 50, max: 600, name: 'قند خون' },
         'bs': { min: 50, max: 600, name: 'قند خون' },
+        
+        // CBC - پارامترهای مهم برای رژیم
+        'hemoglobin': { min: 10, max: 20, name: 'هموگلوبین' },
+        'hgb': { min: 10, max: 20, name: 'هموگلوبین' },
+        'hb': { min: 10, max: 20, name: 'هموگلوبین' },
+        'red blood cells': { min: 3.5, max: 6.5, name: 'گلبول قرمز' },
+        'rbc': { min: 3.5, max: 6.5, name: 'گلبول قرمز' },
+        'mean corpuscular volume': { min: 70, max: 110, name: 'MCV' },
+        'mcv': { min: 70, max: 110, name: 'MCV' },
+        'white blood cells': { min: 4, max: 11, name: 'گلبول سفید' },
+        'wbc': { min: 4, max: 11, name: 'گلبول سفید' },
+        
+        // انسولین 👈 اضافه شد
+        'fasting insulin': { min: 1, max: 50, name: 'انسولین ناشتا' },
+        'insulin': { min: 1, max: 50, name: 'انسولین' },
+        'serum insulin': { min: 1, max: 50, name: 'انسولین سرم' },
+        
+        // سایر آزمایش‌ها
         'hba1c': { min: 3, max: 20, name: 'HbA1c' },
-        'hemoglobin a1c': { min: 3, max: 20, name: 'HbA1c' },
         'cholesterol': { min: 100, max: 500, name: 'کلسترول' },
         'triglyceride': { min: 30, max: 1000, name: 'تری‌گلیسیرید' },
-        'tg': { min: 30, max: 1000, name: 'تری‌گلیسیرید' },
         'ldl': { min: 30, max: 300, name: 'LDL' },
         'hdl': { min: 20, max: 150, name: 'HDL' },
         'sgot': { min: 5, max: 500, name: 'SGOT' },
@@ -521,18 +541,17 @@ function validateLabTestValue(testName, value) {
         't4': { min: 3, max: 25, name: 'T4' }
     };
     
-    // 🎯 تمیز کردن و نرمال‌سازی نام آزمایش
+    // تمیز کردن و نرمال‌سازی نام آزمایش
     const normalizedName = testName
         .toLowerCase()
         .trim()
-        .replace(/\s+/g, ' ')           // فضاهای خالی اضافی
-        .replace(/[()]/g, '')           // حذف پرانتز
-        .replace(/\s*-\s*/g, ' ')       // حذف خط تیره
+        .replace(/\s+/g, ' ')
+        .replace(/[()]/g, '')
+        .replace(/\s*-\s*/g, ' ')
         .trim();
     
-    console.log(`🔍 جستجو برای: "${normalizedName}"`);
+    console.log(`🔍 Validation برای: "${normalizedName}"`);
     
-    // 🎯 جستجوی هوشمند
     let range = null;
     
     // 1. تطبیق دقیق
@@ -540,7 +559,7 @@ function validateLabTestValue(testName, value) {
         range = ranges[normalizedName];
         console.log(`✅ تطبیق دقیق: ${normalizedName}`);
     } else {
-        // 2. جستجو در محتوای نام
+        // 2. جستجوی هوشمند
         for (const [key, value] of Object.entries(ranges)) {
             if (normalizedName.includes(key) || key.includes(normalizedName)) {
                 range = value;
@@ -554,15 +573,15 @@ function validateLabTestValue(testName, value) {
         if (numericValue < range.min || numericValue > range.max) {
             return {
                 valid: false,
-                reason: `${range.name || 'این آزمایش'} باید بین ${range.min} تا ${range.max} باشد`
+                reason: `${range.name} باید بین ${range.min} تا ${range.max} باشد`
             };
         }
     } else {
-        console.warn(`⚠️ محدوده برای "${normalizedName}" تعریف نشده - چک عمومی اعمال میشه`);
+        console.warn(`⚠️ محدوده برای "${normalizedName}" تعریف نشده`);
         
         // محدوده عمومی برای آزمایش‌های ناشناخته
-        if (numericValue > 10000) {
-            return { valid: false, reason: 'مقدار خیلی بزرگ است (حداکثر: 10000)' };
+        if (numericValue > 1000000) {
+            return { valid: false, reason: 'مقدار خیلی بزرگ است (حداکثر: 1,000,000)' };
         }
     }
     
@@ -1819,94 +1838,110 @@ function showLabDataPopup(extractedData, file, onConfirm) {
     }
     
     console.log('🔍 تعداد تست‌ها:', tests.length);
-
-    let hasData = false;
     
     tests.forEach((test, index) => {
-        if (test.found && test.value !== null) {
-            hasData = true;
-            
-            const item = document.createElement('div');
-            item.className = 'lab-data-item';
-            
-            // ✅ Checkbox
-            const checkbox = document.createElement('input');
-            checkbox.type = 'checkbox';
-            checkbox.id = `lab-check-${index}`;
-            checkbox.className = 'lab-checkbox';
-            checkbox.checked = true;
-            checkbox.dataset.testName = test.name || 'FBS';
-            
-            const label = document.createElement('label');
-            label.htmlFor = `lab-check-${index}`;
-            label.className = 'lab-checkbox-label';
-            
-            // نام
-            const key = document.createElement('span');
-            key.className = 'lab-data-key';
-            key.textContent = test.name || 'FBS';
-            
-            // 🎯 مقدار (قابل ویرایش)
-            const valueContainer = document.createElement('div');
-            valueContainer.className = 'lab-data-value-container';
-            
-            const value = document.createElement('span');
-            value.className = 'lab-data-value';
-            value.textContent = `${test.value} ${test.unit || ''}`.trim();
-            value.dataset.originalValue = test.value;
-            value.dataset.unit = test.unit || '';
-            
-            valueContainer.appendChild(value);
-            
-            // 🎯 Event: Long Press برای ویرایش
-            let pressTimer;
-            
-            value.addEventListener('mousedown', function(e) {
-                // فقط اگه تیک خورده باشه
-                if (!checkbox.checked) return;
-                
-                pressTimer = setTimeout(() => {
-                    makeEditable(value, test, checkbox);
-                }, 500); // 500ms = نیم ثانیه
-            });
-            
-            value.addEventListener('mouseup', function() {
-                clearTimeout(pressTimer);
-            });
-            
-            value.addEventListener('mouseleave', function() {
-                clearTimeout(pressTimer);
-            });
-            
-            // 🎯 موبایل (Touch)
-            value.addEventListener('touchstart', function(e) {
-                if (!checkbox.checked) return;
-                
-                pressTimer = setTimeout(() => {
-                    makeEditable(value, test, checkbox);
-                }, 500);
-            });
-            
-            value.addEventListener('touchend', function() {
-                clearTimeout(pressTimer);
-            });
-            
-            // ترکیب
-            item.appendChild(checkbox);
-            item.appendChild(label);
-            item.appendChild(key);
-            item.appendChild(valueContainer);
-            
-            dataList.appendChild(item);
-            
-            // Event: برداشتن تیک
-            checkbox.addEventListener('change', function() {
-                item.classList.toggle('lab-item-unchecked', !this.checked);
-            });
-            
-            console.log(`✅ آیتم ${index + 1} اضافه شد: ${test.name}`);
+        // 👇 حذف شرط - همه رو نمایش بده
+        const isFound = test.found && test.value !== null;
+        
+        const item = document.createElement('div');
+        item.className = 'lab-data-item';
+        
+        // Checkbox
+        const checkbox = document.createElement('input');
+        checkbox.type = 'checkbox';
+        checkbox.id = `lab-check-${index}`;
+        checkbox.className = 'lab-checkbox';
+        checkbox.checked = isFound;  // 👈 فقط اگه پیدا شده تیک بخوره
+        checkbox.dataset.testName = test.name;
+    
+        // Label
+        const label = document.createElement('label');
+        label.htmlFor = `lab-check-${index}`;
+        label.className = 'lab-checkbox-label';
+    
+        // Test Name
+        const key = document.createElement('span');
+        key.className = 'lab-data-key';
+        key.textContent = test.name;
+        
+        // اگه پیدا نشده، badge اضافه کن
+        if (!isFound) {
+            const badge = document.createElement('span');
+            badge.className = 'not-found-badge';
+            badge.textContent = '⚠️ پیدا نشد';
+            badge.style.cssText = `
+                display: inline-block;
+                background: #ffc107;
+                color: #000;
+                padding: 2px 8px;
+                border-radius: 12px;
+                font-size: 11px;
+                margin-right: 8px;
+            `;
+            key.appendChild(badge);
         }
+    
+        // Value Container
+        const valueContainer = document.createElement('div');
+        valueContainer.className = 'lab-data-value-container';
+    
+        const value = document.createElement('span');
+        value.className = 'lab-data-value';
+        value.textContent = isFound ? `${test.value} ${test.unit}`.trim() : '---';
+        value.dataset.originalValue = test.value || '';
+        value.dataset.unit = test.unit || '';
+    
+        valueContainer.appendChild(value);
+    
+        // Event: Long Press برای ویرایش
+        let pressTimer;
+        value.addEventListener('mousedown', function(e) {
+            if (!checkbox.checked) return;
+            pressTimer = setTimeout(() => makeEditable(value, test, checkbox), 500);
+        });
+        value.addEventListener('mouseup', function() {
+            clearTimeout(pressTimer);
+        });
+        value.addEventListener('mouseleave', function() {
+            clearTimeout(pressTimer);
+        });
+    
+        // Touch Events
+        value.addEventListener('touchstart', function(e) {
+            if (!checkbox.checked) return;
+            pressTimer = setTimeout(() => makeEditable(value, test, checkbox), 500);
+        });
+        value.addEventListener('touchend', function() {
+            clearTimeout(pressTimer);
+        });
+    
+        // اضافه کردن به item
+        item.appendChild(checkbox);
+        item.appendChild(label);
+        item.appendChild(key);
+        item.appendChild(valueContainer);
+    
+        // اگه تیک نخورده، کلاس اضافه کن
+        if (!isFound) {
+            item.classList.add('lab-item-unchecked');
+        }
+    
+        dataList.appendChild(item);
+    
+        // Event: checkbox تغییر
+        checkbox.addEventListener('change', function() {
+            item.classList.toggle('lab-item-unchecked', !this.checked);
+            
+            // اگه تیک خورد و مقدار خالیه، input نشون بده
+            if (this.checked && (!test.value || test.value === null)) {
+                const valueSpan = item.querySelector('.lab-data-value');
+                makeEditable(valueSpan, test, checkbox);
+            }
+            
+            console.log(`${index + 1}. ${test.name}: ${this.checked ? '✅' : '❌'}`);
+        });
     });
+
     
     function makeEditable(valueSpan, test, checkbox) {
         const currentValue = test.value;
@@ -2045,15 +2080,6 @@ function showLabDataPopup(extractedData, file, onConfirm) {
         parent.replaceChild(valueSpan, input);
     }
 
-    
-    if (!hasData) {
-        const noDataMsg = document.createElement('div');
-        noDataMsg.className = 'lab-no-data';
-        noDataMsg.textContent = 'هیچ داده‌ای یافت نشد';
-        noDataMsg.style.cssText = 'text-align:center;color:#ff9800;padding:20px';
-        dataList.appendChild(noDataMsg);
-    }
-    
     popup.style.display = 'flex';
     
     window._labConfirmCallback = () => {
@@ -2063,7 +2089,10 @@ function showLabDataPopup(extractedData, file, onConfirm) {
         if (Array.isArray(extractedData)) {
             cleanedData = extractedData
                 .filter(test => {
-                    if (!test.found || test.value === null) return false;
+                    const checkbox = document.querySelector(`#lab-check-${extractedData.indexOf(test)}`);
+                    if (!checkbox || !checkbox.checked || test.value === null || test.value === '') {
+                        return false;
+                    }
                     
                     // 🎯 اعتبارسنجی
                     const validation = validateLabTestValue(test.name, test.value);
