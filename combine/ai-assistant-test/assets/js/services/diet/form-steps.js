@@ -489,6 +489,86 @@ window.setupChronicConditionsSelection = function(currentStep) {
   }
 };
 
+function validateLabTestValue(testName, value) {
+    const numericValue = parseFloat(value);
+    
+    if (isNaN(numericValue) || numericValue <= 0) {
+        return { valid: false, reason: 'مقدار باید عدد مثبت باشد' };
+    }
+    
+    // محدوده‌های منطقی
+    const ranges = {
+        'fasting blood sugar': { min: 50, max: 400, name: 'قند خون ناشتا' },
+        'fbs': { min: 50, max: 400, name: 'قند خون ناشتا' },
+        'blood sugar': { min: 50, max: 600, name: 'قند خون' },
+        'bs': { min: 50, max: 600, name: 'قند خون' },
+        'hba1c': { min: 3, max: 20, name: 'HbA1c' },
+        'hemoglobin a1c': { min: 3, max: 20, name: 'HbA1c' },
+        'cholesterol': { min: 100, max: 500, name: 'کلسترول' },
+        'triglyceride': { min: 30, max: 1000, name: 'تری‌گلیسیرید' },
+        'tg': { min: 30, max: 1000, name: 'تری‌گلیسیرید' },
+        'ldl': { min: 30, max: 300, name: 'LDL' },
+        'hdl': { min: 20, max: 150, name: 'HDL' },
+        'sgot': { min: 5, max: 500, name: 'SGOT' },
+        'sgpt': { min: 5, max: 500, name: 'SGPT' },
+        'alt': { min: 5, max: 500, name: 'ALT' },
+        'ast': { min: 5, max: 500, name: 'AST' },
+        'creatinine': { min: 0.3, max: 15, name: 'کراتینین' },
+        'bun': { min: 5, max: 150, name: 'BUN' },
+        'urea': { min: 10, max: 300, name: 'اوره' },
+        'tsh': { min: 0.1, max: 50, name: 'TSH' },
+        't3': { min: 50, max: 300, name: 'T3' },
+        't4': { min: 3, max: 25, name: 'T4' }
+    };
+    
+    // 🎯 تمیز کردن و نرمال‌سازی نام آزمایش
+    const normalizedName = testName
+        .toLowerCase()
+        .trim()
+        .replace(/\s+/g, ' ')           // فضاهای خالی اضافی
+        .replace(/[()]/g, '')           // حذف پرانتز
+        .replace(/\s*-\s*/g, ' ')       // حذف خط تیره
+        .trim();
+    
+    console.log(`🔍 جستجو برای: "${normalizedName}"`);
+    
+    // 🎯 جستجوی هوشمند
+    let range = null;
+    
+    // 1. تطبیق دقیق
+    if (ranges[normalizedName]) {
+        range = ranges[normalizedName];
+        console.log(`✅ تطبیق دقیق: ${normalizedName}`);
+    } else {
+        // 2. جستجو در محتوای نام
+        for (const [key, value] of Object.entries(ranges)) {
+            if (normalizedName.includes(key) || key.includes(normalizedName)) {
+                range = value;
+                console.log(`✅ تطبیق جزئی: "${key}" در "${normalizedName}"`);
+                break;
+            }
+        }
+    }
+    
+    if (range) {
+        if (numericValue < range.min || numericValue > range.max) {
+            return {
+                valid: false,
+                reason: `${range.name || 'این آزمایش'} باید بین ${range.min} تا ${range.max} باشد`
+            };
+        }
+    } else {
+        console.warn(`⚠️ محدوده برای "${normalizedName}" تعریف نشده - چک عمومی اعمال میشه`);
+        
+        // محدوده عمومی برای آزمایش‌های ناشناخته
+        if (numericValue > 10000) {
+            return { valid: false, reason: 'مقدار خیلی بزرگ است (حداکثر: 10000)' };
+        }
+    }
+    
+    return { valid: true };
+}
+
 function setupChronicDiabetesDetails() {
   const diabetesCheckbox = document.getElementById('chronic-diabetes');
   const diabetesDetails = document.getElementById('chronic-diabetes-details');
@@ -1699,9 +1779,428 @@ function updateSpecialistTotalPrice(consultationPrice) {
     });
 }
 
+
+// ========================================
+// توابع پاپ‌آپ
+// ========================================
+
+function showLabDataPopup(extractedData, file, onConfirm) {
+    const popup = document.getElementById('lab-data-popup');
+    const dataList = document.getElementById('lab-data-list');
+    
+    if (!popup) {
+        console.error('lab-data-popup نیست!');
+        alert('خطا: المان پاپ‌آپ در HTML پیدا نشد.');
+        return;
+    }
+    
+    if (!dataList) {
+        console.error('lab-data-list نیست!');
+        alert('خطا: المان لیست داده در HTML پیدا نشد.');
+        return;
+    }
+    
+    dataList.innerHTML = '';
+    
+    // 🎯 چک کنیم داده چه شکلیه
+    let tests = [];
+    
+    if (Array.isArray(extractedData)) {
+        // اگه آرایه بود
+        tests = extractedData;
+    } else if (extractedData && typeof extractedData === 'object') {
+        // اگه یک آبجکت تکی بود (مثل FBS)
+        if (extractedData.found && extractedData.value !== null) {
+            tests = [extractedData]; // 👈 تبدیل به آرایه
+        } else if (extractedData.keyvalue && Array.isArray(extractedData.keyvalue)) {
+            // اگه keyvalue داشت
+            tests = extractedData.keyvalue;
+        }
+    }
+    
+    console.log('🔍 تعداد تست‌ها:', tests.length);
+
+    let hasData = false;
+    
+    tests.forEach((test, index) => {
+        if (test.found && test.value !== null) {
+            hasData = true;
+            
+            const item = document.createElement('div');
+            item.className = 'lab-data-item';
+            
+            // ✅ Checkbox
+            const checkbox = document.createElement('input');
+            checkbox.type = 'checkbox';
+            checkbox.id = `lab-check-${index}`;
+            checkbox.className = 'lab-checkbox';
+            checkbox.checked = true;
+            checkbox.dataset.testName = test.name || 'FBS';
+            
+            const label = document.createElement('label');
+            label.htmlFor = `lab-check-${index}`;
+            label.className = 'lab-checkbox-label';
+            
+            // نام
+            const key = document.createElement('span');
+            key.className = 'lab-data-key';
+            key.textContent = test.name || 'FBS';
+            
+            // 🎯 مقدار (قابل ویرایش)
+            const valueContainer = document.createElement('div');
+            valueContainer.className = 'lab-data-value-container';
+            
+            const value = document.createElement('span');
+            value.className = 'lab-data-value';
+            value.textContent = `${test.value} ${test.unit || ''}`.trim();
+            value.dataset.originalValue = test.value;
+            value.dataset.unit = test.unit || '';
+            
+            valueContainer.appendChild(value);
+            
+            // 🎯 Event: Long Press برای ویرایش
+            let pressTimer;
+            
+            value.addEventListener('mousedown', function(e) {
+                // فقط اگه تیک خورده باشه
+                if (!checkbox.checked) return;
+                
+                pressTimer = setTimeout(() => {
+                    makeEditable(value, test, checkbox);
+                }, 500); // 500ms = نیم ثانیه
+            });
+            
+            value.addEventListener('mouseup', function() {
+                clearTimeout(pressTimer);
+            });
+            
+            value.addEventListener('mouseleave', function() {
+                clearTimeout(pressTimer);
+            });
+            
+            // 🎯 موبایل (Touch)
+            value.addEventListener('touchstart', function(e) {
+                if (!checkbox.checked) return;
+                
+                pressTimer = setTimeout(() => {
+                    makeEditable(value, test, checkbox);
+                }, 500);
+            });
+            
+            value.addEventListener('touchend', function() {
+                clearTimeout(pressTimer);
+            });
+            
+            // ترکیب
+            item.appendChild(checkbox);
+            item.appendChild(label);
+            item.appendChild(key);
+            item.appendChild(valueContainer);
+            
+            dataList.appendChild(item);
+            
+            // Event: برداشتن تیک
+            checkbox.addEventListener('change', function() {
+                item.classList.toggle('lab-item-unchecked', !this.checked);
+            });
+            
+            console.log(`✅ آیتم ${index + 1} اضافه شد: ${test.name}`);
+        }
+    });
+    
+    function makeEditable(valueSpan, test, checkbox) {
+        const currentValue = test.value;
+        const unit = test.unit || '';
+        
+        // ساخت input
+        const input = document.createElement('input');
+        input.type = 'number';
+        input.className = 'lab-data-input';
+        input.value = currentValue;
+        input.min = 0; // 👈 حداقل 0
+        input.step = 'any'; // اعشاری مجاز
+        input.style.cssText = `
+            width: 80px;
+            padding: 4px 8px;
+            border: 2px solid #00857a;
+            border-radius: 4px;
+            font-size: 1rem;
+            font-weight: 700;
+            color: #00857a;
+            text-align: center;
+            background: #f0f8f7;
+        `;
+        
+        // جایگزینی
+        const parent = valueSpan.parentElement;
+        parent.replaceChild(input, valueSpan);
+        
+        input.focus();
+        input.select();
+        
+        // 🎯 جلوگیری از ورودی منفی
+        input.addEventListener('input', function() {
+            if (this.value < 0) {
+                this.value = 0;
+            }
+        });
+        
+        // ذخیره با Enter
+        input.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter') {
+                saveEdit(input, valueSpan, test, unit, parent);
+            } else if (e.key === 'Escape') {
+                cancelEdit(input, valueSpan, parent);
+            }
+        });
+        
+        // ذخیره با blur
+        input.addEventListener('blur', function() {
+            setTimeout(() => {
+                if (input.parentElement) {
+                    saveEdit(input, valueSpan, test, unit, parent);
+                }
+            }, 150);
+        });
+    }
+    
+    function saveEdit(input, valueSpan, test, unit, parent) {
+        const newValue = parseFloat(input.value);
+        
+        // 🎯 چک اولیه
+        if (isNaN(newValue) || newValue <= 0) {
+            showEditError(input, 'لطفاً یک عدد مثبت وارد کنید');
+            return;
+        }
+        
+        // 🎯 اعتبارسنجی محدوده
+        const validation = validateLabTestValue(test.name, newValue);
+        
+        if (!validation.valid) {
+            showEditError(input, validation.reason);
+            console.warn(`❌ مقدار نامعتبر: ${test.name} = ${newValue} (${validation.reason})`);
+            return;
+        }
+        
+        // ✅ ذخیره
+        test.value = newValue;
+        valueSpan.textContent = `${newValue} ${unit}`.trim();
+        valueSpan.dataset.originalValue = newValue;
+        
+        parent.replaceChild(valueSpan, input);
+        
+        console.log(`✅ ویرایش شد: ${test.name} = ${newValue} ${unit}`);
+    }
+    
+    function showEditError(input, message) {
+        // حذف پیام خطای قبلی
+        const existingError = input.parentElement.querySelector('.lab-edit-error');
+        if (existingError) {
+            existingError.remove();
+        }
+        
+        // ساخت پیام جدید
+        const errorMsg = document.createElement('div');
+        errorMsg.className = 'lab-edit-error';
+        errorMsg.textContent = `⚠️ ${message}`;
+        errorMsg.style.cssText = `
+            position: absolute;
+            bottom: -25px;
+            left: 0;
+            right: 0;
+            color: #f44336;
+            font-size: 0.75rem;
+            text-align: center;
+            background: #ffebee;
+            padding: 4px 8px;
+            border-radius: 4px;
+            white-space: nowrap;
+            z-index: 10;
+            animation: shake 0.3s ease;
+        `;
+        
+        input.parentElement.style.position = 'relative';
+        input.parentElement.appendChild(errorMsg);
+        
+        // استایل خطا برای input
+        input.style.borderColor = '#f44336';
+        input.style.background = '#ffebee';
+        
+        // حذف خطا بعد از 3 ثانیه
+        setTimeout(() => {
+            if (errorMsg.parentElement) {
+                errorMsg.remove();
+            }
+            input.style.borderColor = '#00857a';
+            input.style.background = '#f0f8f7';
+        }, 3000);
+        
+        input.focus();
+        input.select();
+    }
+    
+    function cancelEdit(input, valueSpan, parent) {
+        const originalValue = valueSpan.dataset.originalValue;
+        console.log(`❌ ویرایش لغو شد. مقدار قبلی: ${originalValue}`);
+        parent.replaceChild(valueSpan, input);
+    }
+
+    
+    if (!hasData) {
+        const noDataMsg = document.createElement('div');
+        noDataMsg.className = 'lab-no-data';
+        noDataMsg.textContent = 'هیچ داده‌ای یافت نشد';
+        noDataMsg.style.cssText = 'text-align:center;color:#ff9800;padding:20px';
+        dataList.appendChild(noDataMsg);
+    }
+    
+    popup.style.display = 'flex';
+    
+    window._labConfirmCallback = () => {
+        let cleanedData;
+        let invalidTests = [];
+        
+        if (Array.isArray(extractedData)) {
+            cleanedData = extractedData
+                .filter(test => {
+                    if (!test.found || test.value === null) return false;
+                    
+                    // 🎯 اعتبارسنجی
+                    const validation = validateLabTestValue(test.name, test.value);
+                    
+                    if (!validation.valid) {
+                        invalidTests.push({
+                            name: test.name,
+                            value: test.value,
+                            reason: validation.reason
+                        });
+                        console.warn(`⚠️ ${test.name}: ${validation.reason}`);
+                        return false;
+                    }
+                    
+                    return true;
+                })
+                .map(test => ({
+                    name: test.name,
+                    value: parseFloat(test.value),
+                    unit: test.unit || ''
+                }));
+        } else if (extractedData && typeof extractedData === 'object') {
+            if (extractedData.found && extractedData.value !== null) {
+                const validation = validateLabTestValue(extractedData.name, extractedData.value);
+                
+                if (validation.valid) {
+                    cleanedData = {
+                        name: extractedData.name,
+                        value: parseFloat(extractedData.value),
+                        unit: extractedData.unit || ''
+                    };
+                } else {
+                    invalidTests.push({
+                        name: extractedData.name,
+                        value: extractedData.value,
+                        reason: validation.reason
+                    });
+                    console.warn(`⚠️ ${extractedData.name}: ${validation.reason}`);
+                    cleanedData = null;
+                }
+            } else {
+                cleanedData = null;
+            }
+        }
+        
+        closeLabPopup();
+        
+        // 🎯 نمایش خطاهای اعتبارسنجی
+        if (invalidTests.length > 0) {
+            const errorMessages = invalidTests
+                .map(t => `• ${t.name}: ${t.value} - ${t.reason}`)
+                .join('\n');
+            
+            const warningLoader = new AiDastyarLoader({
+                message: `⚠️ برخی مقادیر نامعتبر بودند:\n${errorMessages}`,
+                theme: 'light',
+                size: 'medium',
+                closable: true,
+                overlay: false,
+                autoHide: 5000
+            });
+            warningLoader.show();
+        }
+        
+        if (cleanedData && (Array.isArray(cleanedData) ? cleanedData.length > 0 : true)) {
+            onConfirm(cleanedData);
+        } else {
+            console.warn('⚠️ هیچ داده معتبری برای ذخیره وجود ندارد');
+        }
+    };
+
+}
+
+
+/**
+ * بستن پاپ‌آپ
+ */
+window.closeLabPopup = function() {
+    const popup = document.getElementById('lab-data-popup');
+    const fileInput = document.getElementById('lab-test-file');
+    
+    if (popup) {
+        popup.style.display = 'none';
+    }
+    
+    // 🎯 پاک کردن fileInput تا بتونه دوباره انتخاب بشه
+    if (fileInput) {
+        fileInput.value = '';
+        console.log('🗑️ فایل input پاک شد');
+    }
+    
+    window._labConfirmCallback = null;
+};
+
+
+/**
+ * تایید داده‌ها
+ */
+window.confirmLabData = function() {
+    if (typeof window._labConfirmCallback === 'function') {
+        window._labConfirmCallback();
+    }
+    
+    // 🎯 پاک کردن callback بعد از اجرا
+    window._labConfirmCallback = null;
+    
+    console.log('✅ فایل تایید شد');
+};
+
+
+/**
+ * رد کردن داده‌ها
+ */
+window.rejectLabData = function() {
+    closeLabPopup();
+    
+    const fileInput = document.getElementById('lab-test-file');
+    if (fileInput) {
+        fileInput.value = '';
+    }
+    
+    const rejectLoader = new AiDastyarLoader({
+        message: '❌ فایل رد شد. می‌توانید فایل دیگری انتخاب کنید.',
+        theme: 'light',
+        size: 'medium',
+        closable: true,
+        overlay: false,
+        autoHide: 3000
+    });
+    rejectLoader.show();
+    
+    console.log('❌ فایل رد شد');
+};
+
+
 // Flag برای جلوگیری از setup مکرر
 window._labTestUploadInitialized = false;
-
 window.setupLabTestUpload = function(currentStep) {
     if (currentStep !== window.STEPS.LABTESTUPLOAD) return;
 
@@ -1794,34 +2293,38 @@ window.setupLabTestUpload = function(currentStep) {
             // 🎯 چاپ JSON در کنسول
             console.log('📊 JSON استخراج شده:');
             console.log(JSON.stringify(extractedData, null, 2));
-            
-            // ذخیره
-            const fileData = {
-                fileName: file.name,
-                fileSize: file.size,
-                fileType: file.type,
-                lastModified: file.lastModified,
-                extractedData: extractedData
-            };
-    
-            state.updateFormData('userInfo.labTestFile', fileData);
-            state.updateFormData('userInfo.skipLabTest', false);
-            
-            showFilePreview(fileData);
-            nextButton.disabled = false;
-            
-            if (skipCheckbox.checked) {
-                skipCheckbox.checked = false;
-                const label = skipCheckbox.nextElementSibling;
-                if (label) label.classList.remove('checked');
-            }
-    
-            console.log('✅ فایل با موفقیت پردازش و ذخیره شد');
 
             if (loader) {
                 loader.hide();
             }
     
+            // 🎯 اینجا پاپ‌آپ رو نشون بده
+            showLabDataPopup(extractedData, file, (confirmedData) => {
+                // بعد از تایید ذخیره کن
+                state.updateFormData('userInfo.labTestFile', confirmedData);
+                state.updateFormData('userInfo.skipLabTest', false);
+                
+                showFilePreview(confirmedData);
+                nextButton.disabled = false;
+                
+                if (skipCheckbox.checked) {
+                    skipCheckbox.checked = false;
+                    const label = skipCheckbox.nextElementSibling;
+                    if (label) {
+                        label.classList.remove('checked');
+                    }
+                }
+        
+                const successLoader = new AiDastyarLoader({
+                    message: '✅ اطلاعات تایید شد!',
+                    theme: 'light',
+                    size: 'medium',
+                    closable: false,
+                    overlay: false,
+                    autoHide: 2000
+                });
+                successLoader.show();
+            });
         } catch (error) {
             console.error('❌ خطا:', error);
             
@@ -1852,17 +2355,33 @@ window.setupLabTestUpload = function(currentStep) {
     // ========== رویداد حذف فایل ==========
     if (removeFile) {
         removeFile.addEventListener('click', function() {
+            // پاک کردن input
             fileInput.value = '';
+            
+            // مخفی کردن پیش‌نمایش
             filePreview.style.display = 'none';
+            
+            // پاک کردن state
             state.updateFormData('userInfo.labTestFile', null);
             
-            if (!skipCheckbox.checked) {
+            // 🎯 نمایش دوباره چک‌باکس "فایل ندارم"
+            const skipCheckbox = document.getElementById('skip-lab-test');
+            const skipContainer = skipCheckbox?.closest('.skip-lab-test-container') || skipCheckbox?.parentElement;
+            
+            if (skipContainer) {
+                skipContainer.style.display = 'block';
+                console.log('🔓 چک‌باکس "فایل ندارم" نمایش داده شد');
+            }
+            
+            // غیرفعال کردن دکمه Next اگه skip هم چک نشده
+            if (!skipCheckbox?.checked) {
                 nextButton.disabled = true;
             }
             
             console.log('🗑️ فایل حذف شد');
         });
     }
+
 
     // ========== رویداد checkbox رد کردن ==========
     if (skipCheckbox) {
@@ -1924,15 +2443,29 @@ window.setupLabTestUpload = function(currentStep) {
         });
     }
 
-    // ========== تابع نمایش پیش‌نمایش ==========
     function showFilePreview(fileData) {
+        const fileName = document.getElementById('file-name');
+        const filePreview = document.getElementById('file-preview');
+        const skipCheckbox = document.getElementById('skip-lab-test');
+        const skipContainer = skipCheckbox?.closest('.skip-lab-test-container') || skipCheckbox?.parentElement;
+        
         if (fileName) {
             fileName.textContent = fileData.fileName;
         }
+        
         if (filePreview) {
             filePreview.style.display = 'flex';
         }
+        
+        // 🎯 مخفی کردن چک‌باکس "فایل ندارم"
+        if (skipContainer) {
+            skipContainer.style.display = 'none';
+            console.log('🔒 چک‌باکس "فایل ندارم" مخفی شد');
+        }
+        
+        console.log('✅ فایل نمایش داده شد:', fileData.fileName);
     }
+
 
     console.log('✅ Lab test upload با موفقیت initialize شد');
 };

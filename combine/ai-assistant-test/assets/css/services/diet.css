@@ -3625,3 +3625,341 @@ body.dark-mode .specialist-price-note {
     background: #d32f2f;
     transform: scale(1.1);
 }
+
+
+
+/* ========== Lab Data Popup ========== */
+.lab-popup-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(4px);
+    z-index: 10000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.lab-popup-box {
+    background: white;
+    border-radius: 16px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+    max-width: 500px;
+    width: 90%;
+    animation: popupFadeIn 0.3s ease-out;
+    overflow: hidden;
+}
+
+@keyframes popupFadeIn {
+    from {
+        opacity: 0;
+        transform: scale(0.9);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+.lab-popup-header {
+    background: linear-gradient(135deg, #00857a 0%, #00a896 100%);
+    color: white;
+    padding: 20px 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.lab-popup-header h3 {
+    margin: 0;
+    font-size: 1.2rem;
+    font-weight: 600;
+}
+
+.lab-popup-close-btn {
+    background: none;
+    border: none;
+    color: white;
+    font-size: 2rem;
+    cursor: pointer;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    transition: background 0.2s;
+}
+
+.lab-popup-close-btn:hover {
+    background: rgba(255, 255, 255, 0.2);
+}
+
+.lab-popup-body {
+    padding: 24px;
+    max-height: 60vh;
+    overflow-y: auto;
+}
+
+.lab-popup-desc {
+    color: #666;
+    margin-bottom: 16px;
+    font-size: 0.95rem;
+}
+
+.lab-data-items {
+    background: #f8f9fa;
+    border-radius: 12px;
+    padding: 16px;
+    border: 2px solid #e9ecef;
+}
+
+.lab-data-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 0;
+    border-bottom: 1px solid #e9ecef;
+    font-size: 0.9rem;
+    direction: ltr;
+}
+
+.lab-data-item:last-child {
+    border-bottom: none;
+}
+
+.lab-data-key {
+    font-weight: 600;
+    color: #495057;
+}
+
+.lab-data-value {
+    font-weight: 700;
+    color: #00857a;
+}
+
+.lab-popup-footer {
+    padding: 16px 24px;
+    background: #f8f9fa;
+    display: flex;
+    gap: 12px;
+    justify-content: flex-end;
+    border-top: 1px solid #e9ecef;
+}
+
+.lab-btn {
+    padding: 10px 24px;
+    border: none;
+    border-radius: 8px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.lab-btn-reject {
+    background: #dc3545;
+    color: white;
+}
+
+.lab-btn-reject:hover {
+    background: #c82333;
+    transform: translateY(-2px);
+}
+
+.lab-btn-confirm {
+    background: #28a745;
+    color: white;
+}
+
+.lab-btn-confirm:hover {
+    background: #218838;
+    transform: translateY(-2px);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .lab-popup-box {
+        width: 95%;
+    }
+    
+    .lab-popup-footer {
+        flex-direction: column;
+    }
+    
+    .lab-btn {
+        width: 100%;
+    }
+}
+
+
+
+
+/* ========== Lab Data Checkbox ========== */
+.lab-data-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 14px 16px;
+    border-bottom: 1px solid #e9ecef;
+    transition: all 0.3s ease;
+}
+
+.lab-data-item:last-child {
+    border-bottom: none;
+}
+
+/* وقتی تیک برداشته میشه */
+.lab-data-item.lab-item-unchecked {
+    opacity: 0.4;
+}
+
+.lab-data-item.lab-item-unchecked .lab-data-key,
+.lab-data-item.lab-item-unchecked .lab-data-value {
+    text-decoration: line-through;
+}
+
+/* پنهان کردن checkbox واقعی */
+.lab-checkbox {
+    position: absolute;
+    opacity: 0;
+    pointer-events: none;
+}
+
+/* Custom Checkbox */
+.lab-checkbox-label {
+    position: relative;
+    width: 17px;
+    height: 17px;
+    background: #fff;
+    border: 2px solid #00857a;
+    border-radius: 5px;
+    cursor: pointer;
+    flex-shrink: 0;
+    transition: all 0.2s ease;
+}
+
+.lab-checkbox-label:hover {
+    transform: scale(1.1);
+    box-shadow: 0 2px 6px rgba(0, 133, 122, 0.3);
+}
+
+/* تیک خورده */
+.lab-checkbox:checked + .lab-checkbox-label {
+    background: #00857a;
+    border-color: #00857a;
+}
+
+/* علامت تیک */
+.lab-checkbox:checked + .lab-checkbox-label::after {
+    content: '';
+    position: absolute;
+    left: 5px;
+    top: 1px;
+    width: 5px;
+    height: 10px;
+    border: solid #fff;
+    border-width: 0 2px 2px 0;
+    transform: rotate(45deg);
+}
+
+/* نام آزمایش */
+.lab-data-key {
+    font-weight: 600;
+    color: #495057;
+    flex: 1;
+}
+
+/* مقدار */
+.lab-data-value {
+    font-weight: 700;
+    color: #00857a;
+    margin-right: auto;
+}
+
+/* ========== Editable Value ========== */
+.lab-data-value-container {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.lab-data-value {
+    cursor: pointer;
+    user-select: none;
+    position: relative;
+    padding: 4px 8px;
+    border-radius: 4px;
+    transition: all 0.2s ease;
+}
+
+.lab-data-value:hover {
+    background: #f0f8f7;
+    transform: scale(1.05);
+}
+
+.lab-data-value::after {
+    content: '✏️';
+    position: absolute;
+    right: -20px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 0.8em;
+    opacity: 0;
+    transition: opacity 0.2s ease;
+}
+
+.lab-data-value:hover::after {
+    opacity: 0.5;
+}
+
+.lab-data-input {
+    animation: inputFadeIn 0.2s ease;
+}
+
+@keyframes inputFadeIn {
+    from {
+        opacity: 0;
+        transform: scale(0.95);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+/* وقتی تیک برداشته شده - غیرفعال کن */
+.lab-item-unchecked .lab-data-value {
+    cursor: not-allowed;
+    pointer-events: none;
+}
+
+.lab-item-unchecked .lab-data-value::after {
+    display: none;
+}
+
+
+@keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-5px); }
+    50% { transform: translateX(5px); }
+    75% { transform: translateX(-5px); }
+}
+
+/* پیام خطا */
+.lab-edit-error {
+    animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(-5px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* Input با خطا */
+.lab-data-input:invalid {
+    border-color: #f44336 !important;
+}

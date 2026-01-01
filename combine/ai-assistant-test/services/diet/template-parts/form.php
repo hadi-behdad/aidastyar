@@ -995,7 +995,7 @@ $theme_assets = get_stylesheet_directory_uri();
                     </svg>
                 </button>
             </div>
-    
+
             <div class="checkbox-container first-option stand-alone-none">
                 <input type="checkbox" id="skip-lab-test" class="real-checkbox">
                 <label for="skip-lab-test" class="checkbox-label">
@@ -1529,6 +1529,27 @@ $theme_assets = get_stylesheet_directory_uri();
     <script> pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';</script>
     <script src="<?php echo get_stylesheet_directory_uri(); ?>/assets/js/services/diet/pdf-processor.js"></script>
 </form>
+
+
+<!-- Lab Data Confirmation Popup - Simple Key:Value -->
+<div id="lab-data-popup" class="lab-popup-overlay" style="display: none;">
+    <div class="lab-popup-box">
+        <div class="lab-popup-header">
+            <h3>📋 اطلاعات استخراج شده</h3>
+            <button type="button" class="lab-popup-close-btn" onclick="closeLabPopup()">×</button>
+        </div>
+        
+        <div class="lab-popup-body">
+            <p class="lab-popup-desc">لطفاً اطلاعات زیر را بررسی کنید:</p>
+            <div id="lab-data-list" class="lab-data-items"></div>
+        </div>
+        
+        <div class="lab-popup-footer">
+            <button type="button" class="lab-btn lab-btn-reject" onclick="rejectLabData()">❌ رد</button>
+            <button type="button" class="lab-btn lab-btn-confirm" onclick="confirmLabData()">✅ تایید</button>
+        </div>
+    </div>
+</div>
 
 <link rel="stylesheet" href="<?php echo $theme_assets; ?>/assets/css/components/payment-popup.css">
 <script src="<?php echo $theme_assets; ?>/assets/js/components/payment-popup.js"></script>
