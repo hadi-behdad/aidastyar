@@ -521,24 +521,89 @@ function validateLabTestValue(testName, value) {
         // انسولین 👈 اضافه شد
         'fasting insulin': { min: 1, max: 50, name: 'انسولین ناشتا' },
         'insulin': { min: 1, max: 50, name: 'انسولین' },
-        'serum insulin': { min: 1, max: 50, name: 'انسولین سرم' },
-        
-        // سایر آزمایش‌ها
+        'serum insulin': { min: 1, max: 50, name: 'انسولین سرم' },        
+
         'hba1c': { min: 3, max: 20, name: 'HbA1c' },
+        'hb a1c': { min: 3, max: 20, name: 'HbA1c' },
+
         'cholesterol': { min: 100, max: 500, name: 'کلسترول' },
+        'chol': { min: 100, max: 500, name: 'Cholesterol' },
+
         'triglyceride': { min: 30, max: 1000, name: 'تری‌گلیسیرید' },
+        'triglycerides': { min: 30, max: 1000, name: 'تری‌گلیسیرید' }, // ✅ اضافه شد
+        'tg': { min: 30, max: 1000, name: 'Triglyceride' },
+        
+        'hb a1c': { min: 3, max: 20, name: 'HbA1c' },
+        'chol': { min: 100, max: 500, name: 'Cholesterol' },
+        'tg': { min: 30, max: 1000, name: 'Triglyceride' },
+        
         'ldl': { min: 30, max: 300, name: 'LDL' },
+        'ldl-c': { min: 30, max: 300, name: 'LDL' },
+        
         'hdl': { min: 20, max: 150, name: 'HDL' },
-        'sgot': { min: 5, max: 500, name: 'SGOT' },
+        'hdl-c': { min: 20, max: 150, name: 'HDL' },        
+        
         'sgpt': { min: 5, max: 500, name: 'SGPT' },
+        'sgpt (alt)': { min: 5, max: 500, name: 'SGPT' }, // ✅ اضافه شد
+        'sgpt alt': { min: 5, max: 500, name: 'SGPT' }, // ✅ اضافه شد
         'alt': { min: 5, max: 500, name: 'ALT' },
-        'ast': { min: 5, max: 500, name: 'AST' },
+
+        'sgot': { min: 5, max: 500, name: 'SGOT' },
+        'sgot (ast)': { min: 5, max: 500, name: 'SGOT' }, // ✅ اضافه شد
+        'sgot ast': { min: 5, max: 500, name: 'SGOT' }, // ✅ اضافه شد
+        'ast': { min: 5, max: 500, name: 'AST' },        
+
         'creatinine': { min: 0.3, max: 15, name: 'کراتینین' },
+        'cr': { min: 0.3, max: 15, name: 'کراتینین' },
+
         'bun': { min: 5, max: 150, name: 'BUN' },
+        'blood urea': { min: 5, max: 150, name: 'BUN' }, // ✅ اضافه شد
+        'urea': { min: 10, max: 300, name: 'اوره' },
+        
         'urea': { min: 10, max: 300, name: 'اوره' },
         'tsh': { min: 0.1, max: 50, name: 'TSH' },
         't3': { min: 50, max: 300, name: 'T3' },
-        't4': { min: 3, max: 25, name: 'T4' }
+        't4': { min: 3, max: 25, name: 'T4' },
+        
+        // ✅ آزمایش‌های جدید (اضافه کن)
+        'vldl': { min: 5, max: 100, name: 'VLDL' },
+        
+        'alp': { min: 30, max: 1000, name: 'ALP' }, // ✅ max رو 1000 کردم
+        'alkaline phosphatase': { min: 30, max: 1000, name: 'ALP' }, // ✅ max رو 1000 کردم
+        
+        'uric acid': { min: 2, max: 10, name: 'اسید اوریک' },
+        'uric': { min: 2, max: 10, name: 'اسید اوریک' },
+        'cr': { min: 0.3, max: 15, name: 'کراتینین' },
+        'magnesium': { min: 1.5, max: 3, name: 'منیزیم' },
+        'mg': { min: 1.5, max: 3, name: 'منیزیم' },
+        'zinc': { min: 50, max: 200, name: 'روی' },
+        'zn': { min: 50, max: 200, name: 'روی' },
+        'vitamin b12': { min: 200, max: 2000, name: 'ویتامین B12' },
+        'vit b12': { min: 200, max: 2000, name: 'ویتامین B12' },
+        'b12': { min: 200, max: 2000, name: 'ویتامین B12' },
+
+        'vitamin d': { min: 10, max: 200, name: 'ویتامین D' },
+        'vit d': { min: 10, max: 200, name: 'ویتامین D' },
+        '25-oh vitamin d': { min: 10, max: 200, name: 'ویتامین D' },
+        '25-oh-d': { min: 10, max: 200, name: 'ویتامین D' },
+        '25 oh d': { min: 10, max: 200, name: 'ویتامین D' },
+        '25(oh)d': { min: 10, max: 200, name: 'ویتامین D' },
+        '25(oh)d3': { min: 10, max: 200, name: 'ویتامین D' },
+        '25-hydroxyvitamin d': { min: 10, max: 200, name: 'ویتامین D' },
+        'calcidiol': { min: 10, max: 200, name: 'ویتامین D' },
+        'vitamin d total': { min: 10, max: 200, name: 'ویتامین D' }, // ✅ اضافه شد
+        'total vitamin d': { min: 10, max: 200, name: 'ویتامین D' }, // ✅ اضافه شد
+        'vitamin d total (25oh)': { min: 10, max: 200, name: 'ویتامین D' }, // ✅ اضافه شد
+        
+        'ferritin': { min: 10, max: 1000, name: 'فریتین' },
+        'ferritinecl': { min: 10, max: 1000, name: 'فریتین' }, // ✅ اضافه شد
+        'ferritin ecl': { min: 10, max: 1000, name: 'فریتین' }, // ✅ اضافه شد
+        
+        'crp': { min: 0, max: 50, name: 'CRP' },
+        'c-reactive protein': { min: 0, max: 50, name: 'CRP' },
+        'esr': { min: 0, max: 100, name: 'ESR' },
+        'copper': { min: 50, max: 200, name: 'مس' },
+        'cu': { min: 50, max: 200, name: 'مس' }        
     };
     
     // تمیز کردن و نرمال‌سازی نام آزمایش
@@ -2267,85 +2332,74 @@ window.setupLabTestUpload = function(currentStep) {
     // ========== رویداد تغییر فایل ==========
     fileInput.addEventListener('change', async function(e) {
         const file = e.target.files[0];
-        
         if (!file) return;
-    
-        // بررسی نوع فایل
+        
         if (file.type !== 'application/pdf') {
-            alert('❌ لطفاً فقط فایل PDF آپلود کنید');
+            alert('فقط فایل PDF مجاز است');
             fileInput.value = '';
             return;
         }
-    
-        // بررسی حجم فایل (5MB)
-        const maxSize = 5 * 1024 * 1024;
+        
+        const maxSize = 5 * 1024 * 1024; // 5MB
         if (file.size > maxSize) {
-            alert('❌ حجم فایل نباید بیشتر از 5 مگابایت باشد');
+            alert('حجم فایل نباید بیشتر از 5 مگابایت باشد');
             fileInput.value = '';
             return;
         }
-    
-        // ✅ بررسی وجود PDFProcessor
+        
         if (!window.PDFProcessor) {
-            console.error('❌ PDFProcessor لود نشده است!');
-            alert('⚠️ خطا: ماژول پردازش PDF لود نشده. لطفاً صفحه را رفرش کنید.');
+            console.error('PDFProcessor موجود نیست!');
+            alert('مشکلی در پردازش PDF به وجود آمده. لطفاً صفحه را رفرش کنید.');
             return;
         }
-    
-        // ✅ بررسی وجود PDF.js
+        
         if (typeof pdfjsLib === 'undefined') {
-            console.error('❌ PDF.js لود نشده است!');
-            alert('⚠️ خطا: کتابخانه PDF لود نشده. لطفاً صفحه را رفرش کنید.');
+            console.error('PDF.js لود نشده است!');
+            alert('مشکلی در بارگذاری کتابخانه PDF پیش آمده. لطفاً صفحه را رفرش کنید.');
             return;
         }
-    
-        console.log('📎 فایل انتخاب شد:', file.name);
-    
-        // 🎯 نمایش لودر
-        let loader = null;
+        
+        console.log('🔄 شروع پردازش فایل:', file.name);
+        
+        // ===== 🔥 تعریف لودر به صورت Global =====
         if (typeof AiDastyarLoader !== 'undefined') {
-            loader = new AiDastyarLoader({
-                message: 'در حال خواندن فایل PDF...',
+            window.aidastyarLoader = new AiDastyarLoader({
+                message: 'در حال پردازش PDF...',
                 theme: 'light',
                 size: 'medium',
                 closable: false,
                 overlay: true,
                 persistent: true
             });
-            loader.show();
+            window.aidastyarLoader.show();
         }
-    
+        
         try {
-            // 🔥 پردازش PDF
+            // پردازش PDF
             const extractedData = await window.PDFProcessor.processPDF(file);
             
-            // 🎯 چاپ JSON در کنسول
-            console.log('📊 JSON استخراج شده:');
+            console.log('✅ داده‌های استخراج شده:');
             console.log(JSON.stringify(extractedData, null, 2));
-
-            if (loader) {
-                loader.hide();
+            
+            // بستن لودر
+            if (window.aidastyarLoader) {
+                window.aidastyarLoader.hide();
             }
-    
-            // 🎯 اینجا پاپ‌آپ رو نشون بده
+            
             showLabDataPopup(extractedData, file, (confirmedData) => {
-                // بعد از تایید ذخیره کن
                 state.updateFormData('userInfo.labTestFile', confirmedData);
                 state.updateFormData('userInfo.skipLabTest', false);
-                
                 showFilePreview(confirmedData);
                 nextButton.disabled = false;
                 
                 if (skipCheckbox.checked) {
                     skipCheckbox.checked = false;
                     const label = skipCheckbox.nextElementSibling;
-                    if (label) {
-                        label.classList.remove('checked');
-                    }
+                    if (label) label.classList.remove('checked');
                 }
-        
+                
                 const successLoader = new AiDastyarLoader({
-                    message: '✅ اطلاعات تایید شد!',
+                    message: '✅ فایل با موفقیت آپلود شد!',
                     theme: 'light',
                     size: 'medium',
                     closable: false,
@@ -2354,27 +2408,24 @@ window.setupLabTestUpload = function(currentStep) {
                 });
                 successLoader.show();
             });
-        } catch (error) {
-            console.error('❌ خطا:', error);
             
-            // ❌ بستن لودر با خطا
-            if (loader) {
-                // 1️⃣ پنهان کردن لودر فعلی
-                loader.hide();
-                
-                // 2️⃣ نمایش لودر خطا
-                const errorLoader = new AiDastyarLoader({
-                    message: '❌ خطا در پردازش PDF',
-                    theme: 'light',
-                    size: 'medium',
-                    closable: true,
-                    overlay: false,
-                    autoHide: 3000  // 👈 خودکار بسته میشه بعد از 3 ثانیه
-                });
-                errorLoader.show();
-            } else {
-                alert('⚠️ خطا در پردازش PDF');
+        } catch (error) {
+            console.error('❌ خطا در پردازش PDF:', error);
+            
+            // بستن لودر در صورت خطا
+            if (window.aidastyarLoader) {
+                window.aidastyarLoader.hide();
             }
+            
+            const errorLoader = new AiDastyarLoader({
+                message: '❌ خطا در پردازش PDF. لطفاً دوباره تلاش کنید.',
+                theme: 'light',
+                size: 'medium',
+                closable: true,
+                overlay: false,
+                autoHide: 3000
+            });
+            errorLoader.show();
             
             fileInput.value = '';
         }

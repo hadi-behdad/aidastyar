@@ -152,6 +152,33 @@ class AiDastyarLoader {
         }
     }
 
+    /**
+     * بروزرسانی پیام لودر
+     * @param {string} newMessage - پیام جدید
+     */
+    update(newMessage) {
+        // بررسی وجود loader element
+        if (!this.loader) {
+            console.warn('⚠️ Loader element not initialized');
+            return;
+        }
+        
+        // بررسی اینکه loader در DOM باشه
+        if (!document.body.contains(this.loader)) {
+            console.warn('⚠️ Loader not attached to DOM');
+            return;
+        }
+        
+        const messageElement = this.loader.querySelector('.loader-message');
+        
+        if (messageElement) {
+            messageElement.innerHTML = newMessage;
+            console.log('💬 پیام لودر به‌روز شد:', newMessage);
+        } else {
+            console.error('❌ .loader-message element not found');
+        }
+    }
+
     getTemplate() {
         const closeBtn = this.options.closable ? 
             `<button class="loader-close" aria-label="بستن">×</button>` : '';
@@ -217,13 +244,6 @@ class AiDastyarLoader {
             
             window.location.href = this.options.redirectUrl;
         }, this.options.redirectDelay);
-    }
-
-    update(message) {
-        const messageEl = this.loader.querySelector('.loader-message');
-        if (messageEl) {
-            messageEl.textContent = message;
-        }
     }
 
     // 🔥 جدید: تغییر options در حین اجرا

@@ -855,7 +855,7 @@ class AI_Assistant_Process_Requests_Job {
             throw new Exception('DEEPSEEK_API_KEY is not defined');
         }
         
-        $this->log('🌐 API call for Process Requests' );        
+        error_log('🌐 API call for Process Requests' );        
         
         $api_key = DEEPSEEK_API_KEY;
         $api_url = 'https://api.deepseek.com/v1/chat/completions';

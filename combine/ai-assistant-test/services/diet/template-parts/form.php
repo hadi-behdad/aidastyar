@@ -1525,8 +1525,10 @@ $theme_assets = get_stylesheet_directory_uri();
     };
     </script>
 
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
-    <script> pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';</script>
+
+    <script src="<?php echo get_stylesheet_directory_uri(); ?>/assets/js/libs/pdf.min.js"></script>
+    <script>pdfjsLib.GlobalWorkerOptions.workerSrc = '<?php echo get_stylesheet_directory_uri(); ?>/assets/js/libs/pdf.worker.min.js';</script>
+    <script src="<?php echo get_stylesheet_directory_uri(); ?>/assets/js/libs/tesseract.min.js"></script>
     <script src="<?php echo get_stylesheet_directory_uri(); ?>/assets/js/services/diet/pdf-processor.js"></script>
 </form>
 
