@@ -948,3 +948,35 @@ function handle_lab_test_upload() {
         'message' => 'فایل با موفقیت آپلود شد'
     ]);
 }
+
+
+
+// اضافه کردن session timeout به functions.php
+
+// تنظیم زمان session
+add_action('init', 'ai_assistant_init_session_timeout', 3 * 3600);
+function ai_assistant_init_session_timeout() {
+    if (!session_id()) {
+        // تنظیم timeout به 60 دقیقه (3600 ثانیه)
+        ini_set('session.gc_maxlifetime', 3 * 3600);
+        session_set_cookie_params(3 * 3600);
+        session_start();
+    }
+    
+    // بررسی آخرین فعالیت
+    if (isset($_SESSION['LAST_ACTIVITY']) && (time() - $_SESSION['LAST_ACTIVITY'] > 3 * 3600)) {
+        // بیش از 60 دقیقه از آخرین فعالیت گذشته
+        session_unset();
+        session_destroy();
+        wp_logout();
+        wp_redirect(home_url('/otp-login'));
+        exit;
+    }
+    
+    // آپدیت زمان آخرین فعالیت (sliding expiry)
+    $_SESSION['LAST_ACTIVITY'] = time();
+}
+
+
+// ذخیره موقت PDF‌های آزمایش
+require_once get_template_directory() . '/services/diet/upload-pdf-temp.php';

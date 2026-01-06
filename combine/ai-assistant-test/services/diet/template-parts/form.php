@@ -1559,6 +1559,11 @@ $theme_assets = get_stylesheet_directory_uri();
     };
     </script>
 
+    <script>
+    const ajaxurl = '<?php echo admin_url('admin-ajax.php'); ?>';
+    const pdfUploadNonce = '<?php echo wp_create_nonce('upload_temp_pdf_nonce'); ?>';
+    </script>
+    
 
     <script src="<?php echo get_stylesheet_directory_uri(); ?>/assets/js/libs/pdf.min.js"></script>
     <script>pdfjsLib.GlobalWorkerOptions.workerSrc = '<?php echo get_stylesheet_directory_uri(); ?>/assets/js/libs/pdf.worker.min.js';</script>

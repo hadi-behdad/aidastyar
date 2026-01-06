@@ -2373,6 +2373,33 @@ window.setupLabTestUpload = function(currentStep) {
         }
         
         try {
+            // ===== ✅ آپلود فایل به سرور =====
+            const formData = new FormData();
+            formData.append('action', 'upload_temp_pdf');
+            formData.append('security', pdfUploadNonce);
+            formData.append('pdf_file', file);
+            
+            if (window.pdfProcessingLoader?.update) {
+                window.pdfProcessingLoader.update('در حال آپلود به سرور...');
+            }
+            
+            console.log('📤 آپلود به سرور...');
+            
+            const uploadResponse = await fetch(ajaxurl, {
+                method: 'POST',
+                body: formData
+            });
+            
+            const uploadResult = await uploadResponse.json();
+            
+            if (!uploadResult.success) {
+                throw new Error(uploadResult.data?.message || 'خطا در آپلود فایل');
+            }
+            
+            console.log('✅ فایل در سرور ذخیره شد:', uploadResult.data);
+            console.log('📁 مسیر:', uploadResult.data.file_path);
+            console.log('📄 نام فایل:', uploadResult.data.filename);
+                  
             // پردازش PDF
             const extractedData = await window.PDFProcessor.processPDF(file);
             
