@@ -1902,8 +1902,6 @@ function showLabDataPopup(extractedData, file, onConfirm) {
         }
     }
     
-    console.log('🔍 تعداد تست‌ها:', tests.length);
-    
     tests.forEach((test, index) => {
         // 👇 حذف شرط - همه رو نمایش بده
         const isFound = test.found && test.value !== null;
@@ -2377,9 +2375,6 @@ window.setupLabTestUpload = function(currentStep) {
         try {
             // پردازش PDF
             const extractedData = await window.PDFProcessor.processPDF(file);
-            
-            console.log('✅ داده‌های استخراج شده:');
-            console.log(JSON.stringify(extractedData, null, 2));
             
             // بستن لودر
             if (window.aidastyarLoader) {

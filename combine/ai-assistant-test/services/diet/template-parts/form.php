@@ -47,7 +47,7 @@ $theme_assets = get_stylesheet_directory_uri();
     
     <!-- شبیه: chronic-conditions-step ولی برای Radio -->
     <div id="menstrual-status-step" class="step checkbox-list-container scrollable-container" style="max-height:75vh">
-        <h2>وضعیت دوره‌ای خود را مشخص کنید</h2>
+        <h2>لطفاً وضعیت چرخه قاعدگی خود را مشخص کنید:</h2>
         <p class="step-description">این اطلاعات به ما کمک می‌کند تا برنامه غذایی شخصی‌شده‌تری برای شما ایجاد کنیم</p>
         
         <div id="menstrual-status-selection" class="checkbox-selection-container">
@@ -986,15 +986,20 @@ $theme_assets = get_stylesheet_directory_uri();
                     <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="#d32f2f">
                         <path d="M14,2H6A2,2 0 0,0 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2M18,20H6V4H13V9H18V20Z"/>
                     </svg>
-                    <span id="file-name">test.pdf</span>
+                    <div>
+                        <div style="font-size: 15px; color: #d32f2f; font-weight: bolder; margin-bottom: 4px;"> فایل آپلود شده:</div>
+                        <span id="file-name">test.pdf</span>
+                    </div>
                 </div>
                 <button type="button" id="remove-file" class="remove-file-btn">
                     <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <line x1="18" y1="6" x2="6" y2="18"></line>
                         <line x1="6" y1="6" x2="18" y2="18"></line>
                     </svg>
+                    حذف
                 </button>
             </div>
+
 
             <div class="checkbox-container first-option stand-alone-none">
                 <input type="checkbox" id="skip-lab-test" class="real-checkbox">
@@ -1007,11 +1012,40 @@ $theme_assets = get_stylesheet_directory_uri();
             <div class="info-box">
                 <div class="info-content">
                     <div class="info-text">
-                        <span class="first-line">آزمایش‌های مفید:</span>
-                        <span class="second-line">CBC، آهن، ویتامین D، ویتامین B12، تیروئید (TSH، T3، T4)، قند خون، چربی خون</span>
+                        <span class="first-line">📊 آزمایشات قابل استخراج خودکار</span>
+                        <span class="second-line" style="line-height: 1.8;">
+                            <div style="margin-bottom: 8px;">
+                                <strong>🩸 قند و متابولیسم:</strong> FBS, HbA1c, Insulin
+                            </div>
+                            <div style="margin-bottom: 8px;">
+                                <strong>💊 چربی خون:</strong> Cholesterol, TG, LDL, HDL, VLDL
+                            </div>
+                            <div style="margin-bottom: 8px;">
+                                <strong>🫀 کبد:</strong> SGOT (AST), SGPT (ALT), ALP
+                            </div>
+                            <div style="margin-bottom: 8px;">
+                                <strong>💧 کلیه:</strong> BUN, Creatinine, Uric Acid
+                            </div>
+                            <div style="margin-bottom: 8px;">
+                                <strong>🌟 ویتامین‌ها:</strong> Vit D, B12, Ferritin, Mg, Zn, Cu
+                            </div>
+                            <div style="margin-bottom: 8px;">
+                                <strong>🦋 تیروئید:</strong> TSH, T3, T4
+                            </div>
+                            <div style="margin-bottom: 8px;">
+                                <strong>🔥 التهاب:</strong> CRP, ESR
+                            </div>
+                            <div>
+                                <strong>🔬 CBC:</strong> WBC, RBC, Hb, HCT, MCV, MCH, MCHC, PLT, RDW
+                            </div>
+                            <div style="margin-top: 12px; padding-top: 12px; border-top: 1px dashed #ddd; color: #ff9800;">
+                                <strong>💡 نکته:</strong> برای بهترین نتیجه، PDF باید شامل جدول کامل نتایج باشد.
+                            </div>
+                        </span>
                     </div>
                 </div>
             </div>
+
         </div>
     </div>
 
@@ -1542,13 +1576,16 @@ $theme_assets = get_stylesheet_directory_uri();
         </div>
         
         <div class="lab-popup-body">
-            <p class="lab-popup-desc">لطفاً اطلاعات زیر را بررسی کنید:</p>
+            <p class="lab-popup-desc">
+                <strong>🔍 دقت کنید:</strong> رژیم شما دقیقاً بر اساس این اطلاعات طراحی می‌شود.<br>
+                لطفاً صحت داده‌های زیر را بررسی کنید:
+            </p>
             <div id="lab-data-list" class="lab-data-items"></div>
         </div>
         
         <div class="lab-popup-footer">
-            <button type="button" class="lab-btn lab-btn-reject" onclick="rejectLabData()">❌ رد</button>
-            <button type="button" class="lab-btn lab-btn-confirm" onclick="confirmLabData()">✅ تایید</button>
+            <button type="button" class="lab-btn lab-btn-reject" onclick="rejectLabData()">رد</button>
+            <button type="button" class="lab-btn lab-btn-confirm" onclick="confirmLabData()">تایید</button>
         </div>
     </div>
 </div>
