@@ -665,12 +665,12 @@ body.dark-mode .checked-animation .check-icon {
     transition: all 0.3s ease;
     flex: 1;
     max-width: 120px;
-    opacity: 0.5;
-    pointer-events: none;
-    filter: grayscale(80%);
-    transform: scale(0.95);
+    opacity: 1;
+    pointer-events: auto;
+    filter: none;
     box-shadow: 0 4px 12px rgba(0,0,0,0.05);
 }
+
 
 .gender-option.active {
     opacity: 1;

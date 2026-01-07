@@ -27,22 +27,6 @@ $theme_assets = get_stylesheet_directory_uri();
             <div class="gender-option" data-gender="male"><img src="<?php echo $theme_assets; ?>/assets/images/webp/male.webp" alt="مرد"></div>
             <div class="gender-option" data-gender="female"><img src="<?php echo $theme_assets; ?>/assets/images/webp/female.webp" alt="زن"></div>
         </div>
-    
-        <div id="terms-checkbox" class="checkbox-container terms-combined">
-            <input type="checkbox" id="confirm-terms" class="real-checkbox">
-            <label for="confirm-terms" class="checkbox-label">
-                <span class="check-icon"></span>
-                <span class="label-text">شرایط و قوانین را می‌پذیرم</span>
-            </label>
-            <div class="terms-box">
-                <ul class="terms-list">
-                    <li>اطلاعات سلامت و شخصی من، با حداکثر امنیت و مطابق قوانین محرمانگی، نزد این سامانه محفوظ خواهد ماند.</li>
-                    <li>توصیه‌های این سیستم توسط پیشرفته‌ترین الگوریتم‌های هوش مصنوعی ارائه می‌شود، اما جایگزین تشخیص پزشک نیست.</li>
-                    <li>مسئولیت نهایی تصمیمات سلامت و استفاده از این توصیه‌ها بر عهده خودم است.</li>
-                    <li>متعهد می‌شوم برای مسائل پزشکی مهم، حتماً با پزشک معتمدم مشورت کنم.</li>
-                </ul>
-            </div>
-        </div>
     </div>
     
     <!-- شبیه: chronic-conditions-step ولی برای Radio -->

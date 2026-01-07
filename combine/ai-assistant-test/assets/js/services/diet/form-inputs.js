@@ -205,11 +205,6 @@ window.setupGenderSelection = function() {
   
   genderOptions.forEach(option => {
     option.addEventListener("click", () => {
-      const confirmCheckbox = document.getElementById("confirm-terms");
-      if (!confirmCheckbox.checked) {
-        alert("لطفاً ابتدا شرایط استفاده را تأیید کنید");
-        return;
-      }
 
       // Remove previous selection
       genderOptions.forEach(opt => {
@@ -254,11 +249,6 @@ window.setupGenderSelection = function() {
 window.setupOptionSelection = function(selector, key) {
     document.querySelectorAll(selector).forEach(el => {
         el.addEventListener("click", () => {
-            const confirmCheckbox = document.getElementById("confirm-terms");
-            if (!confirmCheckbox.checked) {
-                alert("لطفاً ابتدا شرایط استفاده را تأیید کنید");
-                return;
-            }
 
             document.querySelectorAll(selector).forEach(opt => {
                 opt.classList.remove("selected");
@@ -291,24 +281,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
     addFieldIcons();
     setupInputEffects();
-  
-    
-    const updateGenderOptionsState = () => {
-        genderOptions.forEach(option => {
-            if (confirmCheckbox.checked) {
-                option.style.opacity = "1";
-                option.style.pointerEvents = "auto";
-                option.style.filter = "none";
-            } else {
-                option.style.opacity = "0.5";
-                option.style.pointerEvents = "none";
-                option.style.filter = "grayscale(80%)";
-            }
-        });
-    };
-    
-    confirmCheckbox.addEventListener("change", updateGenderOptionsState);
-    updateGenderOptionsState();
     
     navigateToStep(state.currentStep);
     document.querySelector(".next-step").addEventListener("click", handleNextStep);
