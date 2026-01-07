@@ -40,9 +40,6 @@ $total_items = $wpdb->get_var($wpdb->prepare(
     $current_user_id
 ));
 
-// 🔍 DEBUG
-error_log('🔍 [PAGE] Total items: ' . $total_items);
-error_log('🔍 [PAGE] Current history count: ' . count($history));
 ?>
 
 <div class="ai-history-page">
@@ -74,8 +71,6 @@ error_log('🔍 [PAGE] Current history count: ' . count($history));
                     </thead>
                     <tbody>
                         <?php foreach ($history as $item) : 
-                            // 🔍 DEBUG
-                            error_log('🔍 [LOOP] Processing item #' . $item->ID . ' service: ' . $item->service_id);
                             
                             $service_info = AI_Assistant_Service_Manager::get_instance()->get_service($item->service_id);
                             $service_name = $service_info['name'] ?? $item->service_id;
@@ -153,20 +148,15 @@ error_log('🔍 [PAGE] Current history count: ' . count($history));
 
                                         <!-- ✅ دکمه دانلود توافق نامه -->
                                         <?php
-                                        error_log('🔍 [TERMS] Checking acceptance for item #' . $item->ID);
                                         
                                         $terms_db = Terms_Acceptance_DB::get_instance();
                                         $acceptance = $terms_db->get_acceptance_by_service_history_id($item->ID);
                                         
-                                        error_log('🔍 [TERMS] Acceptance: ' . ($acceptance ? 'YES' : 'NO'));
-                                        
                                         if ($acceptance) {
-                                            error_log('🔍 [TERMS] archive_file_path: ' . ($acceptance->archive_file_path ?: 'NULL'));
                                         }
                                         
                                         if ($acceptance && !empty($acceptance->archive_file_path)) {
                                             $terms_url = esc_url($acceptance->archive_file_path);
-                                            error_log('🔍 [TERMS] ✅ Showing button - URL: ' . $terms_url);
                                             ?>
                                             <a href="<?php echo $terms_url; ?>" 
                                                class="ai-terms-button" 

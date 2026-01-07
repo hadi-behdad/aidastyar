@@ -8,10 +8,11 @@
             <!-- نماد اعتماد الکترونیکی -->
 
             
+        
             
-            <a href="https://trustseal.internet.ir/?id=XXXXX&code=XXXXX" target="_blank" rel="noopener" title="نماد اعتماد الکترونیکی">
-                <img src="<?php echo get_template_directory_uri(); ?>/assets/images/enamad.png" alt="نماد اعتماد الکترونیکی" width="60" height="60">
-            </a>
+            <a referrerpolicy='origin' target='_blank' href='https://trustseal.enamad.ir/?id=617554&Code=7tyfka42FmXMO17j8F8lMdDS2seI53vC'>
+                <img referrerpolicy='origin' src="<?php echo get_template_directory_uri(); ?>/assets/images/enamad.png" alt="نماد اعتماد الکترونیکی" width="60" height="60" code='7tyfka42FmXMO17j8F8lMdDS2seI53vC'>
+            </a>            
             
             
           <div id='zibal'>

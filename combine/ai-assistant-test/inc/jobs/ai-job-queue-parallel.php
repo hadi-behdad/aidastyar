@@ -365,10 +365,10 @@ class AI_Job_Queue {
             // error_log('📡 [WORKER] Calling API for job #' . $job_id);
             $start_time = microtime(true);
 
-            // you had sleep(30) previously; keep a short sleep for testing if needed
-          //   sleep(5);
-          //  $response = "Test response for job #" . $job->id;
-            $response = $this->call_deepseek_api($job->prompt);
+
+        //    $response = $this->call_deepseek_api($job->prompt);
+        
+         $response ='test';
 
             $api_time = round(microtime(true) - $start_time, 2);
 
@@ -507,7 +507,7 @@ class AI_Job_Queue {
     // ---------- API call & helpers (unchanged / adapted) ----------
     private function call_deepseek_api($prompt) {
       //  $prompt = 'خیلی خلاصه و در یک خط بگو که برای گرفتن یک رژیم غذایی چه نکته طلایی باید رعایت کنم';
-        $api_key = DEEPSEEK_API_KEY;
+        $api_key = 'a';
         $api_url = 'https://api.deepseek.com/v1/chat/completions';
 
         $args = [

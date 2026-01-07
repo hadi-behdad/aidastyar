@@ -43,6 +43,13 @@ class AI_Job_Queue {
     const OPTION_LAST_PROCESS = 'ai_job_last_process_run';
     const OPTION_LAST_ARTICLE = 'ai_job_last_article_run';
     
+    
+    /**
+     * شمارنده API Calls
+     */
+    const OPTION_API_CALLS_STATS = 'ai_api_calls_stats_v2';
+      
+    
     /**
      * دریافت instance
      */
@@ -77,10 +84,10 @@ class AI_Job_Queue {
         // اجرای دستی از URL (برای تست)
         add_action('init', [$this, 'handle_manual_run'], 10);
         
-        // اضافه کردن دستور WP-CLI (اختیاری)
-        if (defined('WP_CLI') && WP_CLI) {
-            WP_CLI::add_command('ai-jobs', [$this, 'cli_commands']);
-        }
+        // // اضافه کردن دستور WP-CLI (اختیاری)
+        // if (defined('WP_CLI') && WP_CLI) {
+        //     WP_CLI::add_command('ai-jobs', [$this, 'cli_commands']);
+        // }
         
         self::$initialized = true;
         // error_log('✅ [JOB_QUEUE] Initialized successfully');
@@ -148,11 +155,11 @@ class AI_Job_Queue {
             $in_3_days_2am = strtotime('+3 days 2:00am');
             
             $scheduled = wp_schedule_event($in_3_days_2am, 'every_3_days', self::HOOK_ARTICLE_GENERATOR);
-            
-        //    $scheduled = wp_schedule_event(time(), 'every_5_minute', self::HOOK_ARTICLE_GENERATOR);
+        
 
             if ($scheduled !== false) {
-                //error_log('✅ [JOB_QUEUE] Scheduled ' . self::HOOK_ARTICLE_GENERATOR . ' for ' . date('Y-m-d H:i:s', $start_time) . ' (every  3_days)');
+               
+                error_log('✅ [JOB_QUEUE] Scheduled ' . self::HOOK_ARTICLE_GENERATOR . ' for ' . date('Y-m-d H:i:s', $start_time) . ' (every  3_days)');
             } else {
                 error_log('❌ [JOB_QUEUE] Failed to schedule ' . self::HOOK_ARTICLE_GENERATOR);
             }
@@ -181,7 +188,7 @@ class AI_Job_Queue {
         $lock = get_transient($lock_key);
         
         if ($lock) {
-            //error_log('⏸️ [PROCESS_JOB] Already running (locked), skipping...');
+         //   error_log('⏸️ [PROCESS_JOB] Already running (locked), skipping...');
             return;
         }
         
@@ -211,7 +218,6 @@ class AI_Job_Queue {
     
     /**
      * اجرای article_generator_job
-     * هر 24 ساعت یکبار
      */
     public function execute_article_generator_job() {
         $start_time = microtime(true);
@@ -232,7 +238,7 @@ class AI_Job_Queue {
        
         if ($lock) {
             
-            //error_log('⏸️ [ARTICLE_JOB] Already running (locked), skipping...:' . $lock);
+        //    error_log('⏸️ [ARTICLE_JOB] Already running (locked), skipping...:' . $lock);
             return;
         }
         
@@ -322,55 +328,254 @@ class AI_Job_Queue {
             'article_generator' => $article_cleared
         ];
     }
+  //----------------------------------monitoring------------------------------------------------  
+    public static function increment_api_call($job_type = 'unknown') {
+        $today = date('Y-m-d');
+        $stats = get_option(self::OPTION_API_CALLS_STATS, []);
+        
+        // مقداردهی اولیه برای امروز
+        if (!isset($stats[$today])) {
+            $stats[$today] = [
+                'article_generator' => 0,
+                'process_requests' => 0,
+                'manual' => 0,
+                'total' => 0
+            ];
+        }
+        
+        // افزایش شمارنده برای Job مشخص
+        if (isset($stats[$today][$job_type])) {
+            $stats[$today][$job_type]++;
+        } else {
+            $stats[$today]['manual']++;
+        }
+        
+        // افزایش مجموع
+        $stats[$today]['total']++;
+        
+        // ذخیره
+        update_option(self::OPTION_API_CALLS_STATS, $stats);
+        
+        // لاگ
+        $new_count = $stats[$today][$job_type] ?? $stats[$today]['manual'];
+        error_log("📊 [API_COUNTER] {$job_type} - امروز: {$new_count} (مجموع: {$stats[$today]['total']})");
+        
+        return $new_count;
+    }
     
+    /**
+     * دریافت آمار API Calls
+     */
+    public static function get_api_stats($date = null) {
+        $stats = get_option(self::OPTION_API_CALLS_STATS, []);
+        $today = $date ?: date('Y-m-d');
+        
+        // آمار امروز
+        $today_stats = $stats[$today] ?? [
+            'article_generator' => 0,
+            'process_requests' => 0,
+            'manual' => 0,
+            'total' => 0
+        ];
+        
+        // محاسبه مجموع هفته (۷ روز گذشته)
+        $weekly_stats = [
+            'article_generator' => 0,
+            'process_requests' => 0,
+            'manual' => 0,
+            'total' => 0
+        ];
+        
+        for ($i = 0; $i < 7; $i++) {
+            $day = date('Y-m-d', strtotime("-{$i} days"));
+            if (isset($stats[$day])) {
+                foreach ($weekly_stats as $key => $value) {
+                    if (isset($stats[$day][$key])) {
+                        $weekly_stats[$key] += $stats[$day][$key];
+                    }
+                }
+            }
+        }
+        
+        // محاسبه مجموع ماه (۳۰ روز گذشته)
+        $monthly_stats = [
+            'article_generator' => 0,
+            'process_requests' => 0,
+            'manual' => 0,
+            'total' => 0
+        ];
+        
+        for ($i = 0; $i < 30; $i++) {
+            $day = date('Y-m-d', strtotime("-{$i} days"));
+            if (isset($stats[$day])) {
+                foreach ($monthly_stats as $key => $value) {
+                    if (isset($stats[$day][$key])) {
+                        $monthly_stats[$key] += $stats[$day][$key];
+                    }
+                }
+            }
+        }
+        
+        // محاسبه مجموع کل
+        $all_time_stats = [
+            'article_generator' => 0,
+            'process_requests' => 0,
+            'manual' => 0,
+            'total' => 0
+        ];
+        
+        foreach ($stats as $day_stats) {
+            foreach ($all_time_stats as $key => $value) {
+                if (isset($day_stats[$key])) {
+                    $all_time_stats[$key] += $day_stats[$key];
+                }
+            }
+        }
+        
+        return [
+            'today' => $today_stats,
+            'this_week' => $weekly_stats,
+            'this_month' => $monthly_stats,
+            'all_time' => $all_time_stats,
+            'raw_data' => $stats // برای دیباگ
+        ];
+    }
+    
+    /**
+     * دریافت داده‌های نمودار ۷ روز گذشته
+     */
+    public static function get_chart_data($days = 7) {
+        $stats = get_option(self::OPTION_API_CALLS_STATS, []);
+        $chart_data = [
+            'labels' => [],
+            'datasets' => [
+                'article_generator' => [],
+                'process_requests' => [],
+                'total' => []
+            ]
+        ];
+        
+        for ($i = $days - 1; $i >= 0; $i--) {
+            $date = date('Y-m-d', strtotime("-{$i} days"));
+            $persian_date = self::gregorian_to_jalali($date);
+            
+            $chart_data['labels'][] = $persian_date;
+            
+            if (isset($stats[$date])) {
+                $chart_data['datasets']['article_generator'][] = $stats[$date]['article_generator'] ?? 0;
+                $chart_data['datasets']['process_requests'][] = $stats[$date]['process_requests'] ?? 0;
+                $chart_data['datasets']['total'][] = $stats[$date]['total'] ?? 0;
+            } else {
+                $chart_data['datasets']['article_generator'][] = 0;
+                $chart_data['datasets']['process_requests'][] = 0;
+                $chart_data['datasets']['total'][] = 0;
+            }
+        }
+        
+        return $chart_data;
+    }
+    
+    /**
+     * تبدیل تاریخ میلادی به شمسی
+     */
+    private static function gregorian_to_jalali($gregorian_date) {
+        $date = new DateTime($gregorian_date);
+        $year = (int)$date->format('Y');
+        $month = (int)$date->format('m');
+        $day = (int)$date->format('d');
+        
+        // تبدیل ساده (می‌توانید از کتابخانه کامل استفاده کنید)
+        $jalali_months = ['فروردین', 'اردیبهشت', 'خرداد', 'تیر', 'مرداد', 'شهریور', 'مهر', 'آبان', 'آذر', 'دی', 'بهمن', 'اسفند'];
+        
+        // تبدیل تقریبی
+        $jalali_month_index = ($month + 2) % 12;
+        $jalali_day = $day;
+        
+        return $jalali_day . ' ' . $jalali_months[$jalali_month_index];
+    }
+    
+    /**
+     * پاک کردن آمار
+     */
+    public static function reset_api_stats($date = null) {
+        $stats = get_option(self::OPTION_API_CALLS_STATS, []);
+        
+        if ($date === 'all') {
+            delete_option(self::OPTION_API_CALLS_STATS);
+            error_log('🗑️ [API_COUNTER] All stats cleared');
+            return true;
+        } elseif ($date) {
+            if (isset($stats[$date])) {
+                unset($stats[$date]);
+                update_option(self::OPTION_API_CALLS_STATS, $stats);
+                error_log('🗑️ [API_COUNTER] Stats cleared for: ' . $date);
+                return true;
+            }
+        } else {
+            $today = date('Y-m-d');
+            if (isset($stats[$today])) {
+                $stats[$today] = [
+                    'article_generator' => 0,
+                    'process_requests' => 0,
+                    'manual' => 0,
+                    'total' => 0
+                ];
+                update_option(self::OPTION_API_CALLS_STATS, $stats);
+                error_log('🗑️ [API_COUNTER] Today stats cleared');
+                return true;
+            }
+        }
+        
+        return false;
+    }
     /**
      * WP-CLI Commands (اختیاری)
      */
-    public function cli_commands($args, $assoc_args) {
-        $command = isset($args[0]) ? $args[0] : 'status';
+    // public function cli_commands($args, $assoc_args) {
+    //     $command = isset($args[0]) ? $args[0] : 'status';
         
-        switch ($command) {
-            case 'status':
-                $status = $this->get_status();
-                WP_CLI::line('📊 Job Queue Status:');
-                WP_CLI::line('');
-                WP_CLI::line('Process Requests Job:');
-                WP_CLI::line('  Next: ' . $status['process_requests']['next_run']);
-                WP_CLI::line('  Last: ' . $status['process_requests']['last_run']);
-                WP_CLI::line('');
-                WP_CLI::line('Article Generator Job:');
-                WP_CLI::line('  Next: ' . $status['article_generator']['next_run']);
-                WP_CLI::line('  Last: ' . $status['article_generator']['last_run']);
-                break;
+    //     switch ($command) {
+    //         case 'status':
+    //             $status = $this->get_status();
+    //             WP_CLI::line('📊 Job Queue Status:');
+    //             WP_CLI::line('');
+    //             WP_CLI::line('Process Requests Job:');
+    //             WP_CLI::line('  Next: ' . $status['process_requests']['next_run']);
+    //             WP_CLI::line('  Last: ' . $status['process_requests']['last_run']);
+    //             WP_CLI::line('');
+    //             WP_CLI::line('Article Generator Job:');
+    //             WP_CLI::line('  Next: ' . $status['article_generator']['next_run']);
+    //             WP_CLI::line('  Last: ' . $status['article_generator']['last_run']);
+    //             break;
                 
-            case 'run':
-                $job = isset($args[1]) ? $args[1] : 'all';
-                if ($job === 'all' || $job === 'process') {
-                    WP_CLI::line('Running process_requests_job...');
-                    $this->execute_process_requests_job();
-                }
-                if ($job === 'all' || $job === 'article') {
-                    WP_CLI::line('Running article_generator_job...');
-                    $this->execute_article_generator_job();
-                }
-                WP_CLI::success('Jobs executed');
-                break;
+    //         case 'run':
+    //             $job = isset($args[1]) ? $args[1] : 'all';
+    //             if ($job === 'all' || $job === 'process') {
+    //                 WP_CLI::line('Running process_requests_job...');
+    //                 $this->execute_process_requests_job();
+    //             }
+    //             if ($job === 'all' || $job === 'article') {
+    //                 WP_CLI::line('Running article_generator_job...');
+    //                 $this->execute_article_generator_job();
+    //             }
+    //             WP_CLI::success('Jobs executed');
+    //             break;
                 
-            case 'clear':
-                $this->clear_schedules();
-                WP_CLI::success('Schedules cleared');
-                break;
+    //         case 'clear':
+    //             $this->clear_schedules();
+    //             WP_CLI::success('Schedules cleared');
+    //             break;
                 
-            case 'reschedule':
-                $this->clear_schedules();
-                $this->maybe_schedule_jobs();
-                WP_CLI::success('Schedules reset');
-                break;
+    //         case 'reschedule':
+    //             $this->clear_schedules();
+    //             $this->maybe_schedule_jobs();
+    //             WP_CLI::success('Schedules reset');
+    //             break;
                 
-            default:
-                WP_CLI::error('Unknown command. Available: status, run, clear, reschedule');
-        }
-    }
+    //         default:
+    //             WP_CLI::error('Unknown command. Available: status, run, clear, reschedule');
+    //     }
+    // }
 }
 
 

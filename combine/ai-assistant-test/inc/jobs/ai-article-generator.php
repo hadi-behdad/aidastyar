@@ -183,7 +183,24 @@ Pillar: {$pillar['title']}
 
 **مهم: فقط JSON ارسال کن، هیچ متن اضافی نه!**";
 
-        $response = $this->call_api($prompt, 0.6);
+    
+        if (defined('OTP_ENV') && OTP_ENV === 'production') {
+            // ✅ PRODUCTION: استفاده از API واقعی DeepSeek
+             $response = $this->call_api($prompt, 0.6);
+        } else {
+            // ✅ SANDBOX/BYPASS: استفاده از داده‌های نمونه
+            
+            $response = '
+            {
+                "title": "برنامه تغذیهای بالینی",
+                "content": "محتوای HTML کامل"
+            }
+            
+            ';
+        }        
+        
+        
+       
         if (!$response) {
             $this->log('❌ Failed to generate article');
             return null;
@@ -263,7 +280,28 @@ Primary Keyword: {$primary_keyword}
   \"content\": \"محتوای HTML بروزرسانی شده\"
 }
 **مهم: فقط JSON ارسال کن!**";
-        $response = $this->call_api($prompt, 0.5);
+
+
+       
+        
+        
+        
+        if (defined('OTP_ENV') && OTP_ENV === 'production') {
+            // ✅ PRODUCTION: استفاده از API واقعی DeepSeek
+              $response = $this->call_api($prompt, 0.5);
+        } else {
+            // ✅ SANDBOX/BYPASS: استفاده از داده‌های نمونه
+            
+            $response = '
+            {
+                "title": "برنامه تغذیهای بالینی",
+                "content": "ویرایش شده ویرایش شده محتوای HTML کامل"
+            }
+            
+            ';
+        }        
+        
+                
         if (!$response) {
             $this->log('❌ Failed to update article');
             return null;
@@ -386,13 +424,29 @@ Primary Keyword: {$primary_keyword}
     private function check_keyword_cannibalization($primary_keyword) {
         $this->log('🔍 Check cannibalization...');
 
-        $existing = get_posts([
-            'post_type'   => 'post',
-            'post_status' => 'publish',
-            'meta_key'    => '_primary_keyword',
-            'meta_value'  => $primary_keyword,
-            'numberposts' => 1
-        ]);
+        
+        if (defined('OTP_ENV') && OTP_ENV === 'production') {
+            // ✅ PRODUCTION: استفاده از API واقعی DeepSeek
+            
+            $existing = get_posts([
+                'post_type'   => 'post',
+                'post_status' => 'publish',
+                'meta_key'    => '_primary_keyword',
+                'meta_value'  => $primary_keyword,
+                'numberposts' => 1
+            ]);
+        } else {
+            // ✅ SANDBOX/BYPASS: استفاده از داده‌های نمونه
+            
+            $existing = get_posts([
+                'post_type'   => 'post',
+                'post_status' => 'draft',
+                'meta_key'    => '_primary_keyword',
+                'meta_value'  => $primary_keyword,
+                'numberposts' => 1
+            ]);
+        }        
+                
 
         if (!empty($existing)) {
             $this->log('⚠️ Keyword exists: ' . $primary_keyword);
@@ -567,8 +621,11 @@ Primary Keyword: {$primary_keyword}
             return null;
         }
  
-        $this->log('🌐 API call for AI Article Generator' );
-
+        // شمارنده API برای Article Generator
+        $call_number = AI_Job_Queue::increment_api_call('article_generator');
+        $this->log("🌐 API call #{$call_number} for AI Article Generator");
+       
+            
         $max_tokens = 6000;
 
         $args = [

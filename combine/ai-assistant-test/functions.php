@@ -8,11 +8,6 @@ if (!defined('ABSPATH')) {
     exit; // Exit if accessed directly
 }
 
-if (!defined('DEEPSEEK_API_KEY')) {
-   //define('DEEPSEEK_API_KEY', 'sk-658cb47fedcb4f178c402a088da40ba7');
-   define('DEEPSEEK_API_KEY', 'sk-20076ccbacdb4b7c8ae7e12c91c044ba');
-}
-
    
 
 define('DISABLE_WP_CRON', true);
@@ -52,6 +47,8 @@ add_action('after_setup_theme', 'ai_assistant_setup');
 
 require_once get_template_directory() . '/inc/ai-assistant-api/ai-assistant-api.php';
 
+
+require_once get_template_directory() . '/inc/jobs/job-monitoring.php';
 require_once get_template_directory() . '/inc/jobs/process-requests-job.php';
 require_once get_template_directory() . '/inc/jobs/ai-article-generator.php';
 
