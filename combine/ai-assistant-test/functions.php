@@ -977,3 +977,62 @@ function ai_assistant_init_session_timeout() {
 
 // ذخیره موقت PDF‌های آزمایش
 require_once get_template_directory() . '/services/diet/upload-pdf-temp.php';
+
+
+// AJAX handler برای بروزرسانی ایمیل کاربر
+function aidastyar_update_user_email() {
+    // بررسی nonce
+    check_ajax_referer('ai_assistant_nonce', 'security');
+    
+    // بررسی لاگین بودن کاربر
+    if (!is_user_logged_in()) {
+        wp_send_json_error([
+            'message' => 'کاربر وارد نشده است'
+        ]);
+    }
+    
+    $user_id = get_current_user_id();
+    $new_email = isset($_POST['email']) ? sanitize_email($_POST['email']) : '';
+    
+    // اعتبارسنجی ایمیل
+    if (empty($new_email)) {
+        wp_send_json_error([
+            'message' => 'ایمیل نمی‌تواند خالی باشد'
+        ]);
+    }
+    
+    if (!is_email($new_email)) {
+        wp_send_json_error([
+            'message' => 'فرمت ایمیل صحیح نیست'
+        ]);
+    }
+    
+    // بررسی تکراری نبودن ایمیل
+    if (email_exists($new_email) && email_exists($new_email) !== $user_id) {
+        wp_send_json_error([
+            'message' => 'این ایمیل قبلاً ثبت شده است'
+        ]);
+    }
+    
+    // بروزرسانی ایمیل
+    $result = wp_update_user([
+        'ID' => $user_id,
+        'user_email' => $new_email
+    ]);
+    
+    if (is_wp_error($result)) {
+        wp_send_json_error([
+            'message' => 'خطا در بروزرسانی ایمیل: ' . $result->get_error_message()
+        ]);
+    }
+    
+    // ذخیره لاگ
+    error_log("Email updated for user $user_id: $new_email");
+    
+    wp_send_json_success([
+        'message' => 'ایمیل با موفقیت بروزرسانی شد',
+        'email' => $new_email
+    ]);
+}
+
+add_action('wp_ajax_update_user_email', 'aidastyar_update_user_email');

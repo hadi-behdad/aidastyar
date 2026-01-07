@@ -808,7 +808,6 @@ class PaymentPopup {
         confirmBtn.disabled = false;
     }
     
-    // ✅ متد جدید 1: بررسی ایمیل
     async checkUserEmailAndProceed() {
         try {
             const response = await fetch(aiAssistantVars.ajaxurl, {
@@ -817,60 +816,378 @@ class PaymentPopup {
                     'Content-Type': 'application/x-www-form-urlencoded',
                 },
                 body: new URLSearchParams({
-                    'action': 'get_current_user_info',
-                    'security': aiAssistantVars.nonce
+                    action: 'get_current_user_info',
+                    security: aiAssistantVars.nonce
+                })
+            });
+            
+            const data = await response.json();
+            
+            if (data.success) {
+                const userData = data.data;
+                console.log('اطلاعات کاربر:', userData);
+                
+                if (!userData.email || userData.email === '') {
+                    this.showEmailRequiredMessage();
+                    return;
+                }
+                
+                // ایمیل موجود است، ادامه فرآیند پرداخت
+                this.proceedWithPayment();
+            } else {
+                throw new Error(data.data?.message || 'خطا در دریافت اطلاعات کاربر');
+            }
+        } catch (error) {
+            console.error('خطا در بررسی ایمیل کاربر:', error);
+            alert('خطا در بررسی اطلاعات کاربر: ' + error.message);
+        }
+    }
+
+    
+    
+    async showEmailRequiredMessage() {
+        console.log('نمایش پاپ‌آپ بروزرسانی ایمیل');
+        
+        // ایجاد پاپ‌آپ ایمیل
+        this.createEmailUpdatePopup();
+    }
+    
+    createEmailUpdatePopup() {
+        // حذف پاپ‌آپ قبلی اگر وجود داشته باشد
+        const existingPopup = document.getElementById('email-update-popup');
+        if (existingPopup) {
+            existingPopup.remove();
+        }
+    
+        // ایجاد المنت پاپ‌آپ
+        const emailPopup = document.createElement('div');
+        emailPopup.id = 'email-update-popup';
+        emailPopup.style.cssText = `
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.6);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 10001;
+            animation: fadeIn 0.3s ease;
+        `;
+    
+        emailPopup.innerHTML = `
+            <div style="
+                background: white;
+                padding: 30px 20px;
+                border-radius: 8px;
+                max-width: 450px;
+                width: 80%;
+                box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+                animation: slideUp 0.3s ease;
+            ">
+                <!-- هدر -->
+                <div style="text-align: center; margin-bottom: 20px;">
+                    <div style="
+                        width: 60px;
+                        height: 60px;
+                        background: #fff3e0;
+                        border-radius: 50%;
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        margin: 0 auto 15px;
+                    ">
+                        <i class="fas fa-envelope" style="font-size: 28px; color: #ff9800;"></i>
+                    </div>
+                    <h3 style="margin: 0; color: #333; font-size: 18px;">
+                        بروزرسانی ایمیل
+                    </h3>
+                </div>
+    
+                <!-- پیغام -->
+                <p style="
+                    text-align: center;
+                    color: #666;
+                    margin-bottom: 20px;
+                    line-height: 1.6;
+                ">
+                    برای ادامه فرآیند پرداخت، لطفاً ایمیل خود را وارد کنید
+                </p>
+    
+                <!-- فیلد ایمیل -->
+                <div style="margin-bottom: 20px;">
+                    <input 
+                        type="email" 
+                        id="email-input-field" 
+                        placeholder="example@email.com"
+                        dir="ltr"
+                        style="
+                            width: 100%;
+                            padding: 12px 15px;
+                            border: 2px solid #e0e0e0;
+                            border-radius: 8px;
+                            font-size: 14px;
+                            transition: border-color 0.3s;
+                            box-sizing: border-box;
+                        "
+                        onfocus="this.style.borderColor='#00857a'"
+                        onblur="this.style.borderColor='#e0e0e0'"
+                    >
+                    <p id="email-error-message" style="
+                        color: #dc3545;
+                        font-size: 12px;
+                        margin: 8px 0 0 0;
+                        display: none;
+                    "></p>
+                </div>
+                    
+                <!-- دکمه‌ها -->
+                <div style="display: flex; gap: 10px;">
+                    <button 
+                        id="confirm-email-update" 
+                        style="
+                            flex: 1;
+                            padding: 12px;
+                            background: #00857a;
+                            color: white;
+                            border: none;
+                            border-radius: 8px;
+                            cursor: pointer;
+                            font-size: 14px;
+                            transition: background 0.3s;
+                        "
+                        onmouseover="this.style.background='#006d63'"
+                        onmouseout="this.style.background='#00857a'"
+                    >
+                        <span id="confirm-text">تایید و ذخیره</span>
+                        <i id="loading-spinner" class="fas fa-spinner fa-spin" style="display: none;"></i>
+                    </button>
+                    <button 
+                        id="cancel-email-update" 
+                        style="
+                            flex: 1;
+                            padding: 12px;
+                            background: #f0f0f0;
+                            color: #333;
+                            border: none;
+                            border-radius: 8px;
+                            cursor: pointer;
+                            font-size: 14px;
+                            transition: background 0.3s;
+                        "
+                        onmouseover="this.style.background='#e0e0e0'"
+                        onmouseout="this.style.background='#f0f0f0'"
+                    >
+                        انصراف
+                    </button>
+                </div>
+            </div>
+        `;
+    
+        // اضافه کردن استایل‌های انیمیشن
+        if (!document.getElementById('email-popup-animations')) {
+            const style = document.createElement('style');
+            style.id = 'email-popup-animations';
+            style.textContent = `
+                @keyframes fadeIn {
+                    from { opacity: 0; }
+                    to { opacity: 1; }
+                }
+                @keyframes slideUp {
+                    from { 
+                        transform: translateY(30px);
+                        opacity: 0;
+                    }
+                    to { 
+                        transform: translateY(0);
+                        opacity: 1;
+                    }
+                }
+            `;
+            document.head.appendChild(style);
+        }
+    
+        document.body.appendChild(emailPopup);
+    
+        // تنظیم event listener ها
+        this.setupEmailPopupListeners();
+    }
+    
+    setupEmailPopupListeners() {
+        const emailInput = document.getElementById('email-input-field');
+        const confirmBtn = document.getElementById('confirm-email-update');
+        const cancelBtn = document.getElementById('cancel-email-update');
+        const errorMessage = document.getElementById('email-error-message');
+    
+        // دکمه انصراف
+        cancelBtn.addEventListener('click', () => {
+            this.closeEmailPopup();
+        });
+    
+        // دکمه تایید
+        confirmBtn.addEventListener('click', () => {
+            this.handleEmailUpdate();
+        });
+    
+        // فشردن Enter در فیلد ایمیل
+        emailInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                this.handleEmailUpdate();
+            }
+        });
+    
+        // پاک کردن خطا هنگام تایپ
+        emailInput.addEventListener('input', () => {
+            errorMessage.style.display = 'none';
+            emailInput.style.borderColor = '#e0e0e0';
+        });
+    
+        // بستن با کلیک بیرون پاپ‌آپ
+        const popup = document.getElementById('email-update-popup');
+        popup.addEventListener('click', (e) => {
+            if (e.target === popup) {
+                this.closeEmailPopup();
+            }
+        });
+    
+        // بستن با Escape
+        this.emailPopupKeyHandler = (e) => {
+            if (e.key === 'Escape') {
+                this.closeEmailPopup();
+            }
+        };
+        document.addEventListener('keydown', this.emailPopupKeyHandler);
+    
+        // فوکوس روی فیلد ایمیل
+        setTimeout(() => emailInput.focus(), 100);
+    }
+    
+    async handleEmailUpdate() {
+        const emailInput = document.getElementById('email-input-field');
+        const confirmBtn = document.getElementById('confirm-email-update');
+        const confirmText = document.getElementById('confirm-text');
+        const loadingSpinner = document.getElementById('loading-spinner');
+        const errorMessage = document.getElementById('email-error-message');
+        
+        const email = emailInput.value.trim();
+    
+        // اعتبارسنجی ایمیل
+        if (!email) {
+            this.showEmailError('لطفاً ایمیل خود را وارد کنید');
+            return;
+        }
+    
+        // بررسی فرمت ایمیل
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(email)) {
+            this.showEmailError('فرمت ایمیل صحیح نیست');
+            return;
+        }
+    
+        // غیرفعال کردن دکمه و نمایش لودینگ
+        confirmBtn.disabled = true;
+        confirmText.style.display = 'none';
+        loadingSpinner.style.display = 'inline-block';
+    
+        try {
+            const response = await fetch(aiAssistantVars.ajaxurl, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: new URLSearchParams({
+                    action: 'update_user_email',
+                    email: email,
+                    security: aiAssistantVars.nonce
                 })
             });
     
             const data = await response.json();
     
             if (data.success) {
-                const userData = data.data;
-                console.log('📧 اطلاعات کاربر دریافت شد:', userData);
-    
-                // ✅ اگر ایمیل خالی است
-                if (!userData.email || userData.email === '') {
-                    this.showEmailRequiredMessage();
-                    return;
-                }
-    
-                // ✅ اگر ایمیل معتبر است
-                this.proceedWithPayment();
+                // نمایش پیغام موفقیت
+                this.showEmailSuccessAndClose(email);
             } else {
-                throw new Error(data.data?.message || 'خطا در دریافت اطلاعات');
+                throw new Error(data.data?.message || 'خطا در بروزرسانی ایمیل');
             }
         } catch (error) {
-            console.error('❌ خطا:', error);
-            alert('خطا: ' + error.message);
+            console.error('خطا در بروزرسانی ایمیل:', error);
+            this.showEmailError(error.message || 'خطا در ارتباط با سرور');
+            
+            // فعال کردن مجدد دکمه
+            confirmBtn.disabled = false;
+            confirmText.style.display = 'inline';
+            loadingSpinner.style.display = 'none';
         }
     }
     
-
-    // ✅ متد جدید 2: نمایش پیغام و انتقال
-    async showEmailRequiredMessage() {
-        console.log('⚠️ ایمیل معتبر نیست - نیاز به تکمیل پروفایل');
+    showEmailError(message) {
+        const emailInput = document.getElementById('email-input-field');
+        const errorMessage = document.getElementById('email-error-message');
         
-        // ✅ استفاده از aidastyar-loader
-        const loader = new AiDastyarLoader({
-            message: 'لطفا اطلاعات کاربری خود را تکمیل کنید',
-            persistent: true,
-            closable: true,
-            overlay: true
-        });
-    
-        loader.show();
-    
+        errorMessage.textContent = message;
+        errorMessage.style.display = 'block';
+        emailInput.style.borderColor = '#dc3545';
+        
+        // لرزش فیلد
+        emailInput.style.animation = 'shake 0.5s';
         setTimeout(() => {
-            const redirectUrl = window.location.origin + '/profile/';
-            
-            // ✅ باز کردن در تب جدید
-            window.open(redirectUrl, '_blank');
-            
-            // ✅ بستن loader
-            loader.hide();
-        }, 1500);
-
+            emailInput.style.animation = '';
+        }, 500);
     }
+    
+    showEmailSuccessAndClose(email) {
+        const popup = document.getElementById('email-update-popup');
+        const popupContent = popup.querySelector('div');
+        
+        // نمایش پیغام موفقیت
+        popupContent.innerHTML = `
+            <div style="text-align: center;">
+                <div style="
+                    width: 80px;
+                    height: 80px;
+                    background: #e8f5e9;
+                    border-radius: 50%;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    margin: 0 auto 20px;
+                ">
+                    <i class="fas fa-check" style="font-size: 40px; color: #4caf50;"></i>
+                </div>
+                <h3 style="margin: 0 0 10px 0; color: #333;">
+                    ایمیل با موفقیت ثبت شد
+                </h3>
+                <p style="color: #666; margin: 0; direction: ltr;">
+                    ${email}
+                </p>
+            </div>
+        `;
+    
+        // بستن پاپ‌آپ بعد از 1.5 ثانیه
+        setTimeout(() => {
+            this.closeEmailPopup();
+        }, 1500);
+    }
+    
+    closeEmailPopup() {
+        const popup = document.getElementById('email-update-popup');
+        if (popup) {
+            // انیمیشن خروج
+            popup.style.animation = 'fadeOut 0.3s ease';
+            setTimeout(() => {
+                popup.remove();
+            }, 300);
+        }
+    
+        // حذف event listener
+        if (this.emailPopupKeyHandler) {
+            document.removeEventListener('keydown', this.emailPopupKeyHandler);
+            this.emailPopupKeyHandler = null;
+        }
+    }
+
     
     // ✅ متد جدید 3: انجام پرداخت
     proceedWithPayment() {
