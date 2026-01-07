@@ -1451,6 +1451,21 @@ window.showStep = function(step) {
             submitButton.disabled = !confirmCheckbox.checked;
         }
     }
+    const stepsRequiringSelection = [
+        window.STEPS.CHRONIC_CONDITIONS,
+        window.STEPS.MEDICATIONS,
+        window.STEPS.DIGESTIVE_CONDITIONS,
+        window.STEPS.SURGERY,
+        window.STEPS.DIET_STYLE,
+        window.STEPS.FOOD_LIMITATIONS
+    ];
+    
+    if (stepsRequiringSelection.includes(step)) {
+        const nextButton = document.querySelector('.next-step');
+        if (nextButton && !nextButton.disabled) {
+            nextButton.disabled = true;
+        }
+    }    
 }
 
 window.updateStepCounter = function(step) {
