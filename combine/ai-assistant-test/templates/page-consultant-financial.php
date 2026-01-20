@@ -52,8 +52,8 @@ wp_enqueue_style('consultant-financial-dashboard-css',
     [],
     filemtime(get_template_directory() . '/assets/css/consultant-financial-dashboard.css')
 );
-
-wp_enqueue_style('font-awesome', 'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css');
+//comment the cdn
+// wp_enqueue_style('font-awesome', 'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css');
 ?>
 
 <div class="consultant-financial-panel">

@@ -955,9 +955,11 @@ add_action('init', 'ai_assistant_init_session_timeout', 3 * 3600);
 function ai_assistant_init_session_timeout() {
     if (!session_id()) {
         // تنظیم timeout به 60 دقیقه (3600 ثانیه)
-        ini_set('session.gc_maxlifetime', 3 * 3600);
-        session_set_cookie_params(3 * 3600);
-        session_start();
+        if (!headers_sent() && session_id() == '') {
+            ini_set('session.gc_maxlifetime', 3 * 3600);
+            session_set_cookie_params(3 * 3600);
+            session_start();
+        }
     }
     
     // بررسی آخرین فعالیت
@@ -1036,3 +1038,29 @@ function aidastyar_update_user_email() {
 }
 
 add_action('wp_ajax_update_user_email', 'aidastyar_update_user_email');
+
+
+// غیرفعال کردن ایموجی‌های وردپرس
+function disable_wp_emojis() {
+    remove_action('wp_head', 'print_emoji_detection_script', 7);
+    remove_action('admin_print_scripts', 'print_emoji_detection_script');
+    remove_action('wp_print_styles', 'print_emoji_styles');
+    remove_action('admin_print_styles', 'print_emoji_styles');
+    remove_filter('the_content_feed', 'wp_staticize_emoji');
+    remove_filter('comment_text_rss', 'wp_staticize_emoji');
+    remove_filter('wp_mail', 'wp_staticize_emoji_for_email');
+    
+    // حذف DNS prefetch برای s.w.org
+    add_filter('emoji_svg_url', '__return_false');
+    
+    // حذف از TinyMCE
+    add_filter('tiny_mce_plugins', 'disable_emojis_tinymce');
+}
+add_action('init', 'disable_wp_emojis');
+
+function disable_emojis_tinymce($plugins) {
+    if (is_array($plugins)) {
+        return array_diff($plugins, array('wpemoji'));
+    }
+    return array();
+}

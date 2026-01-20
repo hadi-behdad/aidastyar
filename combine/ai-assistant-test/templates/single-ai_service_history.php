@@ -105,8 +105,8 @@ add_filter('document_title_parts', function($title) use ($item) {
     return $title;
 });
 
-// بارگذاری فونت آیکون و استایل‌ها
-wp_enqueue_style('font-awesome', 'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css');
+//comment the cdn
+// wp_enqueue_style('font-awesome', 'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css');
 wp_enqueue_style('diet-plan-css', get_template_directory_uri() . '/assets/css/services/diet-plan.css');
 
 // بارگذاری اسکریپت کامپوننت

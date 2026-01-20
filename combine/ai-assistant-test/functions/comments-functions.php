@@ -107,11 +107,11 @@ function handle_get_service_rating() {
     ));
 }
 
-// اضافه کردن فونت آیکون‌ها
-function enqueue_font_awesome() {
+//comment the cdn
+/*function enqueue_font_awesome() {
     wp_enqueue_style('font-awesome', 'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css');
 }
-add_action('wp_enqueue_scripts', 'enqueue_font_awesome');
+add_action('wp_enqueue_scripts', 'enqueue_font_awesome');*/
 
 // Enqueue comments styles and scripts
 function enqueue_comments_assets() {

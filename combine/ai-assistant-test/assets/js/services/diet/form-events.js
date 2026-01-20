@@ -353,19 +353,19 @@ window.getActualPreviousStep = function(requestedStep) {
 };
 
 
-window.preloadImages = function() {
-    const images = [
-        'assets/images/webp/img_0_de-min.webp',
-        'assets/images/png/img_1_de-min.png',
-        'assets/images/webp/img_0-min.webp',
-        'assets/images/png/img_1-min.png'
-    ];
+// window.preloadImages = function() {
+//     const images = [
+//         'assets/images/webp/img_0_de-min.webp',
+//         'assets/images/png/img_1_de-min.png',
+//         'assets/images/webp/img_0-min.webp',
+//         'assets/images/png/img_1-min.png'
+//     ];
     
-    images.forEach(src => {
-        const img = new Image();
-        img.src = src;
-    });
-}
+//     images.forEach(src => {
+//         const img = new Image();
+//         img.src = src;
+//     });
+// }
 
 window.showPaymentConfirmation = function(formData, finalPrice) {
     try {
@@ -882,4 +882,4 @@ window.showSummary = function() {
 }
 
 // Initialize event listeners
-window.addEventListener('load', preloadImages);
+// window.addEventListener('load', preloadImages);

@@ -29,7 +29,8 @@ wp_enqueue_style('admin-payout-manager-css',
     filemtime(get_template_directory() . '/assets/css/admin-payout-manager.css')
 );
 
-wp_enqueue_style('font-awesome', 'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css');
+//comment the cdn
+// wp_enqueue_style('font-awesome', 'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css');
 
 wp_enqueue_script('admin-payout-manager', 
     get_template_directory_uri() . '/assets/js/admin-payout-manager.js', 

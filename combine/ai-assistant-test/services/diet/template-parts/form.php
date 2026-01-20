@@ -618,11 +618,8 @@ $theme_assets = get_stylesheet_directory_uri();
                     <span class="label-text">داروهای گوارشی</span>
                 </label>
             </div>
-    
-            <!-- NEW MEDICATIONS - 4 گروه جدید -->
             
-            <h3 class="different-category-titles" style="margin-top: 20px; border-top: 1px solid #ddd; padding-top: 15px;">داروهای خاص</h3>
-    
+            <h3 class="diffrent-category-titles" style="margin-top: 0px;">داروهای خاص</h3>
             <div class="checkbox-container">
                 <input type="checkbox" id="medication-immunosuppressants" class="real-checkbox">
                 <label for="medication-immunosuppressants" class="checkbox-label">
@@ -683,7 +680,7 @@ $theme_assets = get_stylesheet_directory_uri();
         
         <div id="digestive-conditions-selection" class="checkbox-selection-container checkbox-list-container scrollable-container">
             <!-- بیماری‌های گوارشی ساختاری -->
-            <h3 class="diffrent-category-titles" style="margin-top: 0px;">🩺 بیماری‌های گوارشی ساختاری</h3>
+            <h3 class="diffrent-category-titles" style="margin-top: 0px;">بیماری‌های گوارشی ساختاری</h3>
             <div class="checkbox-container">
                 <input type="checkbox" id="digestive-ibs" class="real-checkbox">
                 <label for="digestive-ibs" class="checkbox-label">
@@ -709,7 +706,7 @@ $theme_assets = get_stylesheet_directory_uri();
             </div>
     
             <!-- علائم و مشکلات عملکردی -->
-            <h3 class="diffrent-category-titles">🌀 علائم و مشکلات عملکردی</h3>
+            <h3 class="diffrent-category-titles">علائم و مشکلات عملکردی</h3>
             <div class="checkbox-container">
                 <input type="checkbox" id="digestive-bloating" class="real-checkbox">
                 <label for="digestive-bloating" class="checkbox-label">
@@ -783,7 +780,7 @@ $theme_assets = get_stylesheet_directory_uri();
             </div>
     
             <!-- عفونت‌ها و مشکلات خاص -->
-            <h3 class="diffrent-category-titles">🦠 عفونت‌ها و مشکلات خاص</h3>
+            <h3 class="diffrent-category-titles">عفونت‌ها و مشکلات خاص</h3>
             <div class="checkbox-container">
                 <input type="checkbox" id="digestive-helicobacter" class="real-checkbox">
                 <label for="digestive-helicobacter" class="checkbox-label">
@@ -810,7 +807,7 @@ $theme_assets = get_stylesheet_directory_uri();
         
         <div id="surgery-selection" class="checkbox-selection-container checkbox-list-container scrollable-container">
             <!-- 🔪 جراحی‌های گوارشی و متابولیک -->
-            <h3 class="diffrent-category-titles" style="margin-top: 0px;">🔪 جراحی‌های گوارشی و متابولیک</h3>
+            <h3 class="diffrent-category-titles" style="margin-top: 0px;">جراحی‌های گوارشی و متابولیک</h3>
             <div class="checkbox-container">
                 <input type="checkbox" id="surgery-metabolic" class="real-checkbox">
                 <label for="surgery-metabolic" class="checkbox-label">
@@ -834,7 +831,7 @@ $theme_assets = get_stylesheet_directory_uri();
             </div>
             
             <!-- ❤️ جراحی‌های عمده و ارگان‌ها -->
-            <h3 class="diffrent-category-titles">❤️ جراحی‌های عمده و ارگان‌ها</h3>
+            <h3 class="diffrent-category-titles">جراحی‌های عمده و ارگان‌ها</h3>
             <div class="checkbox-container">
                 <input type="checkbox" id="surgery-thyroid" class="real-checkbox">
                 <label for="surgery-thyroid" class="checkbox-label">
@@ -872,7 +869,7 @@ $theme_assets = get_stylesheet_directory_uri();
             </div>
             
             <!-- 🎗️ سرطان و جراحی‌های مرتبط -->
-            <h3 class="diffrent-category-titles">🎗️ سرطان و جراحی‌های مرتبط</h3>
+            <h3 class="diffrent-category-titles">سرطان و جراحی‌های مرتبط</h3>
             <div class="checkbox-container">
                 <input type="checkbox" id="cancer-history" class="real-checkbox">
                 <label for="cancer-history" class="checkbox-label">
@@ -887,19 +884,15 @@ $theme_assets = get_stylesheet_directory_uri();
                 <h4 style="margin: 0 0 15px 0; color: #333; font-size: 14px;">وضعیت درمان:</h4>
                 <div class="cancer-options" style="display: flex; flex-direction: column; gap: 10px;">
                     <div class="cancer-option" data-value="chemo">
-                        <div class="cancer-icon" style="display: inline-block; width: 24px; text-align: center;">💊</div>
                         <div class="cancer-text" style="display: inline-block; margin-right: 8px;">شیمی درمانی</div>
                     </div>
                     <div class="cancer-option" data-value="radio">
-                        <div class="cancer-icon" style="display: inline-block; width: 24px; text-align: center;">☢️</div>
                         <div class="cancer-text" style="display: inline-block; margin-right: 8px;">پرتو درمانی</div>
                     </div>
                     <div class="cancer-option" data-value="surgery">
-                        <div class="cancer-icon" style="display: inline-block; width: 24px; text-align: center;">🔪</div>
                         <div class="cancer-text" style="display: inline-block; margin-right: 8px;">اخیراً جراحی شده‌ام</div>
                     </div>
                     <div class="cancer-option" data-value="finished">
-                        <div class="cancer-icon" style="display: inline-block; width: 24px; text-align: center;">✅</div>
                         <div class="cancer-text" style="display: inline-block; margin-right: 8px;">درمانم تمام شده</div>
                     </div>
                 </div>
@@ -908,27 +901,21 @@ $theme_assets = get_stylesheet_directory_uri();
                 <h4 style="margin: 20px 0 10px 0; color: #333; font-size: 14px;">نوع سرطان:</h4>
                 <div class="cancer-options" style="display: flex; flex-direction: column; gap: 10px;">
                     <div class="cancer-option" data-value="breast">
-                        <div class="cancer-icon" style="display: inline-block; width: 24px; text-align: center;">🎀</div>
                         <div class="cancer-text" style="display: inline-block; margin-right: 8px;">پستان</div>
                     </div>
                     <div class="cancer-option" data-value="colon">
-                        <div class="cancer-icon" style="display: inline-block; width: 24px; text-align: center;">🩸</div>
                         <div class="cancer-text" style="display: inline-block; margin-right: 8px;">روده</div>
                     </div>
                     <div class="cancer-option" data-value="prostate">
-                        <div class="cancer-icon" style="display: inline-block; width: 24px; text-align: center;">👨</div>
                         <div class="cancer-text" style="display: inline-block; margin-right: 8px;">پروستات</div>
                     </div>
                     <div class="cancer-option" data-value="lung">
-                        <div class="cancer-icon" style="display: inline-block; width: 24px; text-align: center;">🫁</div>
                         <div class="cancer-text" style="display: inline-block; margin-right: 8px;">ریه</div>
                     </div>
                     <div class="cancer-option" data-value="blood">
-                        <div class="cancer-icon" style="display: inline-block; width: 24px; text-align: center;">🩸</div>
                         <div class="cancer-text" style="display: inline-block; margin-right: 8px;">خون</div>
                     </div>
                     <div class="cancer-option" data-value="other">
-                        <div class="cancer-icon" style="display: inline-block; width: 24px; text-align: center;">❓</div>
                         <div class="cancer-text" style="display: inline-block; margin-right: 8px;">سایر</div>
                     </div>
                 </div>
@@ -996,34 +983,34 @@ $theme_assets = get_stylesheet_directory_uri();
             <div class="info-box">
                 <div class="info-content">
                     <div class="info-text">
-                        <span class="first-line">📊 آزمایشات قابل استخراج خودکار</span>
+                        <span class="first-line">آزمایشات قابل استخراج خودکار</span>
                         <span class="second-line" style="line-height: 1.8;">
                             <div style="margin-bottom: 8px;">
-                                <strong>🩸 قند و متابولیسم:</strong> FBS, HbA1c, Insulin
+                                <strong>قند و متابولیسم:</strong> FBS, HbA1c, Insulin
                             </div>
                             <div style="margin-bottom: 8px;">
-                                <strong>💊 چربی خون:</strong> Cholesterol, TG, LDL, HDL, VLDL
+                                <strong>چربی خون:</strong> Cholesterol, TG, LDL, HDL, VLDL
                             </div>
                             <div style="margin-bottom: 8px;">
-                                <strong>🫀 کبد:</strong> SGOT (AST), SGPT (ALT), ALP
+                                <strong>کبد:</strong> SGOT (AST), SGPT (ALT), ALP
                             </div>
                             <div style="margin-bottom: 8px;">
-                                <strong>💧 کلیه:</strong> BUN, Creatinine, Uric Acid
+                                <strong>کلیه:</strong> BUN, Creatinine, Uric Acid
                             </div>
                             <div style="margin-bottom: 8px;">
-                                <strong>🌟 ویتامین‌ها:</strong> Vit D, B12, Ferritin, Mg, Zn, Cu
+                                <strong>ویتامین‌ها:</strong> Vit D, B12, Ferritin, Mg, Zn, Cu
                             </div>
                             <div style="margin-bottom: 8px;">
-                                <strong>🦋 تیروئید:</strong> TSH, T3, T4
+                                <strong>تیروئید:</strong> TSH, T3, T4
                             </div>
                             <div style="margin-bottom: 8px;">
-                                <strong>🔥 التهاب:</strong> CRP, ESR
+                                <strong>التهاب:</strong> CRP, ESR
                             </div>
                             <div>
-                                <strong>🔬 CBC:</strong> WBC, RBC, Hb, HCT, MCV, MCH, MCHC, PLT, RDW
+                                <strong>CBC:</strong> WBC, RBC, Hb, HCT, MCV, MCH, MCHC, PLT, RDW
                             </div>
                             <div style="margin-top: 12px; padding-top: 12px; border-top: 1px dashed #ddd; color: #ff9800;">
-                                <strong>💡 نکته:</strong> برای بهترین نتیجه، PDF باید شامل جدول کامل نتایج باشد.
+                                <strong>نکته:</strong> برای بهترین نتیجه، PDF باید شامل جدول کامل نتایج باشد.
                             </div>
                         </span>
                     </div>
@@ -1165,9 +1152,6 @@ $theme_assets = get_stylesheet_directory_uri();
         
         <div id="exercise-selection">
             <div class="exercise-option" data-exercise="none">
-                <!--<div class="exercise-icon">-->
-                <!--    <span class="exercise-icon-text">🚫</span>-->
-                <!--</div>-->
                 <div class="exercise-details">
                     <h3>هیچ ورزشی نمی‌کنم</h3>
                     <p>بدون فعالیت ورزشی منظم در هفته</p>
@@ -1175,9 +1159,6 @@ $theme_assets = get_stylesheet_directory_uri();
             </div>
             
             <div class="exercise-option" data-exercise="light">
-                <!--<div class="exercise-icon">-->
-                <!--    <span class="exercise-icon-text">🚶‍♂️</span>-->
-                <!--</div>-->
                 <div class="exercise-details">
                     <h3>سبک</h3>
                     <p>۱-۲ روز در هفته، کمتر از ۳۰ دقیقه</p>
@@ -1186,9 +1167,6 @@ $theme_assets = get_stylesheet_directory_uri();
             </div>
             
             <div class="exercise-option" data-exercise="medium">
-                <!--<div class="exercise-icon">-->
-                <!--    <span class="exercise-icon-text">🏃‍♂️</span>-->
-                <!--</div>-->
                 <div class="exercise-details">
                     <h3>متوسط</h3>
                     <p>۳-۴ روز در هفته، ۳۰-۶۰ دقیقه</p>
@@ -1197,9 +1175,6 @@ $theme_assets = get_stylesheet_directory_uri();
             </div>
             
             <div class="exercise-option" data-exercise="high">
-                <!--<div class="exercise-icon">-->
-                <!--    <span class="exercise-icon-text">💪</span>-->
-                <!--</div>-->
                 <div class="exercise-details">
                     <h3>زیاد</h3>
                     <p>۵-۶ روز در هفته یا بیشتر، ۶۰+ دقیقه</p>
@@ -1208,9 +1183,6 @@ $theme_assets = get_stylesheet_directory_uri();
             </div>
             
             <div class="exercise-option" data-exercise="professional">
-                <!--<div class="exercise-icon">-->
-                <!--    <span class="exercise-icon-text">🏆</span>-->
-                <!--</div>-->
                 <div class="exercise-details">
                     <h3>ورزشکار حرفه‌ای</h3>
                     <p>تمرین سنگین روزانه و برنامه‌ریزی شده</p>
@@ -1269,7 +1241,7 @@ $theme_assets = get_stylesheet_directory_uri();
         
         <div id="food-limitations-selection" class="checkbox-selection-container checkbox-list-container scrollable-container">
             <!-- محدودیت‌های پزشکی -->
-            <h3 class="diffrent-category-titles" style="margin-top: 0px;">🩺 محدودیت‌های پزشکی</h3>
+            <h3 class="diffrent-category-titles" style="margin-top: 0px;">محدودیت‌های پزشکی</h3>
             <div class="checkbox-container">
                 <input type="checkbox" id="limitation-celiac" class="real-checkbox">
                 <label for="limitation-celiac" class="checkbox-label">
@@ -1311,7 +1283,7 @@ $theme_assets = get_stylesheet_directory_uri();
             </div>
     
             <!-- ترجیحات شخصی -->
-            <h3 class="diffrent-category-titles">🌱 ترجیحات شخصی</h3>
+            <h3 class="diffrent-category-titles">ترجیحات شخصی</h3>
             <div class="checkbox-container">
                 <input type="checkbox" id="limitation-no-seafood" class="real-checkbox">
                 <label for="limitation-no-seafood" class="checkbox-label">
@@ -1383,7 +1355,6 @@ $theme_assets = get_stylesheet_directory_uri();
                             <!-- قیمت سرویس AI -->
                             <div class="price-row">
                                 <div class="price-row-label">
-                                    <span class="price-icon">🤖</span>
                                     <span>سرویس هوش مصنوعی</span>
                                 </div>
                                 <div class="price-row-value">
@@ -1396,7 +1367,6 @@ $theme_assets = get_stylesheet_directory_uri();
                             <!-- قیمت مشاور -->
                             <div class="price-row">
                                 <div class="price-row-label">
-                                    <span class="price-icon">👨‍⚕️</span>
                                     <span>مشاوره متخصص</span>
                                 </div>
                                 <div class="price-row-value">
@@ -1412,7 +1382,6 @@ $theme_assets = get_stylesheet_directory_uri();
                             <!-- قیمت کل -->
                             <div class="price-row total-price-row">
                                 <div class="price-row-label">
-                                    <span class="price-icon">💰</span>
                                     <span class="total-label">جمع کل</span>
                                 </div>
                                 <div class="price-row-value">
@@ -1604,9 +1573,10 @@ function saveFormAndRedirect() {
   const currentUrl = window.location.href.split('#')[0];
   sessionStorage.setItem('diet_form_redirect_url', currentUrl);
   
-  // هدایت به صفحه لاگین با کامپوننت لودینگ
+  // هدایت به صفحه لاگین
   const loginUrl = '<?php echo wp_login_url(); ?>?redirect_to=' + encodeURIComponent(currentUrl);
   
+  // ایجاد loader و هدایت
   const loader = new AiDastyarLoader({
     message: 'در حال انتقال به صفحه ورود',
     theme: 'light',
@@ -1614,19 +1584,15 @@ function saveFormAndRedirect() {
     position: 'center',
     closable: false,
     overlay: true,
-    autoHide: null,
-    persistent: false, 
+    persistent: true, // تغییر به true
     redirectUrl: loginUrl,
-    redirectDelay: 2000, 
-    onShow: null,
-    onHide: null,
-    onRedirect: null        
+    redirectDelay: 1000
   });
   loader.show();
 }
 
 window.addEventListener('load', function() {
-    // پنهان کردن لودینگ در صورت وجود
+    // پنهان کردن لودرهای دیگر
     if (window.AiDastyarLoader && window.AiDastyarLoader.hide) {
         window.AiDastyarLoader.hide();
     }
@@ -1635,48 +1601,102 @@ window.addEventListener('load', function() {
     const loggedIn = urlParams.get('logged_in');
     
     if (loggedIn === '1' && sessionStorage.getItem('diet_form_data')) {
-        // نمایش loader هنگام بازیابی داده‌ها
+        // 1. ابتدا فرم را مخفی می‌کنیم
+        const formElement = document.getElementById('multi-step-form');
+        if (formElement) {
+            formElement.style.opacity = '0';
+            formElement.style.visibility = 'hidden';
+        }
+        
+        // 2. نمایش لودر با پیام مناسب
         const loader = new AiDastyarLoader({
-            message: 'در حال بازیابی اطلاعات',
+            message: 'در حال بارگذاری اطلاعات فرم شما...',
             theme: 'light',
             size: 'medium',
             position: 'center',
             closable: false,
             overlay: true,
-            autoHide: 2000,
-            persistent: false, 
-            redirectUrl: null,
-            redirectDelay: null, 
-            onShow: null,
-            onHide: null,
-            onRedirect: null        
+            persistent: true,
+            onShow: function() {
+                console.log('Loader shown for form restoration');
+            },
+            onHide: function() {
+                // پس از بستن لودر، فرم را نشان می‌دهیم
+                if (formElement) {
+                    formElement.style.opacity = '1';
+                    formElement.style.visibility = 'visible';
+                    formElement.style.transition = 'opacity 0.5s ease';
+                }
+            }
         });
         loader.show();
-
-        // بازیابی داده‌ها
-        const savedData = JSON.parse(sessionStorage.getItem('diet_form_data'));
-        const savedStep = savedData._currentStep || 1;
         
-        if (savedData) {
-            const {_timestamp, _currentStep, ...formData} = savedData;
-            Object.assign(window.state.formData, formData);
-            
-            window.navigateToStep(STEPS.TERMS_AGREEMENT);
-            
-            if (typeof window.state.updateFormElementsFromState === 'function') {
-                window.state.updateFormElementsFromState();
+        // 3. تاخیر برای نمایش لودر
+        setTimeout(() => {
+            try {
+                // بازیابی داده‌ها
+                const savedData = JSON.parse(sessionStorage.getItem('diet_form_data'));
+                
+                if (savedData) {
+                    const {_timestamp, _currentStep, ...formData} = savedData;
+                    
+                    // اعمال داده‌ها به state
+                    if (window.state && window.state.formData) {
+                        Object.assign(window.state.formData, formData);
+                    }
+                    
+                    // برو به مرحله ذخیره شده
+                    if (window.navigateToStep && window.STEPS) {
+                        window.navigateToStep(window.STEPS.TERMS_AGREEMENT);
+                    }
+                    
+                    // پر کردن عناصر فرم
+                    if (typeof window.state.updateFormElementsFromState === 'function') {
+                        // به‌روزرسانی پیام لودر
+                        loader.update('در حال پر کردن فرم با اطلاعات شما...');
+                        
+                        // تاخیر کوتاه برای اطمینان از رندر شدن
+                        setTimeout(() => {
+                            window.state.updateFormElementsFromState();
+                            
+                            // پیام نهایی و بستن لودر
+                            loader.update('اطلاعات شما با موفقیت بارگذاری شد!');
+                            
+                            setTimeout(() => {
+                                loader.hide();
+                            }, 1000);
+                        }, 300);
+                    } else {
+                        // اگر تابع updateFormElementsFromState وجود ندارد
+                        loader.update('اطلاعات بازیابی شد!');
+                        setTimeout(() => loader.hide(), 1000);
+                    }
+                }
+                
+                // پاک کردن storage
+                sessionStorage.removeItem('diet_form_data');
+                sessionStorage.removeItem('diet_form_redirect_url');
+                
+                // حذف پارامتر از URL
+                if (window.history.replaceState) {
+                    const url = new URL(window.location);
+                    url.searchParams.delete('logged_in');
+                    window.history.replaceState({}, document.title, url.toString());
+                }
+                
+            } catch (error) {
+                console.error('Error restoring form:', error);
+                loader.update('⚠️ خطا در بازیابی اطلاعات');
+                setTimeout(() => {
+                    loader.hide();
+                    // نشان دادن فرم حتی اگر خطا داشت
+                    if (formElement) {
+                        formElement.style.opacity = '1';
+                        formElement.style.visibility = 'visible';
+                    }
+                }, 2000);
             }
-        }
-        
-        // پاک کردن داده‌های ذخیره شده
-        sessionStorage.removeItem('diet_form_data');
-        sessionStorage.removeItem('diet_form_redirect_url');
-        
-        // حذف پارامتر logged_in از URL
-        if (window.history.replaceState) {
-            const newUrl = window.location.pathname + window.location.hash;
-            window.history.replaceState({}, document.title, newUrl);
-        }
+        }, 500); // تاخیر 500ms برای نمایش لودر
     }
 });
 </script>
