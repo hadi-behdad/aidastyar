@@ -2,6 +2,16 @@
 <html <?php language_attributes(); 
 $theme_assets = get_stylesheet_directory_uri();?> dir="rtl">
 <head>
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-QR7JXY7N88"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+    
+      gtag('config', 'G-QR7JXY7N88');
+    </script>
+    
     <script>
         var home_url = '<?php echo home_url(); ?>';
     </script>  

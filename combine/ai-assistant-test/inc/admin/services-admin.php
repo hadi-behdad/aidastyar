@@ -1,4 +1,3 @@
-
 <?php
 // ایجاد صفحه مدیریت در منوی پیشخوان
 add_action('admin_menu', function() {
@@ -133,4 +132,3 @@ function ai_assistant_render_services_admin() {
     // نمایش لیست سرویس‌ها
     include __DIR__ . '/views/services-list.php';
 }
-

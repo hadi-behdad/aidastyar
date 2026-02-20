@@ -1,8 +1,4 @@
 <?php
-/**
- * AI Assistant API Integration
- * Description: پردازش درخواست‌های هوش مصنوعی و ارتباط با DeepSeek API
- */
 
 defined('ABSPATH') or die('دسترسی ممنوع!');
 

@@ -1,6 +1,4 @@
-
 <?php
-// ثبت سرویس رژیم غذایی
 function ai_assistant_register_diet_service() {
     $service_manager = AI_Assistant_Service_Manager::get_instance();
     

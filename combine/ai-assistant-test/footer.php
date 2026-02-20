@@ -31,19 +31,19 @@
 
         <!-- شبکه‌های اجتماعی -->
         <div class="footer-social">
-            <a href="https://instagram.com/yourusername" class="social-icon instagram" target="_blank" rel="noopener" title="اینستاگرام">
+            <a href="https://aidastyar.com" class="social-icon instagram" target="_blank" rel="noopener" title="اینستاگرام">
                 <span class="dashicons dashicons-instagram"></span>
             </a>
             
-            <a href="https://t.me/yourusername" class="social-icon telegram" target="_blank" rel="noopener" title="تلگرام">
+            <a href="https://aidastyar.com" class="social-icon telegram" target="_blank" rel="noopener" title="تلگرام">
                 <span class="dashicons dashicons-phone"></span>
             </a>
             
-            <a href="https://twitter.com/yourusername" class="social-icon twitter" target="_blank" rel="noopener" title="توییتر">
+            <a href="https://aidastyar.com" class="social-icon twitter" target="_blank" rel="noopener" title="توییتر">
                 <span class="dashicons dashicons-twitter"></span>
             </a>
             
-            <a href="https://linkedin.com/company/yourcompany" class="social-icon linkedin" target="_blank" rel="noopener" title="لینکدین">
+            <a href="https://aidastyar.com" class="social-icon linkedin" target="_blank" rel="noopener" title="لینکدین">
                 <span class="dashicons dashicons-linkedin"></span>
             </a>
         </div>

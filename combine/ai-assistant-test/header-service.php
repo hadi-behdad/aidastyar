@@ -1,4 +1,3 @@
-<!--/home/aidastya/public_html/wp-content/themes/ai-assistant/header-service.php-->
 <!DOCTYPE html>
 <html <?php language_attributes(); ?>>
 <head>

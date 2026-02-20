@@ -1,14 +1,7 @@
 <?php
-/**
- * /home/aidastya/public_html/test/wp-content/themes/ai-assistant-test/functions.php
- * Functions for AI Assistant Theme
- */
-
-if (!defined('ABSPATH')) {
+if ( ! defined( 'ABSPATH' ) ) {
     exit; // Exit if accessed directly
 }
-
-   
 
 define('DISABLE_WP_CRON', true);
 
