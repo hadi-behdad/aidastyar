@@ -2,3 +2,11 @@
 Stack trace:
 #0 {main}
   thrown in /home/aidastya/public_html/test/wp-content/themes/ai-assistant-test/index.php on line 7
+[20-Feb-2026 18:24:52 UTC] PHP Fatal error:  Uncaught Error: Call to undefined function get_header() in /home/aidastya/public_html/test/wp-content/themes/ai-assistant-test/index.php:7
+Stack trace:
+#0 {main}
+  thrown in /home/aidastya/public_html/test/wp-content/themes/ai-assistant-test/index.php on line 7
+[20-Feb-2026 18:24:57 UTC] PHP Fatal error:  Uncaught Error: Call to undefined function get_header() in /home/aidastya/public_html/test/wp-content/themes/ai-assistant-test/index.php:7
+Stack trace:
+#0 {main}
+  thrown in /home/aidastya/public_html/test/wp-content/themes/ai-assistant-test/index.php on line 7

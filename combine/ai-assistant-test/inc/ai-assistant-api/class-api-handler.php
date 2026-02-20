@@ -6,7 +6,7 @@ if (!defined('ABSPATH')) {
 
 class AI_Assistant_Api_Handler {
     private static $instance;
-    private $api_key;
+   
     private $logger;
 
     public static function init() {
@@ -18,7 +18,7 @@ class AI_Assistant_Api_Handler {
 
     private function __construct() {
         // تغییر نام option به ai_assistant_deepseek_key
-        $this->api_key = get_option('ai_assistant_deepseek_key');
+       
         $this->logger = AI_Assistant_Logger::get_instance();
         
         $this->register_hooks();
@@ -30,73 +30,18 @@ class AI_Assistant_Api_Handler {
     }   
 
     private function register_hooks() {
-        add_action('admin_menu', [$this, 'add_admin_page']);
-        add_action('admin_init', [$this, 'register_settings']);
+   
         add_action('wp_ajax_ai_assistant_process', [$this, 'process_request']);
         add_action('wp_ajax_nopriv_ai_assistant_process', [$this, 'handle_unauthorized']);
     }
 
-    public function add_admin_page() {
-        add_options_page(
-            'تنظیمات DeepSeek',
-            'DeepSeek_API',
-            'manage_options',
-            'ai_assistant-settings',
-            [$this, 'render_admin_page']
-        );
-    }
 
-    public function register_settings() {
-        register_setting('ai_assistant_settings', 'ai_assistant_deepseek_key');
 
-        add_settings_section(
-            'ai_assistant_api_section',
-            'تنظیمات API',
-            null,
-            'ai_assistant-settings'
-        );
 
-        add_settings_field(
-            'ai_assistant_deepseek_key',
-            'API Key',
-            [$this, 'render_api_key_field'],
-            'ai_assistant-settings',
-            'ai_assistant_api_section'
-        );
-    }
 
-    public function render_api_key_field() {
-        $value = esc_attr($this->api_key);
-        echo '<input type="password" name="ai_assistant_deepseek_key" value="'.$value.'" class="regular-text">';
-    }
 
-    public function render_admin_page() {
-        ?>
-        <div class="wrap">
-            <h1>تنظیمات DeepSeek API</h1>
-            <form method="post" action="options.php">
-                <?php
-                settings_fields('ai_assistant_settings');
-                do_settings_sections('ai_assistant-settings');
-                submit_button();
-                ?>
-            </form>
 
-            <h2>لاگ خطاها</h2>
-            <pre><?php 
-                if (!current_user_can('administrator')) {
-                    echo 'دسترسی مجاز نیست.';
-                    return;
-                }
 
-                $log_file = WP_CONTENT_DIR . '/ai-assistant-logs/ai-assistant.log';
-                echo file_exists($log_file) ? 
-                     esc_html(file_get_contents($log_file)) : 
-                     'لاگی وجود ندارد';
-            ?></pre>
-        </div>
-        <?php
-    }
 
     public function process_request() {
         global $wpdb;
