@@ -206,6 +206,9 @@ function ai_assistant_process_payment_return() {
                         ? $verification_result['ref_id']
                         : $authority;
                 
+                
+                    $amount=$amount/10;   //  تبدیل به تومان
+                    
                     $success = $wallet_handler->add_credit(
                         $user_id,
                         $amount,

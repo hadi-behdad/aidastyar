@@ -10,18 +10,31 @@
             
         
             
-            <a referrerpolicy='origin' target='_blank' href='https://trustseal.enamad.ir/?id=617554&Code=7tyfka42FmXMO17j8F8lMdDS2seI53vC'>
-                <img referrerpolicy='origin' src="<?php echo get_template_directory_uri(); ?>/assets/images/enamad.png" alt="نماد اعتماد الکترونیکی" width="60" height="60" code='7tyfka42FmXMO17j8F8lMdDS2seI53vC'>
-            </a>            
+        <div class="footer-content">
+            <!-- نماد اعتماد و پرداخت امن -->
+            <div class="payment-trust-icons">
+                <!-- نماد اعتماد الکترونیکی -->
+    
+                
             
-            
-          <div id='zibal'>
-            <script src="https://zibal.ir/trust/scripts/zibal-trust-v4.js" type="text/javascript"></script>
-          </div>   
-              
-            <div id="zarinpal">
-            <script src="https://www.zarinpal.com/webservice/TrustCode" type="text/javascript"></script>
-            </div>              
+                
+                
+              <div id="enamad">
+                <a href="https://aidastyar.com/wp-content/themes/ai-assistant/trust-page.html" target="_blank" title="اینماد" id="enamad-trust-badge"><img src="https://aidastyar.com/wp-content/themes/ai-assistant/assets/images/enamad.png" alt="نماد اعتماد الکترونیکی" style="height: 85px; border: 0px;"></a>
+              </div>              
+                
+              <div id="zibal">
+                <a href="https://aidastyar.com/wp-content/themes/ai-assistant/trust-page.html" target="_blank" title="پرداخت آنلاین زیبال" id="zibal-trust-badge"><img src="https://aidastyar.com/wp-content/themes/ai-assistant/assets/images/zibal.png" alt="پرداخت آنلاین زیبال" style="height: 85px; border: 0px;"></a>
+              </div>   
+                  
+                <div id="zarinpal">
+                <a href="https://aidastyar.com/wp-content/themes/ai-assistant/trust-page.html" target="_blank" title="دروازه پرداخت معتبر"><img src="https://aidastyar.com/wp-content/themes/ai-assistant/assets/images/zarinpal.png" border="0" alt="دروازه پرداخت معتبر"></a>
+                </div>              
+                            
+            </div>
+    
+
+    </div>
                         
         </div>
 

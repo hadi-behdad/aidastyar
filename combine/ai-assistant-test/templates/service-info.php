@@ -195,11 +195,11 @@ $total_comments = $comments_db -> get_comment_count($service_id , 'approved');
                 <div class="rating-input">
                     <label>امتیاز شما:</label>
                     <div class="stars-input">
-                        <i class="fas fa-star" data-value="1"></i>
-                        <i class="fas fa-star" data-value="2"></i>
-                        <i class="fas fa-star" data-value="3"></i>
-                        <i class="fas fa-star" data-value="4"></i>
-                        <i class="fas fa-star" data-value="5"></i>
+                        <i class="fas fa-star" data-value="1">★</i>
+                        <i class="fas fa-star" data-value="2">★</i>
+                        <i class="fas fa-star" data-value="3">★</i>
+                        <i class="fas fa-star" data-value="4">★</i>
+                        <i class="fas fa-star" data-value="5">★</i>
                     </div>
                     <input type="hidden" name="rating" value="0">
                 </div>

@@ -11,7 +11,8 @@ class AI_Assistant_Wallet_Checkout_Handler {
     }
     
     public function connect_to_zarinpal($amount) {
-        $amount_int = (int) $amount * 10;
+      //  $amount_int = (int) $amount * 10;
+        $amount_int = (int) $amount ;
         //error_log('🔵 [WALLET] Connecting to ZarinPal, Amount: ' . $amount);
         
         // اضافه کردن این خط - دریافت user_id
@@ -90,7 +91,8 @@ class AI_Assistant_Wallet_Checkout_Handler {
     
     // تابع برای تأیید پرداخت
     public function verify_payment($authority, $amount) {
-        $amount_int = (int) $amount * 10;
+       // $amount_int = (int) $amount * 10;
+         $amount_int = (int) $amount ;
         //error_log('🔵 [WALLET] Verifying payment, Authority: ' . $authority . ', Amount: ' . $amount);
         
         $merchant_id = ai_assistant_get_zarinpal_merchant_id();

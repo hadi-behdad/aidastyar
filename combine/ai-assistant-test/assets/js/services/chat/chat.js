@@ -1,4 +1,5 @@
 jQuery(document).ready(function($) {
+    console.log('آماده‌سازی درخواست AJAX');
     const chatForm = $('#ai-chat-form');
     if (!chatForm.length) return;
 
@@ -36,7 +37,8 @@ jQuery(document).ready(function($) {
             dataType: 'json',
             data: {
                 action: 'ai_assistant_process', // یا 'ai_assistant_process' اگر روش ۲ را انتخاب کردید
-                prompt: input, // به جای service_id
+                // prompt: input, // به جای service_id
+                userData: 'سلام خوبی؟',
                 security: aiAssistantVars.nonce,
                 service_id: 'chat', // یک مقدار ثابت یا از جایی بگیرید
                 price: 10000000 // یا مقدار مناسب

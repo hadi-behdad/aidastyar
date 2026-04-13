@@ -1,3 +1,8 @@
+<?php
+// /home/aidastya/public_html/test/wp-content/themes/ai-assistant-test/services/chat/template-parts/form.php
+$theme_assets = get_stylesheet_directory_uri();
+?>
+
 <div class="ai-service-container ai-chat-container">
     <?php if (!is_user_logged_in()): ?>
         <div class="ai-card ai-notice">
@@ -31,3 +36,5 @@
         </div>
     <?php endif; ?>
 </div>
+
+<script src="<?php echo $theme_assets; ?>/assets/js/services/<?php echo esc_attr($service_id); ?>/chat.js"></script>

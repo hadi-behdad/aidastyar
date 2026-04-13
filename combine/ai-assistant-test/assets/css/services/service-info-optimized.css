@@ -1158,7 +1158,7 @@ select.form-control {
 .stars-input i:hover,
 .stars-input i.active {
     color: var(--color-warning);
-    transform: scale(1.2) rotate(15deg);
+    transform: scale(1.2) ;
 }
 
 .comment-textarea {
