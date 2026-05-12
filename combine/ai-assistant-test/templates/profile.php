@@ -13,6 +13,14 @@ if (!is_user_logged_in()) {
     exit;
 }
 
+if (!defined('DONOTCACHEPAGE')) {
+    define('DONOTCACHEPAGE', true);
+}
+
+header('Cache-Control: no-cache, no-store, must-revalidate');
+header('Pragma: no-cache');
+header('Expires: 0');
+
 $current_user = wp_get_current_user();
 $user_credit = AI_Assistant_Payment_Handler::get_instance()->get_user_credit(get_current_user_id());
 $formatted_credit = format_number_fa($user_credit);

@@ -13,6 +13,14 @@ if (!defined('ABSPATH')) {
     exit; // Exit if accessed directly
 }
 
+if (!defined('DONOTCACHEPAGE')) {
+    define('DONOTCACHEPAGE', true);
+}
+
+header('Cache-Control: no-cache, no-store, must-revalidate');
+header('Pragma: no-cache');
+header('Expires: 0');
+
 get_header();
 
 // دریافت اطلاعات کاربر

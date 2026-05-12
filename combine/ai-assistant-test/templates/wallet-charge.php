@@ -9,13 +9,21 @@ if (!is_user_logged_in()) {
     exit;
 }
 
-nocache_headers(); // تابع داخلی وردپرس
+if (!defined('DONOTCACHEPAGE')) {
+    define('DONOTCACHEPAGE', true);
+}
 
-// در صورت تمایل، دستی هم اضافه کن:
-header("Cache-Control: no-store, no-cache, must-revalidate, max-age=0");
-header("Cache-Control: post-check=0, pre-check=0", false);
-header("Pragma: no-cache");
-header("Expires: 0");
+header('Cache-Control: no-cache, no-store, must-revalidate');
+header('Pragma: no-cache');
+header('Expires: 0');
+
+// nocache_headers(); // تابع داخلی وردپرس
+
+// // در صورت تمایل، دستی هم اضافه کن:
+// header("Cache-Control: no-store, no-cache, must-revalidate, max-age=0");
+// header("Cache-Control: post-check=0, pre-check=0", false);
+// header("Pragma: no-cache");
+// header("Expires: 0");
 
 get_header();
 
@@ -27,9 +35,9 @@ if (isset($_GET['payment'])) {
     switch ($_GET['payment']) {
         case 'success':
             $message_class = 'wall-chrg-ai-alert-success';
-            $message_icon = '✅';
             $message_text = 'پرداخت با موفقیت انجام شد.';
             $message_text .= isset($_GET['ref_id']) ? ' کد پیگیری: <span dir="ltr">' . $_GET['ref_id'] . '</span>' : '';
+            $message_text .= '<br><br>🔔 <strong>مرحله بعد:</strong> لطفاً به <strong style="background:#f0f0f0;padding:2px 6px;">تب قبلی مرورگر</strong> (همان صفحه‌ای که رژیم را انتخاب می‌کردید) برگردید.';
             break;
         case 'failed':
             $message_class = 'wall-chrg-ai-alert-error';
@@ -875,6 +883,13 @@ document.addEventListener('DOMContentLoaded', function() {
     const customAmountInput = document.getElementById('custom_amount');
     const chargeAmountInput = document.getElementById('charge_amount');
     
+    // جلوگیری از تغییر مقدار فیلد با اسکرول موس
+    if (customAmountInput) {
+        customAmountInput.addEventListener('wheel', function(e) {
+            e.preventDefault();
+            return false;
+        });
+    }      
     // بررسی اگر پارامتر needed_amount در URL وجود دارد
     const urlParams = new URLSearchParams(window.location.search);
     const neededAmount = urlParams.get('needed_amount');

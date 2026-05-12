@@ -3,6 +3,15 @@
  * Template Name: صفحه سرویس‌ها
  * /home/aidastya/public_html/test/wp-content/themes/ai-assistant-test/templates/services-page.php
  */
+ 
+if (!defined('DONOTCACHEPAGE')) {
+    define('DONOTCACHEPAGE', true);
+}
+
+header('Cache-Control: no-cache, no-store, must-revalidate');
+header('Pragma: no-cache');
+header('Expires: 0');
+
 get_header();
 $theme_assets = get_stylesheet_directory_uri();
 ?>
