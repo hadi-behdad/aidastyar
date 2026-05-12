@@ -304,6 +304,32 @@ add_filter( 'query_vars', 'ai_service_add_query_vars' );
 
 
 
+
+// در functions.php
+add_action('init', 'add_service_output_rewrite_rule');
+function add_service_output_rewrite_rule() {
+    add_rewrite_rule(
+        '^service-output/([0-9]+)/?$',
+        'index.php?pagename=service-output&history_id=$matches[1]',
+        'top'
+    );
+    
+    // فلاش rewrite rules (فقط یک بار اجرا کنید)
+    if (get_option('service_output_rewrite_flushed') != '1') {
+        flush_rewrite_rules();
+        update_option('service_output_rewrite_flushed', '1');
+    }
+}
+
+// اضافه کردن query var
+add_filter('query_vars', 'add_service_output_query_vars');
+function add_service_output_query_vars($vars) {
+    $vars[] = 'history_id';
+    return $vars;
+}
+
+
+
 //---------------------------------------------------------
 // حذف آیتم تاریخچه با AJAX
 add_action('wp_ajax_delete_history_item', function() {

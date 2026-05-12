@@ -1,8 +1,8 @@
 <?php
 /**
- * ✅ صفحه تاریخچه سرویسها - با دکمه دانلود توافق نامه
+ * Template Name: تاریخچه سرویس های کاربران
+ * صفحه مخصوص تاریخچه کاربران
  */
-
 if (!is_user_logged_in()) {
     wp_redirect(wp_login_url(get_permalink()));
     exit;
@@ -163,7 +163,7 @@ $total_items = $wpdb->get_var($wpdb->prepare(
                                                target="_blank" 
                                                rel="noopener noreferrer"
                                                title="دانلود توافق نامه">
-                                                <span class="dashicons dashicons-download"></span>
+                                                <span class="dashicons dashicons-tablet"></span>
                                             </a>
                                             <?php
                                         } else {

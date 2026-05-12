@@ -29,8 +29,77 @@ class ConsultantDietEditor {
             this.currentData = this.createFallbackData();
         }
         
+    
+        // ✅ اضافه کردن userInfo از user_data
+        const userInfoSection = this.extractUserInfoSection(original_data?.user_data);
+        if (userInfoSection && this.currentData.sections) {
+            // چک کن قبلاً اضافه نشده باشه
+            const hasUserInfo = this.currentData.sections.some(s => s.title === 'اطلاعات کاربر');
+            if (!hasUserInfo) {
+                this.currentData.sections.unshift(userInfoSection);
+            }
+        } 
+        
+            
+            
+        
         this.render();
     }
+    
+    
+    
+    // ✅ متد جدید برای استخراج userInfo
+    extractUserInfoSection(userDataStr) {
+        if (!userDataStr) return null;
+        
+        try {
+            const userData = typeof userDataStr === 'string' ? JSON.parse(userDataStr) : userDataStr;
+            const userInfo = userData?.userInfo || userData;
+            
+            if (!userInfo || Object.keys(userInfo).length === 0) return null;
+            
+            const items = [];
+            Object.entries(userInfo).forEach(([key, value]) => {
+                let displayValue = '';
+                
+                if (Array.isArray(value)) {
+                    displayValue = value.map(item => {
+                        if (typeof item === 'object' && item !== null) {
+                            return item.value !== undefined ? 
+                                `${item.name || ''}: ${item.value} ${item.unit || ''}` : 
+                                JSON.stringify(item);
+                        }
+                        return item;
+                    }).join('، ');
+                } else if (typeof value === 'object' && value !== null) {
+                    displayValue = JSON.stringify(value);
+                } else if (typeof value === 'boolean') {
+                    displayValue = value ? 'بله' : 'خیر';
+                } else {
+                    displayValue = String(value ?? '');
+                }
+                
+                if (displayValue) {
+                    items.push({ label: key, value: displayValue });
+                }
+            });
+            
+            return {
+                title: 'اطلاعات کاربر',
+                content: [{
+                    subtitle: 'مشخصات ثبت‌شده در فرم',
+                    type: 'list',
+                    className: 'horizontal-list',
+                    items: items
+                }]
+            };
+        } catch (e) {
+            console.error('Error parsing user data:', e);
+            return null;
+        }
+    }
+
+
 
     createFallbackData() {
         return {

@@ -79,6 +79,12 @@ $theme_assets = get_stylesheet_directory_uri();?> dir="rtl">
                                     مدیریت کامنت ها
                                 </a>
                                 
+                                <!-- ✅ لینک جدید برای تاریخچه همه کاربران -->
+                                <a href="<?php echo home_url('/admin-users-history'); ?>" class="">
+                                    <span class="dashicons dashicons-groups"></span>
+                                    تاریخچه کاربران
+                                </a>                                
+                                
                                 
                                 <a href="<?php echo home_url('/management-discounts/'); ?>" class="">
                                     مدیریت تخفیف ها
@@ -199,6 +205,8 @@ $theme_assets = get_stylesheet_directory_uri();?> dir="rtl">
                                 تاریخچه
                             </a>
                             
+                           
+                            
                             <a href="<?php echo home_url('/user-wallet-history'); ?>" class="menu-item-card <?php if (is_page('user-wallet-history')) echo 'menu-active'; ?>">
                                 <span class="dashicons dashicons-randomize"></span>
                                 تاریخچه تراکنش ها
@@ -212,6 +220,14 @@ $theme_assets = get_stylesheet_directory_uri();?> dir="rtl">
                             
                             <!-- فقط برای ادمین‌ها -->
                             <?php if ( current_user_can('administrator') ) : ?>
+                            
+                                <!-- ✅ لینک جدید برای تاریخچه همه کاربران -->
+                                <a href="<?php echo home_url('/admin-users-history'); ?>" class="menu-item-card 
+                                    <?php if (is_page('admin-users-history')) echo 'menu-active'; ?>">
+                                    <span class="dashicons dashicons-groups"></span>
+                                    تاریخچه کاربران
+                                </a>      
+                                
                                 <a href="<?php echo home_url('/management-comments/'); ?>" class="menu-item-card <?php if (is_page('management-comments')) echo 'menu-active'; ?>">
                                     <span class="dashicons dashicons-admin-comments"></span>
                                     مدیریت کامنت ها

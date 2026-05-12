@@ -14,13 +14,64 @@ header("Cache-Control: no-cache, no-store, must-revalidate");
 header("Pragma: no-cache");
 header("Expires: 0");
 
-
+ 
 get_header('service');
 
 // دریافت ID از URL
-$history_id = get_query_var('history_id');
+// $history_id = get_query_var('history_id');
+// $history_manager = AI_Assistant_History_Manager::get_instance();
+// $user_id = get_current_user_id();
+
+
+// بخش جدید برای پشتیبانی از نمایش ادمین
+$is_admin_view = isset($_GET['admin_view']) && $_GET['admin_view'] === 'true' && current_user_can('administrator');
+
+// دریافت ID از URL - پشتیبانی از پارامترهای GET
+if (isset($_GET['history_id'])) {
+    $history_id = intval($_GET['history_id']);
+} else {
+    $history_id = get_query_var('history_id');
+}
+
 $history_manager = AI_Assistant_History_Manager::get_instance();
 $user_id = get_current_user_id();
+
+// اگر ادمین هست و پارامتر user_id رو ارسال کرده
+if ($is_admin_view && isset($_GET['user_id'])) {
+    $requested_user_id = intval($_GET['user_id']);
+} else {
+    $requested_user_id = $user_id;
+}
+
+// بررسی وجود آیتم و مالکیت (فقط اگر ادمین نباشه)
+if (!$history_id || (!$is_admin_view && !$history_manager->is_user_owner($history_id, $user_id))) {
+    status_header(404);
+    get_template_part(404);
+    exit;
+}
+
+// دریافت اطلاعات از جدول
+global $wpdb;
+$table_name = $wpdb->prefix . 'service_history';
+$item = $wpdb->get_row($wpdb->prepare(
+    "SELECT * FROM $table_name WHERE id = %d",
+    $history_id
+));
+
+if (!$item) {
+    status_header(404);
+    get_template_part(404);
+    exit;
+}
+
+// اگر ادمین هست، user_id رو از درخواست می‌گیریم
+if ($is_admin_view) {
+    $display_user_id = $requested_user_id;
+} else {
+    $display_user_id = $user_id;
+}
+
+
 
 // دریافت اطلاعات کاربر با متا داده‌ها
 function get_complete_user_data($user_id) {
@@ -41,37 +92,45 @@ function get_complete_user_data($user_id) {
     return false;
 } 
 
-// بررسی وجود آیتم و مالکیت
-if (!$history_id || !$history_manager->is_user_owner($history_id, $user_id)) {
-    status_header(404);
-    get_template_part(404);
-    exit;
-}
+// // بررسی وجود آیتم و مالکیت
+// if (!$history_id || !$history_manager->is_user_owner($history_id, $user_id)) {
+//     status_header(404);
+//     get_template_part(404);
+//     exit;
+// }
 
-// دریافت اطلاعات از جدول
-global $wpdb;
-$table_name = $wpdb->prefix . 'service_history';
-$item = $wpdb->get_row($wpdb->prepare(
-    "SELECT * FROM $table_name WHERE id = %d",
-    $history_id
-));
+// // دریافت اطلاعات از جدول
+//  global $wpdb;
+// $table_name = $wpdb->prefix . 'service_history';
+// $item = $wpdb->get_row($wpdb->prepare(
+//     "SELECT * FROM $table_name WHERE id = %d",
+//     $history_id
+// ));
 
-if (!$item) {
-    status_header(404);
-    get_template_part(404);
-    exit;
-}
+// if (!$item) { 
+//     status_header(404);
+//     get_template_part(404);
+//     exit;
+// }
 
 // بررسی وجود درخواست مشاوره برای این تاریخچه
 $consultation_request = $wpdb->get_row($wpdb->prepare(
     "SELECT * FROM {$wpdb->prefix}diet_consultation_requests WHERE service_history_id = %d AND user_id = %d",
     $history_id,
-    $user_id
+    $requested_user_id 
 ));
+
+
+  
 
 $has_consultation_request = !is_null($consultation_request);
 $is_approved = false;
 $final_diet_data = null;
+
+
+
+
+
 
 if ($has_consultation_request) {
     // بررسی وضعیت درخواست
@@ -92,7 +151,6 @@ if ($has_consultation_request) {
     $current_status = $consultation_request->status;
     $is_approved = ($current_status === 'approved');
     
-
     
     if ($is_approved && !empty($consultation_request->final_diet_data)) {
         $final_diet_data = $consultation_request->final_diet_data;
@@ -114,14 +172,32 @@ wp_enqueue_script('diet-plan-js', get_template_directory_uri() . '/assets/js/ser
 
 // اگر کاربر درخواست مشاوره دارد و وضعیت تایید شده است
 if ($has_consultation_request && $is_approved && $final_diet_data) {
+    
+
     // استفاده از رژیم نهایی تایید شده توسط مشاور
     $response_data = $final_diet_data;
     $source = 'final_diet_data';
 } else if (!$has_consultation_request) {
     // استفاده از رژیم معمولی از جدول service_history
+
     $response_data = $item->response;
     $source = 'response';
 }
+
+
+
+// دریافت user_Data
+$user_Data = $item->user_data;
+$user_data_array = null;
+
+if ($user_Data && is_string($user_Data)) {
+    $decoded_user_data = json_decode($user_Data, true);
+    if (json_last_error() === JSON_ERROR_NONE && isset($decoded_user_data['userInfo'])) {
+        $user_data_array = $decoded_user_data['userInfo'];
+    }
+}
+
+
 
 // اگر response شامل JSON است
 if ($response_data && is_string($response_data)) {
@@ -131,6 +207,7 @@ if ($response_data && is_string($response_data)) {
         $result_data = array(
             'response' => $response_data,
             'remaining_credit' => 0
+         
         );
         
         // دریافت اطلاعات کاربر
@@ -167,6 +244,10 @@ if ($response_data && is_string($response_data)) {
         document.addEventListener('DOMContentLoaded', function() {
             // داده‌های ما
             const resultData = <?php echo json_encode($result_data); ?>;
+            const userDietInfoData = <?php echo json_encode($user_data_array); ?>;
+            
+            
+    
             let finalData = resultData;
             
             // اگر response وجود دارد، آن را پردازش کن
@@ -177,6 +258,64 @@ if ($response_data && is_string($response_data)) {
                     console.error('Error parsing response data:', e);
                 }
             }
+            
+            
+       <?php if (!$has_consultation_request): ?>
+       
+            // ✅ اضافه کردن userDietInfo قبل از render
+            if (userDietInfoData && finalData) {
+                const userInfoSection = convertUserDietInfoToSection(userDietInfoData);
+                
+                if (userInfoSection) {
+                    if (!finalData.sections) {
+                        finalData.sections = [];
+                    }
+                    finalData.sections.unshift(userInfoSection);
+                }
+            }     
+       <?php endif; ?>     
+                    
+            // تابع تبدیل (خارج از DOMContentLoaded یا داخلش - فرقی نداره)
+            function convertUserDietInfoToSection(userDietInfo) {
+                if (!userDietInfo || Object.keys(userDietInfo).length === 0) return null;
+                
+                const items = [];
+                
+                Object.entries(userDietInfo).forEach(([key, value]) => {
+                    let displayValue = '';
+                    
+                    if (Array.isArray(value)) {
+                        displayValue = value.map(item => {
+                            if (typeof item === 'object' && item !== null) {
+                                return item.value !== undefined ? 
+                                    `${item.name || ''}: ${item.value} ${item.unit || ''}` : 
+                                    JSON.stringify(item);
+                            }
+                            return item;
+                        }).join('، ');
+                    } else if (typeof value === 'object' && value !== null) {
+                        displayValue = JSON.stringify(value);
+                    } else if (typeof value === 'boolean') {
+                        displayValue = value ? 'بله' : 'خیر';
+                    } else {
+                        displayValue = String(value ?? '');
+                    }
+                    
+                    if (displayValue) {
+                        items.push({ label: key, value: displayValue });
+                    }
+                });
+                
+                return {
+                    title: 'اطلاعات کاربر',
+                    content: [{
+                        subtitle: 'مشخصات ثبت‌شده در فرم',
+                        type: 'list',
+                        className: 'horizontal-list',
+                        items: items
+                    }]
+                };
+            }            
             
             // ایجاد کامپوننت
             const renderer = new DietPlanRenderer({
@@ -197,6 +336,8 @@ if ($response_data && is_string($response_data)) {
                     date: '<?php echo esc_js($created_date); ?>'
                 };
             }
+            
+            
             
             // رندر برنامه غذایی
             renderer.render(finalData);

@@ -220,7 +220,7 @@ class AI_Assistant_Process_Requests_Job {
         
         // Claim the job (atomic operation using WHERE clause)
         $now = current_time('mysql');
-        $log_entry = "\n[" . $now . "] Claimed by processor";
+        $log_entry = "\n[" . $now . "] Claimed by processor";     
         
         $updated = $wpdb->update(
             $this->table_name,
@@ -228,7 +228,9 @@ class AI_Assistant_Process_Requests_Job {
                 'status' => 'processing',
                 'started_at' => $now,
                 'last_attempt' => $now,
-                'processing_log' => $wpdb->prepare('%s', $pending_job->processing_log . $log_entry)
+                'processing_log' => $pending_job->processing_log . $log_entry
+            //    'processing_log' => $wpdb->prepare('%s', $pending_job->processing_log . $log_entry)
+                
             ],
             [
                 'id' => $pending_job->id,
@@ -409,6 +411,7 @@ class AI_Assistant_Process_Requests_Job {
         // Initialize variables
         $history_id = $job->history_id;
         $user_id = $job->user_id;
+        $processing_log = $job->processing_log ;
         $history_manager = null;
         $start_time = microtime(true);
         
@@ -481,45 +484,97 @@ class AI_Assistant_Process_Requests_Job {
             
             // Call API
             //error_log('📡 [WORKER] Calling API for job #' . $job_id);
+             
             
-            // ✅ بر اساس OTP_ENV تصمیم بگیر
-            if (defined('OTP_ENV') && OTP_ENV === 'production') {
-                // ✅ PRODUCTION: استفاده از API واقعی DeepSeek
-                //error_log('🔴 [PRODUCTION] Calling REAL DeepSeek API for job #' . $job_id);
-                $response = $this->call_deepseek_api($prompt);
-            } else {
-                // ✅ SANDBOX/BYPASS: استفاده از داده‌های نمونه
-                //error_log('🟢 [SANDBOX] Using MOCK DATA for job #' . $job_id . ' (OTP_ENV: ' . (defined('OTP_ENV') ? OTP_ENV : 'undefined') . ')');
+            $max_retries = 3;
+            $attempt = 0;
+            $cleaned_response = false;
+            
+            
+            while ($attempt < $max_retries && $cleaned_response === false) {
+                if ($attempt > 0) {
+                    
+                    error_log('🔄 Retry attempt ' . ($attempt + 1) . ' for job #' . $job_id);
+                    sleep(2); // ۲ ثانیه صبر کن قبل از تلاش مجدد
+                    
+                $log_entry = "\n[" . current_time('mysql') . "] Failed to get valid JSON in " . $attempt . " attempts";  
                 
-              
+                $processing_log = $processing_log . $log_entry;
                 
-                $response = '
-                {
-                    "title": "برنامه تغذیهای بالینی",
-                    "sections": [
-                        {
-                            "title": "۷. توصیهها",
-                            "content": {
-                                "type": "list",
-                                "items": [
-                                    "مصرف 3.5 لیتر آب در روز را ادامه دهید",
-                                    "وعدههای غذایی را منظم و در زمانهای مشخص مصرف کنید",
-                                    "پروتئین کافی در هر وعده دریافت کنید",
-                                    "میوه و سبزیجات متنوع مصرف کنید",
-                                    "خواب کافی (7-8 ساعت) داشته باشید"
-                                ]
+                
+                    $wpdb->update(
+                        $this->table_name,
+                        [
+                            
+                            
+                            'retry_count' => $attempt ,
+                            'last_attempt' => current_time('mysql'),
+                            'processing_log' => $processing_log
+                        ],
+                        ['id' => $job->id],
+                        [ '%d', '%s',  '%s'],
+                        ['%d']
+                    );                
+                
+                }            
+            
+                // ✅ بر اساس OTP_ENV تصمیم بگیر
+                if (defined('OTP_ENV') && OTP_ENV === 'production') {
+                    // ✅ PRODUCTION: استفاده از API واقعی DeepSeek
+                    //error_log('🔴 [PRODUCTION] Calling REAL DeepSeek API for job #' . $job_id);
+                    $response = $this->call_deepseek_api($prompt);
+                } else {
+                    // ✅ SANDBOX/BYPASS: استفاده از داده‌های نمونه
+                    //error_log('🟢 [SANDBOX] Using MOCK DATA for job #' . $job_id . ' (OTP_ENV: ' . (defined('OTP_ENV') ? OTP_ENV : 'undefined') . ')');
+                    
+                  
+                    
+                    $response = '
+                    {
+                        "title": "برنامه تغذیهای بالینی",
+                        "sections": 
+                        [
+                            {
+                                "title": "۷. توصیهها",
+                                "content": {
+                                    "type": "list",
+                                    "items": [
+                                        "مصرف 3.5 لیتر آب در روز را ادامه دهید",
+                                        "وعدههای غذایی را منظم و در زمانهای مشخص مصرف کنید",
+                                        "پروتئین کافی در هر وعده دریافت کنید",
+                                        "میوه و سبزیجات متنوع مصرف کنید",
+                                        "خواب کافی (7-8 ساعت) داشته باشید"
+                                    ]
+                                }
                             }
-                        }
-                    ]
-                }';
+                        ]
+                    }';
+                }
+    
+    
+                
+                // بررسی خطای API
+                if (!$response || (is_array($response) && isset($response['error']))) {
+                    $err = is_array($response) && isset($response['error']) ? $response['error'] : 'Empty or invalid API response';
+                     error_log($err);
+                    throw new Exception('API call failed: ' . $err);
+                }            
+                
+                // ✅ پاکسازی و بررسی اعتبار JSON
+                $cleaned_response = $this->clean_api_response($response);
+
+                 $attempt++;
             }
             
-            if (!$response || (is_array($response) && isset($response['error']))) {
-                $err = is_array($response) && isset($response['error']) ? $response['error'] : 'Empty or invalid API response';
-                throw new Exception('API call failed: ' . $err);
+            
+            
+            if ($cleaned_response === false) {
+                
+                throw new Exception('Failed to get valid JSON after ' . $max_retries . ' attempts');
             }
             
-            $cleaned_response = $this->clean_api_response($response);
+            
+            //---------------------------------------------------------------------------------------------------------------------------
             
             // Start database transaction
             $wpdb->query('START TRANSACTION');
@@ -555,12 +610,7 @@ class AI_Assistant_Process_Requests_Job {
                     throw new Exception('Failed to update history with response');
                 }
                 
-                // Update history with response
-                //error_log("📝 [WORKER] Updating history with response for job #$job_id");
-                $update_result = $history_manager->update_history($history_id, 'completed', $cleaned_response);
-                if (!$update_result) {
-                    throw new Exception("Failed to update history with response");
-                }
+
                 
                 // ✅ پردازش referral - داخل Transaction فعلی
                 //error_log("🎯 [REFERRAL] Checking if this is first purchase for user: $user_id");
@@ -640,7 +690,7 @@ class AI_Assistant_Process_Requests_Job {
                     [
                         'status' => 'done',
                         'updated_at' => current_time('mysql'),
-                        'processing_log' => $job->processing_log . $log_entry
+                        'processing_log' => $processing_log . $log_entry
                     ],
                     ['id' => $job_id],
                     ['%s', '%s', '%s'],
@@ -692,7 +742,7 @@ class AI_Assistant_Process_Requests_Job {
                     'status' => 'error',
                     'error_message' => substr($error_message, 0, 500),
                     'updated_at' => current_time('mysql'),
-                    'processing_log' => $job->processing_log . $log_entry
+                    'processing_log' => $processing_log . $log_entry
                 ],
                 ['id' => $job_id],
                 ['%s', '%s', '%s', '%s'],
@@ -914,7 +964,7 @@ class AI_Assistant_Process_Requests_Job {
      */
     private function clean_api_response($response_content) {
         if (empty($response_content)) {
-            return '';
+             return false;
         }
         
         // Remove markdown code blocks
@@ -930,6 +980,14 @@ class AI_Assistant_Process_Requests_Job {
         
         // Remove control characters
         $cleaned_response = preg_replace('/[\x00-\x1F\x7F]/u', '', $cleaned_response);
+        
+        // ✅ اضافه کن: بررسی اعتبار JSON
+        json_decode($cleaned_response);
+        if (json_last_error() !== JSON_ERROR_NONE) {
+            error_log('❌ Invalid JSON from DeepSeek: ' . json_last_error_msg());
+            error_log('Response preview: ' . substr($response_content, 0, 500));
+            return false;  // نامعتبر => false برگردون
+        }        
         
         return $cleaned_response;
     }

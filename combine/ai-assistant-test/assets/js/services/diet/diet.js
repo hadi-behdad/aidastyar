@@ -59,9 +59,12 @@ jQuery(document).ready(function($) {
                         closable: true,
                         overlay: true,
                         autoHide: 8000,
-                        redirectOnClose: window.location.origin + '/',
+                        redirectOnClose: window.location.origin + '/page-user-history/',   // تغییر مسیر به صفحه تاریخچه
                         onShow: function() {
-                            console.log('✅ Success loader shown');
+                            console.log('✅ Success loader shown - redirect target:', this.options.redirectOnClose);
+                        },
+                        onHide: function() {
+                            console.log('🔴 Success loader hidden - about to redirect to:', this.options.redirectOnClose);
                         }
                     });
                     successLoader.show();
