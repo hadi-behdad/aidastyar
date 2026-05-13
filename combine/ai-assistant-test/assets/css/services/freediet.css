@@ -1,0 +1,184 @@
+.free-diet-form-wrapper {
+  max-width: 880px;
+  margin: 32px auto;
+  padding: 16px;
+  direction: rtl;
+}
+
+.free-diet-form-wrapper .diet-form-container {
+  background: #ffffff;
+  border-radius: 28px;
+  padding: 28px;
+  box-shadow: 0 12px 40px rgba(15, 23, 42, 0.08);
+  border: 1px solid #eef2f7;
+}
+
+.free-diet-form-wrapper .diet-form-header {
+  text-align: center;
+  margin-bottom: 28px;
+}
+
+.free-diet-form-wrapper .diet-form-title {
+  margin: 0 0 10px;
+  font-size: 30px;
+  font-weight: 800;
+  color: #0f172a;
+}
+
+.free-diet-form-wrapper .diet-form-subtitle {
+  margin: 0;
+  font-size: 15px;
+  line-height: 2;
+  color: #64748b;
+}
+
+.free-diet-form-wrapper .fd-step-indicator-wrapper {
+  margin-bottom: 28px;
+}
+
+.free-diet-form-wrapper .fd-step-counter-box {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-bottom: 14px;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.free-diet-form-wrapper .fd-step-counter-label,
+.free-diet-form-wrapper .fd-step-divider {
+  color: #64748b;
+  font-weight: 600;
+}
+
+.free-diet-form-wrapper .fd-progress-bar-wrapper {
+  width: 100%;
+  height: 12px;
+  background: #edf2f7;
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.free-diet-form-wrapper .fd-progress-bar {
+  width: 0;
+  height: 100%;
+  border-radius: 999px;
+  background: linear-gradient(90deg, #0ea5a4 0%, #14b8a6 100%);
+  transition: width 0.3s ease;
+}
+
+.free-diet-form-wrapper .fd-step {
+  display: none;
+}
+
+.free-diet-form-wrapper .fd-step.fd-step--active {
+  display: block;
+}
+
+.free-diet-form-wrapper .fd-step-content-card {
+  min-height: 320px;
+  border: 1px solid #e2e8f0;
+  border-radius: 24px;
+  background: linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%);
+  padding: 32px 24px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  text-align: center;
+}
+
+.free-diet-form-wrapper .fd-step-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 16px;
+  padding: 8px 16px;
+  background: #dff7f4;
+  color: #0f766e;
+  border-radius: 999px;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.free-diet-form-wrapper .fd-step-title {
+  margin: 0 0 12px;
+  font-size: 26px;
+  font-weight: 800;
+  color: #0f172a;
+}
+
+.free-diet-form-wrapper .fd-step-description {
+  max-width: 540px;
+  margin: 0 auto;
+  font-size: 16px;
+  line-height: 2.1;
+  color: #475569;
+}
+
+.free-diet-form-wrapper .fd-step-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 24px;
+}
+
+.free-diet-form-wrapper .fd-step-action-btn {
+  min-width: 148px;
+  border: none;
+  border-radius: 16px;
+  padding: 14px 22px;
+  font-size: 16px;
+  font-weight: 800;
+  cursor: pointer;
+  transition: all 0.25s ease;
+}
+
+.free-diet-form-wrapper .fd-btn-primary {
+  background: #0f766e;
+  color: #ffffff;
+  box-shadow: 0 8px 20px rgba(15, 118, 110, 0.18);
+}
+
+.free-diet-form-wrapper .fd-btn-primary:hover {
+  background: #0d6761;
+  transform: translateY(-1px);
+}
+
+.free-diet-form-wrapper .fd-btn-secondary {
+  background: #eef2f7;
+  color: #1e293b;
+}
+
+.free-diet-form-wrapper .fd-btn-secondary:hover {
+  background: #e2e8f0;
+}
+
+@media (max-width: 768px) {
+  .free-diet-form-wrapper .diet-form-container {
+    padding: 20px;
+    border-radius: 22px;
+  }
+
+  .free-diet-form-wrapper .diet-form-title {
+    font-size: 24px;
+  }
+
+  .free-diet-form-wrapper .fd-step-title {
+    font-size: 22px;
+  }
+
+  .free-diet-form-wrapper .fd-step-content-card {
+    min-height: 260px;
+    padding: 24px 18px;
+  }
+
+  .free-diet-form-wrapper .fd-step-actions {
+    flex-direction: column-reverse;
+  }
+
+  .free-diet-form-wrapper .fd-step-action-btn {
+    width: 100%;
+  }
+}

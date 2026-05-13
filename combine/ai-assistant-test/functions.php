@@ -999,6 +999,7 @@ function ai_assistant_init_session_timeout() {
 // ذخیره موقت PDF‌های آزمایش
 require_once get_template_directory() . '/services/diet/upload-pdf-temp.php';
 
+require_once get_template_directory() . '/services/freediet/functions.php';
 
 // AJAX handler برای بروزرسانی ایمیل کاربر
 function aidastyar_update_user_email() {
