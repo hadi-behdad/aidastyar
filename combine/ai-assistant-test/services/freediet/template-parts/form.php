@@ -1,65 +1,95 @@
 <?php
-if (!defined('ABSPATH')) exit;
+/**
+ * FreeDiet Form Template
+ * Service: رژیم غذایی رایگان
+ * Note: فعلاً نمایشی — بدون ورودی کاربر
+ */
 ?>
 
-<div class="diet-form-wrapper free-diet-form-wrapper" data-freediet-form>
-    <div class="diet-form-container">
-        <div class="diet-form-header">
-            <h2 class="diet-form-title">فرم رژیم رایگان FreeDiet</h2>
-            <p class="diet-form-subtitle">
-                این فرم فعلاً به‌صورت نمایشی و فقط در دو مرحله طراحی شده است.
+<div id="freediet-fixed-header">
+    <div class="freediet-header-row">
+        <!-- شمارنده صفحه در سمت راست -->
+        <div id="freediet-step-counter">
+            <span id="freediet-current-step">1</span>/<span id="freediet-total-steps">2</span>
+        </div>
+        
+        <!-- لوگو -->
+        <div id="freediet-logo" onclick="window.location.href='<?php echo esc_url( home_url( '/' ) ); ?>'">
+            AiDASTYAR
+        </div>
+        
+        <!-- دکمه Back در سمت چپ -->
+        <button type="button" id="freediet-back-button">›</button>
+    </div>
+    <div id="freediet-progress-bar-container">
+        <div class="freediet-progress-bar" data-freediet-progress-bar style="width: 0%;"></div>
+    </div>
+</div>
+
+<!-- Main Wrapper -->
+<div class="freediet-wrapper" data-freediet-form>
+    <div class="freediet-container">
+
+        <!-- Header -->
+        <div class="freediet-header">
+            <h2 class="freediet-title">رژیم غذایی رایگان</h2>
+            <p class="freediet-subtitle">
+                چند مرحله ساده تا دریافت برنامه غذایی شخصی‌سازی‌شده
             </p>
         </div>
 
-        <div class="fd-step-indicator-wrapper">
-            <div class="fd-step-counter-box">
-                <span class="fd-step-counter-label">مرحله</span>
-                <span data-fd-current-step>1</span>
-                <span class="fd-step-divider">از</span>
-                <span data-fd-total-steps>2</span>
-            </div>
-
-            <div class="fd-progress-bar-wrapper">
-                <div class="fd-progress-bar" data-fd-progress-bar></div>
+        <!-- Step Indicator -->
+        <div class="freediet-step-indicator">
+            <div class="freediet-step-counter">
+                <span class="freediet-step-counter-label">مرحله</span>
+                <span data-freediet-current-step>1</span>
+                <span class="freediet-step-divider">از</span>
+                <span data-freediet-total-steps>2</span>
             </div>
         </div>
 
-        <form class="diet-multi-step-form fd-form" data-fd-form novalidate>
-            <div class="fd-step fd-step--active" data-step="1">
-                <div class="fd-step-content-card">
-                    <div class="fd-step-badge">مرحله اول</div>
-                    <h3 class="fd-step-title">FreeDiet</h3>
-                    <p class="fd-step-description">
-                        این بخش صرفاً برای تست ظاهر فرم ساخته شده و فعلاً هیچ ورودی‌ای از کاربر دریافت نمی‌شود.
+        <!-- Form -->
+        <form data-fd-form>
+
+            <!-- Step 1 -->
+            <div class="freediet-step freediet-step--active" data-freediet-step="1">
+                <div class="freediet-step-card">
+                    <span class="freediet-step-badge">مرحله اول</span>
+                    <h3 class="freediet-step-title">اطلاعات اولیه</h3>
+                    <p class="freediet-step-desc">
+                        این فرم فعلاً به‌صورت نمایشی طراحی شده است و هیچ ورودی‌ای از کاربر دریافت نمی‌شود.
                     </p>
                 </div>
             </div>
 
-            <div class="fd-step" data-step="2">
-                <div class="fd-step-content-card">
-                    <div class="fd-step-badge">مرحله دوم</div>
-                    <h3 class="fd-step-title">آماده ثبت نهایی</h3>
-                    <p class="fd-step-description">
-                        در این مرحله هم فقط ساختار دیداری فرم تست می‌شود و بعد از آن دکمه ثبت نمایش داده خواهد شد.
+            <!-- Step 2 -->
+            <div class="freediet-step" data-freediet-step="2">
+                <div class="freediet-step-card">
+                    <span class="freediet-step-badge">مرحله دوم</span>
+                    <h3 class="freediet-step-title">تأیید و ارسال</h3>
+                    <p class="freediet-step-desc">
+                        در این مرحله ساختار دیداری فرم تست می‌شود. پس از تأیید، دکمه ثبت نمایش داده می‌شود.
                     </p>
                 </div>
             </div>
 
-            <div class="fd-step-actions" data-fd-next-wrap>
-                <button type="button" class="fd-step-action-btn fd-btn-secondary" data-fd-back style="display: none;">
-                    مرحله قبل
-                </button>
-
-                <button type="button" class="fd-step-action-btn fd-btn-primary" data-fd-next>
+            <!-- دکمه‌های ثابت پایین صفحه -->
+            <div id="freediet-next-button-container" style="display: flex;">
+                <button type="button" class="freediet-btn freediet-btn--primary next-step" data-freediet-next>
                     گام بعد
                 </button>
             </div>
-
-            <div class="fd-step-actions" data-fd-submit-wrap style="display: none;">
-                <button type="submit" class="fd-step-action-btn fd-btn-primary">
-                    ثبت فرم
+            
+            <div id="freediet-submit-button-container" style="display: none;">
+                <button type="submit" class="freediet-btn freediet-btn--primary submit-step">
+                    ثبت نهایی
                 </button>
             </div>
+            
+            <!-- دکمه Back مخفی (برای منطق JS) -->
+            <button type="button" data-freediet-back style="display: none;">گام قبل</button>
+
         </form>
+
     </div>
 </div>
