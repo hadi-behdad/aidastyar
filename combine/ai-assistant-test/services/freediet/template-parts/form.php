@@ -6,28 +6,30 @@
  */
 ?>
 
-<div id="freediet-fixed-header">
-    <div class="freediet-header-row">
-        <!-- شمارنده صفحه در سمت راست -->
-        <div id="freediet-step-counter">
-            <span id="freediet-current-step">1</span>/<span id="freediet-total-steps">2</span>
-        </div>
-        
-        <!-- لوگو -->
-        <div id="freediet-logo" onclick="window.location.href='<?php echo esc_url( home_url( '/' ) ); ?>'">
-            AiDASTYAR
-        </div>
-        
-        <!-- دکمه Back در سمت چپ -->
-        <button type="button" id="freediet-back-button">›</button>
-    </div>
-    <div id="freediet-progress-bar-container">
-        <div class="freediet-progress-bar" data-freediet-progress-bar style="width: 0%;"></div>
-    </div>
-</div>
-
 <!-- Main Wrapper -->
 <div class="freediet-wrapper" data-freediet-form>
+    
+    <!-- Fixed Header (حالا داخل wrapper است) -->
+    <div id="freediet-fixed-header">
+        <div class="freediet-header-row">
+            <!-- شمارنده صفحه در سمت راست -->
+            <div id="freediet-step-counter">
+                <span id="freediet-current-step">1</span>/<span id="freediet-total-steps">2</span>
+            </div>
+            
+            <!-- لوگو -->
+            <div id="freediet-logo" onclick="window.location.href='<?php echo esc_url( home_url( '/' ) ); ?>'">
+                AiDASTYAR
+            </div>
+            
+            <!-- دکمه Back در سمت چپ -->
+            <button type="button" id="freediet-back-button">›</button>
+        </div>
+        <div id="freediet-progress-bar-container">
+            <div class="freediet-progress-bar" data-freediet-progress-bar style="width: 0%;"></div>
+        </div>
+    </div>
+
     <div class="freediet-container">
 
         <!-- Header -->
