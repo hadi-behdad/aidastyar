@@ -7,6 +7,16 @@
 get_header(); ?>
 
 <div class="otp-login-wrapper">
+    <script>
+        // ذخیره redirect_to از URL در sessionStorage
+        (function() {
+            var urlParams = new URLSearchParams(window.location.search);
+            var redirectTo = urlParams.get('redirect_to');
+            if (redirectTo && redirectTo !== '') {
+                sessionStorage.setItem('diet_form_redirect_url', redirectTo);
+            }
+        })();
+    </script>    
     <div class="otp-login-container">
         <div class="otp-header">
             <div class="logo">

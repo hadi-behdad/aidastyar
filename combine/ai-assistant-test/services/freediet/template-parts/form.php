@@ -2,8 +2,17 @@
 /**
  * FreeDiet Form Template
  * Service: رژیم غذایی رایگان
- * Note: فعلاً نمایشی — بدون ورودی کاربر
  */
+
+// اگر کاربر لاگین نیست، با پارامتر redirect_to به صفحه لاگین برو
+if ( ! is_user_logged_in() ) {
+    $current_url = ( is_ssl() ? 'https://' : 'http://' ) . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI'];
+    $login_url = home_url( '/otp-login/?redirect_to=' . urlencode( $current_url ) );
+    wp_redirect( $login_url );
+    exit;
+}
+
+// ادامه کد اصلی فرم (بدون تغییر) ...
 ?>
 
 <!-- Main Wrapper -->
